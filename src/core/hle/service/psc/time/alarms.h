@@ -74,8 +74,7 @@ struct Alarm : public Common::IntrusiveListBaseNode<Alarm> {
 
 class Alarms {
 public:
-    explicit Alarms(Core::System& system, StandardSteadyClockCore& steady_clock,
-                    PowerStateRequestManager& power_state_request_manager);
+    explicit Alarms(Core::System& system, StandardSteadyClockCore& steady_clock, PowerStateRequestManager& power_state_request_manager);
     ~Alarms();
 
     Kernel::KEvent& GetEvent() {
@@ -110,21 +109,17 @@ private:
 class IAlarmService final : public ServiceFramework<IAlarmService> {
 public:
     explicit IAlarmService(Core::System& system, std::shared_ptr<TimeManager> manager);
-
     ~IAlarmService() override = default;
 
 private:
     void CreateWakeupAlarm(HLERequestContext& ctx);
     void CreateBackgroundTaskAlarm(HLERequestContext& ctx);
-
-    Core::System& m_system;
     Alarms& m_alarms;
 };
 
 class ISteadyClockAlarm final : public ServiceFramework<ISteadyClockAlarm> {
 public:
     explicit ISteadyClockAlarm(Core::System& system, Alarms& alarms, AlarmType type);
-
     ~ISteadyClockAlarm() override = default;
 
 private:

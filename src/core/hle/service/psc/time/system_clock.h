@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2023 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -18,9 +21,7 @@ namespace Service::PSC::Time {
 
 class SystemClock final : public ServiceFramework<SystemClock> {
 public:
-    explicit SystemClock(Core::System& system, SystemClockCore& system_clock_core,
-                         bool can_write_clock, bool can_write_uninitialized_clock);
-
+    explicit SystemClock(Core::System& system, SystemClockCore& system_clock_core, bool can_write_clock, bool can_write_uninitialized_clock);
     ~SystemClock() override = default;
 
     Result GetCurrentTime(Out<s64> out_time);
@@ -30,8 +31,6 @@ public:
     Result GetOperationEventReadableHandle(OutCopyHandle<Kernel::KReadableEvent> out_event);
 
 private:
-    Core::System& m_system;
-
     SystemClockCore& m_clock_core;
     bool m_can_write_clock;
     bool m_can_write_uninitialized_clock;

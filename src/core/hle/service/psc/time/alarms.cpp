@@ -32,11 +32,13 @@ Alarm::~Alarm() {
     m_ctx.CloseEvent(m_event);
 }
 
-Alarms::Alarms(Core::System& system, StandardSteadyClockCore& steady_clock,
-               PowerStateRequestManager& power_state_request_manager)
-    : m_system{system}, m_ctx{system, "Psc:Alarms"}, m_steady_clock{steady_clock},
-      m_power_state_request_manager{power_state_request_manager}, m_event{m_ctx.CreateEvent(
-                                                                      "Psc:Alarms:Event")} {}
+Alarms::Alarms(Core::System& system, StandardSteadyClockCore& steady_clock, PowerStateRequestManager& power_state_request_manager)
+    : m_system{system}
+    , m_ctx{system, "Psc:Alarms"}
+    , m_steady_clock{steady_clock}
+    , m_power_state_request_manager{power_state_request_manager}
+    , m_event{m_ctx.CreateEvent("Psc:Alarms:Event")}
+{}
 
 Alarms::~Alarms() {
     m_ctx.CloseEvent(m_event);
@@ -132,7 +134,9 @@ Result Alarms::UpdateClosestAndSignal(Kernel::KernelCore& kernel) {
 }
 
 IAlarmService::IAlarmService(Core::System& system_, std::shared_ptr<TimeManager> manager)
-    : ServiceFramework{system_, "time:al"}, m_system{system}, m_alarms{manager->m_alarms} {
+    : ServiceFramework{system_, "time:al"}
+    , m_alarms{manager->m_alarms}
+{
     // clang-format off
     static const FunctionInfo functions[] = {
         {0, &IAlarmService::CreateWakeupAlarm, "CreateWakeupAlarm"},

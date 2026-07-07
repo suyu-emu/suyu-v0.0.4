@@ -23,11 +23,13 @@ TimeZoneService::TimeZoneService(
     Core::System& system_, FileTimestampWorker& file_timestamp_worker,
     bool can_write_timezone_device_location, TimeZoneBinary& time_zone_binary,
     std::shared_ptr<Service::PSC::Time::TimeZoneService> time_zone_service)
-    : ServiceFramework{system_, "ITimeZoneService"}, m_system{system},
-      m_can_write_timezone_device_location{can_write_timezone_device_location},
-      m_file_timestamp_worker{file_timestamp_worker}, m_wrapped_service{std::move(
-                                                          time_zone_service)},
-      m_operation_event{m_system}, m_time_zone_binary{time_zone_binary} {
+    : ServiceFramework{system_, "ITimeZoneService"}
+    , m_can_write_timezone_device_location{can_write_timezone_device_location}
+    , m_file_timestamp_worker{file_timestamp_worker}
+    , m_wrapped_service{std::move(time_zone_service)}
+    , m_operation_event{system}
+    , m_time_zone_binary{time_zone_binary}
+{
     // clang-format off
     static const FunctionInfo functions[] = {
         {0,   D<&TimeZoneService::GetDeviceLocationName>, "GetDeviceLocationName"},
@@ -48,8 +50,7 @@ TimeZoneService::TimeZoneService(
     // clang-format on
     RegisterHandlers(functions);
 
-    m_set_sys =
-        m_system.ServiceManager().GetService<Service::Set::ISystemSettingsServer>("set:sys", true);
+    m_set_sys = system.ServiceManager().GetService<Service::Set::ISystemSettingsServer>("set:sys", true);
 }
 
 TimeZoneService::~TimeZoneService() = default;
@@ -89,7 +90,7 @@ Result TimeZoneService::SetDeviceLocationName(
 
     std::scoped_lock m{m_list_mutex};
     for (auto& operation_event : m_list_nodes) {
-        operation_event.m_event->Signal(m_system.Kernel());
+        operation_event.m_event->Signal(system.Kernel());
     }
     R_SUCCEED();
 }

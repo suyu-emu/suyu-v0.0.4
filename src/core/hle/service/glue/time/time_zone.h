@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2023 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -77,9 +80,7 @@ public:
                                  const Service::PSC::Time::CalendarTime& calendar_time);
 
 private:
-    Core::System& m_system;
     std::shared_ptr<Service::Set::ISystemSettingsServer> m_set_sys;
-
     bool m_can_write_timezone_device_location;
     FileTimestampWorker& m_file_timestamp_worker;
     std::shared_ptr<Service::PSC::Time::TimeZoneService> m_wrapped_service;

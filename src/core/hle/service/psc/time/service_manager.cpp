@@ -15,7 +15,7 @@ namespace Service::PSC::Time {
 
 ServiceManager::ServiceManager(Core::System& system_, std::shared_ptr<TimeManager> time,
                                ServerManager* server_manager)
-    : ServiceFramework{system_, "time:m"}, m_system{system}, m_time{std::move(time)},
+    : ServiceFramework{system_, "time:m"}, m_time{std::move(time)},
       m_server_manager{*server_manager},
       m_local_system_clock{m_time->m_standard_local_system_clock},
       m_user_system_clock{m_time->m_standard_user_system_clock},
@@ -26,7 +26,7 @@ ServiceManager::ServiceManager(Core::System& system_, std::shared_ptr<TimeManage
       m_local_system_context_writer{m_time->m_local_system_clock_context_writer},
       m_network_system_context_writer{m_time->m_network_system_clock_context_writer},
       m_ephemeral_system_context_writer{m_time->m_ephemeral_network_clock_context_writer},
-      m_local_operation{m_system}, m_network_operation{m_system}, m_ephemeral_operation{m_system} {
+      m_local_operation{system_}, m_network_operation{system_}, m_ephemeral_operation{system_} {
     // clang-format off
     static const FunctionInfo functions[] = {
         {0,   D<&ServiceManager::GetStaticServiceAsUser>, "GetStaticServiceAsUser"},
@@ -93,7 +93,7 @@ Result ServiceManager::SetupStandardSteadyClockCore(bool is_rtc_reset_detected,
     m_steady_clock.Initialize(clock_source_id, rtc_offset, internal_offset, test_offset,
                               is_rtc_reset_detected);
     auto time = m_steady_clock.GetRawTime();
-    auto ticks = m_system.CoreTiming().GetClockTicks();
+    auto ticks = system.CoreTiming().GetClockTicks();
     auto boot_time = time - ConvertToTimeSpan(ticks).count();
     m_shared_memory.SetSteadyClockTimePoint(clock_source_id, boot_time);
     m_steady_clock.SetContinuousAdjustment(clock_source_id, boot_time);
@@ -219,7 +219,7 @@ Result ServiceManager::SetStandardSteadyClockBaseTime(s64 base_time) {
 
     m_steady_clock.SetRtcOffset(base_time);
     auto time = m_steady_clock.GetRawTime();
-    auto ticks = m_system.CoreTiming().GetClockTicks();
+    auto ticks = system.CoreTiming().GetClockTicks();
     auto diff = time - ConvertToTimeSpan(ticks).count();
     m_shared_memory.UpdateBaseTime(diff);
     m_steady_clock.UpdateContinuousAdjustmentTime(diff);
@@ -241,7 +241,7 @@ Result ServiceManager::GetClosestAlarmUpdatedEvent(
 Result ServiceManager::CheckAndSignalAlarms() {
     LOG_DEBUG(Service_Time, "called.");
 
-    m_alarms.CheckAndSignal(m_system.Kernel());
+    m_alarms.CheckAndSignal(system.Kernel());
     R_SUCCEED();
 }
 
@@ -277,16 +277,16 @@ void ServiceManager::SetupSAndP() {
         m_is_s_and_p_setup = true;
         m_server_manager.RegisterNamedService(
             "time:s", std::make_shared<StaticService>(
-                          m_system, StaticServiceSetupInfo{0, 0, 1, 0, 0, 0}, m_time, "time:s"));
+                          system, StaticServiceSetupInfo{0, 0, 1, 0, 0, 0}, m_time, "time:s"));
         m_server_manager.RegisterNamedService("time:p",
                                               std::make_shared<IPowerStateRequestHandler>(
-                                                  m_system, m_time->m_power_state_request_manager));
+                                                  system, m_time->m_power_state_request_manager));
     }
 }
 
 Result ServiceManager::GetStaticService(OutInterface<StaticService> out_service,
                                         StaticServiceSetupInfo setup_info, const char* name) {
-    *out_service = std::make_shared<StaticService>(m_system, setup_info, m_time, name);
+    *out_service = std::make_shared<StaticService>(system, setup_info, m_time, name);
     R_SUCCEED();
 }
 

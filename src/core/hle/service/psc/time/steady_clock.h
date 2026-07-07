@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2023 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -32,8 +35,6 @@ public:
     Result GetInternalOffset(Out<s64> out_internal_offset);
 
 private:
-    Core::System& m_system;
-
     StandardSteadyClockCore& m_clock_core;
     bool m_can_write_steady_clock;
     bool m_can_write_uninitialized_clock;

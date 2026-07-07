@@ -35,7 +35,7 @@ constexpr Result GetTimeFromTimePointAndContext(s64* out_time, SteadyClockTimePo
 
 StaticService::StaticService(Core::System& system_, StaticServiceSetupInfo setup_info,
                              std::shared_ptr<TimeManager> time, const char* name)
-    : ServiceFramework{system_, name}, m_system{system}, m_setup_info{setup_info}, m_time{time},
+    : ServiceFramework{system_, name}, m_setup_info{setup_info}, m_time{time},
       m_local_system_clock{m_time->m_standard_local_system_clock},
       m_user_system_clock{m_time->m_standard_user_system_clock},
       m_network_system_clock{m_time->m_standard_network_system_clock},
@@ -72,7 +72,7 @@ StaticService::StaticService(Core::System& system_, StaticServiceSetupInfo setup
 Result StaticService::GetStandardUserSystemClock(OutInterface<SystemClock> out_service) {
     LOG_DEBUG(Service_Time, "called.");
 
-    *out_service = std::make_shared<SystemClock>(m_system, m_user_system_clock,
+    *out_service = std::make_shared<SystemClock>(system, m_user_system_clock,
                                                  m_setup_info.can_write_user_clock,
                                                  m_setup_info.can_write_uninitialized_clock);
     R_SUCCEED();
@@ -81,7 +81,7 @@ Result StaticService::GetStandardUserSystemClock(OutInterface<SystemClock> out_s
 Result StaticService::GetStandardNetworkSystemClock(OutInterface<SystemClock> out_service) {
     LOG_DEBUG(Service_Time, "called.");
 
-    *out_service = std::make_shared<SystemClock>(m_system, m_network_system_clock,
+    *out_service = std::make_shared<SystemClock>(system, m_network_system_clock,
                                                  m_setup_info.can_write_network_clock,
                                                  m_setup_info.can_write_uninitialized_clock);
     R_SUCCEED();
@@ -91,7 +91,7 @@ Result StaticService::GetStandardSteadyClock(OutInterface<SteadyClock> out_servi
     LOG_DEBUG(Service_Time, "called.");
 
     *out_service =
-        std::make_shared<SteadyClock>(m_system, m_time, m_setup_info.can_write_steady_clock,
+        std::make_shared<SteadyClock>(system, m_time, m_setup_info.can_write_steady_clock,
                                       m_setup_info.can_write_uninitialized_clock);
     R_SUCCEED();
 }
@@ -100,7 +100,7 @@ Result StaticService::GetTimeZoneService(OutInterface<TimeZoneService> out_servi
     LOG_DEBUG(Service_Time, "called.");
 
     *out_service =
-        std::make_shared<TimeZoneService>(m_system, m_time->m_standard_steady_clock, m_time_zone,
+        std::make_shared<TimeZoneService>(system, m_time->m_standard_steady_clock, m_time_zone,
                                           m_setup_info.can_write_timezone_device_location);
     R_SUCCEED();
 }
@@ -108,7 +108,7 @@ Result StaticService::GetTimeZoneService(OutInterface<TimeZoneService> out_servi
 Result StaticService::GetStandardLocalSystemClock(OutInterface<SystemClock> out_service) {
     LOG_DEBUG(Service_Time, "called.");
 
-    *out_service = std::make_shared<SystemClock>(m_system, m_local_system_clock,
+    *out_service = std::make_shared<SystemClock>(system, m_local_system_clock,
                                                  m_setup_info.can_write_local_clock,
                                                  m_setup_info.can_write_uninitialized_clock);
     R_SUCCEED();
@@ -117,7 +117,7 @@ Result StaticService::GetStandardLocalSystemClock(OutInterface<SystemClock> out_
 Result StaticService::GetEphemeralNetworkSystemClock(OutInterface<SystemClock> out_service) {
     LOG_DEBUG(Service_Time, "called.");
 
-    *out_service = std::make_shared<SystemClock>(m_system, m_ephemeral_network_clock,
+    *out_service = std::make_shared<SystemClock>(system, m_ephemeral_network_clock,
                                                  m_setup_info.can_write_network_clock,
                                                  m_setup_info.can_write_uninitialized_clock);
     R_SUCCEED();
@@ -222,7 +222,7 @@ Result StaticService::CalculateMonotonicSystemClockBaseTimePoint(
 
     auto one_second_ns{
         std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::seconds(1)).count()};
-    auto ticks{m_system.CoreTiming().GetClockTicks()};
+    auto ticks{system.CoreTiming().GetClockTicks()};
     auto current_time_ns{ConvertToTimeSpan(ticks).count()};
     *out_time = ((context.offset + time_point.time_point) - (current_time_ns / one_second_ns));
 

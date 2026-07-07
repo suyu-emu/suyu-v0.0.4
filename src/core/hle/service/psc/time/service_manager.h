@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2023 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -60,10 +63,8 @@ public:
 private:
     void CheckAndSetupServicesSAndP();
     void SetupSAndP();
-    Result GetStaticService(OutInterface<StaticService> out_service,
-                            StaticServiceSetupInfo setup_info, const char* name);
+    Result GetStaticService(OutInterface<StaticService> out_service, StaticServiceSetupInfo setup_info, const char* name);
 
-    Core::System& m_system;
     std::shared_ptr<TimeManager> m_time;
     ServerManager& m_server_manager;
     bool m_is_s_and_p_setup{};
