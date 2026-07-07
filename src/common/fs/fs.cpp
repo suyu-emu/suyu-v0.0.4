@@ -455,23 +455,17 @@ void IterateDirEntriesRecursively(const std::filesystem::path& path, const DirEn
         return;
     }
 
-    // TODO (Morph): Replace this with recursive_directory_iterator once it's fixed in MSVC.
     std::error_code ec;
     bool callback_error = false;
-    for (const auto& entry : fs::directory_iterator(path, ec)) {
+    // MSVC should now be fixed... right... right?!?!?!
+    for (const auto& entry : fs::recursive_directory_iterator(path, ec)) {
         if ((True(filter & DirEntryFilter::File) && entry.status().type() == fs::file_type::regular)
         || (True(filter & DirEntryFilter::Directory) && entry.status().type() == fs::file_type::directory)) {
             if (!callback(entry)) {
                 callback_error = true;
             }
         }
-        // TODO (Morph): Remove this when MSVC fixes recursive_directory_iterator.
-        // recursive_directory_iterator throws an exception despite passing in a std::error_code.
-        if (entry.status().type() == fs::file_type::directory) {
-            IterateDirEntriesRecursively(entry.path(), callback, filter);
-        }
     }
-
     if (callback_error || ec) {
         LOG_ERROR(Common_Filesystem, "Failed to visit all the directory entries of path={}, ec_message={}, callback_error={}", PathToUTF8String(path), ec.message(), callback_error);
     } else {
