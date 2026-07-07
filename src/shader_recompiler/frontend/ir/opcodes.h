@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 // SPDX-FileCopyrightText: Copyright 2021 yuzu Emulator Project
@@ -30,69 +30,54 @@ struct OpcodeMeta {
 };
 
 // using enum Type;
-constexpr Type Void{Type::Void};
-constexpr Type Opaque{Type::Opaque};
-constexpr Type Reg{Type::Reg};
-constexpr Type Pred{Type::Pred};
-constexpr Type Attribute{Type::Attribute};
-constexpr Type Patch{Type::Patch};
-constexpr Type U1{Type::U1};
-constexpr Type U8{Type::U8};
-constexpr Type U16{Type::U16};
-constexpr Type U32{Type::U32};
-constexpr Type U64{Type::U64};
-constexpr Type F16{Type::F16};
-constexpr Type F32{Type::F32};
-constexpr Type F64{Type::F64};
-constexpr Type U32x2{Type::U32x2};
-constexpr Type U32x3{Type::U32x3};
-constexpr Type U32x4{Type::U32x4};
-constexpr Type F16x2{Type::F16x2};
-constexpr Type F16x3{Type::F16x3};
-constexpr Type F16x4{Type::F16x4};
-constexpr Type F32x2{Type::F32x2};
-constexpr Type F32x3{Type::F32x3};
-constexpr Type F32x4{Type::F32x4};
-constexpr Type F64x2{Type::F64x2};
-constexpr Type F64x3{Type::F64x3};
-constexpr Type F64x4{Type::F64x4};
+static constexpr Type Void{Type::Void};
+static constexpr Type Opaque{Type::Opaque};
+static constexpr Type Reg{Type::Reg};
+static constexpr Type Pred{Type::Pred};
+static constexpr Type Attribute{Type::Attribute};
+static constexpr Type Patch{Type::Patch};
+static constexpr Type U1{Type::U1};
+static constexpr Type U8{Type::U8};
+static constexpr Type U16{Type::U16};
+static constexpr Type U32{Type::U32};
+static constexpr Type U64{Type::U64};
+static constexpr Type F16{Type::F16};
+static constexpr Type F32{Type::F32};
+static constexpr Type F64{Type::F64};
+static constexpr Type U32x2{Type::U32x2};
+static constexpr Type U32x3{Type::U32x3};
+static constexpr Type U32x4{Type::U32x4};
+static constexpr Type F16x2{Type::F16x2};
+static constexpr Type F16x3{Type::F16x3};
+static constexpr Type F16x4{Type::F16x4};
+static constexpr Type F32x2{Type::F32x2};
+static constexpr Type F32x3{Type::F32x3};
+static constexpr Type F32x4{Type::F32x4};
+static constexpr Type F64x2{Type::F64x2};
+static constexpr Type F64x3{Type::F64x3};
+static constexpr Type F64x4{Type::F64x4};
 
-constexpr OpcodeMeta META_TABLE[]{
-#define OPCODE(name_token, type_token, ...)                                                        \
-    {                                                                                              \
-        .name{#name_token},                                                                        \
-        .type = type_token,                                                                        \
-        .arg_types{__VA_ARGS__},                                                                   \
-    },
-#include "opcodes.inc"
-#undef OPCODE
-};
-constexpr size_t CalculateNumArgsOf(Opcode op) {
-    const auto& arg_types{META_TABLE[static_cast<size_t>(op)].arg_types};
-    return static_cast<size_t>(
-        std::distance(arg_types.begin(), std::ranges::find(arg_types, Type::Void)));
+extern OpcodeMeta META_TABLE[532];
+constexpr size_t CalculateNumArgsOf(Opcode op) noexcept {
+    const auto& arg_types = META_TABLE[size_t(op)].arg_types;
+    return size_t(std::distance(arg_types.begin(), std::ranges::find(arg_types, Type::Void)));
 }
-
-constexpr u8 NUM_ARGS[]{
-#define OPCODE(name_token, type_token, ...) static_cast<u8>(CalculateNumArgsOf(Opcode::name_token)),
-#include "opcodes.inc"
-#undef OPCODE
-};
+extern u8 NUM_ARGS[532];
 } // namespace Detail
 
 /// Get return type of an opcode
 [[nodiscard]] inline Type TypeOf(Opcode op) noexcept {
-    return Detail::META_TABLE[static_cast<size_t>(op)].type;
+    return Detail::META_TABLE[size_t(op)].type;
 }
 
 /// Get the number of arguments an opcode accepts
 [[nodiscard]] inline size_t NumArgsOf(Opcode op) noexcept {
-    return static_cast<size_t>(Detail::NUM_ARGS[static_cast<size_t>(op)]);
+    return size_t(Detail::NUM_ARGS[size_t(op)]);
 }
 
 /// Get the required type of an argument of an opcode
 [[nodiscard]] inline Type ArgTypeOf(Opcode op, size_t arg_index) noexcept {
-    return Detail::META_TABLE[static_cast<size_t>(op)].arg_types[arg_index];
+    return Detail::META_TABLE[size_t(op)].arg_types[arg_index];
 }
 
 /// Get the name of an opcode
