@@ -24,7 +24,8 @@ HIDCore::HIDCore(Kernel::KernelCore& kernel_)
     , player_8{std::make_unique<EmulatedController>(NpadIdType::Player8)}
     , other{std::make_unique<EmulatedController>(NpadIdType::Other)}
     , handheld{std::make_unique<EmulatedController>(NpadIdType::Handheld)}
-    , console{std::make_unique<EmulatedConsole>()}, devices{std::make_unique<EmulatedDevices>()}
+    , console{std::make_unique<EmulatedConsole>()}
+    , devices{std::make_unique<EmulatedDevices>()}
     , kernel{kernel_}
 {}
 

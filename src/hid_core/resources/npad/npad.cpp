@@ -45,29 +45,17 @@ NPad::NPad(Core::HID::HIDCore& hid_core_, KernelHelpers::ServiceContext& service
         AbstractPad{hid_core_.kernel},
     }}
 {
-    for (std::size_t aruid_index = 0; aruid_index < AruidIndexMax; ++aruid_index) {
-        for (std::size_t i = 0; i < controller_data[aruid_index].size(); ++i) {
-            auto& controller = controller_data[aruid_index][i];
-            controller.device = hid_core.GetEmulatedControllerByIndex(i);
-            Core::HID::ControllerUpdateCallback engine_callback{
-                .on_change = [this, i, kernel = &hid_core.kernel](Core::HID::ControllerTriggerType type) {
-                    ControllerUpdate(*kernel, type, i);
-                },
-                .is_npad_service = true,
-            };
-            controller.callback_key = controller.device->SetCallback(engine_callback);
-        }
-    }
     for (std::size_t i = 0; i < abstracted_pads.size(); ++i) {
         abstracted_pads[i].SetNpadId(IndexToNpadIdType(i));
     }
 }
 
 NPad::~NPad() {
-    for (std::size_t aruid_index = 0; aruid_index < AruidIndexMax; ++aruid_index) {
-        for (std::size_t i = 0; i < controller_data[aruid_index].size(); ++i) {
-            auto& controller = controller_data[aruid_index][i];
-            controller.device->DeleteCallback(controller.callback_key);
+    for (std::size_t aruid = 0; aruid < AruidIndexMax; ++aruid) {
+        for (std::size_t i = 0; i < controller_data[aruid].size(); ++i) {
+            if (auto& controller = controller_data[aruid][i]; controller.device && controller.callback_key) {
+                controller.device->DeleteCallback(controller.callback_key);
+            }
         }
     }
 }
@@ -101,6 +89,16 @@ Result NPad::Activate(u64 aruid) {
     for (std::size_t i = 0; i < controller_data[aruid_index].size(); ++i) {
         auto& controller = controller_data[aruid_index][i];
         controller.shared_memory = &data->shared_memory_format->npad.npad_entry[i].internal_state;
+        controller.device = hid_core.GetEmulatedControllerByIndex(i);
+        if (!controller.callback_key) {
+            Core::HID::ControllerUpdateCallback engine_callback{
+                .on_change = [this, i](Core::HID::ControllerTriggerType type) {
+                    ControllerUpdate(hid_core.kernel, type, i);
+                },
+                .is_npad_service = true,
+            };
+            controller.callback_key = controller.device->SetCallback(engine_callback);
+        }
     }
 
     // Prefill controller buffers

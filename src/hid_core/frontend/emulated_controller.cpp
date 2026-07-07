@@ -10,6 +10,7 @@
 
 #include <ranges>
 #include "common/thread.h"
+#include "common/assert.h"
 #include "hid_core/frontend/emulated_controller.h"
 #include "hid_core/frontend/input_converter.h"
 #include "hid_core/hid_util.h"
@@ -1876,12 +1877,9 @@ NpadColor EmulatedController::GetNpadColor(u32 color) {
 
 void EmulatedController::TriggerOnChange(ControllerTriggerType type, bool is_npad_service_update) {
     std::unique_lock lock{callback_mutex};
-    for (const auto& poller_pair : callback_list) {
-        const ControllerUpdateCallback& poller = poller_pair.second;
-        if (!is_npad_service_update && poller.is_npad_service) {
-            continue;
-        }
-        if (poller.on_change) {
+    for (auto const& p : callback_list) {
+        auto const& poller = p.second;
+        if (is_npad_service_update || !poller.is_npad_service) {
             poller.on_change(type);
         }
     }
@@ -1889,18 +1887,16 @@ void EmulatedController::TriggerOnChange(ControllerTriggerType type, bool is_npa
 
 int EmulatedController::SetCallback(ControllerUpdateCallback update_callback) {
     std::unique_lock lock{callback_mutex};
+    ++last_callback_key;
     callback_list.insert_or_assign(last_callback_key, std::move(update_callback));
-    return last_callback_key++;
+    return last_callback_key;
 }
 
 void EmulatedController::DeleteCallback(int key) {
     std::unique_lock lock{callback_mutex};
-    const auto& iterator = callback_list.find(key);
-    if (iterator == callback_list.end()) {
-        LOG_ERROR(Input, "Tried to delete non-existent callback {}", key);
-        return;
-    }
-    callback_list.erase(iterator);
+    auto const it = callback_list.find(key);
+    ASSERT_MSG(it != callback_list.end(), "Tried to delete non-existent callback {}", key);
+    callback_list.erase(it);
 }
 
 void EmulatedController::StatusUpdate() {
