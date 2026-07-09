@@ -31,6 +31,7 @@ Nvdec::Nvdec(Host1x& host1x_, s32 id_, u32 syncpt)
 
 Nvdec::~Nvdec() {
     LOG_INFO(HW_GPU, "Destroying nvdec {}", id);
+    host1x.frame_queue.Close(id);
 }
 
 void Nvdec::ProcessMethod(u32 method, u32 argument) {

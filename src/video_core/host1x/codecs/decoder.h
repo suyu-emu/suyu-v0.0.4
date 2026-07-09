@@ -10,6 +10,7 @@
 #include <mutex>
 #include <optional>
 #include <string_view>
+#include <tuple>
 #include <ankerl/unordered_dense.h>
 #include <queue>
 
@@ -46,12 +47,19 @@ protected:
     virtual std::tuple<u64, u64, u64, u64> GetInterlacedOffsets() = 0;
     virtual bool IsInterlaced() = 0;
 
+    void SetFrameDimensions(s32 width, s32 height);
+
+    std::optional<FFmpeg::FrameDimensions> GetFrameDimensions() const {
+        return frame_dimensions;
+    }
+
     FFmpeg::DecodeApi decode_api;
     Host1x::Host1x& host1x;
     const Host1x::NvdecCommon::NvdecRegisters& regs;
     s32 id;
     bool initialized : 1 = false;
     bool vp9_hidden_frame : 1 = false;
+    std::optional<FFmpeg::FrameDimensions> frame_dimensions;
 };
 
 } // namespace Tegra

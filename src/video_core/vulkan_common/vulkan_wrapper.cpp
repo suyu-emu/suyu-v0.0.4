@@ -301,6 +301,7 @@ bool Load(VkInstance instance, InstanceDispatch& dld) noexcept {
     X(vkDestroyDebugReportCallbackEXT);
     X(vkDestroySurfaceKHR);
     X(vkGetPhysicalDeviceFeatures2);
+    X(vkGetPhysicalDeviceFormatProperties2);
     X(vkGetPhysicalDeviceProperties2);
     X(vkGetPhysicalDeviceSurfaceCapabilitiesKHR);
     X(vkGetPhysicalDeviceSurfaceFormatsKHR);
@@ -914,6 +915,23 @@ VkFormatProperties PhysicalDevice::GetFormatProperties(VkFormat format) const no
     VkFormatProperties properties;
     dld->vkGetPhysicalDeviceFormatProperties(physical_device, format, &properties);
     return properties;
+}
+
+VkFormatProperties3 PhysicalDevice::GetFormatProperties3(VkFormat format) const noexcept {
+    VkFormatProperties3 properties3{
+        .sType = VK_STRUCTURE_TYPE_FORMAT_PROPERTIES_3,
+        .pNext = nullptr,
+        .linearTilingFeatures = 0,
+        .optimalTilingFeatures = 0,
+        .bufferFeatures = 0,
+    };
+    VkFormatProperties2 properties2{
+        .sType = VK_STRUCTURE_TYPE_FORMAT_PROPERTIES_2,
+        .pNext = &properties3,
+        .formatProperties = {},
+    };
+    dld->vkGetPhysicalDeviceFormatProperties2(physical_device, format, &properties2);
+    return properties3;
 }
 
 std::vector<VkExtensionProperties> PhysicalDevice::EnumerateDeviceExtensionProperties() const {

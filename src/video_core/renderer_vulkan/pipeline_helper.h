@@ -242,6 +242,10 @@ inline void PushImageDescriptors(TextureCache& texture_cache,
                 VideoCore::Surface::IsPixelFormatInteger(image_view.format)) {
                 vk_sampler = sampler.HandleWithNearestFilter();
             }
+            if (desc.is_depth && sampler.HasDepthComparison() &&
+                !image_view.SupportsDepthComparison()) {
+                vk_sampler = sampler.HandleWithoutDepthComparison();
+            }
             guest_descriptor_queue.AddSampledImage(vk_image_view, vk_sampler);
             const bool element_rescaled{texture_cache.IsRescaling(image_view)};
             is_rescaled |= element_rescaled;

@@ -59,6 +59,11 @@ endif()
 if (PLATFORM_PS4 OR PLATFORM_MANAGARM)
     # Doesn't support VA-API, don't go thru the embarrassment of trying to enable it
     list(APPEND FFmpeg_HWACCEL_FLAGS --disable-vaapi)
+elseif (ANDROID)
+    list(APPEND FFmpeg_HWACCEL_FLAGS
+        --enable-mediacodec
+        --enable-jni
+    )
 elseif (UNIX AND NOT DEFINED FFmpeg_IS_CROSS_COMPILING AND NOT ANDROID)
     find_package(PkgConfig REQUIRED)
     pkg_check_modules(LIBVA libva)

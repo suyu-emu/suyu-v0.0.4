@@ -427,8 +427,11 @@ namespace Common::Android {
     extern "C" {
 #endif
 
+    jint InitFFmpegOnLoad(JavaVM *vm);
+
     jint JNI_OnLoad(JavaVM *vm, void *reserved) {
         s_java_vm = vm;
+        InitFFmpegOnLoad(vm);
 
         JNIEnv *env;
         if (vm->GetEnv(reinterpret_cast<void **>(&env), JNI_VERSION) != JNI_OK)

@@ -118,6 +118,7 @@ void Vic::Execute() noexcept {
     output_surface.resize(output_width * output_height);
 
     if (Settings::values.nvdec_emulation.GetValue() != Settings::NvdecEmulation::Off) {
+        bool decoded_frame = false;
         for (size_t i = 0; i < config.slot_structs.size(); i++) {
             if (auto& slot_config = config.slot_structs[i]; slot_config.config.slot_enable) {
                 auto const luma_offset = regs.surfaces[i][SurfaceIndex::Current].luma.Address();
@@ -136,10 +137,16 @@ void Vic::Execute() noexcept {
                         break;
                     }
                     Blend(config, slot_config, config.output_surface_config.out_pixel_format);
+                    decoded_frame = true;
                 } else {
-                    LOG_ERROR(HW_GPU, "Vic {} failed to get frame with offset {:#X}", id, luma_offset);
+                    LOG_TRACE(HW_GPU, "Vic {} failed to get frame with offset {:#X}", id, luma_offset);
                 }
             }
+        }
+        if (decoded_frame) {
+            has_decoded_frame = true;
+        } else if (!has_decoded_frame) {
+            return;
         }
     } else {
         // Fill the frame with black, as otherwise they can have random data and be very glitchy.

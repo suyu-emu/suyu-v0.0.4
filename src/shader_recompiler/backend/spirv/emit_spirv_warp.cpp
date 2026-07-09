@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2021 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -10,7 +13,14 @@ Id SubgroupScope(EmitContext& ctx) {
     return ctx.Const(static_cast<u32>(spv::Scope::Subgroup));
 }
 
+bool StageSupportsSubgroups(EmitContext& ctx) {
+    return ctx.profile.SupportsSubgroupStage(ctx.stage);
+}
+
 Id GetThreadId(EmitContext& ctx) {
+    if (!StageSupportsSubgroups(ctx)) {
+        return ctx.u32_zero_value;
+    }
     return ctx.OpLoad(ctx.U32[1], ctx.subgroup_local_invocation_id);
 }
 
@@ -68,6 +78,9 @@ Id GetMaxThreadId(EmitContext& ctx, Id thread_id, Id clamp, Id segmentation_mask
 }
 
 Id SelectValue(EmitContext& ctx, Id in_range, Id value, Id src_thread_id) {
+    if (!StageSupportsSubgroups(ctx)) {
+        return value;
+    }
     return ctx.OpSelect(
         ctx.U32[1], in_range,
         ctx.OpGroupNonUniformShuffle(ctx.U32[1], SubgroupScope(ctx), value, src_thread_id), value);
@@ -89,6 +102,9 @@ Id EmitLaneId(EmitContext& ctx) {
 }
 
 Id EmitVoteAll(EmitContext& ctx, Id pred) {
+    if (!StageSupportsSubgroups(ctx)) {
+        return pred;
+    }
     if (!ctx.profile.warp_size_potentially_larger_than_guest) {
         return ctx.OpGroupNonUniformAll(ctx.U1, SubgroupScope(ctx), pred);
     }
@@ -102,6 +118,9 @@ Id EmitVoteAll(EmitContext& ctx, Id pred) {
 }
 
 Id EmitVoteAny(EmitContext& ctx, Id pred) {
+    if (!StageSupportsSubgroups(ctx)) {
+        return pred;
+    }
     if (!ctx.profile.warp_size_potentially_larger_than_guest) {
         return ctx.OpGroupNonUniformAny(ctx.U1, SubgroupScope(ctx), pred);
     }
@@ -115,6 +134,9 @@ Id EmitVoteAny(EmitContext& ctx, Id pred) {
 }
 
 Id EmitVoteEqual(EmitContext& ctx, Id pred) {
+    if (!StageSupportsSubgroups(ctx)) {
+        return ctx.true_value;
+    }
     if (!ctx.profile.warp_size_potentially_larger_than_guest) {
         return ctx.OpGroupNonUniformAllEqual(ctx.U1, SubgroupScope(ctx), pred);
     }
@@ -129,6 +151,9 @@ Id EmitVoteEqual(EmitContext& ctx, Id pred) {
 }
 
 Id EmitSubgroupBallot(EmitContext& ctx, Id pred) {
+    if (!StageSupportsSubgroups(ctx)) {
+        return ctx.OpSelect(ctx.U32[1], pred, ctx.Const(1u), ctx.u32_zero_value);
+    }
     const Id ballot{ctx.OpGroupNonUniformBallot(ctx.U32[4], SubgroupScope(ctx), pred)};
     if (!ctx.profile.warp_size_potentially_larger_than_guest) {
         return ctx.OpCompositeExtract(ctx.U32[1], ballot, 0U);
@@ -137,22 +162,37 @@ Id EmitSubgroupBallot(EmitContext& ctx, Id pred) {
 }
 
 Id EmitSubgroupEqMask(EmitContext& ctx) {
+    if (!StageSupportsSubgroups(ctx)) {
+        return ctx.Const(1u);
+    }
     return LoadMask(ctx, ctx.subgroup_mask_eq);
 }
 
 Id EmitSubgroupLtMask(EmitContext& ctx) {
+    if (!StageSupportsSubgroups(ctx)) {
+        return ctx.u32_zero_value;
+    }
     return LoadMask(ctx, ctx.subgroup_mask_lt);
 }
 
 Id EmitSubgroupLeMask(EmitContext& ctx) {
+    if (!StageSupportsSubgroups(ctx)) {
+        return ctx.Const(1u);
+    }
     return LoadMask(ctx, ctx.subgroup_mask_le);
 }
 
 Id EmitSubgroupGtMask(EmitContext& ctx) {
+    if (!StageSupportsSubgroups(ctx)) {
+        return ctx.u32_zero_value;
+    }
     return LoadMask(ctx, ctx.subgroup_mask_gt);
 }
 
 Id EmitSubgroupGeMask(EmitContext& ctx) {
+    if (!StageSupportsSubgroups(ctx)) {
+        return ctx.Const(1u);
+    }
     return LoadMask(ctx, ctx.subgroup_mask_ge);
 }
 
@@ -222,7 +262,7 @@ Id EmitShuffleButterfly(EmitContext& ctx, IR::Inst* inst, Id value, Id index, Id
 
 Id EmitFSwizzleAdd(EmitContext& ctx, Id op_a, Id op_b, Id swizzle) {
     const Id three{ctx.Const(3U)};
-    Id mask{ctx.OpLoad(ctx.U32[1], ctx.subgroup_local_invocation_id)};
+    Id mask{GetThreadId(ctx)};
     mask = ctx.OpBitwiseAnd(ctx.U32[1], mask, three);
     mask = ctx.OpShiftLeftLogical(ctx.U32[1], mask, ctx.Const(1U));
     mask = ctx.OpShiftRightLogical(ctx.U32[1], swizzle, mask);

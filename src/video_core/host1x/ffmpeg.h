@@ -179,7 +179,7 @@ public:
     ~DecoderContext();
 
     void InitializeHardwareDecoder(const HardwareContext& context, AVPixelFormat hw_pix_fmt);
-    bool OpenContext(const Decoder& decoder);
+    bool OpenContext(const Decoder& decoder, std::span<const u8> extradata = {});
     bool SendPacket(const Packet& packet);
     std::shared_ptr<Frame> ReceiveFrame();
 
@@ -198,6 +198,18 @@ private:
     bool m_decode_order{};
 };
 
+struct FrameOffsets {
+    bool interlaced{};
+    bool hidden{};
+    u64 luma{};
+    u64 luma_bottom{};
+};
+
+struct FrameDimensions {
+    s32 width{};
+    s32 height{};
+};
+
 class DecodeApi {
 public:
     YUZU_NON_COPYABLE(DecodeApi);
@@ -213,13 +225,24 @@ public:
         return m_decoder_context->UsingDecodeOrder();
     }
 
-    bool SendPacket(std::span<const u8> packet_data);
-    std::shared_ptr<Frame> ReceiveFrame();
+    bool SendPacket(std::span<const u8> packet_data, const FrameOffsets& offsets,
+                    std::optional<FrameDimensions> dimensions = std::nullopt);
+
+    struct DecodedFrame {
+        std::shared_ptr<Frame> frame;
+        FrameOffsets offsets;
+    };
+    std::optional<DecodedFrame> ReceiveFrame();
 
 private:
     std::optional<FFmpeg::Decoder> m_decoder;
     std::optional<FFmpeg::DecoderContext> m_decoder_context;
     std::optional<FFmpeg::HardwareContext> m_hardware_context;
+    bool m_opened{};
+    bool m_defer_android_mediacodec_open{};
+    bool m_needs_h264_extradata{};
+    s64 m_next_pts{};
+    std::queue<FrameOffsets> m_pending_offsets;
 };
 
 } // namespace FFmpeg

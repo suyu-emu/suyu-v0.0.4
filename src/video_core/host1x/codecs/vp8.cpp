@@ -35,6 +35,7 @@ std::tuple<u64, u64, u64, u64> VP8::GetInterlacedOffsets() {
 
 std::span<const u8> VP8::ComposeFrame() {
     host1x.gmmu_manager.ReadBlock(regs.picture_info_offset.Address(), &current_context, sizeof(VP8PictureInfo));
+    SetFrameDimensions(current_context.frame_width, current_context.frame_height);
 
     const bool is_key_frame = current_context.key_frame == 1u;
     const auto bitstream_size = size_t(current_context.vld_buffer_size);

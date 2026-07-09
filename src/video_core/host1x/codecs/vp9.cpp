@@ -841,6 +841,7 @@ std::span<const u8> VP9::ComposeFrame() {
     {
         Vp9FrameContainer curr_frame = GetCurrentFrame();
         current_frame_info = curr_frame.info;
+        SetFrameDimensions(current_frame_info.frame_size.width, current_frame_info.frame_size.height);
         bitstream = std::move(curr_frame.bit_stream);
     }
     // The uncompressed header routine sets PrevProb parameters needed for the compressed header

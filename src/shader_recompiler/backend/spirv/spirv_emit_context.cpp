@@ -1231,13 +1231,15 @@ void EmitContext::DefineStorageBuffers(const Info& info, u32& binding) {
 
     const IR::Type used_types{profile.support_descriptor_aliasing ? info.used_storage_buffer_types
                                                                   : IR::Type::U32};
-    if (profile.support_int8 && True(used_types & IR::Type::U8)) {
+    if (profile.support_int8 && profile.support_uniform_and_storage_buffer_8bit &&
+        True(used_types & IR::Type::U8)) {
         DefineSsbos(*this, storage_types.U8, &StorageDefinitions::U8, info, binding, U8,
                     sizeof(u8));
         DefineSsbos(*this, storage_types.S8, &StorageDefinitions::S8, info, binding, S8,
                     sizeof(u8));
     }
-    if (profile.support_int16 && True(used_types & IR::Type::U16)) {
+    if (profile.support_int16 && profile.support_uniform_and_storage_buffer_16bit &&
+        True(used_types & IR::Type::U16)) {
         DefineSsbos(*this, storage_types.U16, &StorageDefinitions::U16, info, binding, U16,
                     sizeof(u16));
         DefineSsbos(*this, storage_types.S16, &StorageDefinitions::S16, info, binding, S16,
@@ -1447,7 +1449,7 @@ void EmitContext::DefineInputs(const IR::Program& program) {
     if (info.uses_is_helper_invocation) {
         is_helper_invocation = DefineInput(*this, U1, false, spv::BuiltIn::HelperInvocation);
     }
-    if (info.uses_subgroup_mask) {
+    if (info.uses_subgroup_mask && profile.SupportsSubgroupStage(stage)) {
         subgroup_mask_eq = DefineInput(*this, U32[4], false, spv::BuiltIn::SubgroupEqMaskKHR);
         subgroup_mask_lt = DefineInput(*this, U32[4], false, spv::BuiltIn::SubgroupLtMaskKHR);
         subgroup_mask_le = DefineInput(*this, U32[4], false, spv::BuiltIn::SubgroupLeMaskKHR);
@@ -1461,9 +1463,10 @@ void EmitContext::DefineInputs(const IR::Program& program) {
             Decorate(subgroup_mask_ge, spv::Decoration::Flat);
         }
     }
-    if (info.uses_fswzadd || info.uses_subgroup_invocation_id || info.uses_subgroup_shuffles ||
-        (profile.warp_size_potentially_larger_than_guest &&
-         (info.uses_subgroup_vote || info.uses_subgroup_mask))) {
+    if ((info.uses_fswzadd || info.uses_subgroup_invocation_id || info.uses_subgroup_shuffles ||
+         (profile.warp_size_potentially_larger_than_guest &&
+          (info.uses_subgroup_vote || info.uses_subgroup_mask))) &&
+        profile.SupportsSubgroupStage(stage)) {
         AddCapability(spv::Capability::GroupNonUniform);
         subgroup_local_invocation_id =
             DefineInput(*this, U32[1], false, spv::BuiltIn::SubgroupLocalInvocationId);

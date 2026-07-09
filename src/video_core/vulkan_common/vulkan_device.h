@@ -399,6 +399,16 @@ FN_MAX_LIMIT_LIST
         return features.bit16_storage.uniformAndStorageBuffer16BitAccess;
     }
 
+    /// Returns true if the device supports reading 8-bit values from a storage buffer.
+    bool IsStorageBuffer8BitAccessSupported() const {
+        return features.bit8_storage.storageBuffer8BitAccess;
+    }
+
+    /// Returns true if the device supports reading 16-bit values from a storage buffer.
+    bool IsStorageBuffer16BitAccessSupported() const {
+        return features.bit16_storage.storageBuffer16BitAccess;
+    }
+
     /// Returns true if the device supports binding multisample images as storage images.
     bool IsStorageImageMultisampleSupported() const {
         return features.features.shaderStorageImageMultisample;
@@ -417,6 +427,10 @@ FN_MAX_LIMIT_LIST
     /// Returns true if the device supports the provided subgroup feature.
     bool IsSubgroupFeatureSupported(VkSubgroupFeatureFlagBits feature) const {
         return properties.subgroup_properties.supportedOperations & feature;
+    }
+
+    VkShaderStageFlags GetSubgroupSupportedStages() const {
+        return properties.subgroup_properties.supportedStages;
     }
 
     /// Returns the maximum number of push descriptors.

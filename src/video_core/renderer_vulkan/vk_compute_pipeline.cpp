@@ -22,6 +22,7 @@
 #include "video_core/vulkan_common/vulkan_device.h"
 #include "video_core/vulkan_common/vulkan_wrapper.h"
 #include "video_core/gpu_logging/gpu_logging.h"
+#include "common/logging.h"
 #include "common/settings.h"
 
 namespace Vulkan {
@@ -36,10 +37,10 @@ ComputePipeline::ComputePipeline(const Device& device_, Scheduler& scheduler, vk
                                  Common::ThreadWorker* thread_worker,
                                  PipelineStatistics* pipeline_statistics,
                                  VideoCore::ShaderNotify* shader_notify, const Shader::Info& info_,
-                                 vk::ShaderModule spv_module_)
+                                 vk::ShaderModule spv_module_, u64 shader_hash_)
     : device{device_},
       pipeline_cache(pipeline_cache_), guest_descriptor_queue{guest_descriptor_queue_}, info{info_},
-      spv_module(std::move(spv_module_)) {
+      shader_hash{shader_hash_}, spv_module(std::move(spv_module_)) {
     if (shader_notify) {
         shader_notify->MarkShaderBuilding();
     }
@@ -68,7 +69,7 @@ ComputePipeline::ComputePipeline(const Device& device_, Scheduler& scheduler, vk
         if (device.IsKhrPipelineExecutablePropertiesEnabled() && Settings::values.renderer_debug.GetValue()) {
             flags |= VK_PIPELINE_CREATE_CAPTURE_STATISTICS_BIT_KHR;
         }
-        pipeline = device.GetLogical().CreateComputePipeline(VkComputePipelineCreateInfo{
+        const VkComputePipelineCreateInfo compute_ci{
             .sType = VK_STRUCTURE_TYPE_COMPUTE_PIPELINE_CREATE_INFO,
             .pNext = nullptr,
             .flags = flags,
@@ -85,7 +86,20 @@ ComputePipeline::ComputePipeline(const Device& device_, Scheduler& scheduler, vk
             .layout = *pipeline_layout,
             .basePipelineHandle = 0,
             .basePipelineIndex = 0,
-        }, *pipeline_cache);
+        };
+        try {
+            pipeline = device.GetLogical().CreateComputePipeline(compute_ci, *pipeline_cache);
+        } catch (const vk::Exception& exception) {
+            LOG_CRITICAL(Render_Vulkan, "Adreno rejected compute shader {:016X}: {}", shader_hash,
+                         exception.what());
+            std::scoped_lock lock{build_mutex};
+            is_built = true;
+            build_condvar.notify_one();
+            if (shader_notify) {
+                shader_notify->MarkShaderComplete();
+            }
+            return;
+        }
 
         // Log compute pipeline creation
         if (GPU::Logging::IsActive()) {
@@ -239,6 +253,9 @@ void ComputePipeline::Configure(Tegra::Engines::KeplerCompute& kepler_compute,
     const bool is_rescaling = !info.texture_descriptors.empty() || !info.image_descriptors.empty();
     scheduler.Record([this, descriptor_data, is_rescaling,
                       rescaling_data = rescaling.Data()](vk::CommandBuffer cmdbuf) {
+        if (!pipeline) {
+            return;
+        }
         cmdbuf.BindPipeline(VK_PIPELINE_BIND_POINT_COMPUTE, *pipeline);
         if (!descriptor_set_layout) {
             return;

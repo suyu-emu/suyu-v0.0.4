@@ -20,58 +20,54 @@ Decoder::Decoder(Host1x::Host1x& host1x_, s32 id_, const Host1x::NvdecCommon::Nv
 
 Decoder::~Decoder() = default;
 
+void Decoder::SetFrameDimensions(s32 width, s32 height) {
+    if (width <= 0 || height <= 0) {
+        frame_dimensions.reset();
+        return;
+    }
+    frame_dimensions = FFmpeg::FrameDimensions{width, height};
+}
+
 void Decoder::Decode() {
     if (!initialized) {
         return;
     }
 
     const auto packet_data = ComposeFrame();
-    // Send assembled bitstream to decoder.
-    if (!decode_api.SendPacket(packet_data)) {
-        return;
-    }
-
-    // Only receive/store visible frames.
-    if (vp9_hidden_frame) {
-        return;
-    }
-
-    // Receive output frames from decoder.
-    auto frame = decode_api.ReceiveFrame();
-
-    if (!frame) {
-        return;
-    }
-
-    if (IsInterlaced()) {
-        auto [luma_top, luma_bottom, chroma_top, chroma_bottom] = GetInterlacedOffsets();
-        auto frame_copy = frame;
-
-        if (!frame.get()) {
-            LOG_ERROR(HW_GPU,
-                      "Nvdec {} failed to decode interlaced frame for top {:#X} bottom 0x{:X}", id,
-                      luma_top, luma_bottom);
-        }
-
-        if (UsingDecodeOrder()) {
-            host1x.frame_queue.PushDecodeOrder(id, luma_top, std::move(frame));
-            host1x.frame_queue.PushDecodeOrder(id, luma_bottom, std::move(frame_copy));
-        } else {
-            host1x.frame_queue.PushPresentOrder(id, luma_top, std::move(frame));
-            host1x.frame_queue.PushPresentOrder(id, luma_bottom, std::move(frame_copy));
-        }
+    FFmpeg::FrameOffsets offsets{};
+    offsets.hidden = vp9_hidden_frame;
+    offsets.interlaced = IsInterlaced();
+    if (offsets.interlaced) {
+        std::tie(offsets.luma, offsets.luma_bottom, std::ignore, std::ignore) =
+            GetInterlacedOffsets();
     } else {
-        auto [luma_offset, chroma_offset] = GetProgressiveOffsets();
+        std::tie(offsets.luma, std::ignore) = GetProgressiveOffsets();
+    }
 
-        if (!frame.get()) {
-            LOG_ERROR(HW_GPU, "Nvdec {} failed to decode progressive frame for luma {:#X}", id,
-                      luma_offset);
-        }
+    // Send assembled bitstream to decoder.
+    if (!decode_api.SendPacket(packet_data, offsets, GetFrameDimensions())) {
+        return;
+    }
 
+    auto push = [&](u64 luma, std::shared_ptr<FFmpeg::Frame> frame) {
         if (UsingDecodeOrder()) {
-            host1x.frame_queue.PushDecodeOrder(id, luma_offset, std::move(frame));
+            host1x.frame_queue.PushDecodeOrder(id, luma, std::move(frame));
         } else {
-            host1x.frame_queue.PushPresentOrder(id, luma_offset, std::move(frame));
+            host1x.frame_queue.PushPresentOrder(id, luma, std::move(frame));
+        }
+    };
+
+    while (auto result = decode_api.ReceiveFrame()) {
+        auto& [frame, frame_offsets] = *result;
+        if (!frame) {
+            continue;
+        }
+        if (frame_offsets.interlaced) {
+            auto frame_copy = frame;
+            push(frame_offsets.luma, std::move(frame));
+            push(frame_offsets.luma_bottom, std::move(frame_copy));
+        } else {
+            push(frame_offsets.luma, std::move(frame));
         }
     }
 }

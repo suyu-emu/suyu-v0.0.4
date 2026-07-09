@@ -628,6 +628,7 @@ private:
 
     s32 id;
     s32 nvdec_id{-1};
+    bool has_decoded_frame{};
     u32 syncpoint;
 };
 

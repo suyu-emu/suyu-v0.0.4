@@ -52,6 +52,10 @@ bool H264::IsInterlaced() {
 
 std::span<const u8> H264::ComposeFrame() {
     host1x.gmmu_manager.ReadBlock(regs.picture_info_offset.Address(), &current_context, sizeof(H264DecoderContext));
+    const auto& params = current_context.h264_parameter_set;
+    SetFrameDimensions(static_cast<s32>(params.pic_width_in_mbs) * 16,
+                       static_cast<s32>(params.frame_height_in_mbs) * 16);
+
     const s64 frame_number = current_context.h264_parameter_set.frame_number.Value();
     if (!is_first_frame && frame_number != 0) {
         frame_scratch.resize_destructive(current_context.stream_len);

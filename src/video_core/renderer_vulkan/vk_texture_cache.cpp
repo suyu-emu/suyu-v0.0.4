@@ -1635,9 +1635,6 @@ Image::Image(const VideoCommon::NullImageParams& params) : VideoCommon::ImageBas
 Image::~Image() = default;
 
 void Image::AllocateComputeUnswizzleBuffer(u32 max_slices) {
-    if (has_compute_unswizzle_buffer)
-        return;
-
     using VideoCore::Surface::BytesPerBlock;
 
     const u32 block_bytes  = BytesPerBlock(info.format); // 8 for BC1, 16 for BC6H
@@ -1654,7 +1651,12 @@ void Image::AllocateComputeUnswizzleBuffer(u32 max_slices) {
         static_cast<u64>(blocks_y) *
         static_cast<u64>(blocks_z);
 
-    compute_unswizzle_buffer_size = block_count * block_bytes;
+    const VkDeviceSize required_size = block_count * block_bytes;
+    if (has_compute_unswizzle_buffer && required_size <= compute_unswizzle_buffer_size) {
+        return;
+    }
+
+    compute_unswizzle_buffer_size = required_size;
 
     VkBufferCreateInfo ci{
         .sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO,
@@ -2152,6 +2154,15 @@ ImageView::ImageView(TextureCacheRuntime& runtime, const VideoCommon::ImageViewI
     if (uses_widened_astc_format) {
         format_info.format = VK_FORMAT_R32G32B32A32_SFLOAT;
     }
+    if (device->ApiVersion() >= VK_API_VERSION_1_3) {
+        const VkFormatProperties3 properties3 =
+            device->GetPhysical().GetFormatProperties3(format_info.format);
+        supports_depth_comparison =
+            (properties3.optimalTilingFeatures &
+             VK_FORMAT_FEATURE_2_SAMPLED_IMAGE_DEPTH_COMPARISON_BIT) != 0;
+    } else {
+        supports_depth_comparison = true;
+    }
     const VkImageUsageFlags requested_view_usage = ImageUsageFlags(format_info, format);
     const VkImageUsageFlags image_usage = image.UsageFlags();
     const VkImageUsageFlags clamped_view_usage = requested_view_usage & image_usage;
@@ -2290,7 +2301,7 @@ VkImageView ImageView::StorageView(Shader::TextureType texture_type,
                 if (uses_widened_astc_format) {
                     info.format = VK_FORMAT_R32G32B32A32_SFLOAT;
                 }
-                typeless_storage_view = MakeView(info.format, VK_IMAGE_ASPECT_COLOR_BIT);
+                typeless_storage_view = MakeView(info.format, VK_IMAGE_ASPECT_COLOR_BIT, texture_type);
             }
             return *typeless_storage_view;
         }
@@ -2301,7 +2312,7 @@ VkImageView ImageView::StorageView(Shader::TextureType texture_type,
         auto& views{is_signed ? storage_views->signeds : storage_views->unsigneds};
         auto& view{views[size_t(texture_type)]};
         if (!view)
-            view = MakeView(Format(image_format), VK_IMAGE_ASPECT_COLOR_BIT);
+            view = MakeView(Format(image_format), VK_IMAGE_ASPECT_COLOR_BIT, texture_type);
         return *view;
     }
     return VK_NULL_HANDLE;
@@ -2311,13 +2322,28 @@ bool ImageView::IsRescaled() const noexcept {
     return (*slot_images)[image_id].IsRescaled();
 }
 
-vk::ImageView ImageView::MakeView(VkFormat vk_format, VkImageAspectFlags aspect_mask) {
+vk::ImageView ImageView::MakeView(VkFormat vk_format, VkImageAspectFlags aspect_mask,
+                                  std::optional<Shader::TextureType> texture_type) {
+    VkImageViewType view_type = ImageViewType(type);
+    VkImageSubresourceRange subresource_range = MakeSubresourceRange(aspect_mask, range);
+    if (texture_type) {
+        view_type = ImageViewType(*texture_type);
+        switch (view_type) {
+        case VK_IMAGE_VIEW_TYPE_1D_ARRAY:
+        case VK_IMAGE_VIEW_TYPE_2D_ARRAY:
+        case VK_IMAGE_VIEW_TYPE_CUBE_ARRAY:
+            break;
+        default:
+            subresource_range.layerCount = 1;
+            break;
+        }
+    }
     return device->GetLogical().CreateImageView({
         .sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO,
         .pNext = nullptr,
         .flags = 0,
         .image = image_handle,
-        .viewType = ImageViewType(type),
+        .viewType = view_type,
         .format = vk_format,
         .components{
             .r = VK_COMPONENT_SWIZZLE_IDENTITY,
@@ -2325,7 +2351,7 @@ vk::ImageView ImageView::MakeView(VkFormat vk_format, VkImageAspectFlags aspect_
             .b = VK_COMPONENT_SWIZZLE_IDENTITY,
             .a = VK_COMPONENT_SWIZZLE_IDENTITY,
         },
-        .subresourceRange = MakeSubresourceRange(aspect_mask, range),
+        .subresourceRange = subresource_range,
     });
 }
 
@@ -2376,7 +2402,8 @@ Sampler::Sampler(TextureCacheRuntime& runtime, const Tegra::Texture::TSCEntry& t
                                     min_filter == VK_FILTER_LINEAR ||
                                     mipmap_mode == VK_SAMPLER_MIPMAP_MODE_LINEAR};
 
-    const auto create_sampler = [&](const f32 anisotropy, bool force_nearest) {
+    const auto create_sampler = [&](const f32 anisotropy, bool force_nearest,
+                                    bool disable_compare = false) {
         return device.GetLogical().CreateSampler(VkSamplerCreateInfo{
             .sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO,
             .pNext = pnext,
@@ -2391,7 +2418,8 @@ Sampler::Sampler(TextureCacheRuntime& runtime, const Tegra::Texture::TSCEntry& t
             .anisotropyEnable =
                 static_cast<VkBool32>(!force_nearest && anisotropy > 1.0f ? VK_TRUE : VK_FALSE),
             .maxAnisotropy = force_nearest ? 1.0f : anisotropy,
-            .compareEnable = tsc.depth_compare_enabled,
+            .compareEnable = disable_compare ? VK_FALSE
+                                             : static_cast<VkBool32>(tsc.depth_compare_enabled),
             .compareOp = MaxwellToVK::Sampler::DepthCompareFunction(tsc.depth_compare_func),
             .minLod = tsc.mipmap_filter == TextureMipmapFilter::None ? 0.0f : tsc.MinLod(),
             .maxLod = tsc.mipmap_filter == TextureMipmapFilter::None ? 0.25f : tsc.MaxLod(),
@@ -2409,6 +2437,9 @@ Sampler::Sampler(TextureCacheRuntime& runtime, const Tegra::Texture::TSCEntry& t
     }
     if (has_linear_filtering) {
         sampler_nearest = create_sampler(1.0f, true);
+    }
+    if (tsc.depth_compare_enabled) {
+        sampler_noncompare = create_sampler(max_anisotropy, false, true);
     }
 }
 
