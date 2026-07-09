@@ -386,6 +386,8 @@ private:
     VkImageView render_target = VK_NULL_HANDLE;
     VkSampleCountFlagBits samples = VK_SAMPLE_COUNT_1_BIT;
     u32 buffer_size = 0;
+
+    bool uses_widened_astc_format = false;
 };
 
 class ImageAlloc : public VideoCommon::ImageAllocBase {};

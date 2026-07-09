@@ -72,7 +72,9 @@ VK_DEFINE_HANDLE(VmaAllocator)
     FEATURE(KHR, PipelineExecutableProperties, PIPELINE_EXECUTABLE_PROPERTIES,                     \
             pipeline_executable_properties)                                                        \
     FEATURE(KHR, WorkgroupMemoryExplicitLayout, WORKGROUP_MEMORY_EXPLICIT_LAYOUT,                  \
-            workgroup_memory_explicit_layout)
+            workgroup_memory_explicit_layout)                                                      \
+    FEATURE(EXT, TextureCompressionASTCHDR, TEXTURE_COMPRESSION_ASTC_HDR,                          \
+            texture_compression_astc_hdr)
 
 
 // Define miscellaneous extensions which may be used by the implementation here.
@@ -348,9 +350,9 @@ FN_MAX_LIMIT_LIST
         return properties.float_controls;
     }
 
-    /// Returns true if ASTC is natively supported.
     bool IsOptimalAstcSupported() const {
-        return features.features.textureCompressionASTC_LDR;
+        return features.features.textureCompressionASTC_LDR &&
+               features.texture_compression_astc_hdr.textureCompressionASTC_HDR;
     }
 
     /// Returns true if BCn is natively supported.

@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 // SPDX-FileCopyrightText: 2016 The University of North Carolina at Chapel Hill
@@ -1269,6 +1269,209 @@ static inline u32 Select2DPartition(s32 seed, s32 x, s32 y, s32 partitionCount, 
     return SelectPartition(seed, x, y, 0, partitionCount, smallBlock);
 }
 
+static constexpr bool IsHDRColorEndpointMode(u32 cem) {
+    switch (cem) {
+    case 2:
+    case 3:
+    case 7:
+    case 11:
+    case 14:
+    case 15:
+        return true;
+    default:
+        return false;
+    }
+}
+
+static constexpr s32 SignExtend(s32 value, u32 nbits) {
+    const s32 sign_bit = 1 << (nbits - 1);
+    return (value ^ sign_bit) - sign_bit;
+}
+
+struct HDREndpointRGB {
+    s32 r0, g0, b0;
+    s32 r1, g1, b1;
+};
+
+static void DecodeHDREndpointMode7(u32 v0, u32 v1, u32 v2, u32 v3, s32& r0, s32& g0, s32& b0,
+                                    s32& r1, s32& g1, s32& b1) {
+    const u32 modeval = ((v0 & 0xC0) >> 6) | ((v1 & 0x80) >> 5) | ((v2 & 0x80) >> 4);
+
+    u32 majcomp;
+    u32 mode;
+    if ((modeval & 0xC) != 0xC) {
+        majcomp = modeval >> 2;
+        mode = modeval & 3;
+    } else if (modeval != 0xF) {
+        majcomp = modeval & 3;
+        mode = 4;
+    } else {
+        majcomp = 0;
+        mode = 5;
+    }
+
+    s32 red = static_cast<s32>(v0 & 0x3f);
+    s32 green = static_cast<s32>(v1 & 0x1f);
+    s32 blue = static_cast<s32>(v2 & 0x1f);
+    s32 scale = static_cast<s32>(v3 & 0x1f);
+
+    const u32 x0 = (v1 >> 6) & 1;
+    const u32 x1 = (v1 >> 5) & 1;
+    const u32 x2 = (v2 >> 6) & 1;
+    const u32 x3 = (v2 >> 5) & 1;
+    const u32 x4 = (v3 >> 7) & 1;
+    const u32 x5 = (v3 >> 6) & 1;
+    const u32 x6 = (v3 >> 5) & 1;
+
+    const u32 ohm = 1u << mode;
+    if (ohm & 0x30)
+        green |= static_cast<s32>(x0 << 6);
+    if (ohm & 0x3A)
+        green |= static_cast<s32>(x1 << 5);
+    if (ohm & 0x30)
+        blue |= static_cast<s32>(x2 << 6);
+    if (ohm & 0x3A)
+        blue |= static_cast<s32>(x3 << 5);
+    if (ohm & 0x3D)
+        scale |= static_cast<s32>(x6 << 5);
+    if (ohm & 0x2D)
+        scale |= static_cast<s32>(x5 << 6);
+    if (ohm & 0x04)
+        scale |= static_cast<s32>(x4 << 7);
+    if (ohm & 0x3B)
+        red |= static_cast<s32>(x4 << 6);
+    if (ohm & 0x04)
+        red |= static_cast<s32>(x3 << 6);
+    if (ohm & 0x10)
+        red |= static_cast<s32>(x5 << 7);
+    if (ohm & 0x0F)
+        red |= static_cast<s32>(x2 << 7);
+    if (ohm & 0x05)
+        red |= static_cast<s32>(x1 << 8);
+    if (ohm & 0x0A)
+        red |= static_cast<s32>(x0 << 8);
+    if (ohm & 0x05)
+        red |= static_cast<s32>(x0 << 9);
+    if (ohm & 0x02)
+        red |= static_cast<s32>(x6 << 9);
+    if (ohm & 0x01)
+        red |= static_cast<s32>(x3 << 10);
+    if (ohm & 0x02)
+        red |= static_cast<s32>(x5 << 10);
+
+    static constexpr int shamts[6] = {1, 1, 2, 3, 4, 5};
+    const s32 shamt = shamts[mode];
+    red <<= shamt;
+    green <<= shamt;
+    blue <<= shamt;
+    scale <<= shamt;
+
+    if (mode != 5) {
+        green = red - green;
+        blue = red - blue;
+    }
+
+    if (majcomp == 1)
+        std::swap(red, green);
+    if (majcomp == 2)
+        std::swap(red, blue);
+
+    r1 = std::clamp(red, 0, 0xFFF);
+    g1 = std::clamp(green, 0, 0xFFF);
+    b1 = std::clamp(blue, 0, 0xFFF);
+
+    r0 = std::clamp(red - scale, 0, 0xFFF);
+    g0 = std::clamp(green - scale, 0, 0xFFF);
+    b0 = std::clamp(blue - scale, 0, 0xFFF);
+}
+
+static HDREndpointRGB DecodeHDREndpointMode11(u32 v0, u32 v1, u32 v2, u32 v3, u32 v4, u32 v5) {
+    const u32 majcomp = ((v4 & 0x80) >> 7) | ((v5 & 0x80) >> 6);
+    if (majcomp == 3) {
+        HDREndpointRGB result;
+        result.r0 = static_cast<s32>(v0 << 4);
+        result.g0 = static_cast<s32>(v2 << 4);
+        result.b0 = static_cast<s32>((v4 & 0x7f) << 5);
+        result.r1 = static_cast<s32>(v1 << 4);
+        result.g1 = static_cast<s32>(v3 << 4);
+        result.b1 = static_cast<s32>((v5 & 0x7f) << 5);
+        return result;
+    }
+
+    const u32 mode = ((v1 & 0x80) >> 7) | ((v2 & 0x80) >> 6) | ((v3 & 0x80) >> 5);
+    s32 va = static_cast<s32>(v0 | ((v1 & 0x40) << 2));
+    s32 vb0 = static_cast<s32>(v2 & 0x3f);
+    s32 vb1 = static_cast<s32>(v3 & 0x3f);
+    s32 vc = static_cast<s32>(v1 & 0x3f);
+    s32 vd0 = static_cast<s32>(v4 & 0x7f);
+    s32 vd1 = static_cast<s32>(v5 & 0x7f);
+
+    static constexpr int dbitstab[8] = {7, 6, 7, 6, 5, 6, 5, 6};
+    vd0 = SignExtend(vd0, dbitstab[mode]);
+    vd1 = SignExtend(vd1, dbitstab[mode]);
+
+    const u32 x0 = (v2 >> 6) & 1;
+    const u32 x1 = (v3 >> 6) & 1;
+    const u32 x2 = (v4 >> 6) & 1;
+    const u32 x3 = (v5 >> 6) & 1;
+    const u32 x4 = (v4 >> 5) & 1;
+    const u32 x5 = (v5 >> 5) & 1;
+
+    const u32 ohm = 1u << mode;
+    if (ohm & 0xA4)
+        va |= static_cast<s32>(x0 << 9);
+    if (ohm & 0x08)
+        va |= static_cast<s32>(x2 << 9);
+    if (ohm & 0x50)
+        va |= static_cast<s32>(x4 << 9);
+    if (ohm & 0x50)
+        va |= static_cast<s32>(x5 << 10);
+    if (ohm & 0xA0)
+        va |= static_cast<s32>(x1 << 10);
+    if (ohm & 0xC0)
+        va |= static_cast<s32>(x2 << 11);
+    if (ohm & 0x04)
+        vc |= static_cast<s32>(x1 << 6);
+    if (ohm & 0xE8)
+        vc |= static_cast<s32>(x3 << 6);
+    if (ohm & 0x20)
+        vc |= static_cast<s32>(x2 << 7);
+    if (ohm & 0x5B)
+        vb0 |= static_cast<s32>(x0 << 6);
+    if (ohm & 0x5B)
+        vb1 |= static_cast<s32>(x1 << 6);
+    if (ohm & 0x12)
+        vb0 |= static_cast<s32>(x2 << 7);
+    if (ohm & 0x12)
+        vb1 |= static_cast<s32>(x3 << 7);
+
+    const s32 shamt = (static_cast<s32>(mode) >> 1) ^ 3;
+    va <<= shamt;
+    vb0 <<= shamt;
+    vb1 <<= shamt;
+    vc <<= shamt;
+    vd0 <<= shamt;
+    vd1 <<= shamt;
+
+    HDREndpointRGB result;
+    result.r1 = std::clamp(va, 0, 0xFFF);
+    result.g1 = std::clamp(va - vb0, 0, 0xFFF);
+    result.b1 = std::clamp(va - vb1, 0, 0xFFF);
+
+    result.r0 = std::clamp(va - vc, 0, 0xFFF);
+    result.g0 = std::clamp(va - vb0 - vc - vd0, 0, 0xFFF);
+    result.b0 = std::clamp(va - vb1 - vc - vd1, 0, 0xFFF);
+
+    if (majcomp == 1) {
+        std::swap(result.r0, result.g0);
+        std::swap(result.r1, result.g1);
+    } else if (majcomp == 2) {
+        std::swap(result.r0, result.b0);
+        std::swap(result.r1, result.b1);
+    }
+    return result;
+}
+
 // Section C.2.14
 static void ComputeEndpoints(Pixel& ep1, Pixel& ep2, const u32*& colorValues,
                              u32 colorEndpointMode) {
@@ -1382,8 +1585,84 @@ static void ComputeEndpoints(Pixel& ep1, Pixel& ep2, const u32*& colorValues,
         ep2.ClampByte();
     } break;
 
+    case 2: {
+        READ_UINT_VALUES(2)
+        u32 y0, y1;
+        if (v[1] >= v[0]) {
+            y0 = v[0] << 4;
+            y1 = v[1] << 4;
+        } else {
+            y0 = (v[1] << 4) + 8;
+            y1 = (v[0] << 4) - 8;
+        }
+        ep1 = Pixel(0x780, y0, y0, y0);
+        ep2 = Pixel(0x780, y1, y1, y1);
+    } break;
+
+    case 3: {
+        READ_UINT_VALUES(2)
+        u32 y0, d;
+        if (v[0] & 0x80) {
+            y0 = ((v[1] & 0xE0) << 4) | ((v[0] & 0x7F) << 2);
+            d = (v[1] & 0x1F) << 2;
+        } else {
+            y0 = ((v[1] & 0xF0) << 4) | ((v[0] & 0x7F) << 1);
+            d = (v[1] & 0x0F) << 1;
+        }
+        const u32 y1 = (std::min)(y0 + d, 0xFFFU);
+        ep1 = Pixel(0x780, y0, y0, y0);
+        ep2 = Pixel(0x780, y1, y1, y1);
+    } break;
+
+    case 7: {
+        READ_UINT_VALUES(4)
+        s32 r0, g0, b0, r1, g1, b1;
+        DecodeHDREndpointMode7(v[0], v[1], v[2], v[3], r0, g0, b0, r1, g1, b1);
+        ep1 = Pixel(0x780, r0, g0, b0);
+        ep2 = Pixel(0x780, r1, g1, b1);
+    } break;
+
+    case 11: {
+        READ_UINT_VALUES(6)
+        const HDREndpointRGB rgb = DecodeHDREndpointMode11(v[0], v[1], v[2], v[3], v[4], v[5]);
+        ep1 = Pixel(0x780, rgb.r0, rgb.g0, rgb.b0);
+        ep2 = Pixel(0x780, rgb.r1, rgb.g1, rgb.b1);
+    } break;
+
+    case 14: {
+        READ_UINT_VALUES(8)
+        const HDREndpointRGB rgb = DecodeHDREndpointMode11(v[0], v[1], v[2], v[3], v[4], v[5]);
+        ep1 = Pixel(v[6], rgb.r0, rgb.g0, rgb.b0);
+        ep2 = Pixel(v[7], rgb.r1, rgb.g1, rgb.b1);
+    } break;
+
+    case 15: {
+        READ_UINT_VALUES(8)
+        const HDREndpointRGB rgb = DecodeHDREndpointMode11(v[0], v[1], v[2], v[3], v[4], v[5]);
+        const u32 mode = ((v[6] >> 7) & 1) | ((v[7] >> 6) & 2);
+        s32 a6 = static_cast<s32>(v[6] & 0x7F);
+        s32 a7 = static_cast<s32>(v[7] & 0x7F);
+        s32 alpha0, alpha1;
+        if (mode == 3) {
+            alpha0 = a6 << 5;
+            alpha1 = a7 << 5;
+        } else {
+            a6 |= (a7 << (mode + 1)) & 0x780;
+            a7 &= (0x3F >> mode);
+            a7 ^= 0x20 >> mode;
+            a7 -= 0x20 >> mode;
+            a6 <<= (4 - mode);
+            a7 <<= (4 - mode);
+            a7 += a6;
+            alpha0 = a6;
+            alpha1 = std::clamp(a7, 0, 0xFFF);
+        }
+        ep1 = Pixel(alpha0, rgb.r0, rgb.g0, rgb.b0);
+        ep2 = Pixel(alpha1, rgb.r1, rgb.g1, rgb.b1);
+    } break;
+
     default:
-        assert(false && "Unsupported color endpoint mode (is it HDR?)");
+        assert(false && "Unsupported color endpoint mode");
         break;
     }
 
@@ -1412,6 +1691,39 @@ static void FillVoidExtentLDR(InputBitStream& strm, std::span<u32> outBuf, u32 b
             outBuf[j * blockWidth + i] = rgba;
         }
     }
+}
+
+static float HalfToFloat(u16 h) {
+    const u32 sign = static_cast<u32>(h & 0x8000) << 16;
+    u32 exp = (h & 0x7C00) >> 10;
+    u32 mant = h & 0x3FF;
+    u32 bits;
+    if (exp == 0) {
+        if (mant == 0) {
+            bits = sign;
+        } else {
+            s32 e = 127 - 15 + 1;
+            while ((mant & 0x400) == 0) {
+                mant <<= 1;
+                --e;
+            }
+            mant &= 0x3FF;
+            bits = sign | (static_cast<u32>(e) << 23) | (mant << 13);
+        }
+    } else if (exp == 0x1F) {
+        bits = sign | 0x7F800000 | (mant << 13);
+    } else {
+        bits = sign | ((exp - 15 + 127) << 23) | (mant << 13);
+    }
+    float result;
+    std::memcpy(&result, &bits, sizeof(result));
+    return result;
+}
+
+static u16 HalfToClampedByte(u16 half_bits) {
+    const float value = HalfToFloat(half_bits);
+    const float clamped = std::clamp(value, 0.0f, 1.0f);
+    return static_cast<u16>(clamped * 255.0f + 0.5f);
 }
 
 static void FillError(std::span<u32> outBuf, u32 blockWidth, u32 blockHeight) {
@@ -1631,22 +1943,44 @@ static void DecompressBlock(std::span<const u8, 16> inBuf, const u32 blockWidth,
             Pixel p;
             for (u32 c = 0; c < 4; c++) {
                 u32 C0 = endpoints[partition][0].Component(c);
-                C0 = ReplicateByteTo16(C0);
                 u32 C1 = endpoints[partition][1].Component(c);
-                C1 = ReplicateByteTo16(C1);
 
                 u32 plane = 0;
                 if (weightParams.m_bDualPlane && (((planeIdx + 1) & 3) == c)) {
                     plane = 1;
                 }
-
                 u32 weight = weights[plane][j * blockWidth + i];
-                u32 C = (C0 * (64 - weight) + C1 * weight + 32) / 64;
-                if (C == 65535) {
-                    p.Component(c) = 255;
+
+                const bool is_hdr = IsHDRColorEndpointMode(colorEndpointMode[partition]) &&
+                                    !(colorEndpointMode[partition] == 14 && c == 0);
+
+                if (is_hdr) {
+                    C0 <<= 4;
+                    C1 <<= 4;
+                    const u32 C = (C0 * (64 - weight) + C1 * weight + 32) / 64;
+                    const u32 E = (C & 0xF800) >> 11;
+                    const u32 M = C & 0x7FF;
+                    u32 Mt;
+                    if (M < 512) {
+                        Mt = 3 * M;
+                    } else if (M >= 1536) {
+                        Mt = 5 * M - 2048;
+                    } else {
+                        Mt = 4 * M - 512;
+                    }
+                    const u32 Cf = (E << 10) + (Mt >> 3);
+                    const u16 half_bits = (Cf >= 0x7C00) ? u16{0x7BFF} : static_cast<u16>(Cf);
+                    p.Component(c) = HalfToClampedByte(half_bits);
                 } else {
-                    double Cf = static_cast<double>(C);
-                    p.Component(c) = static_cast<u16>(255.0 * (Cf / 65536.0) + 0.5);
+                    C0 = ReplicateByteTo16(C0);
+                    C1 = ReplicateByteTo16(C1);
+                    const u32 C = (C0 * (64 - weight) + C1 * weight + 32) / 64;
+                    if (C == 65535) {
+                        p.Component(c) = 255;
+                    } else {
+                        double Cf = static_cast<double>(C);
+                        p.Component(c) = static_cast<u16>(255.0 * (Cf / 65536.0) + 0.5);
+                    }
                 }
             }
 

@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2021 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -40,7 +43,11 @@ layout(binding = BINDING_INPUT_BUFFER, std430) readonly restrict buffer InputBuf
     uvec4 astc_data[];
 };
 
+#ifdef VULKAN
+layout(binding = BINDING_OUTPUT_IMAGE) uniform writeonly restrict image2DArray dest_image;
+#else
 layout(binding = BINDING_OUTPUT_IMAGE, rgba8) uniform writeonly restrict image2DArray dest_image;
+#endif
 
 const uint GOB_SIZE_X_SHIFT = 6;
 const uint GOB_SIZE_Y_SHIFT = 3;
@@ -589,6 +596,158 @@ ivec4 BlueContract(int a, int r, int g, int b) {
     return ivec4(a, (r + b) >> 1, (g + b) >> 1, b);
 }
 
+bool IsHDRColorEndpointMode(uint cem) {
+    return cem == 2u || cem == 3u || cem == 7u || cem == 11u || cem == 14u || cem == 15u;
+}
+
+int SignExtend(int value, uint nbits) {
+    int sign_bit = 1 << (nbits - 1u);
+    return (value ^ sign_bit) - sign_bit;
+}
+
+void DecodeHDREndpointMode7(uint v0, uint v1, uint v2, uint v3, out ivec3 e0, out ivec3 e1) {
+    uint modeval = ((v0 & 0xC0u) >> 6u) | ((v1 & 0x80u) >> 5u) | ((v2 & 0x80u) >> 4u);
+
+    uint majcomp;
+    uint mode;
+    if ((modeval & 0xCu) != 0xCu) {
+        majcomp = modeval >> 2u;
+        mode = modeval & 3u;
+    } else if (modeval != 0xFu) {
+        majcomp = modeval & 3u;
+        mode = 4u;
+    } else {
+        majcomp = 0u;
+        mode = 5u;
+    }
+
+    int red = int(v0 & 0x3Fu);
+    int green = int(v1 & 0x1Fu);
+    int blue = int(v2 & 0x1Fu);
+    int scale = int(v3 & 0x1Fu);
+
+    uint x0 = (v1 >> 6u) & 1u;
+    uint x1 = (v1 >> 5u) & 1u;
+    uint x2 = (v2 >> 6u) & 1u;
+    uint x3 = (v2 >> 5u) & 1u;
+    uint x4 = (v3 >> 7u) & 1u;
+    uint x5 = (v3 >> 6u) & 1u;
+    uint x6 = (v3 >> 5u) & 1u;
+
+    uint ohm = 1u << mode;
+    if ((ohm & 0x30u) != 0u) green |= int(x0 << 6u);
+    if ((ohm & 0x3Au) != 0u) green |= int(x1 << 5u);
+    if ((ohm & 0x30u) != 0u) blue |= int(x2 << 6u);
+    if ((ohm & 0x3Au) != 0u) blue |= int(x3 << 5u);
+    if ((ohm & 0x3Du) != 0u) scale |= int(x6 << 5u);
+    if ((ohm & 0x2Du) != 0u) scale |= int(x5 << 6u);
+    if ((ohm & 0x04u) != 0u) scale |= int(x4 << 7u);
+    if ((ohm & 0x3Bu) != 0u) red |= int(x4 << 6u);
+    if ((ohm & 0x04u) != 0u) red |= int(x3 << 6u);
+    if ((ohm & 0x10u) != 0u) red |= int(x5 << 7u);
+    if ((ohm & 0x0Fu) != 0u) red |= int(x2 << 7u);
+    if ((ohm & 0x05u) != 0u) red |= int(x1 << 8u);
+    if ((ohm & 0x0Au) != 0u) red |= int(x0 << 8u);
+    if ((ohm & 0x05u) != 0u) red |= int(x0 << 9u);
+    if ((ohm & 0x02u) != 0u) red |= int(x6 << 9u);
+    if ((ohm & 0x01u) != 0u) red |= int(x3 << 10u);
+    if ((ohm & 0x02u) != 0u) red |= int(x5 << 10u);
+
+    int shamts[6] = int[](1, 1, 2, 3, 4, 5);
+    int shamt = shamts[mode];
+    red <<= shamt;
+    green <<= shamt;
+    blue <<= shamt;
+    scale <<= shamt;
+
+    if (mode != 5u) {
+        green = red - green;
+        blue = red - blue;
+    }
+
+    if (majcomp == 1u) {
+        int t = red; red = green; green = t;
+    }
+    if (majcomp == 2u) {
+        int t = red; red = blue; blue = t;
+    }
+
+    e1 = ivec3(clamp(red, 0, 0xFFF), clamp(green, 0, 0xFFF), clamp(blue, 0, 0xFFF));
+    e0 = ivec3(clamp(red - scale, 0, 0xFFF), clamp(green - scale, 0, 0xFFF),
+              clamp(blue - scale, 0, 0xFFF));
+}
+
+void DecodeHDREndpointMode11(uint v0, uint v1, uint v2, uint v3, uint v4, uint v5, out ivec3 e0,
+                             out ivec3 e1) {
+    uint majcomp = ((v4 & 0x80u) >> 7u) | ((v5 & 0x80u) >> 6u);
+    if (majcomp == 3u) {
+        e0 = ivec3(int(v0 << 4u), int(v2 << 4u), int((v4 & 0x7Fu) << 5u));
+        e1 = ivec3(int(v1 << 4u), int(v3 << 4u), int((v5 & 0x7Fu) << 5u));
+        return;
+    }
+
+    uint mode = ((v1 & 0x80u) >> 7u) | ((v2 & 0x80u) >> 6u) | ((v3 & 0x80u) >> 5u);
+    int va = int(v0 | ((v1 & 0x40u) << 2u));
+    int vb0 = int(v2 & 0x3Fu);
+    int vb1 = int(v3 & 0x3Fu);
+    int vc = int(v1 & 0x3Fu);
+    int vd0 = int(v4 & 0x7Fu);
+    int vd1 = int(v5 & 0x7Fu);
+
+    int dbitstab[8] = int[](7, 6, 7, 6, 5, 6, 5, 6);
+    vd0 = SignExtend(vd0, uint(dbitstab[mode]));
+    vd1 = SignExtend(vd1, uint(dbitstab[mode]));
+
+    uint x0 = (v2 >> 6u) & 1u;
+    uint x1 = (v3 >> 6u) & 1u;
+    uint x2 = (v4 >> 6u) & 1u;
+    uint x3 = (v5 >> 6u) & 1u;
+    uint x4 = (v4 >> 5u) & 1u;
+    uint x5 = (v5 >> 5u) & 1u;
+
+    uint ohm = 1u << mode;
+    if ((ohm & 0xA4u) != 0u) va |= int(x0 << 9u);
+    if ((ohm & 0x08u) != 0u) va |= int(x2 << 9u);
+    if ((ohm & 0x50u) != 0u) va |= int(x4 << 9u);
+    if ((ohm & 0x50u) != 0u) va |= int(x5 << 10u);
+    if ((ohm & 0xA0u) != 0u) va |= int(x1 << 10u);
+    if ((ohm & 0xC0u) != 0u) va |= int(x2 << 11u);
+    if ((ohm & 0x04u) != 0u) vc |= int(x1 << 6u);
+    if ((ohm & 0xE8u) != 0u) vc |= int(x3 << 6u);
+    if ((ohm & 0x20u) != 0u) vc |= int(x2 << 7u);
+    if ((ohm & 0x5Bu) != 0u) vb0 |= int(x0 << 6u);
+    if ((ohm & 0x5Bu) != 0u) vb1 |= int(x1 << 6u);
+    if ((ohm & 0x12u) != 0u) vb0 |= int(x2 << 7u);
+    if ((ohm & 0x12u) != 0u) vb1 |= int(x3 << 7u);
+
+    int shamt = (int(mode) >> 1) ^ 3;
+    va <<= shamt;
+    vb0 <<= shamt;
+    vb1 <<= shamt;
+    vc <<= shamt;
+    vd0 <<= shamt;
+    vd1 <<= shamt;
+
+    int r1 = clamp(va, 0, 0xFFF);
+    int g1 = clamp(va - vb0, 0, 0xFFF);
+    int b1 = clamp(va - vb1, 0, 0xFFF);
+    int r0 = clamp(va - vc, 0, 0xFFF);
+    int g0 = clamp(va - vb0 - vc - vd0, 0, 0xFFF);
+    int b0 = clamp(va - vb1 - vc - vd1, 0, 0xFFF);
+
+    if (majcomp == 1u) {
+        int t;
+        t = r0; r0 = g0; g0 = t;
+        t = r1; r1 = g1; g1 = t;
+    } else if (majcomp == 2u) {
+        int t;
+        t = r0; r0 = b0; b0 = t;
+        t = r1; r1 = b1; b1 = t;
+    }
+    e0 = ivec3(r0, g0, b0);
+    e1 = ivec3(r1, g1, b1);
+}
+
 void ComputeEndpoints(out uvec4 ep1, out uvec4 ep2, uint color_endpoint_mode, uint color_values[32],
                       inout uint colvals_index) {
 #define READ_UINT_VALUES(N)                                                                        \
@@ -715,8 +874,86 @@ void ComputeEndpoints(out uvec4 ep1, out uvec4 ep2, uint color_endpoint_mode, ui
         }
         break;
     }
+    case 2: {
+        READ_UINT_VALUES(2)
+        uint y0, y1;
+        if (V[0].y >= V[0].x) {
+            y0 = V[0].x << 4u;
+            y1 = V[0].y << 4u;
+        } else {
+            y0 = (V[0].y << 4u) + 8u;
+            y1 = (V[0].x << 4u) - 8u;
+        }
+        ep1 = uvec4(0x780u, y0, y0, y0);
+        ep2 = uvec4(0x780u, y1, y1, y1);
+        break;
+    }
+    case 3: {
+        READ_UINT_VALUES(2)
+        uint y0, d;
+        if ((V[0].x & 0x80u) != 0u) {
+            y0 = ((V[0].y & 0xE0u) << 4u) | ((V[0].x & 0x7Fu) << 2u);
+            d = (V[0].y & 0x1Fu) << 2u;
+        } else {
+            y0 = ((V[0].y & 0xF0u) << 4u) | ((V[0].x & 0x7Fu) << 1u);
+            d = (V[0].y & 0x0Fu) << 1u;
+        }
+        const uint y1 = min(y0 + d, 0xFFFu);
+        ep1 = uvec4(0x780u, y0, y0, y0);
+        ep2 = uvec4(0x780u, y1, y1, y1);
+        break;
+    }
+    case 7: {
+        READ_UINT_VALUES(4)
+        ivec3 e0, e1;
+        DecodeHDREndpointMode7(V[0].x, V[0].y, V[0].z, V[0].w, e0, e1);
+        ep1 = uvec4(0x780u, uint(e0.x), uint(e0.y), uint(e0.z));
+        ep2 = uvec4(0x780u, uint(e1.x), uint(e1.y), uint(e1.z));
+        break;
+    }
+    case 11: {
+        READ_UINT_VALUES(6)
+        ivec3 e0, e1;
+        DecodeHDREndpointMode11(V[0].x, V[0].y, V[0].z, V[0].w, V[1].x, V[1].y, e0, e1);
+        ep1 = uvec4(0x780u, uint(e0.x), uint(e0.y), uint(e0.z));
+        ep2 = uvec4(0x780u, uint(e1.x), uint(e1.y), uint(e1.z));
+        break;
+    }
+    case 14: {
+        READ_UINT_VALUES(8)
+        ivec3 e0, e1;
+        DecodeHDREndpointMode11(V[0].x, V[0].y, V[0].z, V[0].w, V[1].x, V[1].y, e0, e1);
+        ep1 = uvec4(V[1].z, uint(e0.x), uint(e0.y), uint(e0.z));
+        ep2 = uvec4(V[1].w, uint(e1.x), uint(e1.y), uint(e1.z));
+        break;
+    }
+    case 15: {
+        READ_UINT_VALUES(8)
+        ivec3 e0, e1;
+        DecodeHDREndpointMode11(V[0].x, V[0].y, V[0].z, V[0].w, V[1].x, V[1].y, e0, e1);
+        const uint mode = ((V[1].z >> 7u) & 1u) | ((V[1].w >> 6u) & 2u);
+        int a6 = int(V[1].z & 0x7Fu);
+        int a7 = int(V[1].w & 0x7Fu);
+        int alpha0, alpha1;
+        if (mode == 3u) {
+            alpha0 = a6 << 5;
+            alpha1 = a7 << 5;
+        } else {
+            a6 |= (a7 << int(mode + 1u)) & 0x780;
+            a7 &= int(0x3Fu >> mode);
+            a7 ^= int(0x20u >> mode);
+            a7 -= int(0x20u >> mode);
+            a6 <<= int(4u - mode);
+            a7 <<= int(4u - mode);
+            a7 += a6;
+            alpha0 = a6;
+            alpha1 = clamp(a7, 0, 0xFFF);
+        }
+        ep1 = uvec4(uint(alpha0), uint(e0.x), uint(e0.y), uint(e0.z));
+        ep2 = uvec4(uint(alpha1), uint(e1.x), uint(e1.y), uint(e1.z));
+        break;
+    }
     default: {
-        // HDR mode, or more likely a bug computing the color_endpoint_mode
         ep1 = uvec4(0xFF, 0xFF, 0, 0);
         ep2 = uvec4(0xFF, 0xFF, 0, 0);
         break;
@@ -1112,13 +1349,46 @@ void DecompressBlock(ivec3 coord) {
             if (num_partitions > 1) {
                 local_partition = Select2DPartition(partition_index, i, j, num_partitions);
             }
-            const uvec4 C0 = ReplicateByteTo16(endpoints0[local_partition]);
-            const uvec4 C1 = ReplicateByteTo16(endpoints1[local_partition]);
+            const uint local_cem = color_endpoint_mode[local_partition];
             const uvec4 weight_vec = GetUnquantizedWeightVector(j, i, size_params, plane_index, dual_plane);
-            const vec4 Cf =
-                vec4((C0 * (uvec4(64) - weight_vec) + C1 * weight_vec + uvec4(32)) / 64);
-            const vec4 p = (Cf / 65535.0f);
+
+            vec4 p;
+            if (IsHDRColorEndpointMode(local_cem)) {
+                const uvec4 C0 = endpoints0[local_partition] << 4u;
+                const uvec4 C1 = endpoints1[local_partition] << 4u;
+                const uvec4 C = (C0 * (uvec4(64) - weight_vec) + C1 * weight_vec + uvec4(32)) / 64u;
+                const uvec4 E = (C & uvec4(0xF800u)) >> 11u;
+                const uvec4 M = C & uvec4(0x7FFu);
+                const uvec4 Mt_lo = 3u * M;
+                const uvec4 Mt_mid = 4u * M - 512u;
+                const uvec4 Mt_hi = 5u * M - 2048u;
+                const uvec4 Mt =
+                    mix(Mt_lo, mix(Mt_mid, Mt_hi, greaterThanEqual(M, uvec4(1536u))),
+                        greaterThanEqual(M, uvec4(512u)));
+                const uvec4 Cf = (E << 10u) + (Mt >> 3u);
+                const uvec4 half_bits = mix(Cf, uvec4(0x7BFFu), greaterThanEqual(Cf, uvec4(0x7C00u)));
+                p = vec4(unpackHalf2x16(half_bits.x).x, unpackHalf2x16(half_bits.y).x,
+                        unpackHalf2x16(half_bits.z).x, unpackHalf2x16(half_bits.w).x);
+
+                if (local_cem == 14u) {
+                    const uint a0 = ReplicateByteTo16(uvec4(endpoints0[local_partition].x)).x;
+                    const uint a1 = ReplicateByteTo16(uvec4(endpoints1[local_partition].x)).x;
+                    const uint Ca = (a0 * (64u - weight_vec.x) + a1 * weight_vec.x + 32u) / 64u;
+                    p.x = float(Ca) / 65535.0f;
+                }
+            } else {
+                const uvec4 C0 = ReplicateByteTo16(endpoints0[local_partition]);
+                const uvec4 C1 = ReplicateByteTo16(endpoints1[local_partition]);
+                const vec4 Cf =
+                    vec4((C0 * (uvec4(64) - weight_vec) + C1 * weight_vec + uvec4(32)) / 64);
+                p = Cf / 65535.0f;
+            }
+
+#ifdef VULKAN
             imageStore(dest_image, coord + ivec3(i, j, 0), p.gbar);
+#else
+            imageStore(dest_image, coord + ivec3(i, j, 0), clamp(p, 0.0f, 1.0f).gbar);
+#endif
         }
     }
 }
