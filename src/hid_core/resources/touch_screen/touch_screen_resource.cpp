@@ -548,8 +548,7 @@ void TouchResource::OnTouchUpdate(s64 timestamp) {
             }
 
             auto& touch_shared = applet_data->shared_memory_format->touch_screen;
-            StorePreviousTouchState(previous_touch_state, data.finger_map, current_touch_state,
-                                    applet_data->flag.enable_touchscreen.As<bool>());
+            StorePreviousTouchState(previous_touch_state, data.finger_map, current_touch_state, applet_data->flag.enable_touchscreen);
             touch_shared.touch_screen_lifo.WriteNextEntry(current_touch_state);
         }
     }

@@ -242,11 +242,8 @@ size_t AesCtrCounterExtendedStorage::Read(u8* buffer, size_t size, size_t offset
     return size;
 }
 
-void SoftwareDecryptor::Decrypt(u8* buf, size_t buf_size,
-                                const std::array<u8, AesCtrCounterExtendedStorage::KeySize>& key,
-                                const std::array<u8, AesCtrCounterExtendedStorage::IvSize>& iv) {
-    Core::Crypto::AESCipher<Core::Crypto::Key128, AesCtrCounterExtendedStorage::KeySize> cipher(
-        key, Core::Crypto::Mode::CTR);
+void SoftwareDecryptor::Decrypt(u8* buf, size_t buf_size, const std::array<u8, AesCtrCounterExtendedStorage::KeySize>& key, const std::array<u8, AesCtrCounterExtendedStorage::IvSize>& iv) {
+    Core::Crypto::AESCipher<Core::Crypto::Key128> cipher(key, Core::Crypto::Mode::CTR);
     cipher.SetIV(iv);
     cipher.Transcode(buf, buf_size, buf, Core::Crypto::Op::Decrypt);
 }

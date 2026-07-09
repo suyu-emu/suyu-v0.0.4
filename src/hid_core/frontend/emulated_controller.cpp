@@ -1662,17 +1662,17 @@ bool EmulatedController::IsControllerFullkey(bool use_temporary_value) const {
 bool EmulatedController::IsControllerSupported(bool use_temporary_value) const {
     const auto type = is_configuring.load() && use_temporary_value ? tmp_npad_type.load() : npad_type.load();
     switch (type) {
-    case NpadStyleIndex::Fullkey: return supported_style_tag.fullkey.As<bool>();
-    case NpadStyleIndex::Handheld: return supported_style_tag.handheld.As<bool>();
-    case NpadStyleIndex::JoyconDual: return supported_style_tag.joycon_dual.As<bool>();
-    case NpadStyleIndex::JoyconLeft: return supported_style_tag.joycon_left.As<bool>();
-    case NpadStyleIndex::JoyconRight: return supported_style_tag.joycon_right.As<bool>();
-    case NpadStyleIndex::GameCube: return supported_style_tag.gamecube.As<bool>();
-    case NpadStyleIndex::Pokeball: return supported_style_tag.palma.As<bool>();
-    case NpadStyleIndex::NES: return supported_style_tag.lark.As<bool>();
-    case NpadStyleIndex::SNES: return supported_style_tag.lucia.As<bool>();
-    case NpadStyleIndex::N64: return supported_style_tag.lagoon.As<bool>();
-    case NpadStyleIndex::SegaGenesis: return supported_style_tag.lager.As<bool>();
+    case NpadStyleIndex::Fullkey: return supported_style_tag.fullkey;
+    case NpadStyleIndex::Handheld: return supported_style_tag.handheld;
+    case NpadStyleIndex::JoyconDual: return supported_style_tag.joycon_dual;
+    case NpadStyleIndex::JoyconLeft: return supported_style_tag.joycon_left;
+    case NpadStyleIndex::JoyconRight: return supported_style_tag.joycon_right;
+    case NpadStyleIndex::GameCube: return supported_style_tag.gamecube;
+    case NpadStyleIndex::Pokeball: return supported_style_tag.palma;
+    case NpadStyleIndex::NES: return supported_style_tag.lark;
+    case NpadStyleIndex::SNES: return supported_style_tag.lucia;
+    case NpadStyleIndex::N64: return supported_style_tag.lagoon;
+    case NpadStyleIndex::SegaGenesis: return supported_style_tag.lager;
     default: return false;
     }
 }

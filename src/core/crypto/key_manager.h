@@ -336,8 +336,7 @@ Key128 GenerateKeyEncryptionKey(Key128 source, Key128 master, Key128 kek_seed, K
 Key128 DeriveKeyblobKey(const Key128& sbk, const Key128& tsec, Key128 source);
 Key128 DeriveKeyblobMACKey(const Key128& keyblob_key, const Key128& mac_source);
 Key128 DeriveMasterKey(const std::array<u8, 0x90>& keyblob, const Key128& master_source);
-std::array<u8, 0x90> DecryptKeyblob(const std::array<u8, 0xB0>& encrypted_keyblob,
-                                    const Key128& key);
+std::array<u8, 0x90> DecryptKeyblob(const std::array<u8, 0xB0>& encrypted_keyblob, const Key128& key);
 
 std::optional<Key128> DeriveSDSeed();
 Loader::ResultStatus DeriveSDKeys(std::array<Key256, 2>& sd_keys, KeyManager& keys);

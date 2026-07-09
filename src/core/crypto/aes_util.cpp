@@ -56,10 +56,9 @@ static inline const std::string GetCipherName(Mode mode, u32 key_size) {
 };
 
 static EVP_CIPHER *GetCipher(Mode mode, u32 key_size) {
-    static auto fetch_cipher = [](Mode m, u32 k) {
+    static auto const fetch_cipher = [](Mode m, u32 k) {
         return EVP_CIPHER_fetch(nullptr, GetCipherName(m, k).c_str(), nullptr);
     };
-
     static const struct {
         EVP_CIPHER* ctr_16 = fetch_cipher(Mode::CTR, 16);
         EVP_CIPHER* ecb_16 = fetch_cipher(Mode::ECB, 16);
@@ -68,7 +67,6 @@ static EVP_CIPHER *GetCipher(Mode mode, u32 key_size) {
         EVP_CIPHER* ecb_32 = fetch_cipher(Mode::ECB, 32);
         EVP_CIPHER* xts_32 = fetch_cipher(Mode::XTS, 32);
     } ciphers = {};
-
     switch (mode) {
     case Mode::CTR:
         return key_size == 16 ? ciphers.ctr_16 : ciphers.ctr_32;
@@ -79,17 +77,15 @@ static EVP_CIPHER *GetCipher(Mode mode, u32 key_size) {
     default:
         UNIMPLEMENTED();
     }
-
     return nullptr;
 }
 
 // TODO: WHY TEMPLATE???????
-template <typename Key, std::size_t KeySize>
-Crypto::AESCipher<Key, KeySize>::AESCipher(Key key, Mode mode) : ctx(std::make_unique<CipherContext>()) {
-
+template <typename Key>
+Crypto::AESCipher<Key>::AESCipher(Key key, Mode mode) : ctx(std::make_unique<CipherContext>()) {
     ctx->encryption_context = EVP_CIPHER_CTX_new();
     ctx->decryption_context = EVP_CIPHER_CTX_new();
-    ctx->cipher = GetCipher(mode, KeySize);
+    ctx->cipher = GetCipher(mode, sizeof(Key));
     if (ctx->cipher) {
         EVP_CIPHER_up_ref(ctx->cipher);
     } else {
@@ -105,15 +101,15 @@ Crypto::AESCipher<Key, KeySize>::AESCipher(Key key, Mode mode) : ctx(std::make_u
     EVP_CIPHER_CTX_set_padding(ctx->decryption_context, 0);
 }
 
-template <typename Key, std::size_t KeySize>
-AESCipher<Key, KeySize>::~AESCipher() {
+template <typename Key>
+AESCipher<Key>::~AESCipher() {
     EVP_CIPHER_CTX_free(ctx->encryption_context);
     EVP_CIPHER_CTX_free(ctx->decryption_context);
     EVP_CIPHER_free(ctx->cipher);
 }
 
-template <typename Key, std::size_t KeySize>
-void AESCipher<Key, KeySize>::Transcode(const u8* src, std::size_t size, u8* dest, Op op) const {
+template <typename Key>
+void AESCipher<Key>::Transcode(const u8* src, std::size_t size, u8* dest, Op op) const {
     auto* const context = op == Op::Encrypt ? ctx->encryption_context : ctx->decryption_context;
 
     if (size == 0)
@@ -157,9 +153,8 @@ void AESCipher<Key, KeySize>::Transcode(const u8* src, std::size_t size, u8* des
     std::memcpy(dest + whole_block_bytes, tail_buffer.data(), tail);
 }
 
-template <typename Key, std::size_t KeySize>
-void AESCipher<Key, KeySize>::XTSTranscode(const u8* src, std::size_t size, u8* dest,
-                                           std::size_t sector_id, std::size_t sector_size, Op op) {
+template <typename Key>
+void AESCipher<Key>::XTSTranscode(const u8* src, std::size_t size, u8* dest, std::size_t sector_id, std::size_t sector_size, Op op) {
     ASSERT(size % sector_size == 0 && "XTS decryption size must be a multiple of sector size.");
     for (std::size_t i = 0; i < size; i += sector_size) {
         SetIV(CalculateNintendoTweak(sector_id++));
@@ -167,8 +162,8 @@ void AESCipher<Key, KeySize>::XTSTranscode(const u8* src, std::size_t size, u8* 
     }
 }
 
-template <typename Key, std::size_t KeySize>
-void AESCipher<Key, KeySize>::SetIV(std::span<const u8> data) {
+template <typename Key>
+void AESCipher<Key>::SetIV(std::span<const u8> data) {
     const int ret_enc = EVP_CipherInit_ex(ctx->encryption_context, nullptr, nullptr, nullptr, data.data(), -1);
     const int ret_dec = EVP_CipherInit_ex(ctx->decryption_context, nullptr, nullptr, nullptr, data.data(), -1);
     ASSERT(ret_enc == 1 && ret_dec == 1 && "Failed to set IV on OpenSSL contexts");

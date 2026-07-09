@@ -127,7 +127,7 @@ NvResult nvhost_as_gpu::AllocAsEx(IoctlAllocAsEx& params) {
         vm.va_range_end = params.va_range_end;
     }
 
-    const u64 max_big_page_bits = Common::Log2Ceil64(vm.va_range_end);
+    const u64 max_big_page_bits = Common::Log2Ceil(vm.va_range_end);
 
     const auto start_pages{static_cast<u32>(vm.va_range_start >> VM::PAGE_SIZE_BITS)};
     const auto end_pages{static_cast<u32>(vm.va_range_split >> VM::PAGE_SIZE_BITS)};

@@ -66,8 +66,7 @@ Result NpadAbstractSixAxisHandler::UpdateSixAxisState() {
             continue;
         }
         auto& npad_entry = data->shared_memory_format->npad.npad_entry[NpadIdTypeToIndex(npad_id)];
-        UpdateSixaxisInternalState(npad_entry, data->aruid,
-                                   data->flag.enable_six_axis_sensor.As<bool>());
+        UpdateSixaxisInternalState(npad_entry, data->aruid, data->flag.enable_six_axis_sensor);
     }
     return ResultSuccess;
 }
@@ -79,8 +78,7 @@ Result NpadAbstractSixAxisHandler::UpdateSixAxisState(u64 aruid) {
         return ResultSuccess;
     }
     auto& npad_entry = data->shared_memory_format->npad.npad_entry[NpadIdTypeToIndex(npad_id)];
-    UpdateSixaxisInternalState(npad_entry, data->aruid,
-                               data->flag.enable_six_axis_sensor.As<bool>());
+    UpdateSixaxisInternalState(npad_entry, data->aruid, data->flag.enable_six_axis_sensor);
     return ResultSuccess;
 }
 
@@ -91,8 +89,7 @@ Result NpadAbstractSixAxisHandler::UpdateSixAxisState2(u64 aruid) {
         return ResultSuccess;
     }
     auto& npad_internal_state = aruid_data->shared_memory_format->npad.npad_entry[npad_index];
-    UpdateSixaxisInternalState(npad_internal_state, aruid,
-                               aruid_data->flag.enable_six_axis_sensor.As<bool>());
+    UpdateSixaxisInternalState(npad_internal_state, aruid, aruid_data->flag.enable_six_axis_sensor);
     return ResultSuccess;
 }
 

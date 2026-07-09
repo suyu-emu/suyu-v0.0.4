@@ -71,78 +71,58 @@ Hidbus::~Hidbus() {
 void Hidbus::UpdateHidbus(std::chrono::nanoseconds ns_late) {
     if (is_hidbus_enabled) {
         for (std::size_t i = 0; i < devices.size(); ++i) {
-            if (!devices[i].is_device_initialized) {
-                continue;
+            if (devices[i].is_device_initialized) {
+                auto& device = devices[i].device;
+                device->OnUpdate();
+                auto& cur_entry = hidbus_status.entries[devices[i].handle.internal_index];
+                cur_entry.is_polling_mode = device->IsPollingMode();
+                cur_entry.polling_mode = device->GetPollingMode();
+                cur_entry.is_enabled = device->IsEnabled();
+                u8* shared_memory = system.Kernel().GetHidBusSharedMem().GetPointer();
+                std::memcpy(shared_memory + (i * sizeof(HidbusStatusManagerEntry)), &hidbus_status, sizeof(HidbusStatusManagerEntry));
             }
-            auto& device = devices[i].device;
-            device->OnUpdate();
-            auto& cur_entry = hidbus_status.entries[devices[i].handle.internal_index];
-            cur_entry.is_polling_mode = device->IsPollingMode();
-            cur_entry.polling_mode = device->GetPollingMode();
-            cur_entry.is_enabled = device->IsEnabled();
-
-            u8* shared_memory = system.Kernel().GetHidBusSharedMem().GetPointer();
-            std::memcpy(shared_memory + (i * sizeof(HidbusStatusManagerEntry)), &hidbus_status,
-                        sizeof(HidbusStatusManagerEntry));
         }
     }
 }
 
 std::optional<std::size_t> Hidbus::GetDeviceIndexFromHandle(BusHandle handle) const {
-    for (std::size_t i = 0; i < devices.size(); ++i) {
-        const auto& device_handle = devices[i].handle;
-        if (handle.abstracted_pad_id == device_handle.abstracted_pad_id &&
-            handle.internal_index == device_handle.internal_index &&
-            handle.player_number == device_handle.player_number &&
-            handle.bus_type_id == device_handle.bus_type_id &&
-            handle.is_valid == device_handle.is_valid) {
-            return i;
-        }
-    }
-    return std::nullopt;
+    auto const it = std::ranges::find_if(devices, [&handle](auto const& e) {
+        return handle.abstracted_pad_id == e.handle.abstracted_pad_id
+            && handle.internal_index == e.handle.internal_index
+            && handle.player_number == e.handle.player_number
+            && handle.bus_type_id == e.handle.bus_type_id
+            && handle.is_valid == e.handle.is_valid;
+    });
+    return it != devices.end()
+        ? std::optional<std::size_t>{std::distance(devices.begin(), it)}
+        : std::nullopt;
 }
 
-Result Hidbus::GetBusHandle(Out<bool> out_is_valid, Out<BusHandle> out_bus_handle,
-                            Core::HID::NpadIdType npad_id, BusType bus_type,
-                            AppletResourceUserId aruid) {
-    LOG_INFO(Service_HID, "called, npad_id={}, bus_type={}, applet_resource_user_id={}", npad_id,
-             bus_type, aruid.pid);
-
-    bool is_handle_found = 0;
-    std::size_t handle_index = 0;
-
-    for (std::size_t i = 0; i < devices.size(); i++) {
-        const auto& handle = devices[i].handle;
-        if (!handle.is_valid) {
-            continue;
-        }
-        if (handle.player_number.As<Core::HID::NpadIdType>() == npad_id &&
-            handle.bus_type_id == static_cast<u8>(bus_type)) {
-            is_handle_found = true;
-            handle_index = i;
-            break;
-        }
-    }
-
+Result Hidbus::GetBusHandle(Out<bool> out_is_valid, Out<BusHandle> out_bus_handle, Core::HID::NpadIdType npad_id, BusType bus_type, AppletResourceUserId aruid) {
+    LOG_INFO(Service_HID, "called, npad_id={}, bus_type={}, applet_resource_user_id={}", npad_id, bus_type, aruid.pid);
+    *out_is_valid = false;
+    *out_bus_handle = devices[0].handle; //TODO: does it give 0th?
+    if (auto const it = std::ranges::find_if(devices, [npad_id, bus_type](auto const& e) {
+        return e.handle.is_valid && e.handle.player_number == u64(npad_id) && e.handle.bus_type_id == u8(bus_type);
+    }); it != devices.end()) {
+        *out_bus_handle = devices[std::distance(devices.begin(), it)].handle;
+        *out_is_valid = true;
     // Handle not found. Create a new one
-    if (!is_handle_found) {
-        for (std::size_t i = 0; i < devices.size(); i++) {
-            if (devices[i].handle.is_valid) {
-                continue;
-            }
-            devices[i].handle.raw = 0;
-            devices[i].handle.abstracted_pad_id.Assign(i);
-            devices[i].handle.internal_index.Assign(i);
-            devices[i].handle.player_number.Assign(static_cast<u8>(npad_id));
-            devices[i].handle.bus_type_id.Assign(static_cast<u8>(bus_type));
-            devices[i].handle.is_valid.Assign(true);
-            handle_index = i;
-            break;
-        }
+    } else  if (auto const free_it = std::ranges::find_if(devices, [](auto const& e) {
+        return !e.handle.is_valid;
+    }); free_it != devices.end()) {
+        auto const i = std::distance(devices.begin(), free_it);
+        devices[i].handle.raw = 0;
+        devices[i].handle.abstracted_pad_id.Assign(i);
+        devices[i].handle.internal_index.Assign(i);
+        devices[i].handle.player_number.Assign(u8(npad_id));
+        devices[i].handle.bus_type_id.Assign(u8(bus_type));
+        devices[i].handle.is_valid.Assign(true);
+        *out_bus_handle = devices[i].handle;
+        *out_is_valid = true;
+    } else {
+        LOG_ERROR(Service_HID, "no free or matching handle found");
     }
-
-    *out_is_valid = true;
-    *out_bus_handle = devices[handle_index].handle;
     R_SUCCEED();
 }
 

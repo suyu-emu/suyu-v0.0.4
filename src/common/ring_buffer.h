@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 // SPDX-FileCopyrightText: Copyright 2018 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
@@ -23,17 +23,15 @@ namespace Common {
 /// @tparam T            Element type
 /// @tparam capacity     Number of slots in ring buffer
 template <typename T, std::size_t capacity>
+    requires std::is_trivial_v<T>
 class RingBuffer {
     /// A "slot" is made of a single `T`.
     static constexpr std::size_t slot_size = sizeof(T);
-    // T must be safely memcpy-able and have a trivial default constructor.
-    static_assert(std::is_trivial_v<T>);
     // Ensure capacity is sensible.
     static_assert(capacity < (std::numeric_limits<std::size_t>::max)() / 2);
     static_assert((capacity & (capacity - 1)) == 0, "capacity must be a power of two");
     // Ensure lock-free.
     static_assert(std::atomic_size_t::is_always_lock_free);
-
 public:
     /// Pushes slots into the ring buffer
     /// @param new_slots   Pointer to the slots to push

@@ -1357,10 +1357,9 @@ public:
     }
 
     template <typename T>
-    void PushConstants(VkPipelineLayout layout, VkShaderStageFlags flags,
-                       const T& data) const noexcept {
-        static_assert(std::is_trivially_copyable_v<T>, "<data> is not trivially copyable");
-        dld->vkCmdPushConstants(handle, layout, flags, 0, static_cast<u32>(sizeof(T)), &data);
+        requires std::is_trivially_copyable_v<T>
+    void PushConstants(VkPipelineLayout layout, VkShaderStageFlags flags, const T& data) const noexcept {
+        dld->vkCmdPushConstants(handle, layout, flags, 0, u32(sizeof(T)), std::addressof(data));
     }
 
     void SetViewport(u32 first, Span<VkViewport> viewports) const noexcept {

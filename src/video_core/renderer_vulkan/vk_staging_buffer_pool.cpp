@@ -174,7 +174,7 @@ StagingBufferRef StagingBufferPool::GetStagingBuffer(size_t size, MemoryUsage us
 std::optional<StagingBufferRef> StagingBufferPool::TryGetReservedBuffer(size_t size,
                                                                         MemoryUsage usage,
                                                                         bool deferred) {
-    StagingBuffers& cache_level = GetCache(usage)[Common::Log2Ceil64(size)];
+    StagingBuffers& cache_level = GetCache(usage)[Common::Log2Ceil(size)];
 
     const auto is_free = [this](const StagingBuffer& entry) {
         return !entry.deferred && scheduler.IsFree(entry.tick);
@@ -195,14 +195,13 @@ std::optional<StagingBufferRef> StagingBufferPool::TryGetReservedBuffer(size_t s
     return it->Ref();
 }
 
-StagingBufferRef StagingBufferPool::CreateStagingBuffer(size_t size, MemoryUsage usage,
-                                                        bool deferred) {
-    const u32 log2 = Common::Log2Ceil64(size);
+StagingBufferRef StagingBufferPool::CreateStagingBuffer(size_t size, MemoryUsage usage, bool deferred) {
+    auto const log2_size = Common::Log2Ceil<u32>(u32(size));
     VkBufferCreateInfo buffer_ci = {
         .sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO,
         .pNext = nullptr,
         .flags = 0,
-        .size = 1ULL << log2,
+        .size = 1ULL << log2_size,
         .usage = VK_BUFFER_USAGE_TRANSFER_SRC_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT |
                  VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT | VK_BUFFER_USAGE_STORAGE_BUFFER_BIT |
                  VK_BUFFER_USAGE_INDEX_BUFFER_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT,
@@ -219,11 +218,11 @@ StagingBufferRef StagingBufferPool::CreateStagingBuffer(size_t size, MemoryUsage
         buffer.SetObjectNameEXT(fmt::format("Staging Buffer {}", buffer_index).c_str());
     }
     const std::span<u8> mapped_span = buffer.Mapped();
-    StagingBuffer& entry = GetCache(usage)[log2].entries.emplace_back(StagingBuffer{
+    StagingBuffer& entry = GetCache(usage)[log2_size].entries.emplace_back(StagingBuffer{
         .buffer = std::move(buffer),
         .mapped_span = mapped_span,
         .usage = usage,
-        .log2_level = log2,
+        .log2_level = log2_size,
         .index = unique_ids++,
         .tick = deferred ? (std::numeric_limits<u64>::max)() : scheduler.CurrentTick(),
         .deferred = deferred,

@@ -5076,9 +5076,8 @@ void EmitX64::EmitVectorSignedSaturatedNeg64(EmitContext& ctx, IR::Inst* inst) {
 #    pragma clang diagnostic ignored "-Wunused-lambda-capture"
 #endif
 template<typename T, typename U = std::make_unsigned_t<T>>
+    requires std::is_signed_v<T>
 static bool VectorSignedSaturatedShiftLeft(VectorArray<T>& dst, const VectorArray<T>& data, const VectorArray<T>& shift_values) {
-    static_assert(std::is_signed_v<T>, "T must be signed.");
-
     bool qc_flag = false;
 
     constexpr size_t bit_size_minus_one = mcl::bitsizeof<T> - 1;
@@ -5134,9 +5133,9 @@ void EmitX64::EmitVectorSignedSaturatedShiftLeft64(EmitContext& ctx, IR::Inst* i
 }
 
 template<typename T>
+    requires std::is_signed_v<T>
 static bool VectorSignedSaturatedShiftLeftUnsigned(VectorArray<T>& dst, const VectorArray<T>& data, u8 shift_amount) {
     using U = std::make_unsigned_t<T>;
-    static_assert(std::is_signed_v<T>, "T must be signed.");
     bool qc_flag = false;
     for (size_t i = 0; i < dst.size(); i++) {
         auto const element = data[i];
@@ -6030,17 +6029,15 @@ void EmitX64::EmitVectorUnsignedRecipSqrtEstimate(EmitContext& ctx, IR::Inst* in
 // Simple generic case for 8, 16, and 32-bit values. 64-bit values
 // will need to be special-cased as we can't simply use a larger integral size.
 template<typename T, typename U = std::make_unsigned_t<T>>
+    requires std::is_signed_v<T>
 static bool EmitVectorUnsignedSaturatedAccumulateSigned(VectorArray<U>& result, const VectorArray<T>& lhs, const VectorArray<T>& rhs) {
-    static_assert(std::is_signed_v<T>, "T must be signed.");
     static_assert(mcl::bitsizeof<T> < 64, "T must be less than 64 bits in size.");
-
     bool qc_flag = false;
-
     for (size_t i = 0; i < result.size(); i++) {
         // We treat rhs' members as unsigned, so cast to unsigned before signed to inhibit sign-extension.
         // We use the unsigned equivalent of T, as we want zero-extension to occur, rather than a plain move.
         const s64 x = s64{lhs[i]};
-        const s64 y = static_cast<s64>(static_cast<std::make_unsigned_t<U>>(rhs[i]));
+        const s64 y = s64(std::make_unsigned_t<U>(rhs[i]));
         const s64 sum = x + y;
 
         if (sum > (std::numeric_limits<U>::max)()) {
@@ -6050,10 +6047,9 @@ static bool EmitVectorUnsignedSaturatedAccumulateSigned(VectorArray<U>& result, 
             result[i] = (std::numeric_limits<U>::min)();
             qc_flag = true;
         } else {
-            result[i] = static_cast<U>(sum);
+            result[i] = U(sum);
         }
     }
-
     return qc_flag;
 }
 
@@ -6134,29 +6130,23 @@ void EmitX64::EmitVectorUnsignedSaturatedNarrow64(EmitContext& ctx, IR::Inst* in
 }
 
 template<typename T, typename S = std::make_signed_t<T>>
+    requires std::is_unsigned_v<T>
 static bool VectorUnsignedSaturatedShiftLeft(VectorArray<T>& dst, const VectorArray<T>& data, const VectorArray<T>& shift_values) {
-    static_assert(std::is_unsigned_v<T>, "T must be an unsigned type.");
-
     bool qc_flag = false;
-
     constexpr size_t bit_size = mcl::bitsizeof<T>;
-    constexpr S negative_bit_size = -static_cast<S>(bit_size);
-
+    constexpr S negative_bit_size = -S(bit_size);
     for (size_t i = 0; i < dst.size(); i++) {
         const T element = data[i];
-        const S shift = std::clamp(static_cast<S>(mcl::bit::sign_extend<8>(static_cast<T>(shift_values[i] & 0xFF))),
-                                   negative_bit_size, (std::numeric_limits<S>::max)());
-
+        const S shift = std::clamp(S(mcl::bit::sign_extend<8>(T(shift_values[i] & 0xFF))), negative_bit_size, (std::numeric_limits<S>::max)());
         if (element == 0 || shift <= negative_bit_size) {
             dst[i] = 0;
         } else if (shift < 0) {
-            dst[i] = static_cast<T>(element >> -shift);
-        } else if (shift >= static_cast<S>(bit_size)) {
+            dst[i] = T(element >> -shift);
+        } else if (shift >= S(bit_size)) {
             dst[i] = (std::numeric_limits<T>::max)();
             qc_flag = true;
         } else {
             const T shifted = element << shift;
-
             if ((shifted >> shift) != element) {
                 dst[i] = (std::numeric_limits<T>::max)();
                 qc_flag = true;

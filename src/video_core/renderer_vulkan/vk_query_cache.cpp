@@ -526,7 +526,7 @@ private:
 
     template <bool is_resolve>
     size_t ObtainBuffer(size_t num_needed) {
-        const size_t log_2 = std::max<size_t>(11U, Common::Log2Ceil64(num_needed));
+        const size_t log_2 = std::max<size_t>(11U, Common::Log2Ceil(num_needed));
         if constexpr (is_resolve) {
             if (resolve_table[log_2] != 0) {
                 return resolve_table[log_2] - 1;

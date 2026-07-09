@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: 2014 Tony Wasserka
 // SPDX-FileCopyrightText: 2014 Dolphin Emulator Project
 // SPDX-License-Identifier: BSD-3-Clause AND GPL-2.0-or-later
@@ -7,6 +10,7 @@
 #include <cstddef>
 #include <limits>
 #include <type_traits>
+#include <climits>
 #include "common/swap.h"
 
 /*
@@ -83,25 +87,22 @@
  */
 #pragma pack(1)
 template <std::size_t Position, std::size_t Bits, typename T, typename EndianTag = LETag>
+    requires std::is_trivially_copyable_v<T>
 struct BitField {
 private:
     // UnderlyingType is T for non-enum types and the underlying type of T if
     // T is an enumeration. Note that T is wrapped within an enable_if in the
     // former case to workaround compile errors which arise when using
     // std::underlying_type<T>::type directly.
-    using UnderlyingType = typename std::conditional_t<std::is_enum_v<T>, std::underlying_type<T>,
-                                                       std::enable_if<true, T>>::type;
-
+    using UnderlyingType = typename std::conditional_t<std::is_enum_v<T>, std::underlying_type<T>, std::enable_if<true, T>>::type;
     // We store the value as the unsigned type to avoid undefined behaviour on value shifting
     using StorageType = std::make_unsigned_t<UnderlyingType>;
-
     using StorageTypeWithEndian = typename AddEndian<StorageType, EndianTag>::type;
-
 public:
     /// Constants to allow limited introspection of fields if needed
     static constexpr std::size_t position = Position;
     static constexpr std::size_t bits = Bits;
-    static constexpr StorageType mask = (((StorageType)~0) >> (8 * sizeof(T) - bits)) << position;
+    static constexpr StorageType mask = (StorageType(~0) >> (CHAR_BIT * sizeof(T) - bits)) << position;
 
     /**
      * Formats a value by masking and shifting it according to the field parameters. A value
@@ -109,21 +110,18 @@ public:
      * the results together.
      */
     [[nodiscard]] static constexpr StorageType FormatValue(const T& value) {
-        return (static_cast<StorageType>(value) << position) & mask;
+        return (StorageType(value) << position) & mask;
     }
 
-    /**
-     * Extracts a value from the passed storage. In most situations prefer use the member functions
-     * (such as Value() or operator T), but this can be used to extract a value from a bitfield
-     * union in a constexpr context.
-     */
+    /// @brief Extracts a value from the passed storage. In most situations prefer use the member functions
+    /// (such as Value() or operator T), but this can be used to extract a value from a bitfield
+    /// union in a constexpr context.
     [[nodiscard]] static constexpr T ExtractValue(const StorageType& storage) {
         if constexpr (std::numeric_limits<UnderlyingType>::is_signed) {
-            std::size_t shift = 8 * sizeof(T) - bits;
-            return static_cast<T>(static_cast<UnderlyingType>(storage << (shift - position)) >>
-                                  shift);
+            std::size_t shift = CHAR_BIT * sizeof(T) - bits;
+            return T(UnderlyingType(storage << (shift - position)) >> shift);
         } else {
-            return static_cast<T>((storage & mask) >> position);
+            return T((storage & mask) >> position);
         }
     }
 
@@ -141,28 +139,12 @@ public:
     constexpr BitField(BitField&&) noexcept = default;
     constexpr BitField& operator=(BitField&&) noexcept = default;
 
-    constexpr void Assign(const T& value) {
-#ifdef _MSC_VER
-        storage = static_cast<StorageType>((storage & ~mask) | FormatValue(value));
-#else
-        // Explicitly reload with memcpy to avoid compiler aliasing quirks
-        // regarding optimization: GCC/Clang clobber chained stores to
-        // different bitfields in the same struct with the last value.
-        StorageTypeWithEndian storage_;
-        std::memcpy(&storage_, &storage, sizeof(storage_));
-        storage = static_cast<StorageType>((storage_ & ~mask) | FormatValue(value));
-#endif
+    constexpr void Assign(const T value) {
+        storage = StorageType((storage & ~mask) | FormatValue(value));
     }
 
     [[nodiscard]] constexpr T Value() const {
         return ExtractValue(storage);
-    }
-
-    template <typename ConvertedToType>
-    [[nodiscard]] constexpr ConvertedToType As() const {
-        static_assert(!std::is_same_v<T, ConvertedToType>,
-                      "Unnecessary cast. Use Value() instead.");
-        return static_cast<ConvertedToType>(Value());
     }
 
     [[nodiscard]] constexpr operator T() const {
@@ -176,13 +158,11 @@ public:
 private:
     StorageTypeWithEndian storage;
 
-    static_assert(bits + position <= 8 * sizeof(T), "Bitfield out of range");
-
+    static_assert(bits + position <= CHAR_BIT * sizeof(T), "Bitfield out of range");
     // And, you know, just in case people specify something stupid like bits=position=0x80000000
-    static_assert(position < 8 * sizeof(T), "Invalid position");
-    static_assert(bits <= 8 * sizeof(T), "Invalid number of bits");
+    static_assert(position < CHAR_BIT * sizeof(T), "Invalid position");
+    static_assert(bits <= CHAR_BIT * sizeof(T), "Invalid number of bits");
     static_assert(bits > 0, "Invalid number of bits");
-    static_assert(std::is_trivially_copyable_v<T>, "T must be trivially copyable in a BitField");
 };
 #pragma pack()
 

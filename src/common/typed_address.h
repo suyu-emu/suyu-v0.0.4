@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2023 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -30,8 +33,8 @@ public:
 
     // Arithmetic operators.
     template <typename I>
+        requires std::is_integral_v<I>
     constexpr inline TypedAddress operator+(I rhs) const {
-        static_assert(std::is_integral_v<I>);
         return m_address + rhs;
     }
 
@@ -48,8 +51,8 @@ public:
     }
 
     template <typename I>
+        requires std::is_integral_v<I>
     constexpr inline TypedAddress operator-(I rhs) const {
-        static_assert(std::is_integral_v<I>);
         return m_address - rhs;
     }
 
@@ -66,15 +69,15 @@ public:
     }
 
     template <typename I>
+        requires std::is_integral_v<I>
     constexpr inline TypedAddress operator+=(I rhs) {
-        static_assert(std::is_integral_v<I>);
         m_address += rhs;
         return *this;
     }
 
     template <typename I>
+        requires std::is_integral_v<I>
     constexpr inline TypedAddress operator-=(I rhs) {
-        static_assert(std::is_integral_v<I>);
         m_address -= rhs;
         return *this;
     }
@@ -89,8 +92,8 @@ public:
     }
 
     template <typename I>
+        requires std::is_integral_v<I>
     constexpr inline TypedAddress operator|=(I rhs) {
-        static_assert(std::is_integral_v<I>);
         m_address |= rhs;
         return *this;
     }

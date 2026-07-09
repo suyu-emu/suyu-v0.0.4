@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2018 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -14,46 +17,34 @@ namespace Common {
 
 /// Gets the size of a specified type T in bits.
 template <typename T>
+    requires std::is_integral_v<T>
 [[nodiscard]] constexpr std::size_t BitSize() {
-    return sizeof(T) * CHAR_BIT;
+    return std::size_t(sizeof(T) * CHAR_BIT);
 }
 
-[[nodiscard]] constexpr u32 MostSignificantBit32(const u32 value) {
-    return 31U - static_cast<u32>(std::countl_zero(value));
+template<typename T>
+    requires std::is_integral_v<T>
+[[nodiscard]] constexpr u32 MostSignificantBit(const T value) {
+    return u32(sizeof(T) * CHAR_BIT - 1 - std::countl_zero(value));
 }
 
-[[nodiscard]] constexpr u32 MostSignificantBit64(const u64 value) {
-    return 63U - static_cast<u32>(std::countl_zero(value));
+template<typename T>
+    requires std::is_integral_v<T>
+[[nodiscard]] constexpr T Log2Floor(const T value) {
+    return T(MostSignificantBit<T>(value));
 }
 
-[[nodiscard]] constexpr u32 Log2Floor32(const u32 value) {
-    return MostSignificantBit32(value);
-}
-
-[[nodiscard]] constexpr u32 Log2Floor64(const u64 value) {
-    return MostSignificantBit64(value);
-}
-
-[[nodiscard]] constexpr u32 Log2Ceil32(const u32 value) {
-    const u32 log2_f = Log2Floor32(value);
-    return log2_f + static_cast<u32>((value ^ (1U << log2_f)) != 0U);
-}
-
-[[nodiscard]] constexpr u32 Log2Ceil64(const u64 value) {
-    const u64 log2_f = Log2Floor64(value);
-    return static_cast<u32>(log2_f + static_cast<u64>((value ^ (1ULL << log2_f)) != 0ULL));
-}
-
-template <typename T>
-    requires std::is_unsigned_v<T>
-[[nodiscard]] constexpr bool IsPow2(T value) {
-    return std::has_single_bit(value);
+template<typename T>
+    requires std::is_integral_v<T>
+[[nodiscard]] constexpr T Log2Ceil(const T value) {
+    const T log2_f = Log2Floor<T>(value);
+    return T(log2_f + T((value ^ (T(1ULL) << log2_f)) != T(0ULL)));
 }
 
 template <typename T>
     requires std::is_integral_v<T>
 [[nodiscard]] T NextPow2(T value) {
-    return static_cast<T>(1ULL << ((8U * sizeof(T)) - std::countl_zero(value - 1U)));
+    return T(1ULL << (sizeof(T) * CHAR_BIT - std::countl_zero(value - 1U)));
 }
 
 template <size_t bit_index, typename T>
