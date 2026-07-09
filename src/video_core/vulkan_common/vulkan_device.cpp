@@ -95,6 +95,12 @@ constexpr std::array VK_FORMAT_A4B4G4R4_UNORM_PACK16{
     VK_FORMAT_UNDEFINED,
 };
 
+constexpr std::array B10G11R11_UFLOAT_PACK32{
+    VK_FORMAT_R16G16B16A16_SFLOAT,
+    VK_FORMAT_A8B8G8R8_SRGB_PACK32,
+    VK_FORMAT_UNDEFINED,
+};
+
 } // namespace Alternatives
 
 template <typename T>
@@ -127,6 +133,8 @@ constexpr const VkFormat* GetFormatAlternatives(VkFormat format) {
         return Alternatives::VK_FORMAT_R32G32B32_SFLOAT.data();
     case VK_FORMAT_A4B4G4R4_UNORM_PACK16_EXT:
         return Alternatives::VK_FORMAT_A4B4G4R4_UNORM_PACK16.data();
+    case VK_FORMAT_B10G11R11_UFLOAT_PACK32:
+        return Alternatives::B10G11R11_UFLOAT_PACK32.data();
     default:
         return nullptr;
     }
@@ -492,18 +500,14 @@ Device::Device(VkInstance instance_, vk::PhysicalDevice physical_, VkSurfaceKHR 
     CollectToolingInfo();
 
     if (is_qualcomm) {
-        LOG_WARNING(Render_Vulkan,
-                    "Qualcomm drivers require scaled vertex format emulation");
+        LOG_WARNING(Render_Vulkan, "Qualcomm drivers require scaled vertex format emulation");
         must_emulate_scaled_formats = true;
-        LOG_WARNING(Render_Vulkan,
-                    "Qualcomm drivers have broken provoking vertex");
-        RemoveExtension(extensions.provoking_vertex, VK_EXT_PROVOKING_VERTEX_EXTENSION_NAME);
-        LOG_WARNING(Render_Vulkan,
-                    "Qualcomm drivers have slow push descriptor implementation");
-        RemoveExtension(extensions.push_descriptor, VK_KHR_PUSH_DESCRIPTOR_EXTENSION_NAME);
-        LOG_WARNING(Render_Vulkan,
-                    "Disabling shader float controls and 64-bit integer features on Qualcomm proprietary drivers");
+        LOG_WARNING(Render_Vulkan, "Qualcomm drivers have broken CustomBorderColor.");
+        RemoveExtensionFeature(extensions.custom_border_color, features.custom_border_color,
+                               VK_EXT_CUSTOM_BORDER_COLOR_EXTENSION_NAME);
+        LOG_WARNING(Render_Vulkan, "Qualcomm drivers have broken shader float controls.");
         RemoveExtension(extensions.shader_float_controls, VK_KHR_SHADER_FLOAT_CONTROLS_EXTENSION_NAME);
+        LOG_WARNING(Render_Vulkan, "Qualcomm drivers have broken shader atomic int64.");
         RemoveExtensionFeature(extensions.shader_atomic_int64, features.shader_atomic_int64,
                                VK_KHR_SHADER_ATOMIC_INT64_EXTENSION_NAME);
         features.shader_atomic_int64.shaderBufferInt64Atomics = false;
@@ -561,7 +565,6 @@ Device::Device(VkInstance instance_, vk::PhysicalDevice physical_, VkSurfaceKHR 
             features.shader_float16_int8.shaderFloat16 = false;
         }
 
-        // Mali/ NVIDIA proprietary drivers: Shader stencil export not supported
         // Use hardware depth/stencil blits instead when available
         if (!extensions.shader_stencil_export) {
             LOG_INFO(Render_Vulkan,
@@ -657,14 +660,6 @@ Device::Device(VkInstance instance_, vk::PhysicalDevice physical_, VkSurfaceKHR 
     }
 
     const auto dyna_state = Settings::values.dyna_state.GetValue();
-
-    // Base dynamic states (VIEWPORT, SCISSOR, DEPTH_BIAS, etc.) are ALWAYS active in vk_graphics_pipeline.cpp
-    // This slider controls EXTENDED dynamic states with accumulative levels per Vulkan specs:
-    //   Level 0 = Core Dynamic States only (Vulkan 1.0)
-    //   Level 1 = Core + VK_EXT_extended_dynamic_state
-    //   Level 2 = Core + VK_EXT_extended_dynamic_state + VK_EXT_extended_dynamic_state2
-    //   Level 3 = Core + VK_EXT_extended_dynamic_state + VK_EXT_extended_dynamic_state2 + VK_EXT_extended_dynamic_state3
-
     switch (dyna_state) {
     case Settings::ExtendedDynamicState::Disabled:
         // Level 0: Disable all extended dynamic state extensions
@@ -699,8 +694,7 @@ Device::Device(VkInstance instance_, vk::PhysicalDevice physical_, VkSurfaceKHR 
         break;
     }
 
-    // VK_EXT_vertex_input_dynamic_state is independent from EDS
-    // It can be enabled even without extended_dynamic_state
+    // VK_EXT_vertex_input_dynamic_state
     if (!Settings::values.vertex_input_dynamic_state.GetValue()) {
         RemoveExtensionFeature(extensions.vertex_input_dynamic_state, features.vertex_input_dynamic_state, VK_EXT_VERTEX_INPUT_DYNAMIC_STATE_EXTENSION_NAME);
     }
@@ -793,7 +787,6 @@ void Device::SaveShader(std::span<const u32> spirv) const {
 }
 
 bool Device::ComputeIsOptimalAstcSupported() const {
-    // Verify hardware supports all ASTC formats with optimal tiling to avoid software conversion
     static constexpr std::array<VkFormat, 28> astc_formats = {
         VK_FORMAT_ASTC_4x4_UNORM_BLOCK,   VK_FORMAT_ASTC_4x4_SRGB_BLOCK,
         VK_FORMAT_ASTC_5x4_UNORM_BLOCK,   VK_FORMAT_ASTC_5x4_SRGB_BLOCK,
@@ -1170,6 +1163,11 @@ bool Device::GetSuitability(bool requires_swapchain) {
 }
 
 void Device::RemoveUnsuitableExtensions() {
+    // VK_EXT_color_write_enable
+    extensions.color_write_enable = features.color_write_enable.colorWriteEnable;
+    RemoveExtensionFeatureIfUnsuitable(extensions.color_write_enable, features.color_write_enable,
+                                       VK_EXT_COLOR_WRITE_ENABLE_EXTENSION_NAME);
+
     // VK_EXT_custom_border_color
     if (extensions.custom_border_color) {
         extensions.custom_border_color =
@@ -1178,6 +1176,17 @@ void Device::RemoveUnsuitableExtensions() {
     }
     RemoveExtensionFeatureIfUnsuitable(extensions.custom_border_color, features.custom_border_color,
                                        VK_EXT_CUSTOM_BORDER_COLOR_EXTENSION_NAME);
+
+    // VK_EXT_border_color_swizzle
+    if (extensions.border_color_swizzle) {
+        extensions.border_color_swizzle =
+            extensions.custom_border_color &&
+            features.border_color_swizzle.borderColorSwizzle &&
+            features.border_color_swizzle.borderColorSwizzleFromImage;
+    }
+    RemoveExtensionFeatureIfUnsuitable(extensions.border_color_swizzle,
+                                       features.border_color_swizzle,
+                                       VK_EXT_BORDER_COLOR_SWIZZLE_EXTENSION_NAME);
 
     // VK_EXT_depth_bias_control
     extensions.depth_bias_control =
@@ -1375,6 +1384,11 @@ void Device::RemoveUnsuitableExtensions() {
     // VK_KHR_maintenance8
     extensions.maintenance8 = loaded_extensions.contains(VK_KHR_MAINTENANCE_8_EXTENSION_NAME);
     RemoveExtensionIfUnsuitable(extensions.maintenance8, VK_KHR_MAINTENANCE_8_EXTENSION_NAME);
+
+    // VK_KHR_synchronization2
+    extensions.synchronization2 = features.synchronization2.synchronization2;
+    RemoveExtensionFeatureIfUnsuitable(extensions.synchronization2, features.synchronization2,
+                                       VK_KHR_SYNCHRONIZATION_2_EXTENSION_NAME);
 }
 
 void Device::SetupFamilies(VkSurfaceKHR surface) {

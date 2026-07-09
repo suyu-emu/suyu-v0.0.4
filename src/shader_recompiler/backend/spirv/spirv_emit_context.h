@@ -42,6 +42,7 @@ struct TextureDefinition {
     Id image_type;
     u32 count;
     bool is_multisample;
+    bool is_integer;
 };
 
 struct TextureBufferDefinition {

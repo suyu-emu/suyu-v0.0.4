@@ -130,6 +130,70 @@ VkResult MasterSemaphore::SubmitQueueTimeline(vk::CommandBuffer& cmdbuf,
                                               VkSemaphore wait_semaphore, u64 host_tick) {
     const VkSemaphore timeline_semaphore = *semaphore;
 
+    if (device.HasSynchronization2()) {
+        const std::array<VkCommandBufferSubmitInfo, 2> cmdbuffer_infos{{
+            {
+                .sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_SUBMIT_INFO,
+                .pNext = nullptr,
+                .commandBuffer = *upload_cmdbuf,
+                .deviceMask = 0,
+            },
+            {
+                .sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_SUBMIT_INFO,
+                .pNext = nullptr,
+                .commandBuffer = *cmdbuf,
+                .deviceMask = 0,
+            },
+        }};
+
+        std::array<VkSemaphoreSubmitInfo, 2> signal_infos{{
+            {
+                .sType = VK_STRUCTURE_TYPE_SEMAPHORE_SUBMIT_INFO,
+                .pNext = nullptr,
+                .semaphore = timeline_semaphore,
+                .value = host_tick,
+                .stageMask = VK_PIPELINE_STAGE_2_ALL_COMMANDS_BIT,
+                .deviceIndex = 0,
+            },
+            {},
+        }};
+        u32 num_signal_semaphores = 1;
+        if (signal_semaphore) {
+            signal_infos[1] = VkSemaphoreSubmitInfo{
+                .sType = VK_STRUCTURE_TYPE_SEMAPHORE_SUBMIT_INFO,
+                .pNext = nullptr,
+                .semaphore = signal_semaphore,
+                .value = 0,
+                .stageMask = VK_PIPELINE_STAGE_2_ALL_COMMANDS_BIT,
+                .deviceIndex = 0,
+            };
+            num_signal_semaphores = 2;
+        }
+
+        const u32 num_wait_semaphores = wait_semaphore ? 1 : 0;
+        const VkSemaphoreSubmitInfo wait_info{
+            .sType = VK_STRUCTURE_TYPE_SEMAPHORE_SUBMIT_INFO,
+            .pNext = nullptr,
+            .semaphore = wait_semaphore,
+            .value = 0,
+            .stageMask = static_cast<VkPipelineStageFlags2>(wait_stage_mask),
+            .deviceIndex = 0,
+        };
+
+        const VkSubmitInfo2 submit_info2{
+            .sType = VK_STRUCTURE_TYPE_SUBMIT_INFO_2,
+            .pNext = nullptr,
+            .flags = 0,
+            .waitSemaphoreInfoCount = num_wait_semaphores,
+            .pWaitSemaphoreInfos = num_wait_semaphores ? &wait_info : nullptr,
+            .commandBufferInfoCount = static_cast<u32>(cmdbuffer_infos.size()),
+            .pCommandBufferInfos = cmdbuffer_infos.data(),
+            .signalSemaphoreInfoCount = num_signal_semaphores,
+            .pSignalSemaphoreInfos = signal_infos.data(),
+        };
+        return device.GetGraphicsQueue().Submit2(submit_info2);
+    }
+
     const u32 num_signal_semaphores = signal_semaphore ? 2 : 1;
     const std::array signal_values{host_tick, u64(0)};
     const std::array signal_semaphores{timeline_semaphore, signal_semaphore};
@@ -172,6 +236,66 @@ VkResult MasterSemaphore::SubmitQueueFence(vk::CommandBuffer& cmdbuf,
                                            vk::CommandBuffer& upload_cmdbuf,
                                            VkSemaphore signal_semaphore, VkSemaphore wait_semaphore,
                                            u64 host_tick) {
+    if (device.HasSynchronization2()) {
+        const std::array<VkCommandBufferSubmitInfo, 2> cmdbuffer_infos{{
+            {
+                .sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_SUBMIT_INFO,
+                .pNext = nullptr,
+                .commandBuffer = *upload_cmdbuf,
+                .deviceMask = 0,
+            },
+            {
+                .sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_SUBMIT_INFO,
+                .pNext = nullptr,
+                .commandBuffer = *cmdbuf,
+                .deviceMask = 0,
+            },
+        }};
+
+        const u32 num_signal_semaphores = signal_semaphore ? 1 : 0;
+        const VkSemaphoreSubmitInfo signal_info{
+            .sType = VK_STRUCTURE_TYPE_SEMAPHORE_SUBMIT_INFO,
+            .pNext = nullptr,
+            .semaphore = signal_semaphore,
+            .value = 0,
+            .stageMask = VK_PIPELINE_STAGE_2_ALL_COMMANDS_BIT,
+            .deviceIndex = 0,
+        };
+
+        const u32 num_wait_semaphores = wait_semaphore ? 1 : 0;
+        const VkSemaphoreSubmitInfo wait_info{
+            .sType = VK_STRUCTURE_TYPE_SEMAPHORE_SUBMIT_INFO,
+            .pNext = nullptr,
+            .semaphore = wait_semaphore,
+            .value = 0,
+            .stageMask = static_cast<VkPipelineStageFlags2>(wait_stage_mask),
+            .deviceIndex = 0,
+        };
+
+        const VkSubmitInfo2 submit_info2{
+            .sType = VK_STRUCTURE_TYPE_SUBMIT_INFO_2,
+            .pNext = nullptr,
+            .flags = 0,
+            .waitSemaphoreInfoCount = num_wait_semaphores,
+            .pWaitSemaphoreInfos = num_wait_semaphores ? &wait_info : nullptr,
+            .commandBufferInfoCount = static_cast<u32>(cmdbuffer_infos.size()),
+            .pCommandBufferInfos = cmdbuffer_infos.data(),
+            .signalSemaphoreInfoCount = num_signal_semaphores,
+            .pSignalSemaphoreInfos = num_signal_semaphores ? &signal_info : nullptr,
+        };
+
+        auto fence = GetFreeFence();
+        auto result = device.GetGraphicsQueue().Submit2(submit_info2, *fence);
+
+        if (result == VK_SUCCESS) {
+            std::scoped_lock lock{wait_mutex};
+            wait_queue.emplace(host_tick, std::move(fence));
+            wait_cv.notify_one();
+        }
+
+        return result;
+    }
+
     const u32 num_signal_semaphores = signal_semaphore ? 1 : 0;
     const u32 num_wait_semaphores = wait_semaphore ? 1 : 0;
 

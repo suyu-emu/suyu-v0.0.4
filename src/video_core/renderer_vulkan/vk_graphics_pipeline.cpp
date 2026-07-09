@@ -426,8 +426,14 @@ bool GraphicsPipeline::ConfigureImpl(bool is_indexed) {
                     is_written = desc.is_written;
                 }
                 ImageView& image_view{texture_cache.GetImageView(texture_buffer_it->id)};
+                PixelFormat format{image_view.format};
+                if constexpr (is_image) {
+                    if (const auto explicit_format{PixelFormatFromImageFormat(desc.format)}) {
+                        format = *explicit_format;
+                    }
+                }
                 buffer_cache.BindGraphicsTextureBuffer(stage, index, image_view.GpuAddr(),
-                                                       image_view.BufferSize(), image_view.format,
+                                                       image_view.BufferSize(), format,
                                                        is_written, is_image);
                 ++index;
                 ++texture_buffer_it;
@@ -472,6 +478,7 @@ bool GraphicsPipeline::ConfigureImpl(bool is_indexed) {
     }
 
     buffer_cache.UpdateGraphicsBuffers(is_indexed);
+    buffer_cache.runtime.SetVertexInputDynamicState(HasDynamicVertexInput());
     buffer_cache.BindHostGeometryBuffers(is_indexed);
 
     guest_descriptor_queue.Acquire(scheduler, num_descriptor_entries);
@@ -865,18 +872,17 @@ void GraphicsPipeline::MakePipeline(VkRenderPass render_pass) {
             VK_DYNAMIC_STATE_DEPTH_BOUNDS_TEST_ENABLE_EXT,
             VK_DYNAMIC_STATE_STENCIL_TEST_ENABLE_EXT,
             VK_DYNAMIC_STATE_STENCIL_OP_EXT,
+            VK_DYNAMIC_STATE_PRIMITIVE_TOPOLOGY_EXT,
         };
         dynamic_states.insert(dynamic_states.end(), extended.begin(), extended.end());
 
-        // VK_DYNAMIC_STATE_VERTEX_INPUT_BINDING_STRIDE_EXT is part of EDS1
-        // Only use it if VIDS is not active (VIDS replaces it with full vertex input control)
+        // VK_DYNAMIC_STATE_VERTEX_INPUT_BINDING_STRIDE_EXT
         if (!key.state.dynamic_vertex_input) {
             dynamic_states.push_back(VK_DYNAMIC_STATE_VERTEX_INPUT_BINDING_STRIDE_EXT);
         }
     }
 
-    // VK_DYNAMIC_STATE_VERTEX_INPUT_EXT (VIDS) - Independent from EDS
-    // Provides full dynamic vertex input control, replaces VERTEX_INPUT_BINDING_STRIDE
+    // VK_DYNAMIC_STATE_VERTEX_INPUT_EXT
     if (key.state.dynamic_vertex_input) {
         dynamic_states.push_back(VK_DYNAMIC_STATE_VERTEX_INPUT_EXT);
     }
@@ -904,6 +910,11 @@ void GraphicsPipeline::MakePipeline(VkRenderPass render_pass) {
             VK_DYNAMIC_STATE_COLOR_WRITE_MASK_EXT,
         };
         dynamic_states.insert(dynamic_states.end(), extended3.begin(), extended3.end());
+    }
+
+    // VK_EXT_color_write_enable fallback for fully on/off render targets when EDS3 blending is not available.
+    if (!key.state.extended_dynamic_state_3_blend && key.state.color_write_enable_dynamic) {
+        dynamic_states.push_back(VK_DYNAMIC_STATE_COLOR_WRITE_ENABLE_EXT);
     }
 
     // EDS3 - Enables (composite: per-feature)

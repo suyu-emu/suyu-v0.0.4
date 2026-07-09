@@ -39,6 +39,55 @@ constexpr std::array POLYGON_OFFSET_ENABLE_LUT = {
     POLYGON, // Patches
 };
 
+constexpr std::array TOPOLOGY_CLASS_REPRESENTATIVE_LUT = {
+    Maxwell::PrimitiveTopology::Points,              // Points
+    Maxwell::PrimitiveTopology::Lines,               // Lines
+    Maxwell::PrimitiveTopology::LineLoop,            // LineLoop
+    Maxwell::PrimitiveTopology::LineStrip,           // LineStrip
+    Maxwell::PrimitiveTopology::Triangles,           // Triangles
+    Maxwell::PrimitiveTopology::Triangles,           // TriangleStrip
+    Maxwell::PrimitiveTopology::Triangles,           // TriangleFan
+    Maxwell::PrimitiveTopology::Triangles,           // Quads
+    Maxwell::PrimitiveTopology::Triangles,           // QuadStrip
+    Maxwell::PrimitiveTopology::Triangles,           // Polygon
+    Maxwell::PrimitiveTopology::LinesAdjacency,      // LinesAdjacency
+    Maxwell::PrimitiveTopology::LinesAdjacency,      // LineStripAdjacency
+    Maxwell::PrimitiveTopology::TrianglesAdjacency,  // TrianglesAdjacency
+    Maxwell::PrimitiveTopology::TrianglesAdjacency,  // TriangleStripAdjacency
+    Maxwell::PrimitiveTopology::Patches,             // Patches
+};
+
+bool IsDualSourceBlendFactor(Maxwell::Blend::Factor factor) {
+    using F = Maxwell::Blend::Factor;
+    switch (factor) {
+    case F::Source1Color_D3D:
+    case F::OneMinusSource1Color_D3D:
+    case F::Source1Alpha_D3D:
+    case F::OneMinusSource1Alpha_D3D:
+    case F::Source1Color_GL:
+    case F::OneMinusSource1Color_GL:
+    case F::Source1Alpha_GL:
+    case F::OneMinusSource1Alpha_GL:
+        return true;
+    default:
+        return false;
+    }
+}
+
+bool ComputeAttachment0DualSourceBlend(const Maxwell& regs) {
+    if (!regs.blend.enable[0]) {
+        return false;
+    }
+    const auto uses_dual_source = [](const auto& blend) {
+        return IsDualSourceBlendFactor(blend.color_source) ||
+               IsDualSourceBlendFactor(blend.color_dest) ||
+               IsDualSourceBlendFactor(blend.alpha_source) ||
+               IsDualSourceBlendFactor(blend.alpha_dest);
+    };
+    return regs.blend_per_target_enabled ? uses_dual_source(regs.blend_per_target[0])
+                                         : uses_dual_source(regs.blend);
+}
+
 void RefreshXfbState(VideoCommon::TransformFeedbackState& state, const Maxwell& regs) {
     std::ranges::transform(regs.transform_feedback.controls, state.layouts.begin(),
                            [](const auto& layout) {
@@ -65,6 +114,7 @@ void FixedPipelineState::Refresh(Tegra::Engines::Maxwell3D& maxwell3d, DynamicFe
     extended_dynamic_state_2_logic_op.Assign(features.has_extended_dynamic_state_2_logic_op ? 1 : 0);
     extended_dynamic_state_3_blend.Assign(features.has_extended_dynamic_state_3_blend ? 1 : 0);
     extended_dynamic_state_3_enables.Assign(features.has_extended_dynamic_state_3_enables ? 1 : 0);
+    color_write_enable_dynamic.Assign(features.has_color_write_enable ? 1 : 0);
     dynamic_vertex_input.Assign(features.has_dynamic_vertex_input ? 1 : 0);
     xfb_enabled.Assign(regs.transform_feedback_enabled != 0);
     ndc_minus_one_to_one.Assign(regs.depth_mode == Maxwell::DepthMode::MinusOneToOne ? 1 : 0);
@@ -74,8 +124,13 @@ void FixedPipelineState::Refresh(Tegra::Engines::Maxwell3D& maxwell3d, DynamicFe
     tessellation_clockwise.Assign(regs.tessellation.params.output_primitives.Value() ==
                                   Maxwell::Tessellation::OutputPrimitives::Triangles_CW);
     patch_control_points_minus_one.Assign(regs.patch_vertices - 1);
-    topology.Assign(topology_);
+    const bool can_collapse_topology_class =
+        features.has_extended_dynamic_state && features.has_extended_dynamic_state_2;
+    topology.Assign(can_collapse_topology_class
+                        ? TOPOLOGY_CLASS_REPRESENTATIVE_LUT[static_cast<size_t>(topology_)]
+                        : topology_);
     msaa_mode.Assign(regs.anti_alias_samples_mode);
+    attachment0_dual_source_blend.Assign(ComputeAttachment0DualSourceBlend(regs) ? 1 : 0);
 
     raw2 = 0;
 
@@ -190,6 +245,15 @@ void FixedPipelineState::Refresh(Tegra::Engines::Maxwell3D& maxwell3d, DynamicFe
             maxwell3d.dirty.flags[Dirty::Blending] = false;
             for (size_t index = 0; index < attachments.size(); ++index) {
                 attachments[index].Refresh(regs, index);
+                auto& attachment = attachments[index];
+                if (color_write_enable_dynamic && attachment.mask_r == 0 &&
+                    attachment.mask_g == 0 && attachment.mask_b == 0 &&
+                    attachment.mask_a == 0) {
+                    attachment.mask_r.Assign(1);
+                    attachment.mask_g.Assign(1);
+                    attachment.mask_b.Assign(1);
+                    attachment.mask_a.Assign(1);
+                }
             }
         }
     }

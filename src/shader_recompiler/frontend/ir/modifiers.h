@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2021 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -43,6 +46,10 @@ union TextureInstInfo {
     BitField<25, 2, u32> num_derivatives;
     BitField<27, 3, ImageFormat> image_format;
     BitField<30, 1, u32> ndv_is_active;
+    /// Only meaningful for the sampled-texture family (ImageSampleImplicitLod, ImageFetch,
+    /// ImageGather, etc.); unused/zero for storage-image opcodes, which carry their own
+    /// is_integer via ImageDescriptor/ImageBufferDescriptor instead.
+    BitField<31, 1, u32> is_integer;
 };
 static_assert(sizeof(TextureInstInfo) <= sizeof(u32));
 

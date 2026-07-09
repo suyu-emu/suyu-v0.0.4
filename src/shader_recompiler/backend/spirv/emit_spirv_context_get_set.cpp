@@ -202,7 +202,8 @@ void EmitGetIndirectBranchVariable(EmitContext&) {
 }
 
 Id EmitGetCbufU8(EmitContext& ctx, const IR::Value& binding, const IR::Value& offset) {
-    if (ctx.profile.support_descriptor_aliasing && ctx.profile.support_int8) {
+    if (ctx.profile.support_descriptor_aliasing && ctx.profile.support_int8 &&
+        ctx.profile.support_uniform_and_storage_buffer_8bit) {
         const Id load{GetCbuf(ctx, ctx.U8, &UniformDefinitions::U8, sizeof(u8), binding, offset,
                               ctx.load_const_func_u8)};
         return ctx.OpUConvert(ctx.U32[1], load);
@@ -219,7 +220,8 @@ Id EmitGetCbufU8(EmitContext& ctx, const IR::Value& binding, const IR::Value& of
 }
 
 Id EmitGetCbufS8(EmitContext& ctx, const IR::Value& binding, const IR::Value& offset) {
-    if (ctx.profile.support_descriptor_aliasing && ctx.profile.support_int8) {
+    if (ctx.profile.support_descriptor_aliasing && ctx.profile.support_int8 &&
+        ctx.profile.support_uniform_and_storage_buffer_8bit) {
         const Id load{GetCbuf(ctx, ctx.S8, &UniformDefinitions::S8, sizeof(s8), binding, offset,
                               ctx.load_const_func_u8)};
         return ctx.OpSConvert(ctx.U32[1], load);
@@ -236,7 +238,8 @@ Id EmitGetCbufS8(EmitContext& ctx, const IR::Value& binding, const IR::Value& of
 }
 
 Id EmitGetCbufU16(EmitContext& ctx, const IR::Value& binding, const IR::Value& offset) {
-    if (ctx.profile.support_descriptor_aliasing && ctx.profile.support_int16) {
+    if (ctx.profile.support_descriptor_aliasing && ctx.profile.support_int16 &&
+        ctx.profile.support_uniform_and_storage_buffer_16bit) {
         const Id load{GetCbuf(ctx, ctx.U16, &UniformDefinitions::U16, sizeof(u16), binding, offset,
                               ctx.load_const_func_u16)};
         return ctx.OpUConvert(ctx.U32[1], load);
@@ -253,7 +256,8 @@ Id EmitGetCbufU16(EmitContext& ctx, const IR::Value& binding, const IR::Value& o
 }
 
 Id EmitGetCbufS16(EmitContext& ctx, const IR::Value& binding, const IR::Value& offset) {
-    if (ctx.profile.support_descriptor_aliasing && ctx.profile.support_int16) {
+    if (ctx.profile.support_descriptor_aliasing && ctx.profile.support_int16 &&
+        ctx.profile.support_uniform_and_storage_buffer_16bit) {
         const Id load{GetCbuf(ctx, ctx.S16, &UniformDefinitions::S16, sizeof(s16), binding, offset,
                               ctx.load_const_func_u16)};
         return ctx.OpSConvert(ctx.U32[1], load);

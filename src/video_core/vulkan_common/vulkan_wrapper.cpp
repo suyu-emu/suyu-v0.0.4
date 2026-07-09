@@ -123,6 +123,7 @@ void Load(VkDevice device, DeviceDispatch& dld) noexcept {
     X(vkCmdEndDebugUtilsLabelEXT);
     X(vkCmdFillBuffer);
     X(vkCmdPipelineBarrier);
+    X(vkCmdPipelineBarrier2);
     X(vkCmdPushConstants);
     X(vkCmdPushDescriptorSetWithTemplateKHR);
     X(vkCmdSetBlendConstants);
@@ -161,8 +162,10 @@ void Load(VkDevice device, DeviceDispatch& dld) noexcept {
     X(vkCmdSetStencilTestEnableEXT);
     X(vkCmdSetVertexInputEXT);
     X(vkCmdSetColorWriteMaskEXT);
+    X(vkCmdSetColorWriteEnableEXT);
     X(vkCmdSetColorBlendEnableEXT);
     X(vkCmdSetColorBlendEquationEXT);
+    X(vkCmdResetQueryPool);
     X(vkCmdResolveImage);
     X(vkCreateBuffer);
     X(vkCreateBufferView);
@@ -226,6 +229,7 @@ void Load(VkDevice device, DeviceDispatch& dld) noexcept {
     X(vkGetSemaphoreCounterValue);
     X(vkMapMemory);
     X(vkQueueSubmit);
+    X(vkQueueSubmit2);
     X(vkResetFences);
     X(vkResetQueryPool);
     X(vkSetDebugUtilsObjectNameEXT);
@@ -251,6 +255,14 @@ void Load(VkDevice device, DeviceDispatch& dld) noexcept {
     if (!dld.vkCmdDrawIndirectCount) {
         Proc(dld.vkCmdDrawIndirectCount, dld, "vkCmdDrawIndirectCountKHR", device);
         Proc(dld.vkCmdDrawIndexedIndirectCount, dld, "vkCmdDrawIndexedIndirectCountKHR", device);
+    }
+
+    // Synchronization2 is core in Vulkan 1.3, otherwise requires VK_KHR_synchronization2
+    if (!dld.vkCmdPipelineBarrier2) {
+        Proc(dld.vkCmdPipelineBarrier2, dld, "vkCmdPipelineBarrier2KHR", device);
+    }
+    if (!dld.vkQueueSubmit2) {
+        Proc(dld.vkQueueSubmit2, dld, "vkQueueSubmit2KHR", device);
     }
 #undef X
 }

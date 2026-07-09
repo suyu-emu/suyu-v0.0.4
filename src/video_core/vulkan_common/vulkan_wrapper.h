@@ -6,6 +6,7 @@
 
 #pragma once
 
+#include <array>
 #include <exception>
 #include <limits>
 #include <memory>
@@ -237,8 +238,10 @@ struct DeviceDispatch : InstanceDispatch {
     PFN_vkCmdEndTransformFeedbackEXT vkCmdEndTransformFeedbackEXT{};
     PFN_vkCmdFillBuffer vkCmdFillBuffer{};
     PFN_vkCmdPipelineBarrier vkCmdPipelineBarrier{};
+    PFN_vkCmdPipelineBarrier2 vkCmdPipelineBarrier2{};
     PFN_vkCmdPushConstants vkCmdPushConstants{};
     PFN_vkCmdPushDescriptorSetWithTemplateKHR vkCmdPushDescriptorSetWithTemplateKHR{};
+    PFN_vkCmdResetQueryPool vkCmdResetQueryPool{};
     PFN_vkCmdResolveImage vkCmdResolveImage{};
     PFN_vkCmdSetBlendConstants vkCmdSetBlendConstants{};
     PFN_vkCmdSetCullModeEXT vkCmdSetCullModeEXT{};
@@ -275,6 +278,7 @@ struct DeviceDispatch : InstanceDispatch {
     PFN_vkCmdSetVertexInputEXT vkCmdSetVertexInputEXT{};
     PFN_vkCmdSetViewport vkCmdSetViewport{};
     PFN_vkCmdSetColorWriteMaskEXT vkCmdSetColorWriteMaskEXT{};
+    PFN_vkCmdSetColorWriteEnableEXT vkCmdSetColorWriteEnableEXT{};
     PFN_vkCmdSetColorBlendEnableEXT vkCmdSetColorBlendEnableEXT{};
     PFN_vkCmdSetColorBlendEquationEXT vkCmdSetColorBlendEquationEXT{};
     PFN_vkCmdWaitEvents vkCmdWaitEvents{};
@@ -340,6 +344,7 @@ struct DeviceDispatch : InstanceDispatch {
     PFN_vkGetSemaphoreCounterValue vkGetSemaphoreCounterValue{};
     PFN_vkMapMemory vkMapMemory{};
     PFN_vkQueueSubmit vkQueueSubmit{};
+    PFN_vkQueueSubmit2 vkQueueSubmit2{};
     PFN_vkResetFences vkResetFences{};
     PFN_vkResetQueryPool vkResetQueryPool{};
     PFN_vkSetDebugUtilsObjectNameEXT vkSetDebugUtilsObjectNameEXT{};
@@ -819,6 +824,12 @@ public:
         return dld->vkQueueSubmit(queue, submit_infos.size(), submit_infos.data(), fence);
     }
 
+    /// Submits using VK_KHR_synchronization2 / Vulkan 1.3 vkQueueSubmit2.
+    VkResult Submit2(Span<VkSubmitInfo2> submit_infos,
+                     VkFence fence = VK_NULL_HANDLE) const noexcept {
+        return dld->vkQueueSubmit2(queue, submit_infos.size(), submit_infos.data(), fence);
+    }
+
     VkResult Present(const VkPresentInfoKHR& present_info) const noexcept {
         return dld->vkQueuePresentKHR(queue, &present_info);
     }
@@ -1180,6 +1191,10 @@ public:
         dld->vkCmdEndQuery(handle, query_pool, query);
     }
 
+    void ResetQueryPool(VkQueryPool query_pool, u32 first, u32 count) const noexcept {
+        dld->vkCmdResetQueryPool(handle, query_pool, first, count);
+    }
+
     void BindDescriptorSets(VkPipelineBindPoint bind_point, VkPipelineLayout layout, u32 first,
                             Span<VkDescriptorSet> sets, Span<u32> dynamic_offsets) const noexcept {
         dld->vkCmdBindDescriptorSets(handle, bind_point, layout, first, sets.size(), sets.data(),
@@ -1287,6 +1302,72 @@ public:
                          VkDependencyFlags dependency_flags, Span<VkMemoryBarrier> memory_barriers,
                          Span<VkBufferMemoryBarrier> buffer_barriers,
                          Span<VkImageMemoryBarrier> image_barriers) const noexcept {
+        static constexpr u32 MaxBarriers = 16;
+        if (dld->vkCmdPipelineBarrier2 && memory_barriers.size() <= MaxBarriers &&
+            buffer_barriers.size() <= MaxBarriers && image_barriers.size() <= MaxBarriers) {
+            const auto src_stage_mask2 = static_cast<VkPipelineStageFlags2>(src_stage_mask);
+            const auto dst_stage_mask2 = static_cast<VkPipelineStageFlags2>(dst_stage_mask);
+
+            std::array<VkMemoryBarrier2, MaxBarriers> memory_barriers2;
+            for (u32 i = 0; i < memory_barriers.size(); ++i) {
+                memory_barriers2[i] = VkMemoryBarrier2{
+                    .sType = VK_STRUCTURE_TYPE_MEMORY_BARRIER_2,
+                    .pNext = nullptr,
+                    .srcStageMask = src_stage_mask2,
+                    .srcAccessMask = static_cast<VkAccessFlags2>(memory_barriers[i].srcAccessMask),
+                    .dstStageMask = dst_stage_mask2,
+                    .dstAccessMask = static_cast<VkAccessFlags2>(memory_barriers[i].dstAccessMask),
+                };
+            }
+            std::array<VkBufferMemoryBarrier2, MaxBarriers> buffer_barriers2;
+            for (u32 i = 0; i < buffer_barriers.size(); ++i) {
+                const auto& barrier = buffer_barriers[i];
+                buffer_barriers2[i] = VkBufferMemoryBarrier2{
+                    .sType = VK_STRUCTURE_TYPE_BUFFER_MEMORY_BARRIER_2,
+                    .pNext = nullptr,
+                    .srcStageMask = src_stage_mask2,
+                    .srcAccessMask = static_cast<VkAccessFlags2>(barrier.srcAccessMask),
+                    .dstStageMask = dst_stage_mask2,
+                    .dstAccessMask = static_cast<VkAccessFlags2>(barrier.dstAccessMask),
+                    .srcQueueFamilyIndex = barrier.srcQueueFamilyIndex,
+                    .dstQueueFamilyIndex = barrier.dstQueueFamilyIndex,
+                    .buffer = barrier.buffer,
+                    .offset = barrier.offset,
+                    .size = barrier.size,
+                };
+            }
+            std::array<VkImageMemoryBarrier2, MaxBarriers> image_barriers2;
+            for (u32 i = 0; i < image_barriers.size(); ++i) {
+                const auto& barrier = image_barriers[i];
+                image_barriers2[i] = VkImageMemoryBarrier2{
+                    .sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER_2,
+                    .pNext = nullptr,
+                    .srcStageMask = src_stage_mask2,
+                    .srcAccessMask = static_cast<VkAccessFlags2>(barrier.srcAccessMask),
+                    .dstStageMask = dst_stage_mask2,
+                    .dstAccessMask = static_cast<VkAccessFlags2>(barrier.dstAccessMask),
+                    .oldLayout = barrier.oldLayout,
+                    .newLayout = barrier.newLayout,
+                    .srcQueueFamilyIndex = barrier.srcQueueFamilyIndex,
+                    .dstQueueFamilyIndex = barrier.dstQueueFamilyIndex,
+                    .image = barrier.image,
+                    .subresourceRange = barrier.subresourceRange,
+                };
+            }
+            const VkDependencyInfo dependency_info{
+                .sType = VK_STRUCTURE_TYPE_DEPENDENCY_INFO,
+                .pNext = nullptr,
+                .dependencyFlags = dependency_flags,
+                .memoryBarrierCount = memory_barriers.size(),
+                .pMemoryBarriers = memory_barriers2.data(),
+                .bufferMemoryBarrierCount = buffer_barriers.size(),
+                .pBufferMemoryBarriers = buffer_barriers2.data(),
+                .imageMemoryBarrierCount = image_barriers.size(),
+                .pImageMemoryBarriers = image_barriers2.data(),
+            };
+            dld->vkCmdPipelineBarrier2(handle, &dependency_info);
+            return;
+        }
         dld->vkCmdPipelineBarrier(handle, src_stage_mask, dst_stage_mask, dependency_flags,
                                   memory_barriers.size(), memory_barriers.data(),
                                   buffer_barriers.size(), buffer_barriers.data(),
@@ -1508,6 +1589,10 @@ public:
 
     void SetColorWriteMaskEXT(u32 first, Span<VkColorComponentFlags> masks) const noexcept {
         dld->vkCmdSetColorWriteMaskEXT(handle, first, masks.size(), masks.data());
+    }
+
+    void SetColorWriteEnableEXT(Span<VkBool32> enables) const noexcept {
+        dld->vkCmdSetColorWriteEnableEXT(handle, enables.size(), enables.data());
     }
 
     void SetColorBlendEnableEXT(u32 first, Span<VkBool32> enables) const noexcept {

@@ -193,8 +193,14 @@ void ComputePipeline::Configure(Tegra::Engines::KeplerCompute& kepler_compute,
                 is_written = desc.is_written;
             }
             ImageView& image_view = texture_cache.GetImageView(views[index].id);
+            PixelFormat format{image_view.format};
+            if constexpr (is_image) {
+                if (const auto explicit_format{PixelFormatFromImageFormat(desc.format)}) {
+                    format = *explicit_format;
+                }
+            }
             buffer_cache.BindComputeTextureBuffer(index, image_view.GpuAddr(),
-                                                  image_view.BufferSize(), image_view.format,
+                                                  image_view.BufferSize(), format,
                                                   is_written, is_image);
             ++index;
         }

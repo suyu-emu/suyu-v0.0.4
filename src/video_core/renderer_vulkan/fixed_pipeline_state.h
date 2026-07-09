@@ -33,6 +33,7 @@ struct DynamicFeatures {
     bool has_dynamic_state3_logic_op_enable;
     bool has_dynamic_state3_line_stipple_enable;
     bool has_dynamic_vertex_input;
+    bool has_color_write_enable;
     bool has_provoking_vertex;
     bool has_provoking_vertex_first_mode;
     bool has_provoking_vertex_last_mode;
@@ -210,6 +211,9 @@ struct FixedPipelineState {
         BitField<12, 2, u32> tessellation_spacing;
         BitField<14, 1, u32> tessellation_clockwise;
         BitField<15, 5, u32> patch_control_points_minus_one;
+        BitField<20, 1, u32> color_write_enable_dynamic;
+
+        BitField<21, 1, u32> attachment0_dual_source_blend;
 
         BitField<24, 4, Maxwell::PrimitiveTopology> topology;
         BitField<28, 4, Tegra::Texture::MsaaMode> msaa_mode;

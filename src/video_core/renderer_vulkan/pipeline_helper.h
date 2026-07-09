@@ -7,6 +7,7 @@
 #pragma once
 
 #include <cstddef>
+#include <optional>
 
 #include <boost/container/small_vector.hpp>
 
@@ -15,12 +16,36 @@
 #include "shader_recompiler/shader_info.h"
 #include "video_core/renderer_vulkan/vk_texture_cache.h"
 #include "video_core/renderer_vulkan/vk_update_descriptor.h"
+#include "video_core/surface.h"
 #include "video_core/texture_cache/types.h"
 #include "video_core/vulkan_common/vulkan_device.h"
 
 namespace Vulkan {
 
 using Shader::Backend::SPIRV::NUM_TEXTURE_AND_IMAGE_SCALING_WORDS;
+
+[[nodiscard]] inline std::optional<PixelFormat> PixelFormatFromImageFormat(
+    Shader::ImageFormat format) {
+    switch (format) {
+    case Shader::ImageFormat::Typeless:
+        return std::nullopt;
+    case Shader::ImageFormat::R8_UINT:
+        return PixelFormat::R8_UINT;
+    case Shader::ImageFormat::R8_SINT:
+        return PixelFormat::R8_SINT;
+    case Shader::ImageFormat::R16_UINT:
+        return PixelFormat::R16_UINT;
+    case Shader::ImageFormat::R16_SINT:
+        return PixelFormat::R16_SINT;
+    case Shader::ImageFormat::R32_UINT:
+        return PixelFormat::R32_UINT;
+    case Shader::ImageFormat::R32G32_UINT:
+        return PixelFormat::R32G32_UINT;
+    case Shader::ImageFormat::R32G32B32A32_UINT:
+        return PixelFormat::R32G32B32A32_UINT;
+    }
+    return std::nullopt;
+}
 
 [[nodiscard]] inline u32 NumDescriptorEntries(const Shader::Info& info) {
     return Shader::NumDescriptors(info.constant_buffer_descriptors) +
@@ -211,8 +236,12 @@ inline void PushImageDescriptors(TextureCache& texture_cache,
             const Sampler& sampler{texture_cache.GetSampler(sampler_id)};
             const bool use_fallback_sampler{sampler.HasAddedAnisotropy() &&
                                             !image_view.SupportsAnisotropy()};
-            const VkSampler vk_sampler{use_fallback_sampler ? sampler.HandleWithDefaultAnisotropy()
-                                                            : sampler.Handle()};
+            VkSampler vk_sampler{use_fallback_sampler ? sampler.HandleWithDefaultAnisotropy()
+                                                      : sampler.Handle()};
+            if (sampler.HasLinearFiltering() &&
+                VideoCore::Surface::IsPixelFormatInteger(image_view.format)) {
+                vk_sampler = sampler.HandleWithNearestFilter();
+            }
             guest_descriptor_queue.AddSampledImage(vk_image_view, vk_sampler);
             const bool element_rescaled{texture_cache.IsRescaling(image_view)};
             is_rescaled |= element_rescaled;

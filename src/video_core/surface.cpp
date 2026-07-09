@@ -344,6 +344,10 @@ bool IsPixelFormatETC2(PixelFormat format) {
     case PixelFormat::ETC2_RGB_SRGB:
     case PixelFormat::ETC2_RGBA_SRGB:
     case PixelFormat::ETC2_RGB_PTA_SRGB:
+    case PixelFormat::EAC_R11_UNORM:
+    case PixelFormat::EAC_R11_SNORM:
+    case PixelFormat::EAC_R11G11_UNORM:
+    case PixelFormat::EAC_R11G11_SNORM:
         return true;
     default:
         return false;

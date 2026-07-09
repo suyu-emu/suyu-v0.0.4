@@ -1299,7 +1299,9 @@ void TextureCacheRuntime::ConvertImage(Framebuffer* dst, ImageView& dst_view, Im
     case PixelFormat::R32G32_FLOAT:
     case PixelFormat::R32G32_SINT:
     case PixelFormat::R32_FLOAT:
-        if ((src_view.format == PixelFormat::D32_FLOAT) && Settings::values.fix_bloom_effects.GetValue()) {
+        if (src_view.format == PixelFormat::D32_FLOAT &&
+            (dst_view.format == PixelFormat::B5G6R5_UNORM ||
+             Settings::values.fix_bloom_effects.GetValue())) {
             const Region2D region{
                 .start = {0, 0},
                 .end = {static_cast<s32>(dst->RenderArea().width),
@@ -2242,7 +2244,12 @@ VkImageView ImageView::StorageView(Shader::TextureType texture_type,
                                    Shader::ImageFormat image_format) {
     if (image_handle) {
         if (image_format == Shader::ImageFormat::Typeless) {
-            return Handle(texture_type);
+            if (!typeless_storage_view) {
+                const auto& info =
+                    MaxwellToVK::SurfaceFormat(*device, FormatType::Optimal, true, format);
+                typeless_storage_view = MakeView(info.format, VK_IMAGE_ASPECT_COLOR_BIT);
+            }
+            return *typeless_storage_view;
         }
         const bool is_signed = image_format == Shader::ImageFormat::R8_SINT
             || image_format == Shader::ImageFormat::R16_SINT;
@@ -2297,11 +2304,14 @@ Sampler::Sampler(TextureCacheRuntime& runtime, const Tegra::Texture::TSCEntry& t
     const void* pnext = nullptr;
     if (has_custom_border_colors) {
         pnext = &border_ci;
-        // Log extension usage for custom border color
         if (GPU::Logging::IsActive()) {
             GPU::Logging::GPULogger::GetInstance().LogExtensionUsage(
                 "VK_EXT_custom_border_color", "Sampler::Sampler");
         }
+    }
+    if (device.IsExtBorderColorSwizzleSupported() && GPU::Logging::IsActive()) {
+        GPU::Logging::GPULogger::GetInstance().LogExtensionUsage(
+            "VK_EXT_border_color_swizzle", "Sampler::Sampler");
     }
     const VkSamplerReductionModeCreateInfoEXT reduction_ci{
         .sType = VK_STRUCTURE_TYPE_SAMPLER_REDUCTION_MODE_CREATE_INFO_EXT,
@@ -2316,20 +2326,28 @@ Sampler::Sampler(TextureCacheRuntime& runtime, const Tegra::Texture::TSCEntry& t
     // Some games have samplers with garbage. Sanitize them here.
     const f32 max_anisotropy = std::clamp(tsc.MaxAnisotropy(), 1.0f, 16.0f);
 
-    const auto create_sampler = [&](const f32 anisotropy) {
+    const VkFilter mag_filter{MaxwellToVK::Sampler::Filter(tsc.mag_filter)};
+    const VkFilter min_filter{MaxwellToVK::Sampler::Filter(tsc.min_filter)};
+    const VkSamplerMipmapMode mipmap_mode{MaxwellToVK::Sampler::MipmapMode(tsc.mipmap_filter)};
+    const bool has_linear_filtering{mag_filter == VK_FILTER_LINEAR ||
+                                    min_filter == VK_FILTER_LINEAR ||
+                                    mipmap_mode == VK_SAMPLER_MIPMAP_MODE_LINEAR};
+
+    const auto create_sampler = [&](const f32 anisotropy, bool force_nearest) {
         return device.GetLogical().CreateSampler(VkSamplerCreateInfo{
             .sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO,
             .pNext = pnext,
             .flags = 0,
-            .magFilter = MaxwellToVK::Sampler::Filter(tsc.mag_filter),
-            .minFilter = MaxwellToVK::Sampler::Filter(tsc.min_filter),
-            .mipmapMode = MaxwellToVK::Sampler::MipmapMode(tsc.mipmap_filter),
+            .magFilter = force_nearest ? VK_FILTER_NEAREST : mag_filter,
+            .minFilter = force_nearest ? VK_FILTER_NEAREST : min_filter,
+            .mipmapMode = force_nearest ? VK_SAMPLER_MIPMAP_MODE_NEAREST : mipmap_mode,
             .addressModeU = MaxwellToVK::Sampler::WrapMode(device, tsc.wrap_u, tsc.mag_filter),
             .addressModeV = MaxwellToVK::Sampler::WrapMode(device, tsc.wrap_v, tsc.mag_filter),
             .addressModeW = MaxwellToVK::Sampler::WrapMode(device, tsc.wrap_p, tsc.mag_filter),
             .mipLodBias = tsc.LodBias(),
-            .anisotropyEnable = static_cast<VkBool32>(anisotropy > 1.0f ? VK_TRUE : VK_FALSE),
-            .maxAnisotropy = anisotropy,
+            .anisotropyEnable =
+                static_cast<VkBool32>(!force_nearest && anisotropy > 1.0f ? VK_TRUE : VK_FALSE),
+            .maxAnisotropy = force_nearest ? 1.0f : anisotropy,
             .compareEnable = tsc.depth_compare_enabled,
             .compareOp = MaxwellToVK::Sampler::DepthCompareFunction(tsc.depth_compare_func),
             .minLod = tsc.mipmap_filter == TextureMipmapFilter::None ? 0.0f : tsc.MinLod(),
@@ -2340,11 +2358,14 @@ Sampler::Sampler(TextureCacheRuntime& runtime, const Tegra::Texture::TSCEntry& t
         });
     };
 
-    sampler = create_sampler(max_anisotropy);
+    sampler = create_sampler(max_anisotropy, false);
 
     const f32 max_anisotropy_default = static_cast<f32>(1U << tsc.max_anisotropy);
     if (max_anisotropy > max_anisotropy_default) {
-        sampler_default_anisotropy = create_sampler(max_anisotropy_default);
+        sampler_default_anisotropy = create_sampler(max_anisotropy_default, false);
+    }
+    if (has_linear_filtering) {
+        sampler_nearest = create_sampler(1.0f, true);
     }
 }
 

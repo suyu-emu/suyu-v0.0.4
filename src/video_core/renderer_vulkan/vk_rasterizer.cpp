@@ -223,7 +223,10 @@ RasterizerVulkan::RasterizerVulkan(Core::Frontend::EmuWindow& emu_window_, Tegra
     scheduler.SetQueryCache(query_cache);
 }
 
-RasterizerVulkan::~RasterizerVulkan() = default;
+RasterizerVulkan::~RasterizerVulkan() {
+    scheduler.WaitWorker();
+    scheduler.Finish();
+}
 
 template <typename Func>
 void RasterizerVulkan::PrepareDraw(bool is_indexed, Func&& draw_func) {
@@ -1011,12 +1014,12 @@ void RasterizerVulkan::UpdateDynamicStates() {
     auto& regs = maxwell3d->regs;
     auto& flags = maxwell3d->dirty.flags;
     const auto topology = maxwell3d->draw_manager.draw_state.topology;
-    if (state_tracker.ChangePrimitiveTopology(topology)) {
+    const bool topology_changed = state_tracker.ChangePrimitiveTopology(topology);
+    if (topology_changed) {
         flags[Dirty::DepthBiasEnable] = true;
         flags[Dirty::PrimitiveRestartEnable] = true;
     }
 
-    // Core Dynamic States (Vulkan 1.0) - Always active regardless of dyna_state setting
     UpdateViewportsState(regs);
     UpdateScissorsState(regs);
     UpdateDepthBias(regs);
@@ -1025,7 +1028,6 @@ void RasterizerVulkan::UpdateDynamicStates() {
     UpdateStencilFaces(regs);
     UpdateLineWidth(regs);
 
-    // EDS1: CullMode, DepthCompare, FrontFace, StencilOp, DepthBoundsTest, DepthTest, DepthWrite, StencilTest
     if (device.IsExtExtendedDynamicStateSupported()) {
         UpdateCullMode(regs);
         UpdateDepthCompareOp(regs);
@@ -1037,21 +1039,24 @@ void RasterizerVulkan::UpdateDynamicStates() {
             UpdateDepthWriteEnable(regs);
             UpdateStencilTestEnable(regs);
         }
+        if (topology_changed) {
+            scheduler.Record([topology_vk = MaxwellToVK::PrimitiveTopology(device, topology)](
+                                 vk::CommandBuffer cmdbuf) {
+                cmdbuf.SetPrimitiveTopologyEXT(topology_vk);
+            });
+        }
     }
 
-    // EDS2: PrimitiveRestart, RasterizerDiscard, DepthBias enable/disable
     if (device.IsExtExtendedDynamicState2Supported()) {
         UpdatePrimitiveRestartEnable(regs);
         UpdateRasterizerDiscardEnable(regs);
         UpdateDepthBiasEnable(regs);
     }
 
-    // EDS2 Extras: LogicOp operation selection
     if (device.IsExtExtendedDynamicState2ExtrasSupported()) {
         UpdateLogicOp(regs);
     }
 
-    // EDS3 Enables: LogicOpEnable, DepthClamp, LineStipple, ConservativeRaster
     if (device.IsExtExtendedDynamicState3EnablesSupported()) {
         using namespace Tegra::Engines;
         // AMD Workaround: LogicOp incompatible with float render targets
@@ -1076,12 +1081,12 @@ void RasterizerVulkan::UpdateDynamicStates() {
         UpdateAlphaToOneEnable(regs);
     }
 
-    // EDS3 Blending: ColorBlendEnable, ColorBlendEquation, ColorWriteMask
     if (device.IsExtExtendedDynamicState3BlendingSupported()) {
         UpdateBlending(regs);
+    } else if (device.IsExtColorWriteEnableSupported()) {
+        UpdateColorWriteEnable(regs);
     }
 
-    // Vertex Input Dynamic State: Independent from EDS levels
     if (device.IsExtVertexInputDynamicStateSupported()) {
         if (auto* gp = pipeline_cache.CurrentGraphicsPipeline(); gp && gp->HasDynamicVertexInput()) {
             UpdateVertexInput(regs);
@@ -1094,7 +1099,6 @@ void RasterizerVulkan::HandleTransformFeedback() {
 
     const auto& regs = maxwell3d->regs;
     if (!device.IsExtTransformFeedbackSupported()) {
-        // If the guest enabled transform feedback, warn once that the device lacks support.
         if (regs.transform_feedback_enabled != 0) {
             std::call_once(warn_unsupported, [&] {
                 LOG_WARNING(Render_Vulkan, "Transform feedback requested by guest but VK_EXT_transform_feedback is unavailable; queries disabled");
@@ -1723,9 +1727,16 @@ void RasterizerVulkan::UpdateBlending(Tegra::Engines::Maxwell3D::Regs& regs) {
 
     if (state_tracker.TouchBlendEnable()) {
         std::array<VkBool32, Maxwell::NumRenderTargets> setup_enables{};
-        std::ranges::transform(
-            regs.blend.enable, setup_enables.begin(),
-            [&](const auto& is_enabled) { return is_enabled != 0 ? VK_TRUE : VK_FALSE; });
+        for (size_t index = 0; index < Maxwell::NumRenderTargets; index++) {
+            bool is_integer = false;
+            if (regs.rt[index].format != Tegra::RenderTargetFormat::NONE) {
+                const auto format =
+                    VideoCore::Surface::PixelFormatFromRenderTargetFormat(regs.rt[index].format);
+                is_integer = IsPixelFormatInteger(format);
+            }
+            setup_enables[index] =
+                (!is_integer && regs.blend.enable[index] != 0) ? VK_TRUE : VK_FALSE;
+        }
         scheduler.Record([setup_enables](vk::CommandBuffer cmdbuf) {
             cmdbuf.SetColorBlendEnableEXT(0, setup_enables);
         });
@@ -1772,6 +1783,20 @@ void RasterizerVulkan::UpdateBlending(Tegra::Engines::Maxwell3D::Regs& regs) {
             cmdbuf.SetColorBlendEquationEXT(0, setup_blends);
         });
     }
+}
+
+void RasterizerVulkan::UpdateColorWriteEnable(Tegra::Engines::Maxwell3D::Regs& regs) {
+    if (!state_tracker.TouchColorMask()) {
+        return;
+    }
+    std::array<VkBool32, Maxwell::NumRenderTargets> setup_enables{};
+    for (size_t index = 0; index < Maxwell::NumRenderTargets; index++) {
+        const auto& mask = regs.color_mask[regs.color_mask_common ? 0 : index];
+        setup_enables[index] = (mask.R || mask.G || mask.B || mask.A) ? VK_TRUE : VK_FALSE;
+    }
+    scheduler.Record([setup_enables](vk::CommandBuffer cmdbuf) {
+        cmdbuf.SetColorWriteEnableEXT(setup_enables);
+    });
 }
 
 void RasterizerVulkan::UpdateStencilTestEnable(Tegra::Engines::Maxwell3D::Regs& regs) {

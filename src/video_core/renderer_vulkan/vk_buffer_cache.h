@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 // SPDX-FileCopyrightText: Copyright 2019 yuzu Emulator Project
@@ -43,12 +43,14 @@ public:
         return tracker.IsUsed(offset, size);
     }
 
-    void MarkUsage(u64 offset, u64 size) noexcept {
-        tracker.Track(offset, size);
-    }
+    void MarkUsage(u64 offset, u64 size) noexcept;
 
     void ResetUsageTracking() noexcept {
         tracker.Reset();
+    }
+
+    [[nodiscard]] u64 LastUsageTick() const noexcept {
+        return last_usage_tick;
     }
 
     operator VkBuffer() const noexcept {
@@ -64,9 +66,11 @@ private:
     };
 
     const Device* device{};
+    Scheduler* scheduler{};
     vk::Buffer buffer;
     std::vector<BufferView> views;
     VideoCommon::UsageTracker tracker;
+    u64 last_usage_tick{};
     bool is_null{};
 };
 
@@ -127,6 +131,10 @@ public:
 
     void BindVertexBuffers(VideoCommon::HostBindings<Buffer>& bindings);
 
+    void SetVertexInputDynamicState(bool is_active) {
+        vertex_input_dynamic_state_active = is_active;
+    }
+
     void BindTransformFeedbackBuffer(u32 index, VkBuffer buffer, u32 offset, u32 size);
 
     void BindTransformFeedbackBuffers(VideoCommon::HostBindings<Buffer>& bindings);
@@ -163,7 +171,11 @@ public:
 
 private:
     void BindBuffer(VkBuffer buffer, u32 offset, u32 size) {
-        guest_descriptor_queue.AddBuffer(buffer, offset, size);
+        if (buffer == VK_NULL_HANDLE) {
+            guest_descriptor_queue.AddBuffer(buffer, 0, VK_WHOLE_SIZE);
+        } else {
+            guest_descriptor_queue.AddBuffer(buffer, offset, size);
+        }
     }
 
     void ReserveNullBuffer();
@@ -185,6 +197,8 @@ private:
 
     bool limit_dynamic_storage_buffers = false;
     u32 max_dynamic_storage_buffers = (std::numeric_limits<u32>::max)();
+
+    bool vertex_input_dynamic_state_active = false;
 };
 
 struct BufferCacheParams {

@@ -246,32 +246,7 @@ Shader::RuntimeInfo MakeRuntimeInfo(std::span<const Shader::IR::Program> program
             key.state.UnpackComparisonOp(key.state.alpha_test_func.Value()));
         info.alpha_test_reference = std::bit_cast<float>(key.state.alpha_test_ref);
 
-        // Check for dual source blending
-        const auto& blend0 = key.state.attachments[0];
-        if (blend0.enable != 0) {
-            using F = Maxwell::Blend::Factor;
-            const auto src_rgb = blend0.SourceRGBFactor();
-            const auto dst_rgb = blend0.DestRGBFactor();
-            const auto src_a = blend0.SourceAlphaFactor();
-            const auto dst_a = blend0.DestAlphaFactor();
-            info.dual_source_blend =
-                src_rgb == F::Source1Color_D3D || src_rgb == F::OneMinusSource1Color_D3D ||
-                src_rgb == F::Source1Alpha_D3D || src_rgb == F::OneMinusSource1Alpha_D3D ||
-                src_rgb == F::Source1Color_GL || src_rgb == F::OneMinusSource1Color_GL ||
-                src_rgb == F::Source1Alpha_GL || src_rgb == F::OneMinusSource1Alpha_GL ||
-                dst_rgb == F::Source1Color_D3D || dst_rgb == F::OneMinusSource1Color_D3D ||
-                dst_rgb == F::Source1Alpha_D3D || dst_rgb == F::OneMinusSource1Alpha_D3D ||
-                dst_rgb == F::Source1Color_GL || dst_rgb == F::OneMinusSource1Color_GL ||
-                dst_rgb == F::Source1Alpha_GL || dst_rgb == F::OneMinusSource1Alpha_GL ||
-                src_a == F::Source1Color_D3D || src_a == F::OneMinusSource1Color_D3D ||
-                src_a == F::Source1Alpha_D3D || src_a == F::OneMinusSource1Alpha_D3D ||
-                src_a == F::Source1Color_GL || src_a == F::OneMinusSource1Color_GL ||
-                src_a == F::Source1Alpha_GL || src_a == F::OneMinusSource1Alpha_GL ||
-                dst_a == F::Source1Color_D3D || dst_a == F::OneMinusSource1Color_D3D ||
-                dst_a == F::Source1Alpha_D3D || dst_a == F::OneMinusSource1Alpha_D3D ||
-                dst_a == F::Source1Color_GL || dst_a == F::OneMinusSource1Color_GL ||
-                dst_a == F::Source1Alpha_GL || dst_a == F::OneMinusSource1Alpha_GL;
-        }
+        info.dual_source_blend = key.state.attachment0_dual_source_blend != 0;
 
         if (device.IsMoltenVK()) {
             for (size_t i = 0; i < 8; ++i) {
@@ -383,7 +358,11 @@ PipelineCache::PipelineCache(Tegra::MaxwellDeviceMemoryManager& device_memory_,
         .unified_descriptor_binding = true,
         .support_descriptor_aliasing = device.IsDescriptorAliasingSupported(),
         .support_int8 = device.IsInt8Supported(),
+        .support_uniform_and_storage_buffer_8bit =
+            device.IsUniformAndStorageBuffer8BitAccessSupported(),
         .support_int16 = device.IsShaderInt16Supported(),
+        .support_uniform_and_storage_buffer_16bit =
+            device.IsUniformAndStorageBuffer16BitAccessSupported(),
         .support_int64 = device.IsShaderInt64Supported(),
         .support_vertex_instance_id = false,
         .support_float_controls = device.IsKhrShaderFloatControlsSupported(),
@@ -502,6 +481,8 @@ PipelineCache::PipelineCache(Tegra::MaxwellDeviceMemoryManager& device_memory_,
         device.IsExtExtendedDynamicState3BlendingSupported();
     dynamic_features.has_extended_dynamic_state_3_enables =
         device.IsExtExtendedDynamicState3EnablesSupported();
+    dynamic_features.has_color_write_enable =
+        device.IsExtColorWriteEnableSupported();
     dynamic_features.has_dynamic_state3_depth_clamp_enable =
         dynamic_features.has_extended_dynamic_state_3_enables &&
         device.SupportsDynamicState3DepthClampEnable();
@@ -634,7 +615,10 @@ void PipelineCache::LoadDiskResources(u64 title_id, std::stop_token stop_loading
                 dynamic_features.has_extended_dynamic_state_3_blend ||
             (key.state.extended_dynamic_state_3_enables != 0) !=
                 dynamic_features.has_extended_dynamic_state_3_enables ||
-            (key.state.dynamic_vertex_input != 0) != dynamic_features.has_dynamic_vertex_input) {
+            (key.state.color_write_enable_dynamic != 0) !=
+                dynamic_features.has_color_write_enable ||
+            (key.state.dynamic_vertex_input != 0) !=
+                dynamic_features.has_dynamic_vertex_input) {
             return;
         }
 

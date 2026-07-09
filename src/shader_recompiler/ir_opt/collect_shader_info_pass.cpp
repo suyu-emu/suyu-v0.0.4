@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 // SPDX-FileCopyrightText: Copyright 2021 yuzu Emulator Project
@@ -569,6 +569,8 @@ void VisitUsages(Info& info, IR::Inst& inst) {
     case IR::Opcode::ImageRead: {
         const auto flags{inst.Flags<IR::TextureInstInfo>()};
         info.uses_typeless_image_reads |= flags.image_format == ImageFormat::Typeless;
+        info.uses_image_1d |=
+            flags.type == TextureType::Color1D || flags.type == TextureType::ColorArray1D;
         info.uses_sparse_residency |=
             inst.GetAssociatedPseudoOperation(IR::Opcode::GetSparseFromOp) != nullptr;
         break;
@@ -577,6 +579,8 @@ void VisitUsages(Info& info, IR::Inst& inst) {
         const auto flags{inst.Flags<IR::TextureInstInfo>()};
         info.uses_typeless_image_writes |= flags.image_format == ImageFormat::Typeless;
         info.uses_image_buffers |= flags.type == TextureType::Buffer;
+        info.uses_image_1d |=
+            flags.type == TextureType::Color1D || flags.type == TextureType::ColorArray1D;
         break;
     }
     case IR::Opcode::SubgroupEqMask:
@@ -761,9 +765,13 @@ void VisitUsages(Info& info, IR::Inst& inst) {
     case IR::Opcode::ImageAtomicAnd32:
     case IR::Opcode::ImageAtomicOr32:
     case IR::Opcode::ImageAtomicXor32:
-    case IR::Opcode::ImageAtomicExchange32:
+    case IR::Opcode::ImageAtomicExchange32: {
+        const auto flags{inst.Flags<IR::TextureInstInfo>()};
         info.uses_atomic_image_u32 = true;
+        info.uses_image_1d |=
+            flags.type == TextureType::Color1D || flags.type == TextureType::ColorArray1D;
         break;
+    }
     default:
         break;
     }
