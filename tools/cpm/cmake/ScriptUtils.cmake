@@ -19,6 +19,48 @@ macro(parse_key key)
     parse_object(${object})
 endmacro()
 
+
+# Analogous to GNU mktemp, with fallbacks
+function(mktempdir out)
+    # shell out to system mktemp if available
+    cpm_find_program(MKTEMP_EXECUTABLE mktemp)
+    if (MKTEMP_EXECUTABLE)
+        execute_process(COMMAND mktemp -d
+            OUTPUT_VARIABLE dir
+            OUTPUT_STRIP_TRAILING_WHITESPACE
+            RESULT_VARIABLE ret)
+
+        if (ret EQUAL 0)
+            set(${out} "${dir}" PARENT_SCOPE)
+            return()
+        endif()
+    endif()
+
+    string(RANDOM LENGTH 10 rand_str)
+    set(tmp_str "tmp.${rand_str}")
+
+    # create something in /tmp if it exists
+    if(EXISTS "/tmp" AND IS_DIRECTORY "/tmp")
+        set(dir "/tmp/${tmp_str}")
+        file(MAKE_DIRECTORY "${dir}" RESULT res)
+        if (res EQUAL 0)
+            set(${out} "${dir}" PARENT_SCOPE)
+            return()
+        endif()
+    endif()
+
+    # tmpdir does not exist, extremely legacy mode
+    set(dir "${CMAKE_CURRENT_LIST_DIR}/.tmp/${tmp_str}")
+    file(MAKE_DIRECTORY "${dir}" RESULT res)
+    if (res EQUAL 0)
+        set(${out} "${dir}" PARENT_SCOPE)
+        return()
+    endif()
+
+    fatal("Fatal: Could not create temporary directory. "
+        "Check write permissions to the current directory")
+endfunction()
+
 # Get a package's effective URL, for an already parsed object
 function(get_package_url_object out)
     if (${url})
