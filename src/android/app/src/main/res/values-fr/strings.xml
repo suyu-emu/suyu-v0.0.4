@@ -527,8 +527,6 @@
     <string name="gpu_logging_header">Journalisation GPU</string>
     <string name="gpu_log_level">Niveau de journalisation</string>
     <string name="gpu_log_vulkan_calls">Journaliser les appels API Vulkan</string>
-    <string name="gpu_log_shader_dumps">Extraire les shaders</string>
-    <string name="gpu_log_shader_dumps_description">Sauvegarder le shader SPIR-V complié dans les fichiers</string>
     <string name="gpu_log_memory_tracking">Monitorer la mémoire GPU</string>
     <string name="gpu_log_memory_tracking_description">Monitorer les allocations et désallocations de la mémoire GPU</string>
     <string name="gpu_log_driver_debug">Informations de débogage du pilote</string>

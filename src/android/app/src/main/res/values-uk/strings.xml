@@ -569,8 +569,6 @@
     <string name="gpu_log_level_description">Рівень подробиць у журналі ГП (вищий = більше подробиць, більший вплив на швидкодію)</string>
     <string name="gpu_log_vulkan_calls">Записувати виклики API Vulkan</string>
     <string name="gpu_log_vulkan_calls_description">Відстежувати всі виклики API Vulkan у кільцевому буфері</string>
-    <string name="gpu_log_shader_dumps">Зберігати шейдери</string>
-    <string name="gpu_log_shader_dumps_description">Зберігати до файлів скомпільовані шейдери SPIR-V</string>
     <string name="gpu_log_memory_tracking">Відстежувати пам’ять ГП</string>
     <string name="gpu_log_memory_tracking_description">Відстежувати використання і звільнення пам’яті ГП</string>
     <string name="gpu_log_driver_debug">Зневаджувальна інформація драйверів</string>

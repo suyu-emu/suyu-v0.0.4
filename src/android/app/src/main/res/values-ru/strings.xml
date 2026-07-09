@@ -566,8 +566,6 @@
     <string name="gpu_log_level_description">Уровень детализации логов ГПУ (больше значение = больше деталей, выше нагрузка)</string>
     <string name="gpu_log_vulkan_calls">Записывать вызовы Vulkan API</string>
     <string name="gpu_log_vulkan_calls_description">Отслеживать все вызовы Vulkan API в кольцевом буфере</string>
-    <string name="gpu_log_shader_dumps">Выгрузить шейдеры</string>
-    <string name="gpu_log_shader_dumps_description">Сохранять скомпилированные SPIR-V шейдеры в файлы</string>
     <string name="gpu_log_memory_tracking">Отслеживать память ГПУ</string>
     <string name="gpu_log_memory_tracking_description">Мониторить выделение и освобождение памяти ГПУ</string>
     <string name="gpu_log_driver_debug">Отладочная информация драйвера</string>

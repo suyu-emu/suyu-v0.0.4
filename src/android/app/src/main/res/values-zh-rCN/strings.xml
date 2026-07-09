@@ -487,6 +487,8 @@
     <string name="renderer_reactive_flushing_description">通过牺牲性能来提升某些游戏的渲染精度。</string>
     <string name="enable_buffer_history">启用缓冲区历史</string>
     <string name="enable_buffer_history_description">启用对先前缓冲区状态的访问。此选项可在某些游戏中提升渲染质量并保持性能的一致性。</string>
+    <string name="enable_gpu_buffer_readback">启用 GPU 缓冲区回读</string>
+    <string name="enable_gpu_buffer_readback_description">在上传前回读经由 GPU 修改过的缓冲区数据，以将其保留。一些游戏需要这样做才能正确渲染某些效果。如果硬件无法处理额外的工作负载，则可能会导致问题。</string>
     <string name="use_optimized_vertex_buffers">优化顶点缓冲区</string>
     <string name="use_optimized_vertex_buffers_description">启用经过优化的顶点缓冲区绑定以提升性能。需要 Mesa 26.0 及以上版本的 Turnip 或 QCOM 驱动程序。若使用较旧版本的 Turnip 驱动 (25.3 及以下版本) 则会导致崩溃。</string>
 
@@ -563,8 +565,12 @@
     <string name="gpu_log_level_description">GPU 日志的详细级别(数值越高 = 细节越多,开销越大)</string>
     <string name="gpu_log_vulkan_calls">记录 Vulkan API 调用</string>
     <string name="gpu_log_vulkan_calls_description">在环形缓冲区中跟踪所有 Vulkan API 调用</string>
-    <string name="gpu_log_shader_dumps">转储着色器</string>
-    <string name="gpu_log_shader_dumps_description">保存已编译的着色器 SPIR-V 到文件中</string>
+    <string name="gpu_log_shader_dumps">转储 SPIR-V 着色器</string>
+    <string name="gpu_log_shader_dumps_description">将经过重编译的 SPIR-V 二进制文件（.spv）保存到 dump 文件夹中。使用 spirv-dis/spirv-cross/spirv-val 进行检查。</string>
+    <string name="dump_guest_shaders">转储 Guest (Maxwell) 着色器</string>
+    <string name="dump_guest_shaders_description">将 Maxwell guest 着色器字节码文件（*.ash）保存到 dump 文件夹。使用 nvdisasm 进行检查。</string>
+    <string name="dump_macros">转储 Maxwell 宏</string>
+    <string name="dump_macros_description">将 Maxwell 宏程序文件（*.macro）保存到 dump 文件夹。使用 envydis 进行检查。</string>
     <string name="gpu_log_memory_tracking">追踪 GPU 内存</string>
     <string name="gpu_log_memory_tracking_description">监控 GPU 内存的分配和释放</string>
     <string name="gpu_log_driver_debug">驱动调试信息</string>

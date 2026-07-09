@@ -573,8 +573,6 @@
     <string name="gpu_log_level_description">مستوى التفاصيل لسجلات وحدة معالجة الرسومات (كلما زاد المستوى، زادت التفاصيل وزادت التكاليف الإضافية)</string>
     <string name="gpu_log_vulkan_calls">تسجيل استدعاءات واجهة برمجة تطبيقات Vulkan</string>
     <string name="gpu_log_vulkan_calls_description">تتبع جميع استدعاءات واجهة برمجة تطبيقات Vulkan في المخزن المؤقت الحلقي</string>
-    <string name="gpu_log_shader_dumps">تفريغ التظليل</string>
-    <string name="gpu_log_shader_dumps_description">حفظ تظليل SPIR-V المجمع في ملفات</string>
     <string name="gpu_log_memory_tracking">تتبع ذاكرة وحدة معالجة الرسومات</string>
     <string name="gpu_log_memory_tracking_description">مراقبة تخصيصات ذاكرة وحدة معالجة الرسومات وإلغاء تخصيصها</string>
     <string name="gpu_log_driver_debug">معلومات تصحيح أخطاء برنامج التشغيل</string>
