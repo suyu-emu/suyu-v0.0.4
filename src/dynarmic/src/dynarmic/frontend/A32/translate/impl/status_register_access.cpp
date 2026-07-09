@@ -56,10 +56,11 @@ bool TranslatorVisitor::arm_MSR_imm(Cond cond, unsigned mask, int rotate, Imm<8>
     if (write_e) {
         const bool E = (imm32 & 0x00000200) != 0;
         if (E != ir.current_location.EFlag()) {
-            ir.SetTerm(IR::Term::LinkBlockFast{ir.current_location.AdvancePC(4).SetEFlag(E)});
+            ir.SetTerm(IR::Term::LinkBlock{ir.current_location.AdvancePC(4).SetEFlag(E)});
             return false;
         }
     }
+
     return true;
 }
 
@@ -111,7 +112,7 @@ bool TranslatorVisitor::arm_RFE() {
 
 // SETEND <endian_specifier>
 bool TranslatorVisitor::arm_SETEND(bool E) {
-    ir.SetTerm(IR::Term::LinkBlockFast{ir.current_location.AdvancePC(4).SetEFlag(E)});
+    ir.SetTerm(IR::Term::LinkBlock{ir.current_location.AdvancePC(4).SetEFlag(E)});
     return false;
 }
 

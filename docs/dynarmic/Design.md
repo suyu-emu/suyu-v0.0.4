@@ -311,9 +311,8 @@ dispatcher, which will return control to the host.
 SetTerm(IR::Term::LinkBlockFast{next})
 ```
 
-This terminal instruction jumps to the basic block described by `next` unconditionally. This promises guarantees that must be held at runtime - i.e that the program wont hang,
-
-This is a valid expression if contained within another block (say a `Terminal::If`) and the semantics allow it to be so.
+This terminal instruction jumps to the basic block described by `next` unconditionally.
+This promises guarantees that must be held at runtime - i.e that the program wont hang,
 
 ### Terminal: PopRSBHint
 

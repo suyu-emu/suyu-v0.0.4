@@ -277,17 +277,7 @@ private:
         state.store(State::Processing);
         evt_processing->Signal(system.Kernel());
 
-        worker = std::thread([this]() {
-            using namespace std::chrono_literals;
-            scan_results = Network::ScanWifiNetworks(3s);
-            {
-                std::scoped_lock lk{g_scan_mtx};
-                g_last_scan_results = scan_results;
-            }
-            // choose result code
-            const bool ok = !scan_results.empty();
-            Finish(ok ? ResultSuccess : ResultPendingConnection);
-        });
+        worker = std::thread(&IScanRequest::WorkerThread, this);
         IPC::ResponseBuilder{ctx, 2}.Push(ResultSuccess);
     }
 
@@ -317,6 +307,21 @@ private:
     }
 
     enum class State { Idle, Processing, Finished };
+
+    void WorkerThread() {
+        using namespace std::chrono_literals;
+
+        scan_results = Network::ScanWifiNetworks(3s);
+
+        {
+            std::scoped_lock lk{g_scan_mtx};
+            g_last_scan_results = scan_results;
+        }
+
+        // choose result code
+        const bool ok = !scan_results.empty();
+        Finish(ok ? ResultSuccess : ResultPendingConnection);
+    }
 
     void Finish(Result rc) {
         worker_result.store(rc);

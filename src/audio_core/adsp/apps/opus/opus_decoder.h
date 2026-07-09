@@ -72,6 +72,10 @@ private:
      * Initializing thread, launched at audio_core boot to avoid blocking the main emu boot thread.
      */
     void Init(std::stop_token stop_token);
+    /**
+     * Main OpusDecoder thread, responsible for processing the incoming Opus packets.
+     */
+    void Main(std::stop_token stop_token);
 
     /// Core system
     Core::System& system;

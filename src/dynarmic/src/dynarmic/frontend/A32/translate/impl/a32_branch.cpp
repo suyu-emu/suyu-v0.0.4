@@ -17,14 +17,10 @@ bool TranslatorVisitor::arm_B(Cond cond, Imm<24> imm24) {
     if (!ArmConditionPassed(cond)) {
         return true;
     }
+
     const u32 imm32 = mcl::bit::sign_extend<26, u32>(imm24.ZeroExtend() << 2) + 8;
     const auto new_location = ir.current_location.AdvancePC(imm32);
-    // pattern match => b .
-    if (imm32 == 0) {
-        ir.SetTerm(IR::Term::LinkBlock{new_location});
-    } else {
-        ir.SetTerm(IR::Term::LinkBlockFast{new_location});
-    }
+    ir.SetTerm(IR::Term::LinkBlock{new_location});
     return false;
 }
 
@@ -39,7 +35,7 @@ bool TranslatorVisitor::arm_BL(Cond cond, Imm<24> imm24) {
 
     const u32 imm32 = mcl::bit::sign_extend<26, u32>(imm24.ZeroExtend() << 2) + 8;
     const auto new_location = ir.current_location.AdvancePC(imm32);
-    ir.SetTerm(IR::Term::LinkBlockFast{new_location});
+    ir.SetTerm(IR::Term::LinkBlock{new_location});
     return false;
 }
 
@@ -50,7 +46,7 @@ bool TranslatorVisitor::arm_BLX_imm(bool H, Imm<24> imm24) {
 
     const u32 imm32 = mcl::bit::sign_extend<26, u32>((imm24.ZeroExtend() << 2)) + (H ? 2 : 0) + 8;
     const auto new_location = ir.current_location.AdvancePC(imm32).SetTFlag(true);
-    ir.SetTerm(IR::Term::LinkBlockFast{new_location});
+    ir.SetTerm(IR::Term::LinkBlock{new_location});
     return false;
 }
 

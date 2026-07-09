@@ -83,6 +83,11 @@ public:
 
 private:
     /**
+     * Main AudioRenderer thread, responsible for processing the command lists.
+     */
+    void Main(std::stop_token stop_token);
+
+    /**
      * Creates the streams which will receive the processed samples.
      */
     void CreateSinkStreams();

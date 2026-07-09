@@ -14,8 +14,8 @@ bool TranslatorVisitor::B_cond(Imm<19> imm19, Cond cond) {
     const s64 offset = concatenate(imm19, Imm<2>{0}).SignExtend<s64>();
     const u64 target = ir.PC() + offset;
 
-    const auto cond_pass = IR::Term::LinkBlockFast{ir.current_location->SetPC(target)};
-    const auto cond_fail = IR::Term::LinkBlockFast{ir.current_location->AdvancePC(4)};
+    const auto cond_pass = IR::Term::LinkBlock{ir.current_location->SetPC(target)};
+    const auto cond_fail = IR::Term::LinkBlock{ir.current_location->AdvancePC(4)};
     ir.SetTerm(IR::Term::If{cond, cond_pass, cond_fail});
     return false;
 }
@@ -26,9 +26,9 @@ bool TranslatorVisitor::B_uncond(Imm<26> imm26) {
     // Pattern to halt execution (B .)
     if (target == ir.PC()) {
         ir.SetTerm(IR::Term::LinkBlock{ir.current_location->SetPC(target)});
-    } else {
-        ir.SetTerm(IR::Term::LinkBlockFast{ir.current_location->SetPC(target)});
+        return false;
     }
+    ir.SetTerm(IR::Term::LinkBlockFast{ir.current_location->SetPC(target)});
     return false;
 }
 
@@ -79,8 +79,8 @@ bool TranslatorVisitor::CBZ(bool sf, Imm<19> imm19, Reg Rt) {
     ir.SetCheckBit(ir.IsZero(operand1));
 
     const u64 target = ir.PC() + offset;
-    const auto cond_pass = IR::Term::LinkBlockFast{ir.current_location->SetPC(target)};
-    const auto cond_fail = IR::Term::LinkBlockFast{ir.current_location->AdvancePC(4)};
+    const auto cond_pass = IR::Term::LinkBlock{ir.current_location->SetPC(target)};
+    const auto cond_fail = IR::Term::LinkBlock{ir.current_location->AdvancePC(4)};
     ir.SetTerm(IR::Term::CheckBit{cond_pass, cond_fail});
     return false;
 }
@@ -94,8 +94,8 @@ bool TranslatorVisitor::CBNZ(bool sf, Imm<19> imm19, Reg Rt) {
     ir.SetCheckBit(ir.IsZero(operand1));
 
     const u64 target = ir.PC() + offset;
-    const auto cond_pass = IR::Term::LinkBlockFast{ir.current_location->AdvancePC(4)};
-    const auto cond_fail = IR::Term::LinkBlockFast{ir.current_location->SetPC(target)};
+    const auto cond_pass = IR::Term::LinkBlock{ir.current_location->AdvancePC(4)};
+    const auto cond_fail = IR::Term::LinkBlock{ir.current_location->SetPC(target)};
     ir.SetTerm(IR::Term::CheckBit{cond_pass, cond_fail});
     return false;
 }
@@ -110,8 +110,8 @@ bool TranslatorVisitor::TBZ(Imm<1> b5, Imm<5> b40, Imm<14> imm14, Reg Rt) {
     ir.SetCheckBit(ir.TestBit(operand, ir.Imm8(bit_pos)));
 
     const u64 target = ir.PC() + offset;
-    const auto cond_1 = IR::Term::LinkBlockFast{ir.current_location->AdvancePC(4)};
-    const auto cond_0 = IR::Term::LinkBlockFast{ir.current_location->SetPC(target)};
+    const auto cond_1 = IR::Term::LinkBlock{ir.current_location->AdvancePC(4)};
+    const auto cond_0 = IR::Term::LinkBlock{ir.current_location->SetPC(target)};
     ir.SetTerm(IR::Term::CheckBit{cond_1, cond_0});
     return false;
 }
@@ -126,8 +126,8 @@ bool TranslatorVisitor::TBNZ(Imm<1> b5, Imm<5> b40, Imm<14> imm14, Reg Rt) {
     ir.SetCheckBit(ir.TestBit(operand, ir.Imm8(bit_pos)));
 
     const u64 target = ir.PC() + offset;
-    const auto cond_1 = IR::Term::LinkBlockFast{ir.current_location->SetPC(target)};
-    const auto cond_0 = IR::Term::LinkBlockFast{ir.current_location->AdvancePC(4)};
+    const auto cond_1 = IR::Term::LinkBlock{ir.current_location->SetPC(target)};
+    const auto cond_0 = IR::Term::LinkBlock{ir.current_location->AdvancePC(4)};
     ir.SetTerm(IR::Term::CheckBit{cond_1, cond_0});
     return false;
 }

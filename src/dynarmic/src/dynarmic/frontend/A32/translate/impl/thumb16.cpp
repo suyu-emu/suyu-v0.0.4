@@ -803,7 +803,7 @@ bool TranslatorVisitor::thumb16_SETEND(bool E) {
         return true;
     }
 
-    ir.SetTerm(IR::Term::LinkBlockFast{ir.current_location.AdvancePC(2).SetEFlag(E).AdvanceIT()});
+    ir.SetTerm(IR::Term::LinkBlock{ir.current_location.AdvancePC(2).SetEFlag(E).AdvanceIT()});
     return false;
 }
 
@@ -906,8 +906,9 @@ bool TranslatorVisitor::thumb16_CBZ_CBNZ(bool nonzero, Imm<1> i, Imm<5> imm5, Re
     ir.SetCheckBit(ir.IsZero(rn));
 
     const auto [cond_pass, cond_fail] = [this, imm, nonzero] {
-        const auto skip = IR::Term::LinkBlockFast{ir.current_location.AdvancePC(2).AdvanceIT()};
-        const auto branch = IR::Term::LinkBlockFast{ir.current_location.AdvancePC(imm + 4).AdvanceIT()};
+        const auto skip = IR::Term::LinkBlock{ir.current_location.AdvancePC(2).AdvanceIT()};
+        const auto branch = IR::Term::LinkBlock{ir.current_location.AdvancePC(imm + 4).AdvanceIT()};
+
         if (nonzero) {
             return std::make_pair(skip, branch);
         } else {
@@ -974,10 +975,10 @@ bool TranslatorVisitor::thumb16_B_t1(Cond cond, Imm<8> imm8) {
     }
 
     const s32 imm32 = static_cast<s32>((imm8.SignExtend<u32>() << 1) + 4);
-    const auto then_ = IR::Term::LinkBlockFast{ir.current_location.AdvancePC(imm32).AdvanceIT()};
-    const auto else_ = IR::Term::LinkBlockFast{ir.current_location.AdvancePC(2).AdvanceIT()};
+    const auto then_location = ir.current_location.AdvancePC(imm32).AdvanceIT();
+    const auto else_location = ir.current_location.AdvancePC(2).AdvanceIT();
 
-    ir.SetTerm(IR::Term::If{cond, then_, else_});
+    ir.SetTerm(IR::Term::If{cond, IR::Term::LinkBlock{then_location}, IR::Term::LinkBlock{else_location}});
     return false;
 }
 
@@ -989,12 +990,8 @@ bool TranslatorVisitor::thumb16_B_t2(Imm<11> imm11) {
 
     const s32 imm32 = static_cast<s32>((imm11.SignExtend<u32>() << 1) + 4);
     const auto next_location = ir.current_location.AdvancePC(imm32).AdvanceIT();
-    // pattern (b +#0)
-    if (imm32 == 0) {
-        ir.SetTerm(IR::Term::LinkBlock{next_location});
-    } else {
-        ir.SetTerm(IR::Term::LinkBlockFast{next_location});
-    }
+
+    ir.SetTerm(IR::Term::LinkBlock{next_location});
     return false;
 }
 
