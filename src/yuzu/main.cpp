@@ -8,9 +8,6 @@
 #include <cstring>
 #include "dedicated_room/yuzu_room.h"
 #endif
-
-#include <common/detached_tasks.h>
-
 #ifdef __unix__
 #include "qt_common/gui_settings.h"
 #endif
@@ -104,8 +101,6 @@ int main(int argc, char* argv[]) {
     Breakpad::InstallCrashHandler();
 #endif
 
-    Common::DetachedTasks detached_tasks;
-
     // Init settings params
     QCoreApplication::setOrganizationName(QStringLiteral("eden"));
     QCoreApplication::setApplicationName(QStringLiteral("eden"));
@@ -193,10 +188,6 @@ int main(int argc, char* argv[]) {
     // After settings have been loaded by GMainWindow, apply the filter
     main_window.show();
 
-    app.connect(&app, &QGuiApplication::applicationStateChanged, &main_window,
-                &MainWindow::OnAppFocusStateChanged);
-
-    int result = app.exec();
-    detached_tasks.WaitForAllTasks();
-    return result;
+    app.connect(&app, &QGuiApplication::applicationStateChanged, &main_window, &MainWindow::OnAppFocusStateChanged);
+    return app.exec();
 }

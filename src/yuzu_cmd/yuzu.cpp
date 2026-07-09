@@ -11,7 +11,6 @@
 
 #include <fmt/ostream.h>
 
-#include "common/detached_tasks.h"
 #include "common/logging.h"
 #include "common/scm_rev.h"
 #include "common/settings.h"
@@ -187,7 +186,6 @@ int main(int argc, char** argv) {
     Common::Log::Initialize();
     Common::Log::SetColorConsoleBackendEnabled(true);
     Common::Log::Start();
-    Common::DetachedTasks detached_tasks;
 
     int option_index = 0;
 #ifdef _WIN32
@@ -452,7 +450,6 @@ int main(int argc, char** argv) {
     system.DetachDebugger();
     void(system.Pause());
     system.ShutdownMainProcess();
-    detached_tasks.WaitForAllTasks();
     return 0;
 }
 

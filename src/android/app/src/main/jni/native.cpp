@@ -39,7 +39,6 @@
 #include "common/android/multiplayer/multiplayer.h"
 #include "common/android/android_common.h"
 #include "common/android/id_cache.h"
-#include "common/detached_tasks.h"
 #include "common/dynamic_library.h"
 #include "common/fs/path_util.h"
 #include "common/logging.h"
@@ -352,7 +351,6 @@ void EmulationSession::ShutdownEmulation() {
     if (m_load_result == Core::SystemResultStatus::Success) {
         m_system.DetachDebugger();
         m_system.ShutdownMainProcess();
-        m_detached_tasks.WaitForAllTasks();
         m_load_result = Core::SystemResultStatus::ErrorNotInitialized;
         m_window.reset();
         OnEmulationStopped(Core::SystemResultStatus::Success);

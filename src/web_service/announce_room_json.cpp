@@ -6,7 +6,6 @@
 
 #include <future>
 #include <nlohmann/json.hpp>
-#include "common/detached_tasks.h"
 #include "common/logging.h"
 #include "web_service/announce_room_json.h"
 #include "web_service/web_backend.h"
@@ -136,13 +135,14 @@ AnnounceMultiplayerRoom::RoomList RoomJson::GetRoomList() {
 void RoomJson::Delete() {
     if (room_id.empty()) {
         LOG_ERROR(WebService, "Room must be registered to be deleted");
-        return;
+    } else {
+        // This jthread won't be destroyed until after the dtor has been ran
+        // Once the thread finishes it will stay resident on the vector -- destroyed and freed by dtor()
+        // this is still valid while in dtor, so... yeah
+        detached_tasks.emplace_back([this](std::stop_token stop_token) {
+            client.DeleteJson(fmt::format("/lobby/{}", room_id), "", false);
+        });
     }
-    Common::DetachedTasks::AddTask([host_{this->host}, username_{this->username},
-                                    token_{this->token}, room_id_{this->room_id}]() {
-        // create a new client here because the this->client might be destroyed.
-        Client{host_, username_, token_}.DeleteJson(fmt::format("/lobby/{}", room_id_), "", false);
-    });
 }
 
 } // namespace WebService

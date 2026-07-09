@@ -24,7 +24,6 @@
 
 #include <openssl/evp.h>
 #include "common/common_types.h"
-#include "common/detached_tasks.h"
 #include "common/fs/file.h"
 #include "common/fs/fs.h"
 #include "common/fs/path_util.h"
@@ -172,9 +171,7 @@ static void SaveBanList(const Network::Room::BanList& ban_list, const std::strin
 }
 
 /// Application entry point
-void LaunchRoom(int argc, char** argv, bool called_by_option)
-{
-    Common::DetachedTasks detached_tasks;
+void LaunchRoom(int argc, char** argv, bool called_by_option) {
     int option_index = 0;
     char* endarg;
 
@@ -393,6 +390,5 @@ void LaunchRoom(int argc, char** argv, bool called_by_option)
         room->Destroy();
     }
     Network::Shutdown();
-    detached_tasks.WaitForAllTasks();
     std::exit(0);
 }

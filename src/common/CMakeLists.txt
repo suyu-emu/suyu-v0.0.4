@@ -40,8 +40,6 @@ add_library(
     container_hash.h
     demangle.cpp
     demangle.h
-    detached_tasks.cpp
-    detached_tasks.h
     device_power_state.cpp
     device_power_state.h
     div_ceil.h
