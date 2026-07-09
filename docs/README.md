@@ -20,18 +20,17 @@ This contains documentation created by developers. This contains build instructi
 - **[Driver Bugs](./DriverBugs.md)**
 - **[Building Older Commits](./build/OlderCommits.md)**
 - Subsystems:
-    - **[Dynarmic](./dynarmic/README.md)**
-    - **[HOS Kernel](./HosKernel.md)**
-    - **[Settings](./Settings.md)**
+  - **[Dynarmic](./dynarmic/README.md)**
+  - **[HOS Kernel](./HosKernel.md)**
+  - **[Settings](./Settings.md)**
 
 ## Policies
 
 Policies and information on development.
 
 - **[AI and LLM Usage](./policies/AI.md)**
-- **[Release Policy](./policies/Release.md)**
 - **[Coding guidelines](./policies/Coding.md)**
-- **[Coding Style guidelines](./policies/CodingStyle.md)**
+- **[Contributing](../CONTRIBUTING.md)**
 
 ## Externals
 

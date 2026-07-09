@@ -50,16 +50,9 @@ Check out our [website](https://eden-emu.dev) for the latest news on exciting fe
 
 [![Packaging status](https://repology.org/badge/vertical-allrepos/eden-emulator.svg)](https://repology.org/project/eden-emulator/versions)
 
-## Development
+## Contribute
 
-Most of the development happens on our Git server. It is also where [our central repository](https://git.eden-emu.dev/eden-emu/eden) is hosted. For development discussions, please join us on [Discord](https://discord.gg/HstXbPch7X) or [Stoat](https://stt.gg/qKgFEAbH).
-You can also follow us on [X (Twitter)](https://nitter.poast.org/edenemuofficial) for updates and announcements.
-
-If you would like to contribute, we are open to new developers and pull requests. Please ensure that your work is of a high standard and properly documented. You can also contact any of the developers on Discord or Stoat to learn more about the current state of the emulator.
-
-See the [sign-up instructions](docs/SIGNUP.md) for information on registration.
-
-Alternatively, if you wish to add translations, go to the [Eden project on Transifex](https://app.transifex.com/edenemu/eden-emulator) and review [the translations README](./dist/languages).
+To contribute to Eden; be it financially, code, bug reports, or otherwise, see our [Contributing guidelines](./CONTRIBUTING.md).
 
 ## Documentation
 
@@ -73,22 +66,9 @@ For information on provided development tooling, see the [Tools directory](./too
 
 ## Download
 
-You can download the latest releases from [here](https://git.eden-emu.dev/eden-emu/eden/releases).
+You can download the latest releases from [our release page](https://git.eden-emu.dev/eden-emu/eden/releases).
 
 Save us some bandwidth! We have [mirrors available](./docs/user/ThirdParty.md#mirrors) as well.
-
-## Support
-
-If you enjoy the project and would like to support us financially, please check out our developers' [donation pages](https://eden-emu.dev/donations)!
-
-Any donations received will go towards things such as:
-* Switch consoles to explore and reverse-engineer the hardware
-* Switch games for testing, reverse-engineering, and implementing new features
-* Web hosting and infrastructure setup
-* Additional hardware (e.g. GPUs as needed to improve rendering support, other peripherals to add support for, etc.)
-* CI Infrastructure
-
-If you would prefer to support us in a different way, please join our [Discord](https://discord.gg/HstXbPch7X) and talk to Camille or any of our other developers.
 
 ## License
 
