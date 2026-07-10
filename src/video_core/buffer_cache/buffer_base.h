@@ -121,12 +121,21 @@ public:
         return size_bytes;
     }
 
+    u64 getWriteTick() const noexcept {
+        return write_tick;
+    }
+
+    void setWriteTick(u64 write_tick_) {
+        write_tick = write_tick_;
+    }
+
 private:
     VAddr cpu_addr = 0;
     BufferFlagBits flags{};
     int stream_score = 0;
     size_t lru_id = SIZE_MAX;
     size_t size_bytes = 0;
+    u64 write_tick = 0;
 };
 
 } // namespace VideoCommon

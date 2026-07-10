@@ -482,6 +482,8 @@
     <string name="renderer_accuracy_description">Controls the GPU emulation mode. Most games render fine with Fast or Balanced modes, but Accurate is still required for some. Particles tend to only render correctly with Accurate mode.</string>
     <string name="dma_accuracy">DMA Accuracy</string>
     <string name="dma_accuracy_description">Controls the DMA precision accuracy. Safe precision can fix issues in some games, but it can also impact performance in some cases. If unsure, leave this on Default.</string>
+    <string name="gpu_fence_behavior">GPU Fence Behavior</string>
+    <string name="gpu_fence_behavior_description">Controls the GPU fence synchronization behavior. Immediate is the fastest option, but can introduce some issues. Balanced offers better compatibility and may fix issues in some games. Accurate further improves compatibility at the cost of some performance. Strict is the slowest option, but can fix issues that require stricter synchronization. Default follows the GPU Accuracy setting.</string>
     <string name="anisotropic_filtering">Anisotropic filtering</string>
     <string name="anisotropic_filtering_description">Improves the quality of textures when viewed at oblique angles</string>
     <string name="vram_usage_mode">VRAM Usage Mode</string>
@@ -514,8 +516,6 @@
     <string name="fast_gpu_time_description">Forces most games to run at their highest native resolution. Use 256 for maximal performance and 512 for maximal graphics fidelity.</string>
     <string name="skip_cpu_inner_invalidation">Skip CPU Inner Invalidation</string>
     <string name="skip_cpu_inner_invalidation_description">Skips certain CPU-side cache invalidations during memory updates, reducing CPU usage and improving it\'s performance. This may cause glitches or crashes on some games.</string>
-    <string name="antiflicker">Anti-Flicker</string>
-    <string name="antiflicker_description">Forces GPU fence callbacks to wait for submitted GPU work. Use with Fast GPU mode, to avoid flicker with lower performance impact.</string>
     <string name="fix_bloom_effects">Fix Bloom Effects</string>
     <string name="fix_bloom_effects_description">Reduces bloom blur in LA/EOW (Adreno A6XX - A7XX/ Turnip), removes bloom in Burnout. Warning: may cause graphical artifacts in other games.</string>
     <string name="emulate_bgr565">Emulate BGR565</string>
@@ -1046,6 +1046,13 @@
     <string name="dma_accuracy_default">Default</string>
     <string name="dma_accuracy_unsafe">Unsafe</string>
     <string name="dma_accuracy_safe">Safe</string>
+
+    <!-- GPU Fence Behavior -->
+    <string name="gpu_fence_behavior_default">Default</string>
+    <string name="gpu_fence_behavior_immediate">Immediate</string>
+    <string name="gpu_fence_behavior_balanced">Balanced</string>
+    <string name="gpu_fence_behavior_accurate">Accurate</string>
+    <string name="gpu_fence_behavior_strict">Strict</string>
 
     <!-- ASTC Decoding Method Choices -->
     <string name="accelerate_astc_cpu" translatable="false">CPU</string>

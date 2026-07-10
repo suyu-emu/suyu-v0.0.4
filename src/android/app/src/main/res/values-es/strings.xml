@@ -502,8 +502,6 @@
     <string name="fast_gpu_time_description">Fuerza a la mayoría de los juegos a ejecutarse a su resolución nativa más alta. Usa 256 para un máximo rendimiento y 512 para una fidelidad gráfica óptima.</string>
     <string name="skip_cpu_inner_invalidation">Omitir invalidación interna de la CPU</string>
     <string name="skip_cpu_inner_invalidation_description">Omite ciertas invalidaciones de caché de la CPU durante las actualizaciones de memoria, lo que reduce el uso de la CPU y mejora su rendimiento. Esto puede causar fallos o bloqueos en algunos juegos.</string>
-    <string name="antiflicker">Antiparpadeo</string>
-    <string name="antiflicker_description">Fuerza a las funciones de devolución de llamada de la GPU a esperar a que se envíen las tareas a la GPU.\nÚsalo con el modo de GPU rápida para evitar el parpadeo con un menor impacto en el rendimiento.</string>
     <string name="fix_bloom_effects">Arreglar los efectos de resplandor</string>
     <string name="fix_bloom_effects_description">Reduce el efecto de resplandor en LA/EOW (Adreno A6XX - A7XX/ Turnip), elimina el resplandor en Burnout. Advertencia: puede causar artefactos gráficos en otros juegos.</string>
     <string name="emulate_bgr565">Emular BGR565</string>

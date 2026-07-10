@@ -396,6 +396,18 @@ void BufferCacheRuntime::TickFrame(Common::SlotVector<Buffer>& slot_buffers) noe
     }
 }
 
+u64 BufferCacheRuntime::CurrentTick() {
+    return scheduler.GetMasterSemaphore().CurrentTick();
+}
+
+u64 BufferCacheRuntime::KnownGpuTick() {
+    return scheduler.GetMasterSemaphore().KnownGpuTick();
+}
+
+void BufferCacheRuntime::Wait(u64 buffer_tick) {
+    scheduler.Wait(buffer_tick);
+}
+
 void BufferCacheRuntime::Finish() {
     scheduler.Finish();
 }

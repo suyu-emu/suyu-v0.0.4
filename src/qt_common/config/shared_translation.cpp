@@ -193,9 +193,6 @@ std::unique_ptr<TranslationMap> InitializeTranslations(QObject* parent) {
     INSERT(Settings, skip_cpu_inner_invalidation, tr("Skip CPU Inner Invalidation"),
            tr("Skips certain cache invalidations during memory updates, reducing CPU usage and "
               "improving latency. This may cause soft-crashes."));
-    INSERT(Settings, antiflicker, tr("Anti-Flicker"),
-           tr("Forces GPU fence callbacks to wait for submitted GPU work.\n"
-              "Use with Fast GPU mode, to avoid flicker with lower performance impact."));
     INSERT(Settings, vsync_mode, tr("VSync Mode:"),
            tr("FIFO (VSync) does not drop frames or exhibit tearing but is limited by the screen "
               "refresh rate.\nFIFO Relaxed allows tearing as it recovers from a slow down.\n"
@@ -223,14 +220,14 @@ std::unique_ptr<TranslationMap> InitializeTranslations(QObject* parent) {
            tr("Controls the quality of texture rendering at oblique angles.\nSafe to set at 16x on "
               "most GPUs."));
     INSERT(Settings, gpu_accuracy, tr("GPU Mode:"),
-           tr("Controls the GPU emulation mode.\nMost games render fine with Fast or Balanced "
-              "modes, but Accurate is still "
+           tr("Controls the GPU emulation mode.\nMost games render fine with Fast, but Accurate is still "
               "required for some.\nParticles tend to only render correctly with Accurate mode."));
     INSERT(Settings, dma_accuracy, tr("DMA Accuracy:"),
-           tr("Controls the DMA precision accuracy. Safe precision fixes issues in some games but "
-              "may degrade performance."));
+           tr("Controls the DMA read mode.\nUnsafe is faster, while Safe is more stable and can fix issues in some games.\nDefault follows the GPU Accuracy setting."));
+    INSERT(Settings, gpu_fence_behavior, tr("GPU Fence Behavior:"),
+           tr("Controls the GPU fence synchronization behavior.\nImmediate is the fastest option, but can introduce some issues.\nBalanced offers better compatibility and may fix issues in some games.\nAccurate further improves compatibility at the cost of some performance.\nStrict is the slowest option, but can fix issues that require stricter synchronization.\nDefault follows the GPU Accuracy setting."));
     INSERT(Settings, enable_gpu_buffer_readback, tr("Enable GPU buffer readback"),
-           tr("Preserves GPU-modified buffer data by reading it back before uploads.\nSome games require this to render certain effects properly.\nMay cause issues if the hardware cannot handle the additional workload."));
+           tr("Preserves GPU-modified data by reading it back before uploading.\nSome games require this to render certain effects properly."));
     INSERT(Settings, use_asynchronous_shaders, tr("Enable asynchronous shader compilation"),
            tr("May reduce shader stutter."));
     INSERT(Settings, fast_gpu_time, tr("Fast GPU Time"),
@@ -430,7 +427,6 @@ std::unique_ptr<ComboboxTranslationMap> ComboboxEnumeration(QObject* parent) {
     translations->insert({Settings::EnumMetadata<Settings::GpuAccuracy>::Index(),
                           {
                               PAIR(GpuAccuracy, Low, tr("Fast")),
-                              PAIR(GpuAccuracy, Medium, tr("Balanced")),
                               PAIR(GpuAccuracy, High, tr("Accurate")),
                           }});
     translations->insert({Settings::EnumMetadata<Settings::DmaAccuracy>::Index(),
@@ -438,6 +434,14 @@ std::unique_ptr<ComboboxTranslationMap> ComboboxEnumeration(QObject* parent) {
                               PAIR(DmaAccuracy, Default, tr("Default")),
                               PAIR(DmaAccuracy, Unsafe, tr("Unsafe (fast)")),
                               PAIR(DmaAccuracy, Safe, tr("Safe (stable)")),
+                          }});
+    translations->insert({Settings::EnumMetadata<Settings::GpuFenceBehavior>::Index(),
+                          {
+                              PAIR(GpuFenceBehavior, Default, tr("Default")),
+                              PAIR(GpuFenceBehavior, Immediate, tr("Immediate")),
+                              PAIR(GpuFenceBehavior, Balanced, tr("Balanced")),
+                              PAIR(GpuFenceBehavior, Accurate, tr("Accurate")),
+                              PAIR(GpuFenceBehavior, Strict, tr("Strict")),
                           }});
     translations->insert(
         {Settings::EnumMetadata<Settings::CpuAccuracy>::Index(),

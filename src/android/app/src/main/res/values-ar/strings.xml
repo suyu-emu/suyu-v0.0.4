@@ -506,8 +506,6 @@
     <string name="fast_gpu_time_description">يُجبر هذا الخيار معظم الألعاب على العمل بأعلى دقة عرض أصلية. استخدم 256 للحصول على أقصى أداء و512 للحصول على أعلى جودة رسومات.</string>
     <string name="skip_cpu_inner_invalidation">تخطي إبطال صلاحية وحدة المعالجة المركزية الداخلية</string>
     <string name="skip_cpu_inner_invalidation_description">يتخطى بعض عمليات إبطال ذاكرة التخزين المؤقتة من جانب وحدة المعالجة المركزية أثناء تحديثات الذاكرة، مما يقلل من استخدام وحدة المعالجة المركزية ويحسن أداءها. قد يتسبب ذلك في حدوث أعطال أو تعطل في بعض الألعاب.</string>
-    <string name="antiflicker">مضاد الوميض</string>
-    <string name="antiflicker_description">يُجبر هذا الوضع وظائف وحدة معالجة الرسومات على الانتظار حتى يتم إرسال العمل إليها. استخدمه مع وضع وحدة معالجة الرسومات السريع لتجنب الوميض مع تأثير أقل على الأداء.</string>
     <string name="fix_bloom_effects">إصلاح تأثيرات التوهج</string>
     <string name="fix_bloom_effects_description">يقلل من ضبابية التوهج في LA/EOW  (Adreno A6XX - A7XX/ Turnip)، ويزيل التوهج في Burnout. تحذير: قد يسبب تشوهات رسومية في ألعاب أخرى.</string>
     <string name="emulate_bgr565">محاكاة BGR565</string>

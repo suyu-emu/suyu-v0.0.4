@@ -27,6 +27,7 @@ enum class IntSetting(override val key: String) : AbstractIntSetting {
 
     RENDERER_DYNA_STATE("dyna_state"),
     DMA_ACCURACY("dma_accuracy"),
+    GPU_FENCE_BEHAVIOR("gpu_fence_behavior"),
     FRAME_PACING_MODE("frame_pacing_mode"),
     AUDIO_OUTPUT_ENGINE("output_engine"),
     MAX_ANISOTROPY("max_anisotropy"),

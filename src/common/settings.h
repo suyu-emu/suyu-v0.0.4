@@ -420,7 +420,7 @@ struct Values {
 #ifdef __ANDROID__
                                                       GpuAccuracy::Low,
 #else
-                                                      GpuAccuracy::Medium,
+                                                      GpuAccuracy::High,
 #endif
                                                       "gpu_accuracy",
                                                       Category::RendererAdvanced,
@@ -428,7 +428,7 @@ struct Values {
                                                       true,
                                                       true};
 
-    GpuAccuracy current_gpu_accuracy{GpuAccuracy::Medium};
+    GpuAccuracy current_gpu_accuracy{GpuAccuracy::High};
 
     SwitchableSetting<DmaAccuracy, true> dma_accuracy{linkage,
                                                       DmaAccuracy::Default,
@@ -437,6 +437,16 @@ struct Values {
                                                       Specialization::Default,
                                                       true,
                                                       true};
+
+    SwitchableSetting<GpuFenceBehavior, true> gpu_fence_behavior{linkage,
+                                                                 GpuFenceBehavior::Default,
+                                                                 GpuFenceBehavior::Default,
+                                                                 GpuFenceBehavior::Strict,
+                                                                 "gpu_fence_behavior",
+                                                                 Category::RendererAdvanced,
+                                                                 Specialization::Default,
+                                                                 true,
+                                                                 true};
 
     SwitchableSetting<VramUsageMode, true> vram_usage_mode{linkage,
                                                            VramUsageMode::Conservative,
@@ -545,13 +555,6 @@ struct Values {
                                                         Specialization::Default,
                                                         true,
                                                         true};
-    SwitchableSetting<bool> antiflicker{linkage,
-                                        false,
-                                        "antiflicker",
-                                        Category::RendererHacks,
-                                        Specialization::Default,
-                                        true,
-                                        true};
     SwitchableSetting<bool> async_presentation{linkage,
 #ifdef __ANDROID__
                                                false,
@@ -871,12 +874,15 @@ extern Values values;
 bool getDebugKnobAt(u8 i);
 
 void UpdateGPUAccuracy();
-bool IsGPULevelLow();
-bool IsGPULevelMedium();
 bool IsGPULevelHigh();
 
 bool IsDMALevelDefault();
 bool IsDMALevelSafe();
+
+bool IsGPUFenceBehaviorDefault();
+bool IsGPUFenceBehaviorBalanced();
+bool IsGPUFenceBehaviorAccurate();
+bool IsGPUFenceBehaviorStrict();
 
 bool IsFastmemEnabled();
 void SetNceEnabled(bool is_64bit);

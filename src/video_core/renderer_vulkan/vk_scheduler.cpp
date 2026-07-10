@@ -27,8 +27,6 @@
 
 namespace Vulkan {
 
-constexpr u64 MAX_PENDING_FLUSHES = 5;
-
 void Scheduler::CommandChunk::ExecuteAll(vk::CommandBuffer cmdbuf,
                                          vk::CommandBuffer upload_cmdbuf) {
     auto command = first;
@@ -49,15 +47,6 @@ Scheduler::Scheduler(const Device& device_, StateTracker& state_tracker_)
       master_semaphore{std::make_unique<MasterSemaphore>(device)},
       command_pool{std::make_unique<CommandPool>(*master_semaphore, device)} {
 
-    /*// PRE-OPTIMIZATION: Warm up the pool to prevent mid-frame spikes
-    {
-        std::scoped_lock rl{reserve_mutex};
-        chunk_reserve.reserve(2048); // Prevent vector resizing
-        for (int i = 0; i < 1024; ++i) {
-            chunk_reserve.push_back(std::make_unique<CommandChunk>());
-        }
-    }*/
-
     AcquireNewChunk();
     AllocateWorkerCommandBuffer();
     worker_thread = std::jthread([this](std::stop_token token) { WorkerThread(token); });
@@ -66,18 +55,7 @@ Scheduler::Scheduler(const Device& device_, StateTracker& state_tracker_)
 Scheduler::~Scheduler() = default;
 
 u64 Scheduler::Flush(VkSemaphore signal_semaphore, VkSemaphore wait_semaphore) {
-    // Prevent the CPU from getting too far ahead of the GPU by limiting pending flushes.
-    const bool should_throttle = Settings::IsGPULevelHigh();
-    if (should_throttle) {
-        const u64 current_tick = master_semaphore->CurrentTick();
-        const u64 gap = current_tick > last_submitted_tick ? current_tick - last_submitted_tick : 0;
-        const u64 step = (std::min)(MAX_PENDING_FLUSHES, gap);
-        const u64 new_tick = last_submitted_tick + step;
-        if (new_tick < current_tick) {
-            last_submitted_tick = new_tick;
-            master_semaphore->Wait(last_submitted_tick);
-        }
-    }
+    // When flushing, we only send data to the worker thread; no waiting is necessary.
     const u64 signal_value = SubmitExecution(signal_semaphore, wait_semaphore);
     AllocateNewContext();
     return signal_value;

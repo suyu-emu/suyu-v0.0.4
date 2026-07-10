@@ -156,14 +156,6 @@ void UpdateGPUAccuracy() {
     values.current_gpu_accuracy = values.gpu_accuracy.GetValue();
 }
 
-bool IsGPULevelLow() {
-    return values.current_gpu_accuracy == GpuAccuracy::Low;
-}
-
-bool IsGPULevelMedium() {
-    return values.current_gpu_accuracy == GpuAccuracy::Medium;
-}
-
 bool IsGPULevelHigh() {
     return values.current_gpu_accuracy == GpuAccuracy::High;
 }
@@ -174,6 +166,22 @@ bool IsDMALevelDefault() {
 
 bool IsDMALevelSafe() {
     return values.dma_accuracy.GetValue() == DmaAccuracy::Safe;
+}
+
+bool IsGPUFenceBehaviorDefault() {
+    return values.gpu_fence_behavior.GetValue() == GpuFenceBehavior::Default;
+}
+
+bool IsGPUFenceBehaviorBalanced() {
+    return values.gpu_fence_behavior.GetValue() == GpuFenceBehavior::Balanced;
+}
+
+bool IsGPUFenceBehaviorAccurate() {
+    return values.gpu_fence_behavior.GetValue() == GpuFenceBehavior::Accurate;
+}
+
+bool IsGPUFenceBehaviorStrict() {
+    return values.gpu_fence_behavior.GetValue() == GpuFenceBehavior::Strict;
 }
 
 bool IsFastmemEnabled() {

@@ -283,6 +283,7 @@ class SettingsFragmentPresenter(
 
             add(IntSetting.RENDERER_ACCURACY.key)
             add(IntSetting.DMA_ACCURACY.key)
+            add(IntSetting.GPU_FENCE_BEHAVIOR.key)
             add(IntSetting.MAX_ANISOTROPY.key)
             add(IntSetting.RENDERER_VRAM_USAGE_MODE.key)
             add(IntSetting.RENDERER_ASTC_DECODE_METHOD.key)
@@ -299,7 +300,6 @@ class SettingsFragmentPresenter(
 
             add(IntSetting.FAST_GPU_TIME.key)
             add(BooleanSetting.SKIP_CPU_INNER_INVALIDATION.key)
-            add(BooleanSetting.ANTIFLICKER.key)
             add(BooleanSetting.FIX_BLOOM_EFFECTS.key)
             add(BooleanSetting.EMULATE_BGR565.key)
             add(BooleanSetting.RESCALE_HACK.key)

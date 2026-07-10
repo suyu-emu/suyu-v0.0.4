@@ -92,6 +92,12 @@ public:
 
     void TickFrame(Common::SlotVector<Buffer>& slot_buffers) noexcept;
 
+    u64 CurrentTick();
+
+    u64 KnownGpuTick();
+
+    void Wait(u64 buffer_tick);
+
     void Finish();
 
     u64 GetDeviceLocalMemory() const;

@@ -416,6 +416,8 @@ private:
 
     [[nodiscard]] BufferId FindBuffer(DAddr device_addr, u32 size);
 
+    void WaitForGpuFenceIfNeeded(Buffer& buffer);
+
     [[nodiscard]] OverlapResult ResolveOverlaps(DAddr device_addr, u32 wanted_size);
 
     void JoinOverlap(BufferId new_buffer_id, BufferId overlap_id, bool accumulate_stream_score);

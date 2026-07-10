@@ -3585,9 +3585,6 @@ void MainWindow::OnToggleDockedMode() {
 void MainWindow::OnToggleGpuAccuracy() {
     switch (Settings::values.gpu_accuracy.GetValue()) {
     case Settings::GpuAccuracy::Low:
-        Settings::values.gpu_accuracy.SetValue(Settings::GpuAccuracy::Medium);
-        break;
-    case Settings::GpuAccuracy::Medium:
         Settings::values.gpu_accuracy.SetValue(Settings::GpuAccuracy::High);
         break;
     case Settings::GpuAccuracy::High:

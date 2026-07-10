@@ -498,8 +498,6 @@
     <string name="fast_gpu_time_description">强制大多数游戏以其最高原生分辨率运行。设置为 256 可获得最佳性能，设置为 512 可获得最佳画面保真度。</string>
     <string name="skip_cpu_inner_invalidation">跳过CPU内部无效化</string>
     <string name="skip_cpu_inner_invalidation_description">在更新内存时跳过某些 CPU 端的缓存失效操作，从而降低 CPU 占用率并提升性能。可能会在某些游戏中引发故障点或崩溃。</string>
-    <string name="antiflicker">防闪烁</string>
-    <string name="antiflicker_description">强制 GPU 围栏回调等待已提交的 GPU 任务。配合“快速 GPU 模式”一起使用，以牺牲少量性能为代价来避免画面闪烁现象。</string>
     <string name="fix_bloom_effects">修复 Bloom 效果</string>
     <string name="fix_bloom_effects_description">减少《智慧的再现》和《众神的三角力量2》（Adreno A6XX - A7XX/ Turnip）中的 bloom 模糊，并移除《Burnout》中的 bloom 效果。警告：可能会导致在其他游戏中出现图形异常。</string>
     <string name="emulate_bgr565">模拟 BGR565</string>
