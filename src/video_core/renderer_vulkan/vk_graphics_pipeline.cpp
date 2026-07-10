@@ -478,7 +478,6 @@ bool GraphicsPipeline::ConfigureImpl(bool is_indexed) {
     }
 
     buffer_cache.UpdateGraphicsBuffers(is_indexed);
-    buffer_cache.runtime.SetVertexInputDynamicState(HasDynamicVertexInput());
     buffer_cache.BindHostGeometryBuffers(is_indexed);
 
     guest_descriptor_queue.Acquire(scheduler, num_descriptor_entries);
