@@ -33,7 +33,7 @@ constexpr VkDeviceSize MAX_ALIGNMENT = 256;
 // Windows ones however, can intake bigger buffers and generally do not OOM.
 // - GTX 960 on Windows will not OOM with 256mib
 // - GT 1030 on ^NIX will OOM with 256mib
-#ifdef _WIN32
+#if defined(_WIN32) || defined(__ANDROID__)
 constexpr VkDeviceSize MAX_STREAM_BUFFER_SIZE = 256_MiB;
 #else
 constexpr VkDeviceSize MAX_STREAM_BUFFER_SIZE = 128_MiB;
@@ -61,7 +61,7 @@ size_t GetStreamBufferSize(const Device& device) {
     } else {
         size = MAX_STREAM_BUFFER_SIZE;
     }
-    return Common::AlignUp(size, MAX_ALIGNMENT);
+    return (std::min)(Common::AlignUp(size, MAX_ALIGNMENT), MAX_STREAM_BUFFER_SIZE);
 }
 } // Anonymous namespace
 
