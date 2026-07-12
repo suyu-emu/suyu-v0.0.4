@@ -449,8 +449,12 @@ add_library(core STATIC
     hle/service/am/process_holder.h
     hle/service/am/service/all_system_applet_proxies_service.cpp
     hle/service/am/service/all_system_applet_proxies_service.h
+    hle/service/am/service/applet_alternative_functions.cpp
+    hle/service/am/service/applet_alternative_functions.h
     hle/service/am/service/applet_common_functions.cpp
     hle/service/am/service/applet_common_functions.h
+    hle/service/am/service/system_process_common_functions.cpp
+    hle/service/am/service/system_process_common_functions.h
     hle/service/am/service/application_accessor.cpp
     hle/service/am/service/application_accessor.h
     hle/service/am/service/application_creator.cpp
@@ -679,6 +683,8 @@ add_library(core STATIC
     hle/service/glue/time/time_zone_binary.h
     hle/service/glue/time/worker.cpp
     hle/service/glue/time/worker.h
+    hle/service/gpio/gpio.cpp
+    hle/service/gpio/gpio.h
     hle/service/grc/grc.cpp
     hle/service/grc/grc.h
     hle/service/hid/active_vibration_device_list.cpp
@@ -687,6 +693,8 @@ add_library(core STATIC
     hle/service/hid/applet_resource.h
     hle/service/hid/hid.cpp
     hle/service/hid/hid.h
+    hle/service/i2c/i2c.cpp
+    hle/service/i2c/i2c.h
     hle/service/hid/hid_debug_server.cpp
     hle/service/hid/hid_debug_server.h
     hle/service/hid/hid_server.cpp

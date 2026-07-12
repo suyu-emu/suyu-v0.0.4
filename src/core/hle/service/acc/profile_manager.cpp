@@ -84,6 +84,10 @@ bool ProfileManager::RemoveProfileAtIndex(std::size_t index) {
     }
     profiles.back() = {};
     user_count--;
+
+    // Persist the removal immediately; without this the deleted profile reappears
+    // on next boot since only ParseUserSaveFile()'s in-memory state was updated.
+    WriteUserSaveFile();
     return true;
 }
 

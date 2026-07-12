@@ -12,8 +12,11 @@ namespace AM {
 
 struct Applet;
 struct AppletAttribute;
+class IApplicationProxy;
+class IAppletAlternativeFunctions;
 class ILibraryAppletProxy;
 class ISystemAppletProxy;
+class ISystemProcessCommonFunctions;
 class WindowSystem;
 
 class IAllSystemAppletProxiesService final
@@ -33,6 +36,14 @@ private:
     Result OpenLibraryAppletProxyOld(
         Out<SharedPointer<ILibraryAppletProxy>> out_library_applet_proxy, ClientProcessId pid,
         InCopyHandle<Kernel::KProcess> process_handle);
+    Result OpenSystemApplicationProxy(
+        Out<SharedPointer<IApplicationProxy>> out_system_application_proxy, ClientProcessId pid,
+        InCopyHandle<Kernel::KProcess> process_handle,
+        InLargeData<AppletAttribute, BufferAttr_HipcMapAlias> attribute);
+    Result GetSystemProcessCommonFunctions(
+        Out<SharedPointer<ISystemProcessCommonFunctions>> out_system_process_common_functions);
+    Result GetAppletAlternativeFunctions(
+        Out<SharedPointer<IAppletAlternativeFunctions>> out_applet_alternative_functions);
 
 private:
     std::shared_ptr<Applet> GetAppletFromProcessId(ProcessId pid);

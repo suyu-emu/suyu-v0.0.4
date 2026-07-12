@@ -113,6 +113,11 @@ void ClientRoomWindow::OnStateChange(const Network::RoomMember::State& state) {
         state == Network::RoomMember::State::Moderator) {
         ui->chat->Clear();
         ui->chat->AppendStatusMessage(tr("Connected"));
+        ui->chat->AppendStatusMessage(
+            tr("This room bridges the game's Local Play / Local Wireless mode only. "
+               "In-game, open Local Play (not Online/Elite Smash) to find this session — "
+               "internet-based online modes require real Nintendo servers and cannot be "
+               "routed through rooms."));
         SetModPerms(state == Network::RoomMember::State::Moderator);
         if (const auto member = room_network.GetRoomMember().lock()) {
             MaybeAutoLaunchPreferredGame(member->GetRoomInformation());

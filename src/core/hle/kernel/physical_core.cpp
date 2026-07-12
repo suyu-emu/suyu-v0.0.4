@@ -1,9 +1,6 @@
 // SPDX-FileCopyrightText: Copyright 2020 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
-#include <array>
-#include <atomic>
-#include <chrono>
 #include "common/logging/log.h"
 #include "common/scope_exit.h"
 #include "common/settings.h"
@@ -14,7 +11,6 @@
 #include "core/hle/kernel/kernel.h"
 #include "core/hle/kernel/physical_core.h"
 #include "core/hle/kernel/svc.h"
-#include "core/memory.h"
 
 namespace Kernel {
 
@@ -140,64 +136,6 @@ void PhysicalCore::RunThread(Kernel::KThread* thread) {
         if (supervisor_call) {
             Svc::Call(system, interface->GetSvcNumber());
             return;
-        }
-
-        // TEMPORARY spin diagnostic (Tomodachi Life busy-loop): every ~15s per core, log
-        // the running thread's PC and the instruction words around it so a guest thread
-        // that spins in pure JIT (no SVCs) can be identified. Remove once diagnosed.
-        {
-            static thread_local std::chrono::steady_clock::time_point last_beat{};
-            const auto now = std::chrono::steady_clock::now();
-            if (now - last_beat > std::chrono::seconds(15)) {
-                last_beat = now;
-                Kernel::Svc::ThreadContext ctx{};
-                interface->GetContext(ctx);
-                auto& memory = process->GetMemory();
-                std::array<u32, 8> insns{};
-                for (size_t i = 0; i < insns.size(); ++i) {
-                    insns[i] = memory.Read32(ctx.pc + i * 4);
-                }
-                // Scan the top of the stack for plausible return addresses (code region)
-                // to reconstruct an approximate call chain without symbols.
-                std::array<u64, 6> ret_addrs{};
-                size_t found = 0;
-                for (u64 off = 0; off < 0x600 && found < ret_addrs.size(); off += 8) {
-                    const u64 v = memory.Read64(ctx.sp + off);
-                    if (v >= 0x8000'0000ULL && v < 0x1'0000'0000ULL && (v & 3) == 0) {
-                        ret_addrs[found++] = v;
-                    }
-                }
-                LOG_INFO(Kernel,
-                         "SPINDIAG core={} tid={} pc={:#x} lr={:#x} sp={:#x} x0={:#x} x1={:#x} "
-                         "x2={:#x} x19={:#x} insns=[{:08x} {:08x} {:08x} {:08x} {:08x} {:08x} "
-                         "{:08x} {:08x}] callchain=[{:#x} {:#x} {:#x} {:#x} {:#x} {:#x}]",
-                         m_core_index, thread->GetThreadId(), ctx.pc, ctx.lr, ctx.sp, ctx.r[0],
-                         ctx.r[1], ctx.r[2], ctx.r[19], insns[0], insns[1], insns[2], insns[3],
-                         insns[4], insns[5], insns[6], insns[7], ret_addrs[0], ret_addrs[1],
-                         ret_addrs[2], ret_addrs[3], ret_addrs[4], ret_addrs[5]);
-
-                // One-shot code dump of the stable Tomodachi dispatcher frames so the
-                // outer loop's structure and exit condition can be decoded offline.
-                static std::atomic_bool dumped{false};
-                bool expected = false;
-                if (dumped.compare_exchange_strong(expected, true)) {
-                    constexpr std::array<u64, 3> bases{0x8000fa80ULL, 0x8082c180ULL,
-                                                       0x821d3e00ULL};
-                    for (const u64 base : bases) {
-                        for (u64 row = 0; row < 8; ++row) {
-                            const u64 addr = base + row * 32;
-                            std::array<u32, 8> w{};
-                            for (size_t i = 0; i < w.size(); ++i) {
-                                w[i] = memory.Read32(addr + i * 4);
-                            }
-                            LOG_INFO(Kernel,
-                                     "CODEDUMP {:#010x}: {:08x} {:08x} {:08x} {:08x} {:08x} "
-                                     "{:08x} {:08x} {:08x}",
-                                     addr, w[0], w[1], w[2], w[3], w[4], w[5], w[6], w[7]);
-                        }
-                    }
-                }
-            }
         }
 
         // Handle external interrupt sources.

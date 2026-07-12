@@ -21,8 +21,10 @@
 #include "core/hle/service/filesystem/filesystem.h"
 #include "core/hle/service/friend/friend.h"
 #include "core/hle/service/glue/glue.h"
+#include "core/hle/service/gpio/gpio.h"
 #include "core/hle/service/grc/grc.h"
 #include "core/hle/service/hid/hid.h"
+#include "core/hle/service/i2c/i2c.h"
 #include "core/hle/service/ipc_helpers.h"
 #include "core/hle/service/jit/jit.h"
 #include "core/hle/service/lbl/lbl.h"
@@ -99,8 +101,10 @@ Services::Services(std::shared_ptr<SM::ServiceManager>& sm, Core::System& system
     kernel.RunOnGuestCoreProcess("settings",   [&] { Set::LoopProcess(system); });
     kernel.RunOnGuestCoreProcess("psc",        [&] { PSC::LoopProcess(system); });
     kernel.RunOnGuestCoreProcess("glue",       [&] { Glue::LoopProcess(system); });
+    kernel.RunOnGuestCoreProcess("gpio",       [&] { GPIO::LoopProcess(system); });
     kernel.RunOnGuestCoreProcess("grc",        [&] { GRC::LoopProcess(system); });
     kernel.RunOnGuestCoreProcess("hid",        [&] { HID::LoopProcess(system); });
+    kernel.RunOnGuestCoreProcess("i2c",        [&] { I2C::LoopProcess(system); });
     kernel.RunOnGuestCoreProcess("lbl",        [&] { LBL::LoopProcess(system); });
     kernel.RunOnGuestCoreProcess("LogManager.Prod", [&] { LM::LoopProcess(system); });
     kernel.RunOnGuestCoreProcess("mig",        [&] { Migration::LoopProcess(system); });
