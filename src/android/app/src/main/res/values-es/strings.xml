@@ -470,6 +470,7 @@
     <string name="renderer_accuracy_description">Controla el modo de la emulación de la GPU. La mayoría de los juegos se renderizan correctamente en los modos Rápido o Equilibrado, pero algunos requieren Preciso. Las partículas tienden a renderizarse correctamente solo con el modo Preciso.</string>
     <string name="dma_accuracy">Precisión de DMA</string>
     <string name="dma_accuracy_description">Controla la precisión de DMA. La precisión segura puede solucionar problemas en algunos juegos, pero también puede afectar al rendimiento en algunos casos. Si no está seguro, déjelo en Predeterminado.</string>
+    <string name="gpu_fence_behavior">Comportamiento de vallado de la GPU</string>
     <string name="anisotropic_filtering">Filtrado anisotrópico</string>
     <string name="anisotropic_filtering_description">Mejora la calidad de las texturas al ser observadas desde ángulos oblicuos</string>
     <string name="vram_usage_mode">Modo de uso de VRAM</string>
@@ -999,6 +1000,13 @@
     <string name="dma_accuracy_default">Predeterminado</string>
     <string name="dma_accuracy_unsafe">Inseguro</string>
     <string name="dma_accuracy_safe">Seguro</string>
+
+    <!-- GPU Fence Behavior -->
+    <string name="gpu_fence_behavior_default">Predeterminado</string>
+    <string name="gpu_fence_behavior_immediate">Inmediato</string>
+    <string name="gpu_fence_behavior_balanced">Equilibrado</string>
+    <string name="gpu_fence_behavior_accurate">Preciso</string>
+    <string name="gpu_fence_behavior_strict">Estricto</string>
 
     <string name="vram_usage_conservative">Conservador</string>
     <string name="vram_usage_aggressive">Agresivo</string>

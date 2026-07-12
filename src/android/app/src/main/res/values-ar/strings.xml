@@ -476,6 +476,8 @@
     <string name="renderer_accuracy_description">يتحكم في وضع محاكاة وحدة معالجة الرسومات. تعمل معظم الألعاب بشكل جيد مع وضعي سريع أو متوازن، لكن الوضع الدقيق لا يزال مطلوبًا لبعض الألعاب. تميل الجسيمات إلى العرض بشكل صحيح فقط عند استخدام الوضع الدقيق.</string>
     <string name="dma_accuracy">دقة DMA</string>
     <string name="dma_accuracy_description">يتحكم في دقة DMA. يمكن أن تؤدي الدقة الآمنة إلى حل المشكلات في بعض الألعاب، ولكنها قد تؤثر أيضًا على الأداء في بعض الحالات. إذا لم تكن متأكدًا، فاترك هذا الخيار على الإعداد الافتراضي.</string>
+    <string name="gpu_fence_behavior">سلوك حاجز وحدة معالجة الرسومات</string>
+    <string name="gpu_fence_behavior_description">يتحكم في سلوك تزامن حاجز وحدة معالجة الرسوميات. الخيار الفوري هو الأسرع، لكنه قد يسبب بعض المشاكل. الخيار المتوازن يقدم توافقًا أفضل وقد يصلح مشاكل في بعض الألعاب. الخيار الدقيق يحسن التوافق أكثر لكنه قد يقلل الأداء قليلاً. الخيار الصارم هو الأبطأ، لكنه قد يصلح المشاكل التي تتطلب تزامنًا أكثر صرامة. الإعداد الافتراضي يتبع إعداد دقة وحدة معالجة الرسوميات.</string>
     <string name="anisotropic_filtering">تصفية متباينة الخواص</string>
     <string name="anisotropic_filtering_description">يحسن جودة الأنسجة عند عرضها بزوايا مائلة</string>
     <string name="vram_usage_mode">وضع استخدام ذاكرة VRAM</string>
@@ -497,6 +499,8 @@
     <string name="renderer_reactive_flushing_description">يحسن دقة العرض في بعض الألعاب على حساب الأداء.</string>
     <string name="enable_buffer_history">تمكين سجل التخزين المؤقت</string>
     <string name="enable_buffer_history_description">يُتيح هذا الخيار الوصول إلى حالات التخزين المؤقت السابقة. وقد يُحسّن جودة العرض وثبات الأداء في بعض الألعاب.</string>
+    <string name="enable_gpu_buffer_readback">تفعيل قراءة مخزن وحدة معالجة الرسومات</string>
+    <string name="enable_gpu_buffer_readback_description">يحافظ هذا النظام على بيانات المخزن المؤقت المُعدّلة بواسطة وحدة معالجة الرسومات عن طريق قراءتها مرة أخرى قبل التحميل. تتطلب بعض الألعاب ذلك لعرض بعض التأثيرات بشكل صحيح. قد يُسبب ذلك مشاكل إذا لم يتمكن الجهاز من التعامل مع عبء العمل الإضافي.</string>
     <string name="use_optimized_vertex_buffers">مخازن الرؤوس المُحسّنة</string>
     <string name="use_optimized_vertex_buffers_description">يُتيح ربطًا مُحسَّنًا لمخازن الرؤوس لتحسين الأداء. يتطلب برامج تشغيل Mesa 26.0+ Turnip/ برامج تشغيل QCOM. قد يتعطل على برامج تشغيل Turnip القديمة (25.3 وما دون).</string>
 
@@ -571,6 +575,12 @@
     <string name="gpu_log_level_description">مستوى التفاصيل لسجلات وحدة معالجة الرسومات (كلما زاد المستوى، زادت التفاصيل وزادت التكاليف الإضافية)</string>
     <string name="gpu_log_vulkan_calls">تسجيل استدعاءات واجهة برمجة تطبيقات Vulkan</string>
     <string name="gpu_log_vulkan_calls_description">تتبع جميع استدعاءات واجهة برمجة تطبيقات Vulkan في المخزن المؤقت الحلقي</string>
+    <string name="gpu_log_shader_dumps">تفريغ مظللات SPIR-V</string>
+    <string name="gpu_log_shader_dumps_description">احفظ ملفات SPIR-V الثنائية المُعاد تجميعها (.spv) في مجلد التفريغ. افحصها باستخدام spirv-dis/spirv-cross/spirv-val.</string>
+    <string name="dump_guest_shaders">تظليلات ضيف التفريغ (ماكسويل)</string>
+    <string name="dump_guest_shaders_description">احفظ ملفات بايت كود برنامج التظليل الضيف الخاص بـ «ماكسويل» (*.ash) في مجلد «dump». افحصها باستخدام nvdisasm.</string>
+    <string name="dump_macros">تفريغ ماكرو ماكسويل</string>
+    <string name="dump_macros_description">احفظ ملفات برامج ماكرو ماكسويل (*.macro) في مجلد «dump». افحصها باستخدام برنامج «envydis».</string>
     <string name="gpu_log_memory_tracking">تتبع ذاكرة وحدة معالجة الرسومات</string>
     <string name="gpu_log_memory_tracking_description">مراقبة تخصيصات ذاكرة وحدة معالجة الرسومات وإلغاء تخصيصها</string>
     <string name="gpu_log_driver_debug">معلومات تصحيح أخطاء برنامج التشغيل</string>
@@ -997,6 +1007,13 @@
     <string name="dma_accuracy_default">افتراضي</string>
     <string name="dma_accuracy_unsafe">غير آمن</string>
     <string name="dma_accuracy_safe">آمن</string>
+
+    <!-- GPU Fence Behavior -->
+    <string name="gpu_fence_behavior_default">افتراضي</string>
+    <string name="gpu_fence_behavior_immediate">فوري</string>
+    <string name="gpu_fence_behavior_balanced">متوازن</string>
+    <string name="gpu_fence_behavior_accurate">دقيق</string>
+    <string name="gpu_fence_behavior_strict">صارم</string>
 
     <string name="vram_usage_conservative">محافظ</string>
     <string name="vram_usage_aggressive">عدواني</string>
