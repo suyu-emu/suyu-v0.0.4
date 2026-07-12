@@ -68,7 +68,6 @@ void GameTree::LoadInterfaceLayout() {
 void GameTree::UpdateColumnVisibility(GameListModel* model) {
     Q_UNUSED(model)
     setColumnHidden(GameListModel::COLUMN_ADD_ONS, !UISettings::values.show_add_ons);
-    setColumnHidden(GameListModel::COLUMN_COMPATIBILITY, !UISettings::values.show_compat);
     setColumnHidden(GameListModel::COLUMN_FILE_TYPE, !UISettings::values.show_types);
     setColumnHidden(GameListModel::COLUMN_SIZE, !UISettings::values.show_size);
     setColumnHidden(GameListModel::COLUMN_PLAY_TIME, !UISettings::values.show_play_time);

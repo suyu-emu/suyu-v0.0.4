@@ -36,7 +36,6 @@ public:
         COLUMN_SIZE,
         COLUMN_PLAY_TIME,
         COLUMN_ADD_ONS,
-        COLUMN_COMPATIBILITY,
         COLUMN_COUNT,
     };
 

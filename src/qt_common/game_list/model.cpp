@@ -192,7 +192,6 @@ void GameListModel::ResetExternalWatcher() {
 
 void GameListModel::RetranslateUI() {
     setHeaderData(COLUMN_NAME, Qt::Horizontal, tr("Name"));
-    setHeaderData(COLUMN_COMPATIBILITY, Qt::Horizontal, tr("Compatibility"));
     setHeaderData(COLUMN_ADD_ONS, Qt::Horizontal, tr("Add-ons"));
     setHeaderData(COLUMN_FILE_TYPE, Qt::Horizontal, tr("File type"));
     setHeaderData(COLUMN_SIZE, Qt::Horizontal, tr("Size"));

@@ -223,9 +223,6 @@ struct Values {
     // perf overlay
     Setting<bool> show_perf_overlay{linkage, false, "show_perf_overlay", Category::UiGameList};
 
-    // Compatibility List
-    Setting<bool> show_compat{linkage, true, "show_compat", Category::UiGameList};
-
     // Size & File Types Column
     Setting<bool> show_size{linkage, true, "show_size", Category::UiGameList};
     Setting<bool> show_types{linkage, true, "show_types", Category::UiGameList};
