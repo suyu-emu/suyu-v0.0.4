@@ -24,7 +24,7 @@ void NPadData::SetNpadAnalogStickUseCenterClamp(bool is_enabled) {
 }
 
 bool NPadData::GetNpadAnalogStickUseCenterClamp() const {
-    return status.use_center_clamp;
+    return status.use_center_clamp != 0;
 }
 
 void NPadData::SetNpadSystemExtStateEnabled(bool is_enabled) {
@@ -32,7 +32,7 @@ void NPadData::SetNpadSystemExtStateEnabled(bool is_enabled) {
 }
 
 bool NPadData::GetNpadSystemExtState() const {
-    return status.system_ext_state;
+    return status.system_ext_state != 0;
 }
 
 Result NPadData::SetSupportedNpadIdType(std::span<const Core::HID::NpadIdType> list) {
@@ -154,27 +154,27 @@ bool NPadData::IsNpadStyleIndexSupported(Core::HID::NpadStyleIndex style_index) 
     Core::HID::NpadStyleTag style = {supported_npad_style_set};
     switch (style_index) {
     case Core::HID::NpadStyleIndex::Fullkey:
-        return style.fullkey;
+        return style.fullkey != 0;
     case Core::HID::NpadStyleIndex::Handheld:
-        return style.handheld;
+        return style.handheld != 0;
     case Core::HID::NpadStyleIndex::JoyconDual:
-        return style.joycon_dual;
+        return style.joycon_dual != 0;
     case Core::HID::NpadStyleIndex::JoyconLeft:
-        return style.joycon_left;
+        return style.joycon_left != 0;
     case Core::HID::NpadStyleIndex::JoyconRight:
-        return style.joycon_right;
+        return style.joycon_right != 0;
     case Core::HID::NpadStyleIndex::GameCube:
-        return style.gamecube;
+        return style.gamecube != 0;
     case Core::HID::NpadStyleIndex::Pokeball:
-        return style.palma;
+        return style.palma != 0;
     case Core::HID::NpadStyleIndex::NES:
-        return style.lark;
+        return style.lark != 0;
     case Core::HID::NpadStyleIndex::SNES:
-        return style.lucia;
+        return style.lucia != 0;
     case Core::HID::NpadStyleIndex::N64:
-        return style.lagoon;
+        return style.lagoon != 0;
     case Core::HID::NpadStyleIndex::SegaGenesis:
-        return style.lager;
+        return style.lager != 0;
     default:
         return false;
     }
@@ -185,7 +185,7 @@ void NPadData::SetLrAssignmentMode(bool is_enabled) {
 }
 
 bool NPadData::GetLrAssignmentMode() const {
-    return status.lr_assignment_mode;
+    return status.lr_assignment_mode != 0;
 }
 
 void NPadData::SetAssigningSingleOnSlSrPress(bool is_enabled) {
@@ -193,7 +193,7 @@ void NPadData::SetAssigningSingleOnSlSrPress(bool is_enabled) {
 }
 
 bool NPadData::GetAssigningSingleOnSlSrPress() const {
-    return status.assigning_single_on_sl_sr_press;
+    return status.assigning_single_on_sl_sr_press != 0;
 }
 
 void NPadData::SetHomeProtectionEnabled(bool is_enabled, Core::HID::NpadIdType npad_id) {

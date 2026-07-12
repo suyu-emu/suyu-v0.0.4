@@ -140,7 +140,7 @@ void ProgramMetadata::LoadManual(bool is_64_bit, ProgramAddressSpaceType address
 }
 
 bool ProgramMetadata::Is64BitProgram() const {
-    return npdm_header.has_64_bit_instructions;
+    return npdm_header.has_64_bit_instructions != 0;
 }
 
 ProgramAddressSpaceType ProgramMetadata::GetAddressSpaceType() const {
