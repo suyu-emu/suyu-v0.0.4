@@ -112,11 +112,6 @@ Files: src/yuzu/*.ui
 Copyright: 2018-2022 yuzu Emulator Project
 License: GPL-2.0-or-later
 
-Files: src/yuzu/compatdb.ui
-       src/yuzu/main.ui
-Copyright: 2014-2017 Citra Emulator Project
-License: GPL-2.0-or-later
-
 Files: src/yuzu/loading_screen.ui
 Copyright: 2019 James Rowe <jroweboy@gmail.com>
 License: GPL-2.0-or-later

@@ -37,9 +37,6 @@ add_executable(yuzu
     applets/qt_web_browser_scripts.h
     bootmanager.cpp
     bootmanager.h
-    compatdb.ui
-    compatibility_list.cpp
-    compatibility_list.h
     configuration/configuration_shared.cpp
     configuration/configuration_shared.h
     configuration/configure.ui
@@ -216,8 +213,6 @@ add_executable(yuzu
     util/url_request_interceptor.h
     util/util.cpp
     util/util.h
-    compatdb.cpp
-    compatdb.h
 
     user_data_migration.h user_data_migration.cpp
 
@@ -260,9 +255,6 @@ if (CXX_CLANG)
         $<$<VERSION_LESS:$<CXX_COMPILER_VERSION>,15>:CANNOT_EXPLICITLY_INSTANTIATE>)
 endif()
 
-file(GLOB COMPAT_LIST
-     ${PROJECT_BINARY_DIR}/dist/compatibility_list/compatibility_list.qrc
-     ${PROJECT_BINARY_DIR}/dist/compatibility_list/compatibility_list.json)
 file(GLOB_RECURSE ICONS ${PROJECT_SOURCE_DIR}/dist/icons/*)
 file(GLOB_RECURSE THEMES ${PROJECT_SOURCE_DIR}/dist/qt_themes/*)
 
@@ -354,7 +346,6 @@ endif()
 
 target_sources(yuzu
     PRIVATE
-        ${COMPAT_LIST}
         ${ICONS}
         ${LANGUAGES}
         ${THEMES})
@@ -414,10 +405,6 @@ endif()
 
 if (UNIX AND NOT APPLE)
     target_link_libraries(yuzu PRIVATE Qt6::DBus)
-endif()
-
-if (YUZU_ENABLE_COMPATIBILITY_REPORTING)
-    target_compile_definitions(yuzu PRIVATE YUZU_ENABLE_COMPATIBILITY_REPORTING)
 endif()
 
 if (ENABLE_WEB_SERVICE)

@@ -447,7 +447,6 @@ MainWindow::MainWindow(bool has_broken_vulkan)
     if (Settings::values.use_dev_keys.GetValue()) {
         Core::Crypto::KeyManager::Instance().ReloadKeys();
     }
-    game_list->LoadCompatibilityList();
     game_list->PopulateAsync(UISettings::values.game_dirs);
 
     // Set up game list mode checkboxes.
@@ -957,9 +956,6 @@ void MainWindow::WebBrowserRequestExit() {
 }
 
 void MainWindow::InitializeWidgets() {
-#ifdef YUZU_ENABLE_COMPATIBILITY_REPORTING
-    ui->action_Report_Compatibility->setVisible(true);
-#endif
     render_window = new GRenderWindow(this, input_subsystem);
     render_window->hide();
 
@@ -1459,8 +1455,6 @@ void MainWindow::ConnectWidgetEvents() {
     connect(game_list, &GameList::VerifyIntegrityRequested, this,
             &MainWindow::OnGameListVerifyIntegrity);
     connect(game_list, &GameList::CopyTIDRequested, this, &MainWindow::OnGameListCopyTID);
-    connect(game_list, &GameList::NavigateToGamedbEntryRequested, this,
-            &MainWindow::OnGameListNavigateToGamedbEntry);
     connect(game_list, &GameList::CreateShortcut, this, &MainWindow::OnGameListCreateShortcut);
     connect(game_list, &GameList::AddDirectory, this, &MainWindow::OnGameListAddDirectory);
     connect(game_list_placeholder, &GameListPlaceholder::AddDirectory, this,
@@ -1505,7 +1499,6 @@ void MainWindow::ConnectMenuEvents() {
     // Emulation
     connect_menu(ui->action_Pause, &MainWindow::OnPauseContinueGame);
     connect_menu(ui->action_Stop, &MainWindow::OnStopGame);
-    connect_menu(ui->action_Report_Compatibility, &MainWindow::OnMenuReportCompatibility);
     connect_menu(ui->action_Open_Mods_Page, &MainWindow::OnOpenModsPage);
     connect_menu(ui->action_Open_Quickstart_Guide, &MainWindow::OnOpenQuickstartGuide);
     connect_menu(ui->action_Open_FAQ, &MainWindow::OnOpenFAQ);
@@ -1639,7 +1632,6 @@ void MainWindow::UpdateMenuState() {
         ui->action_Stop,
         ui->action_Restart,
         ui->action_Configure_Current_Game,
-        ui->action_Report_Compatibility,
         ui->action_Load_Amiibo,
         ui->action_Pause,
     };
@@ -2614,21 +2606,6 @@ void MainWindow::OnGameListVerifyIntegrity(const std::string& game_path) {
 void MainWindow::OnGameListCopyTID(u64 program_id) {
     QClipboard* clipboard = QGuiApplication::clipboard();
     clipboard->setText(QString::fromStdString(fmt::format("{:016X}", program_id)));
-}
-
-void MainWindow::OnGameListNavigateToGamedbEntry(u64 program_id,
-                                                 const CompatibilityList& compatibility_list) {
-    const auto it = FindMatchingCompatibilityEntry(compatibility_list, program_id);
-
-    QString directory;
-    if (it != compatibility_list.end()) {
-        directory = it->second.second;
-    }
-
-    QDesktopServices::openUrl(QUrl(
-        QStringLiteral(
-            "https://www.emuready.com/listings?emulatorIds=43bfc023-ec22-422d-8324-048a8ec9f28f") +
-        directory));
 }
 
 void MainWindow::OnGameListCreateShortcut(u64 program_id, const std::string& game_path,

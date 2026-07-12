@@ -281,25 +281,6 @@ if(EXISTS ${PROJECT_SOURCE_DIR}/hooks/pre-commit AND NOT EXISTS ${PROJECT_SOURCE
     endif()
 endif()
 
-set(compat_base dist/compatibility_list/compatibility_list)
-set(compat_qrc ${compat_base}.qrc)
-set(compat_json ${compat_base}.json)
-
-configure_file(${PROJECT_SOURCE_DIR}/${compat_qrc}
-    ${PROJECT_BINARY_DIR}/${compat_qrc}
-    COPYONLY)
-
-if (EXISTS ${PROJECT_SOURCE_DIR}/${compat_json})
-    configure_file("${PROJECT_SOURCE_DIR}/${compat_json}"
-        "${PROJECT_BINARY_DIR}/${compat_json}"
-        COPYONLY)
-endif()
-
-# TODO: Compat list download
-if (NOT EXISTS ${PROJECT_BINARY_DIR}/${compat_json})
-    file(WRITE ${PROJECT_BINARY_DIR}/${compat_json} "")
-endif()
-
 if (ARCHITECTURE_arm64 AND (ANDROID OR PLATFORM_LINUX))
     set(HAS_NCE 1)
     add_compile_definitions(HAS_NCE=1)

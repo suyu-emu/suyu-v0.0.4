@@ -20,7 +20,6 @@
 #include "core/file_sys/registered_cache.h"
 #include "frontend_common/play_time_manager.h"
 #include "qt_common/config/uisettings.h"
-#include "yuzu/compatibility_list.h"
 
 namespace Core {
 class System;
@@ -46,7 +45,6 @@ public:
     explicit GameListWorker(std::shared_ptr<FileSys::VfsFilesystem> vfs_,
                             FileSys::ManualContentProvider* provider_,
                             QVector<UISettings::GameDir>& game_dirs_,
-                            const CompatibilityList& compatibility_list_,
                             const PlayTime::PlayTimeManager& play_time_manager_,
                             Core::System& system_);
     ~GameListWorker() override;
@@ -85,7 +83,6 @@ private:
     std::shared_ptr<FileSys::VfsFilesystem> vfs;
     FileSys::ManualContentProvider* provider;
     QVector<UISettings::GameDir>& game_dirs;
-    const CompatibilityList& compatibility_list;
     const PlayTime::PlayTimeManager& play_time_manager;
 
     QStringList watch_list;
