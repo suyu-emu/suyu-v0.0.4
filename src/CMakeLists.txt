@@ -245,7 +245,7 @@ endif()
 
 if (YUZU_ROOM_STANDALONE)
     add_subdirectory(yuzu_room_standalone)
-    set_target_properties(yuzu-room PROPERTIES OUTPUT_NAME "eden-room")
+    set_target_properties(yuzu-room PROPERTIES OUTPUT_NAME "suyu-room")
 endif()
 
 if (YUZU_STATIC_ROOM)
@@ -265,13 +265,12 @@ if (YUZU_TESTS)
 endif()
 
 if (YUZU_CMD)
-    add_subdirectory(yuzu_cmd)
-    set_target_properties(yuzu-cmd PROPERTIES OUTPUT_NAME "eden-cli")
+    add_subdirectory(suyu_cmd)
 endif()
 
 if (ENABLE_QT)
     add_subdirectory(qt_common)
-    add_subdirectory(yuzu)
+    add_subdirectory(suyu)
 endif()
 
 if (ENABLE_WEB_SERVICE)

@@ -423,7 +423,7 @@ if (APPLE)
 
 elseif(WIN32)
     # compile as a win32 gui application instead of a console application
-    if (QT_VERSION VERSION_GREATER_EQUAL 6)
+    if (QT_MAJOR_VERSION GREATER_EQUAL 6)
         target_link_libraries(suyu PRIVATE Qt6::EntryPointPrivate)
     else()
         target_link_libraries(suyu PRIVATE Qt5::WinMain)
