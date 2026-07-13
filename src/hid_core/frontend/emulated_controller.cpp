@@ -1662,17 +1662,17 @@ bool EmulatedController::IsControllerFullkey(bool use_temporary_value) const {
 bool EmulatedController::IsControllerSupported(bool use_temporary_value) const {
     const auto type = is_configuring.load() && use_temporary_value ? tmp_npad_type.load() : npad_type.load();
     switch (type) {
-    case NpadStyleIndex::Fullkey: return supported_style_tag.fullkey;
-    case NpadStyleIndex::Handheld: return supported_style_tag.handheld;
-    case NpadStyleIndex::JoyconDual: return supported_style_tag.joycon_dual;
-    case NpadStyleIndex::JoyconLeft: return supported_style_tag.joycon_left;
-    case NpadStyleIndex::JoyconRight: return supported_style_tag.joycon_right;
-    case NpadStyleIndex::GameCube: return supported_style_tag.gamecube;
-    case NpadStyleIndex::Pokeball: return supported_style_tag.palma;
-    case NpadStyleIndex::NES: return supported_style_tag.lark;
-    case NpadStyleIndex::SNES: return supported_style_tag.lucia;
-    case NpadStyleIndex::N64: return supported_style_tag.lagoon;
-    case NpadStyleIndex::SegaGenesis: return supported_style_tag.lager;
+    case NpadStyleIndex::Fullkey:     return bool(supported_style_tag.fullkey);
+    case NpadStyleIndex::Handheld:    return bool(supported_style_tag.handheld);
+    case NpadStyleIndex::JoyconDual:  return bool(supported_style_tag.joycon_dual);
+    case NpadStyleIndex::JoyconLeft:  return bool(supported_style_tag.joycon_left);
+    case NpadStyleIndex::JoyconRight: return bool(supported_style_tag.joycon_right);
+    case NpadStyleIndex::GameCube:    return bool(supported_style_tag.gamecube);
+    case NpadStyleIndex::Pokeball:    return bool(supported_style_tag.palma);
+    case NpadStyleIndex::NES:         return bool(supported_style_tag.lark);
+    case NpadStyleIndex::SNES:        return bool(supported_style_tag.lucia);
+    case NpadStyleIndex::N64:         return bool(supported_style_tag.lagoon);
+    case NpadStyleIndex::SegaGenesis: return bool(supported_style_tag.lager);
     default: return false;
     }
 }

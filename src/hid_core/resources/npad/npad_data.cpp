@@ -24,7 +24,7 @@ void NPadData::SetNpadAnalogStickUseCenterClamp(bool is_enabled) {
 }
 
 bool NPadData::GetNpadAnalogStickUseCenterClamp() const {
-    return status.use_center_clamp;
+    return bool(status.use_center_clamp);
 }
 
 void NPadData::SetNpadSystemExtStateEnabled(bool is_enabled) {
@@ -32,7 +32,7 @@ void NPadData::SetNpadSystemExtStateEnabled(bool is_enabled) {
 }
 
 bool NPadData::GetNpadSystemExtState() const {
-    return status.system_ext_state;
+    return bool(status.system_ext_state);
 }
 
 Result NPadData::SetSupportedNpadIdType(std::span<const Core::HID::NpadIdType> list) {
@@ -42,18 +42,14 @@ Result NPadData::SetSupportedNpadIdType(std::span<const Core::HID::NpadIdType> l
     }
 
     supported_npad_id_types_count = list.size();
-    memcpy(supported_npad_id_types.data(), list.data(),
-           list.size() * sizeof(Core::HID::NpadIdType));
-
+    std::memcpy(supported_npad_id_types.data(), list.data(), list.size() * sizeof(Core::HID::NpadIdType));
     return ResultSuccess;
 }
 
 std::size_t NPadData::GetSupportedNpadIdType(std::span<Core::HID::NpadIdType> out_list) const {
     std::size_t out_size = (std::min)(supported_npad_id_types_count, out_list.size());
 
-    memcpy(out_list.data(), supported_npad_id_types.data(),
-           out_size * sizeof(Core::HID::NpadIdType));
-
+    std::memcpy(out_list.data(), supported_npad_id_types.data(), out_size * sizeof(Core::HID::NpadIdType));
     return out_size;
 }
 
@@ -154,27 +150,27 @@ bool NPadData::IsNpadStyleIndexSupported(Core::HID::NpadStyleIndex style_index) 
     Core::HID::NpadStyleTag style = {supported_npad_style_set};
     switch (style_index) {
     case Core::HID::NpadStyleIndex::Fullkey:
-        return style.fullkey;
+        return bool(style.fullkey);
     case Core::HID::NpadStyleIndex::Handheld:
-        return style.handheld;
+        return bool(style.handheld);
     case Core::HID::NpadStyleIndex::JoyconDual:
-        return style.joycon_dual;
+        return bool(style.joycon_dual);
     case Core::HID::NpadStyleIndex::JoyconLeft:
-        return style.joycon_left;
+        return bool(style.joycon_left);
     case Core::HID::NpadStyleIndex::JoyconRight:
-        return style.joycon_right;
+        return bool(style.joycon_right);
     case Core::HID::NpadStyleIndex::GameCube:
-        return style.gamecube;
+        return bool(style.gamecube);
     case Core::HID::NpadStyleIndex::Pokeball:
-        return style.palma;
+        return bool(style.palma);
     case Core::HID::NpadStyleIndex::NES:
-        return style.lark;
+        return bool(style.lark);
     case Core::HID::NpadStyleIndex::SNES:
-        return style.lucia;
+        return bool(style.lucia);
     case Core::HID::NpadStyleIndex::N64:
-        return style.lagoon;
+        return bool(style.lagoon);
     case Core::HID::NpadStyleIndex::SegaGenesis:
-        return style.lager;
+        return bool(style.lager);
     default:
         return false;
     }
@@ -185,7 +181,7 @@ void NPadData::SetLrAssignmentMode(bool is_enabled) {
 }
 
 bool NPadData::GetLrAssignmentMode() const {
-    return status.lr_assignment_mode;
+    return bool(status.lr_assignment_mode);
 }
 
 void NPadData::SetAssigningSingleOnSlSrPress(bool is_enabled) {
@@ -193,7 +189,7 @@ void NPadData::SetAssigningSingleOnSlSrPress(bool is_enabled) {
 }
 
 bool NPadData::GetAssigningSingleOnSlSrPress() const {
-    return status.assigning_single_on_sl_sr_press;
+    return bool(status.assigning_single_on_sl_sr_press);
 }
 
 void NPadData::SetHomeProtectionEnabled(bool is_enabled, Core::HID::NpadIdType npad_id) {
