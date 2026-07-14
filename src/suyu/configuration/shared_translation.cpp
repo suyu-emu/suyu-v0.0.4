@@ -131,12 +131,6 @@ std::unique_ptr<TranslationMap> InitializeTranslations(QWidget* parent) {
         tr("Switches between the available graphics APIs.\nVulkan is recommended in most cases."));
     INSERT(Settings, vulkan_device, tr("Device:"),
            tr("This setting selects the GPU to use with the Vulkan backend."));
-    INSERT(Settings, shader_backend, tr("Shader Backend:"),
-           tr("The shader backend to use for the OpenGL renderer.\nGLSL is the fastest in "
-              "performance and the best in rendering accuracy.\n"
-              "GLASM is a deprecated NVIDIA-only backend that offers much better shader building "
-              "performance at the cost of FPS and rendering accuracy.\n"
-              "SPIR-V compiles the fastest, but yields poor results on most GPU drivers."));
     INSERT(Settings, resolution_setup, tr("Resolution:"),
            tr("Forces the game to render at a different resolution.\nHigher resolutions require "
               "much more VRAM and bandwidth.\n"
@@ -354,26 +348,19 @@ std::unique_ptr<ComboboxTranslationMap> ComboboxEnumeration(QWidget* parent) {
     translations->insert({Settings::EnumMetadata<Settings::RendererBackend>::Index(),
                           {
 #ifdef HAS_OPENGL
-                              PAIR(RendererBackend, OpenGL, tr("OpenGL")),
+                              PAIR(RendererBackend, OpenGL_GLSL, tr("OpenGL")),
+                              PAIR(RendererBackend, OpenGL_GLASM,
+                                   tr("OpenGL (GLASM, Assembly Shaders, NVIDIA Only)")),
+                              PAIR(RendererBackend, OpenGL_SPIRV,
+                                   tr("OpenGL (SPIR-V, Experimental, AMD/Mesa Only)")),
 #endif
                               PAIR(RendererBackend, Vulkan, tr("Vulkan")),
-#ifdef __APPLE__
-                              PAIR(RendererBackend, Metal, tr("Metal")),
-#endif
                               PAIR(RendererBackend, Null, tr("Null")),
                           }});
-    translations->insert(
-        {Settings::EnumMetadata<Settings::ShaderBackend>::Index(),
-         {
-             PAIR(ShaderBackend, Glsl, tr("GLSL")),
-             PAIR(ShaderBackend, Glasm, tr("GLASM (Assembly Shaders, NVIDIA Only)")),
-             PAIR(ShaderBackend, SpirV, tr("SPIR-V (Experimental, AMD/Mesa Only)")),
-         }});
     translations->insert({Settings::EnumMetadata<Settings::GpuAccuracy>::Index(),
                           {
-                              PAIR(GpuAccuracy, Normal, tr("Normal")),
+                              PAIR(GpuAccuracy, Low, tr("Normal")),
                               PAIR(GpuAccuracy, High, tr("High")),
-                              PAIR(GpuAccuracy, Extreme, tr("Extreme")),
                           }});
     translations->insert(
         {Settings::EnumMetadata<Settings::CpuAccuracy>::Index(),

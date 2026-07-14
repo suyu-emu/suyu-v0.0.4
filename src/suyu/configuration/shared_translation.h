@@ -49,24 +49,21 @@ static const std::map<Settings::ConsoleMode, QString> use_docked_mode_texts_map 
 };
 
 static const std::map<Settings::GpuAccuracy, QString> gpu_accuracy_texts_map = {
-    {Settings::GpuAccuracy::Normal, QStringLiteral(QT_TRANSLATE_NOOP("GMainWindow", "Normal"))},
+    {Settings::GpuAccuracy::Low, QStringLiteral(QT_TRANSLATE_NOOP("GMainWindow", "Normal"))},
     {Settings::GpuAccuracy::High, QStringLiteral(QT_TRANSLATE_NOOP("GMainWindow", "High"))},
-    {Settings::GpuAccuracy::Extreme, QStringLiteral(QT_TRANSLATE_NOOP("GMainWindow", "Extreme"))},
 };
 
+// RendererBackend now folds the shader-backend variant into the renderer choice itself
+// (OpenGL_GLSL/OpenGL_GLASM/OpenGL_SPIRV/Vulkan/Null) instead of two separate settings.
 static const std::map<Settings::RendererBackend, QString> renderer_backend_texts_map = {
     {Settings::RendererBackend::Vulkan, QStringLiteral(QT_TRANSLATE_NOOP("GMainWindow", "Vulkan"))},
-    {Settings::RendererBackend::OpenGL, QStringLiteral(QT_TRANSLATE_NOOP("GMainWindow", "OpenGL"))},
-#ifdef __APPLE__
-    {Settings::RendererBackend::Metal, QStringLiteral(QT_TRANSLATE_NOOP("GMainWindow", "Metal"))},
-#endif
+    {Settings::RendererBackend::OpenGL_GLSL,
+     QStringLiteral(QT_TRANSLATE_NOOP("GMainWindow", "OpenGL"))},
+    {Settings::RendererBackend::OpenGL_GLASM,
+     QStringLiteral(QT_TRANSLATE_NOOP("GMainWindow", "OpenGL (GLASM)"))},
+    {Settings::RendererBackend::OpenGL_SPIRV,
+     QStringLiteral(QT_TRANSLATE_NOOP("GMainWindow", "OpenGL (SPIR-V)"))},
     {Settings::RendererBackend::Null, QStringLiteral(QT_TRANSLATE_NOOP("GMainWindow", "Null"))},
-};
-
-static const std::map<Settings::ShaderBackend, QString> shader_backend_texts_map = {
-    {Settings::ShaderBackend::Glsl, QStringLiteral(QT_TRANSLATE_NOOP("GMainWindow", "GLSL"))},
-    {Settings::ShaderBackend::Glasm, QStringLiteral(QT_TRANSLATE_NOOP("GMainWindow", "GLASM"))},
-    {Settings::ShaderBackend::SpirV, QStringLiteral(QT_TRANSLATE_NOOP("GMainWindow", "SPIRV"))},
 };
 
 } // namespace ConfigurationShared

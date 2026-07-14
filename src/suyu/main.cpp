@@ -664,7 +664,7 @@ GMainWindow::GMainWindow(std::unique_ptr<QtConfig> config_, bool has_broken_vulk
                                 "here for instructions to fix the issue</a>."));
 
 #ifdef HAS_OPENGL
-        Settings::values.renderer_backend = Settings::RendererBackend::OpenGL;
+        Settings::values.renderer_backend = Settings::RendererBackend::OpenGL_SPIRV;
 #else
         Settings::values.renderer_backend = Settings::RendererBackend::Null;
 #endif
@@ -1369,9 +1369,6 @@ void GMainWindow::InitializeWidgets() {
                 QMenu context_menu;
 
                 for (auto const& gpu_accuracy_pair : ConfigurationShared::gpu_accuracy_texts_map) {
-                    if (gpu_accuracy_pair.first == Settings::GpuAccuracy::Extreme) {
-                        continue;
-                    }
                     context_menu.addAction(gpu_accuracy_pair.second, [this, gpu_accuracy_pair] {
                         Settings::values.gpu_accuracy.SetValue(gpu_accuracy_pair.first);
                         UpdateGPUAccuracyButton();
@@ -4256,11 +4253,10 @@ void GMainWindow::OnToggleDockedMode() {
 void GMainWindow::OnToggleGpuAccuracy() {
     switch (Settings::values.gpu_accuracy.GetValue()) {
     case Settings::GpuAccuracy::High: {
-        Settings::values.gpu_accuracy.SetValue(Settings::GpuAccuracy::Normal);
+        Settings::values.gpu_accuracy.SetValue(Settings::GpuAccuracy::Low);
         break;
     }
-    case Settings::GpuAccuracy::Normal:
-    case Settings::GpuAccuracy::Extreme:
+    case Settings::GpuAccuracy::Low:
     default: {
         Settings::values.gpu_accuracy.SetValue(Settings::GpuAccuracy::High);
         break;
@@ -4321,7 +4317,7 @@ void GMainWindow::OnToggleGraphicsAPI() {
         api = Settings::RendererBackend::Vulkan;
     } else {
 #ifdef HAS_OPENGL
-        api = Settings::RendererBackend::OpenGL;
+        api = Settings::RendererBackend::OpenGL_SPIRV;
 #else
         api = Settings::RendererBackend::Null;
 #endif
@@ -6359,7 +6355,7 @@ void GMainWindow::UpdateGPUAccuracyButton() {
     const auto gpu_accuracy_text =
         ConfigurationShared::gpu_accuracy_texts_map.find(gpu_accuracy)->second;
     gpu_accuracy_button->setText(gpu_accuracy_text.toUpper());
-    gpu_accuracy_button->setChecked(gpu_accuracy != Settings::GpuAccuracy::Normal);
+    gpu_accuracy_button->setChecked(gpu_accuracy != Settings::GpuAccuracy::Low);
 }
 
 void GMainWindow::UpdateDockedButton() {
@@ -6373,13 +6369,7 @@ void GMainWindow::UpdateAPIText() {
     const auto api = Settings::values.renderer_backend.GetValue();
     const auto renderer_status_text =
         ConfigurationShared::renderer_backend_texts_map.find(api)->second;
-    renderer_status_button->setText(
-        api == Settings::RendererBackend::OpenGL
-            ? tr("%1 %2").arg(renderer_status_text.toUpper(),
-                              ConfigurationShared::shader_backend_texts_map
-                                  .find(Settings::values.shader_backend.GetValue())
-                                  ->second)
-            : renderer_status_text.toUpper());
+    renderer_status_button->setText(renderer_status_text.toUpper());
 }
 
 void GMainWindow::UpdateFilterText() {

@@ -68,6 +68,12 @@ class QSurface;
 
 constexpr int default_mouse_constrain_timeout = 10;
 
+static bool IsOpenGLBackend(Settings::RendererBackend backend) {
+    return backend == Settings::RendererBackend::OpenGL_GLSL ||
+           backend == Settings::RendererBackend::OpenGL_GLASM ||
+           backend == Settings::RendererBackend::OpenGL_SPIRV;
+}
+
 EmuThread::EmuThread(Core::System& system) : m_system{system} {}
 
 EmuThread::~EmuThread() = default;
@@ -945,7 +951,7 @@ void GRenderWindow::resizeEvent(QResizeEvent* event) {
 
 std::unique_ptr<Core::Frontend::GraphicsContext> GRenderWindow::CreateSharedContext() const {
 #ifdef HAS_OPENGL
-    if (Settings::values.renderer_backend.GetValue() == Settings::RendererBackend::OpenGL) {
+    if (IsOpenGLBackend(Settings::values.renderer_backend.GetValue())) {
         auto c = static_cast<OpenGLSharedContext*>(main_context.get());
         // Bind the shared contexts to the main surface in case the backend wants to take over
         // presentation
@@ -967,30 +973,24 @@ bool GRenderWindow::InitRenderTarget() {
 
     first_frame = false;
 
-    switch (Settings::values.renderer_backend.GetValue()) {
-    case Settings::RendererBackend::OpenGL:
+    if (IsOpenGLBackend(Settings::values.renderer_backend.GetValue())) {
         if (!InitializeOpenGL()) {
             return false;
         }
-        break;
-    case Settings::RendererBackend::Vulkan:
-        if (!InitializeVulkan()) {
-            return false;
+    } else {
+        switch (Settings::values.renderer_backend.GetValue()) {
+        case Settings::RendererBackend::Vulkan:
+            if (!InitializeVulkan()) {
+                return false;
+            }
+            break;
+        case Settings::RendererBackend::Null:
+            InitializeNull();
+            break;
+        default:
+            InitializeNull();
+            break;
         }
-        break;
-#ifdef __APPLE__
-    case Settings::RendererBackend::Metal:
-        if (!InitializeMetal()) {
-            return false;
-        }
-        break;
-#endif
-    case Settings::RendererBackend::Null:
-        InitializeNull();
-        break;
-    default:
-        InitializeNull();
-        break;
     }
 
     // Update the Window System information with the new render target
@@ -1007,7 +1007,7 @@ bool GRenderWindow::InitRenderTarget() {
     OnFramebufferSizeChanged();
     BackupGeometry();
 
-    if (Settings::values.renderer_backend.GetValue() == Settings::RendererBackend::OpenGL) {
+    if (IsOpenGLBackend(Settings::values.renderer_backend.GetValue())) {
         if (!LoadOpenGL()) {
             return false;
         }

@@ -63,6 +63,12 @@ static constexpr VkPresentModeKHR VSyncSettingToMode(Settings::VSyncMode mode) {
     }
 }
 
+static constexpr bool IsOpenGL(Settings::RendererBackend backend) {
+    return backend == Settings::RendererBackend::OpenGL_GLSL ||
+           backend == Settings::RendererBackend::OpenGL_GLASM ||
+           backend == Settings::RendererBackend::OpenGL_SPIRV;
+}
+
 static constexpr Settings::VSyncMode PresentModeToSetting(VkPresentModeKHR mode) {
     switch (mode) {
     case VK_PRESENT_MODE_IMMEDIATE_KHR:
@@ -88,9 +94,7 @@ ConfigureGraphics::ConfigureGraphics(
     : ConfigurationShared::Tab(group_, parent), ui{std::make_unique<Ui::ConfigureGraphics>()},
       records{records_}, expose_compute_option{expose_compute_option_},
       update_aspect_ratio{update_aspect_ratio_}, system{system_},
-      combobox_translations{builder.ComboboxTranslations()},
-      shader_mapping{
-          combobox_translations.at(Settings::EnumMetadata<Settings::ShaderBackend>::Index())} {
+      combobox_translations{builder.ComboboxTranslations()} {
     vulkan_device = Settings::values.vulkan_device.GetValue();
     RetrieveVulkanDevices();
 
@@ -131,9 +135,6 @@ ConfigureGraphics::ConfigureGraphics(
                 UpdateDeviceSelection(device);
                 PopulateVSyncModeSelection(false);
             });
-    connect(shader_backend_combobox, qOverload<int>(&QComboBox::activated), this,
-            [this](int backend) { UpdateShaderBackendSelection(backend); });
-
     connect(ui->bg_button, &QPushButton::clicked, this, [this] {
         const QColor new_bg_color = QColorDialog::getColor(bg_color);
         if (!new_bg_color.isValid()) {
@@ -216,7 +217,7 @@ void ConfigureGraphics::PopulateVSyncModeSelection(bool use_setting) {
 
         const Settings::VSyncMode global_vsync_mode = Settings::values.vsync_mode.GetValue(true);
         vsync_restore_global_button->setEnabled(
-            (backend == Settings::RendererBackend::OpenGL &&
+            (IsOpenGL(backend) &&
              (global_vsync_mode == Settings::VSyncMode::Immediate ||
               global_vsync_mode == Settings::VSyncMode::Fifo)) ||
             backend == Settings::RendererBackend::Vulkan);
@@ -240,15 +241,6 @@ void ConfigureGraphics::UpdateDeviceSelection(int device) {
     }
     if (GetCurrentGraphicsBackend() == Settings::RendererBackend::Vulkan) {
         vulkan_device = device;
-    }
-}
-
-void ConfigureGraphics::UpdateShaderBackendSelection(int backend) {
-    if (backend == -1) {
-        return;
-    }
-    if (GetCurrentGraphicsBackend() == Settings::RendererBackend::OpenGL) {
-        shader_backend = static_cast<Settings::ShaderBackend>(backend);
     }
 }
 
@@ -309,11 +301,6 @@ void ConfigureGraphics::Setup(const ConfigurationShared::Builder& builder) {
             hold_api.push_back(widget);
             vulkan_device_combobox = widget->combobox;
             vulkan_device_widget = widget;
-        } else if (setting->Id() == Settings::values.shader_backend.Id()) {
-            // Keep track of shader_backend's combobox so we can populate it
-            hold_api.push_back(widget);
-            shader_backend_combobox = widget->combobox;
-            shader_backend_widget = widget;
         } else if (setting->Id() == Settings::values.vsync_mode.Id()) {
             // Keep track of vsync_mode's combobox so we can populate it
             vsync_mode_combobox = widget->combobox;
@@ -413,15 +400,13 @@ const QString ConfigureGraphics::TranslateVSyncMode(VkPresentModeKHR mode,
                                                     Settings::RendererBackend backend) const {
     switch (mode) {
     case VK_PRESENT_MODE_IMMEDIATE_KHR:
-        return backend == Settings::RendererBackend::OpenGL
-                   ? tr("Off")
-                   : QStringLiteral("Immediate (%1)").arg(tr("VSync Off"));
+        return IsOpenGL(backend) ? tr("Off")
+                                 : QStringLiteral("Immediate (%1)").arg(tr("VSync Off"));
     case VK_PRESENT_MODE_MAILBOX_KHR:
         return QStringLiteral("Mailbox (%1)").arg(tr("Recommended"));
     case VK_PRESENT_MODE_FIFO_KHR:
-        return backend == Settings::RendererBackend::OpenGL
-                   ? tr("On")
-                   : QStringLiteral("FIFO (%1)").arg(tr("VSync On"));
+        return IsOpenGL(backend) ? tr("On")
+                                 : QStringLiteral("FIFO (%1)").arg(tr("VSync On"));
     case VK_PRESENT_MODE_FIFO_RELAXED_KHR:
         return QStringLiteral("FIFO Relaxed");
     default:
@@ -450,7 +435,6 @@ void ConfigureGraphics::ApplyConfiguration() {
     UpdateVsyncSetting();
 
     Settings::values.vulkan_device.SetGlobal(true);
-    Settings::values.shader_backend.SetGlobal(true);
     const auto api_index = Settings::EnumMetadata<Settings::RendererBackend>::Index();
     if (Settings::IsConfiguringGlobal() ||
         (!Settings::IsConfiguringGlobal() && api_restore_global_button->isEnabled())) {
@@ -463,17 +447,14 @@ void ConfigureGraphics::ApplyConfiguration() {
                       combobox_translations.at(api_index)[api_combobox->currentIndex()]
                           .first);
         switch (backend) {
-        case Settings::RendererBackend::OpenGL:
-            Settings::values.shader_backend.SetGlobal(Settings::IsConfiguringGlobal());
-            Settings::values.shader_backend.SetValue(static_cast<Settings::ShaderBackend>(
-                shader_mapping[shader_backend_combobox->currentIndex()].first));
+        case Settings::RendererBackend::OpenGL_GLSL:
+        case Settings::RendererBackend::OpenGL_GLASM:
+        case Settings::RendererBackend::OpenGL_SPIRV:
+            // Shader backend is now baked into the RendererBackend value itself.
             break;
         case Settings::RendererBackend::Vulkan:
             Settings::values.vulkan_device.SetGlobal(Settings::IsConfiguringGlobal());
             Settings::values.vulkan_device.SetValue(vulkan_device_combobox->currentIndex());
-            break;
-        case Settings::RendererBackend::Metal:
-            // TODO
             break;
         case Settings::RendererBackend::Null:
             break;
@@ -504,22 +485,14 @@ void ConfigureGraphics::UpdateAPILayout() {
     bool runtime_lock = !system.IsPoweredOn();
     bool need_global = !(Settings::IsConfiguringGlobal() || api_restore_global_button->isEnabled());
     vulkan_device = Settings::values.vulkan_device.GetValue(need_global);
-    shader_backend = Settings::values.shader_backend.GetValue(need_global);
     vulkan_device_widget->setEnabled(!need_global && runtime_lock);
-    shader_backend_widget->setEnabled(!need_global && runtime_lock);
 
     const auto current_backend = GetCurrentGraphicsBackend();
-    const bool is_opengl = current_backend == Settings::RendererBackend::OpenGL;
     const bool is_vulkan = current_backend == Settings::RendererBackend::Vulkan;
 
     vulkan_device_widget->setVisible(is_vulkan);
-    shader_backend_widget->setVisible(is_opengl);
 
-    if (is_opengl) {
-        shader_backend_combobox->setCurrentIndex(
-            FindIndex(Settings::EnumMetadata<Settings::ShaderBackend>::Index(),
-                      static_cast<int>(shader_backend)));
-    } else if (is_vulkan && static_cast<int>(vulkan_device) < vulkan_device_combobox->count()) {
+    if (is_vulkan && static_cast<int>(vulkan_device) < vulkan_device_combobox->count()) {
         vulkan_device_combobox->setCurrentIndex(vulkan_device);
     }
 }
@@ -558,7 +531,7 @@ Settings::RendererBackend ConfigureGraphics::GetCurrentGraphicsBackend() const {
 
     if (selected_backend == Settings::RendererBackend::Vulkan &&
         UISettings::values.has_broken_vulkan) {
-        return Settings::RendererBackend::OpenGL;
+        return Settings::RendererBackend::OpenGL_SPIRV;
     }
     return selected_backend;
 }
