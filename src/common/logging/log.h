@@ -22,17 +22,8 @@ constexpr const char* TrimSourcePath(std::string_view source) {
     return source.data() + idx;
 }
 
-/// Logs a message to the global logger, using fmt
-void FmtLogMessageImpl(Class log_class, Level log_level, const char* filename,
-                       unsigned int line_num, const char* function, fmt::string_view format,
-                       const fmt::format_args& args);
-
-template <typename... Args>
-void FmtLogMessage(Class log_class, Level log_level, const char* filename, unsigned int line_num,
-                   const char* function, fmt::format_string<Args...> format, const Args&... args) {
-    FmtLogMessageImpl(log_class, log_level, filename, line_num, function, format,
-                      fmt::make_format_args(args...));
-}
+// TrimSourcePath is unique to this header (not in logging.h)
+// FmtLogMessageImpl and FmtLogMessage come from logging.h via logging/types.h
 
 } // namespace Common::Log
 

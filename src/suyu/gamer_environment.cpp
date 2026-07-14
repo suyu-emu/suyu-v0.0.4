@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "suyu/gamer_environment.h"
+#include "common/logging.h"
 
 #include <QAbstractItemModel>
 #include <QApplication>

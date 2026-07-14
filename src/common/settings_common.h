@@ -33,6 +33,7 @@ enum class Category : u32 {
     Debugging,
     DebuggingGraphics,
     GpuDriver,
+    Linux,
     Miscellaneous,
     Network,
     WebService,

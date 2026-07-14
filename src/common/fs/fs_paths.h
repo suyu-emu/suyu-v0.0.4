@@ -8,7 +8,7 @@
 
 // yuzu data directories
 
-#define EDEN_DIR "eden"
+#define EDEN_DIR "suyu"
 #define PORTABLE_DIR "user"
 
 // Sub-directories contained within a yuzu data directory
@@ -27,6 +27,7 @@
 #define SHADER_DIR "shader"
 #define TAS_DIR "tas"
 #define ICONS_DIR "icons"
+#define THEMES_DIR "themes"
 
 // Compatibility with other emulators
 #define CITRON_DIR "citron"
@@ -36,4 +37,4 @@
 #define RYUJINX_DIR "Ryujinx"
 
 // yuzu-specific files
-#define LOG_FILE "eden_log.txt"
+#define LOG_FILE "suyu_log.txt"

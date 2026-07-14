@@ -281,7 +281,7 @@ void GameCard::contextMenuEvent(QContextMenuEvent* event) {
     emit GameRightClicked(file_path, event->globalPos());
 }
 
-void GameCard::enterEvent(QEvent* event) {
+void GameCard::enterEvent(QEnterEvent* event) {
     SetHovered(true);
     QWidget::enterEvent(event);
 }

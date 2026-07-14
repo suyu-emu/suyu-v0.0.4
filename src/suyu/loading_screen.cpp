@@ -53,7 +53,7 @@ constexpr int LOADING_MUSIC_FADE_OUT_MS = 320;
 constexpr qreal LOADING_MUSIC_VOLUME_SCALE = 0.25;
 constexpr qreal LOADING_MUSIC_VOLUME_CAP = 0.35;
 
-qreal GetLoadingMusicTargetVolume() {
+[[maybe_unused]] qreal GetLoadingMusicTargetVolume() {
     if (Settings::values.audio_muted.GetValue()) {
         return 0.0;
     }

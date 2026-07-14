@@ -98,9 +98,11 @@ std::optional<std::filesystem::path> GetCurrentUserPlayTimePath(
 
 } // namespace
 
+PlayTimeManager::PlayTimeManager() = default;
+
 PlayTimeManager::PlayTimeManager(Service::Account::ProfileManager& profile_manager)
-    : manager{profile_manager} {
-    if (!ReadPlayTimeFile(database, manager)) {
+    : manager{&profile_manager} {
+    if (!ReadPlayTimeFile(database, *manager)) {
         LOG_ERROR(Frontend, "Failed to read play time database! Resetting to default.");
     }
 }
@@ -145,7 +147,10 @@ void PlayTimeManager::AutoTimestamp(std::stop_token stop_token) {
 }
 
 void PlayTimeManager::Save() {
-    if (!WritePlayTimeFile(database, manager)) {
+    if (!manager) {
+        return;
+    }
+    if (!WritePlayTimeFile(database, *manager)) {
         LOG_ERROR(Frontend, "Failed to update play time database!");
     }
 }

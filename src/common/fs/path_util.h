@@ -31,6 +31,11 @@ enum class EdenPath {
     ShaderDir,      // Where shaders are stored.
     TASDir,         // Where TAS scripts are stored.
     IconsDir,       // Where Icons for Windows shortcuts are stored.
+    ThemesDir,      // suyu-exclusive: Where UI themes are stored.
+
+    // suyu compatibility aliases (suyu called the root dir "SuyuDir"; Eden renamed it "EdenDir")
+    SuyuDir = EdenDir,
+    UserDir = EdenDir,
 };
 
 // migration/compat dirs
@@ -369,5 +374,26 @@ enum class DirectorySeparator {
         return name.substr(index + 1);
     return {};
 }
+
+// suyu → Eden path API compatibility shims
+// suyu's frontend uses GetSuyuPath(SuyuPath::XxxDir); Eden renamed to GetEdenPath(EdenPath::XxxDir).
+// These aliases let src/suyu compile without touching every call site.
+using SuyuPath = EdenPath;
+
+[[nodiscard]] inline const std::filesystem::path& GetSuyuPath(EdenPath p) {
+    return GetEdenPath(p);
+}
+[[nodiscard]] inline std::string GetSuyuPathString(EdenPath p) {
+    return GetEdenPathString(p);
+}
+inline void SetSuyuPath(EdenPath p, const std::filesystem::path& path) {
+    SetEdenPath(p, path);
+}
+#ifdef _WIN32
+template <typename Path>
+void SetSuyuPath(EdenPath p, const Path& path) {
+    SetEdenPath(p, path);
+}
+#endif
 
 } // namespace Common::FS

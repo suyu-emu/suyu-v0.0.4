@@ -23,6 +23,7 @@ using PlayTimeDatabase = std::map<ProgramId, PlayTime>;
 
 class PlayTimeManager {
 public:
+    PlayTimeManager();
     explicit PlayTimeManager(Service::Account::ProfileManager& profile_manager);
     ~PlayTimeManager();
 
@@ -40,9 +41,9 @@ private:
     void Save();
 
     PlayTimeDatabase database;
-    u64 running_program_id;
+    u64 running_program_id{};
     std::jthread play_time_thread;
-    Service::Account::ProfileManager& manager;
+    Service::Account::ProfileManager* manager{nullptr};
 };
 
 QString ReadablePlayTime(qulonglong time_seconds);

@@ -26,33 +26,7 @@
 #include <span>
 #include <vector>
 
-// Pull in common/assert.h first so its #pragma once guard is set before any
-// Dynarmic headers are included.  mcl/assert.hpp (pulled in by Dynarmic)
-// defines the same macro names (ASSERT, UNREACHABLE, etc.).  The #undefs
-// below clear suyu's definitions so mcl can define them without C4005.
-// Because #pragma once is now set, common/assert.h will NOT be re-included
-// later (e.g. via common/common_types.h), regardless of PCH state.
 #include "common/assert.h"
-
-#ifdef ASSERT
-#undef ASSERT
-#endif
-#ifdef ASSERT_MSG
-#undef ASSERT_MSG
-#endif
-#ifdef UNREACHABLE
-#undef UNREACHABLE
-#endif
-#ifdef DEBUG_ASSERT
-#undef DEBUG_ASSERT
-#endif
-#ifdef DEBUG_ASSERT_MSG
-#undef DEBUG_ASSERT_MSG
-#endif
-#ifdef UNIMPLEMENTED
-#undef UNIMPLEMENTED
-#endif
-
 #include "dynarmic/common/fp/fpcr.h"
 #include "dynarmic/frontend/A64/a64_location_descriptor.h"
 #include "dynarmic/frontend/A64/translate/a64_translate.h"
@@ -751,7 +725,8 @@ static bool SerializeTranslatedBlocks(const NsoAnalysisResult& mod, const QStrin
         options.hook_hint_instructions = false;
         const Dynarmic::A64::LocationDescriptor descriptor{static_cast<u64>(block.vaddr),
                                                            Dynarmic::FP::FPCR{}};
-        auto ir_block = Dynarmic::A64::Translate(descriptor, read_code, options);
+        Dynarmic::IR::Block ir_block{descriptor};
+        Dynarmic::A64::Translate(ir_block, descriptor, read_code, options);
 
         QFile ir_file(module_ir_dir + QDir::separator() + stem + QStringLiteral(".ir.txt"));
         if (!ir_file.open(QIODevice::WriteOnly | QIODevice::Text)) {

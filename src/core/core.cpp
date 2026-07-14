@@ -969,4 +969,9 @@ void System::ApplySettings() {
     }
 }
 
+Network::RoomNetwork& System::GetRoomNetwork() {
+    static Network::RoomNetwork room_network_compat;
+    return room_network_compat;
+}
+
 } // namespace Core

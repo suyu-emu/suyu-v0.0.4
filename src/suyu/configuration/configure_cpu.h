@@ -58,7 +58,5 @@ private:
 
     QLabel* backend_status_label{};
     QComboBox* accuracy_combobox{};
-    QComboBox* execution_path_combobox{};
-    QComboBox* recompiler_combobox{};
-    QComboBox* core_provider_combobox{};
+    QComboBox* backend_combobox{};
 };

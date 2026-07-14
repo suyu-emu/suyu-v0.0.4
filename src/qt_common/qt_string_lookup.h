@@ -27,6 +27,13 @@ enum StringKey {
     DataManagerSysNandTooltip,
     DataManagerModsTooltip,
 
+    // suyu compatibility aliases (suyu used shorter names without DataManager prefix)
+    SavesTooltip = DataManagerSavesTooltip,
+    ShadersTooltip = DataManagerShadersTooltip,
+    UserNandTooltip = DataManagerUserNandTooltip,
+    SysNandTooltip = DataManagerSysNandTooltip,
+    ModsTooltip = DataManagerModsTooltip,
+
     // Key install results
     KeyInstallSuccess,
     KeyInstallInvalidDir,

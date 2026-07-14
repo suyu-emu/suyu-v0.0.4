@@ -176,7 +176,7 @@ std::unique_ptr<WaitTreeSynchronizationObject> WaitTreeSynchronizationObject::ma
 std::vector<std::unique_ptr<WaitTreeItem>> WaitTreeSynchronizationObject::GetChildren() const {
     std::vector<std::unique_ptr<WaitTreeItem>> list;
 
-    auto threads = object.GetWaitingThreadsForDebugging();
+    auto threads = object.GetWaitingThreadsForDebugging(system.Kernel());
     if (threads.empty()) {
         list.push_back(std::make_unique<WaitTreeText>(tr("waited by no thread")));
     } else {

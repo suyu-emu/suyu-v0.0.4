@@ -49,6 +49,8 @@ struct Patch {
     PatchSource source;
     std::string location;
     u32 numeric_version{0};
+    std::optional<std::string> file_path;
+    std::optional<std::string> root_path;
 };
 
 // A centralized class to manage patches to games.

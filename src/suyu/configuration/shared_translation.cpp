@@ -83,18 +83,10 @@ std::unique_ptr<TranslationMap> InitializeTranslations(QWidget* parent) {
     INSERT(Settings, cpu_accuracy, tr("Accuracy:"),
            tr("This setting controls the accuracy of the emulated CPU.\nDon't change this unless "
               "you know what you are doing."));
-    INSERT(Settings, cpu_execution_path, tr("Execution Path:"),
-           tr("Select how guest CPU code should execute.\n"
-              "JIT: portable just-in-time execution.\n"
-              "NCE: native code execution on compatible ARM hosts."));
-    INSERT(Settings, cpu_recompiler_engine, tr("Recompiler Engine:"),
-           tr("Choose the JIT recompiler implementation.\n"
-              "Dynarmic is the default.\n"
-              "Ballistic is experimental and may be unavailable in this build."));
-    INSERT(Settings, cpu_core_provider, tr("CPU Core Provider:"),
-           tr("Choose which CPU emulation core should drive execution.\n"
-              "The built-in core is the default.\n"
-              "REM is experimental and may be unavailable in this build."));
+    INSERT(Settings, cpu_backend, tr("CPU Backend:"),
+           tr("Select the CPU execution backend.\n"
+              "Dynarmic: portable JIT recompiler (default).\n"
+              "NCE: native code execution on compatible ARM64 hosts."));
 
     // Cpu Debug
 
@@ -370,22 +362,10 @@ std::unique_ptr<ComboboxTranslationMap> ComboboxEnumeration(QWidget* parent) {
              PAIR(CpuAccuracy, Unsafe, tr("Unsafe")),
              PAIR(CpuAccuracy, Paranoid, tr("Paranoid (disables most optimizations)")),
          }});
-    translations->insert({Settings::EnumMetadata<Settings::CpuExecutionPath>::Index(),
+    translations->insert({Settings::EnumMetadata<Settings::CpuBackend>::Index(),
                           {
-                              PAIR(CpuExecutionPath, Jit, tr("JIT")),
-                              PAIR(CpuExecutionPath, Nce, tr("NCE")),
-                          }});
-    translations->insert({Settings::EnumMetadata<Settings::CpuRecompilerEngine>::Index(),
-                          {
-                              PAIR(CpuRecompilerEngine, Dynarmic, tr("Dynarmic")),
-                              PAIR(CpuRecompilerEngine, BallisticExperimental,
-                                   tr("Ballistic (Experimental)")),
-                          }});
-    translations->insert({Settings::EnumMetadata<Settings::CpuCoreProvider>::Index(),
-                          {
-                              PAIR(CpuCoreProvider, Builtin, tr("Built-in")),
-                              PAIR(CpuCoreProvider, RemExperimental,
-                                   tr("REM (Experimental)")),
+                              PAIR(CpuBackend, Dynarmic, tr("Dynarmic (JIT)")),
+                              PAIR(CpuBackend, Nce, tr("NCE (ARM64 native)")),
                           }});
     translations->insert({Settings::EnumMetadata<Settings::FullscreenMode>::Index(),
                           {

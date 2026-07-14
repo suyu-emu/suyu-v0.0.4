@@ -540,6 +540,14 @@ struct Values {
 #endif
 
     // Renderer Hacks //
+    SwitchableSetting<bool> use_fast_gpu_time{linkage,
+                                              true,
+                                              "use_fast_gpu_time",
+                                              Category::RendererHacks,
+                                              Specialization::Default,
+                                              true,
+                                              true};
+
     SwitchableSetting<GpuOverclock> fast_gpu_time{linkage,
                                                   GpuOverclock::Medium,
                                                   "fast_gpu_time",
@@ -822,6 +830,13 @@ struct Values {
     Setting<bool> perform_vulkan_check{linkage, true, "perform_vulkan_check", Category::Debugging};
     Setting<bool> disable_web_applet{linkage, true, "disable_web_applet", Category::Debugging};
 
+    // suyu-exclusive debug/misc settings (not present in Eden upstream)
+    Setting<bool> cpu_debug_mode{linkage, false, "cpu_debug_mode", Category::Debugging};
+    Setting<bool> dump_shaders{linkage, false, "dump_shaders", Category::DebuggingGraphics};
+    Setting<bool> log_async{linkage, true, "log_async", Category::Miscellaneous};
+    Setting<bool> enable_gamemode{linkage, false, "enable_gamemode", Category::Miscellaneous};
+    Setting<bool> optimize_spirv_output{linkage, false, "optimize_spirv_output", Category::Renderer};
+
     // GPU Logging
     Setting<GpuLogLevel> gpu_log_level{linkage, GpuLogLevel::Off, "gpu_log_level",
                                        Category::Debugging};
@@ -857,7 +872,7 @@ struct Values {
     // WebService
     Setting<std::string> web_api_url{linkage, "api.ynet-fun.xyz", "web_api_url",
                                      Category::WebService};
-    Setting<std::string> eden_username{linkage, "Eden", "eden_username",
+    Setting<std::string> eden_username{linkage, "suyu", "eden_username",
                                        Category::WebService};
     Setting<std::string> eden_token{linkage, "",
                                     "eden_token", Category::WebService};

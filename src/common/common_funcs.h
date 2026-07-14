@@ -94,6 +94,10 @@ constexpr std::underlying_type_t<T> to_underlying(T e) noexcept {
     cls(cls&&) = delete;                                                                           \
     cls& operator=(cls&&) = delete
 
+// suyu-branded aliases
+#define SUYU_NON_COPYABLE(cls) YUZU_NON_COPYABLE(cls)
+#define SUYU_NON_MOVEABLE(cls) YUZU_NON_MOVEABLE(cls)
+
 namespace Common {
 
 [[nodiscard]] constexpr u32 MakeMagic(char a, char b, char c, char d) {

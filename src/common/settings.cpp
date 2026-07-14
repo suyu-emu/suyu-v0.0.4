@@ -273,6 +273,8 @@ const char* TranslateCategory(Category category) {
         return "GpuDriver";
     case Category::LibraryApplet:
         return "LibraryApplet";
+    case Category::Linux:
+        return "Linux";
     case Category::Miscellaneous:
         return "Miscellaneous";
     case Category::Network:

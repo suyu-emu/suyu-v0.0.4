@@ -164,6 +164,7 @@ public:
         GenerateEdenPath(EdenPath::SDMCDir, eden_path / SDMC_DIR);
         GenerateEdenPath(EdenPath::TASDir, eden_path / TAS_DIR);
         GenerateEdenPath(EdenPath::IconsDir, eden_path / ICONS_DIR);
+        GenerateEdenPath(EdenPath::ThemesDir, eden_path / THEMES_DIR);
         // config
         GenerateEdenPath(EdenPath::ConfigDir, eden_path_config);
         // cache

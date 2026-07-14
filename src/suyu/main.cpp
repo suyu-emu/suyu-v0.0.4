@@ -127,9 +127,7 @@ static FileSys::VirtualFile VfsDirectoryCreateFileWrapper(const FileSys::Virtual
 #include "common/windows/timer_resolution.h"
 #pragma comment(lib, "Dbghelp.lib")
 #endif
-#ifdef ARCHITECTURE_x86_64
-#include "common/x64/cpu_detect.h"
-#endif
+#include "common/cpu_features.h"
 #include "common/settings.h"
 #include "core/arm/debug.h"
 #include "core/core.h"
@@ -460,7 +458,7 @@ GMainWindow::GMainWindow(std::unique_ptr<QtConfig> config_, bool has_broken_vulk
     LOG_INFO(Frontend, "suyu Version: {}", suyu_build_version);
     LogRuntimes();
 #ifdef ARCHITECTURE_x86_64
-    const auto& caps = Common::GetCPUCaps();
+    const auto& caps = Common::g_cpu_caps;
     std::string cpu_string = caps.cpu_string;
     if (caps.avx || caps.avx2 || caps.avx512f) {
         cpu_string += " | AVX";
@@ -469,7 +467,7 @@ GMainWindow::GMainWindow(std::unique_ptr<QtConfig> config_, bool has_broken_vulk
         } else if (caps.avx2) {
             cpu_string += '2';
         }
-        if (caps.fma || caps.fma4) {
+        if (caps.fma) {
             cpu_string += " | FMA";
         }
     }
@@ -1283,7 +1281,7 @@ void GMainWindow::InitializeWidgets() {
     connect(aa_status_button, &QPushButton::clicked, [&] {
         auto aa_mode = Settings::values.anti_aliasing.GetValue();
         aa_mode = static_cast<Settings::AntiAliasing>(static_cast<u32>(aa_mode) + 1);
-        if (aa_mode == Settings::AntiAliasing::MaxEnum) {
+        if (static_cast<u32>(aa_mode) > static_cast<u32>(Settings::EnumMetadata<Settings::AntiAliasing>::GetLast())) {
             aa_mode = Settings::AntiAliasing::None;
         }
         Settings::values.anti_aliasing.SetValue(aa_mode);
@@ -2001,6 +1999,7 @@ bool GMainWindow::LoadROM(const QString& filename, Service::AM::FrontendAppletPa
         std::make_unique<QtProfileSelector>(*this),          // Profile Selector
         std::make_unique<QtSoftwareKeyboard>(*this),         // Software Keyboard
         std::make_unique<QtWebBrowser>(*this),               // Web Browser
+        nullptr,                                             // Net Connect
     });
 
     const Core::SystemResultStatus result{
@@ -3840,8 +3839,8 @@ void GMainWindow::ErrorDisplayRequestExit() {
 
 void GMainWindow::OnMenuReportCompatibility() {
 #if defined(ARCHITECTURE_x86_64) && !defined(__APPLE__)
-    const auto& caps = Common::GetCPUCaps();
-    const bool has_fma = caps.fma || caps.fma4;
+    const auto& caps = Common::g_cpu_caps;
+    const bool has_fma = caps.fma;
     const auto processor_count = std::thread::hardware_concurrency();
     const bool has_4threads = processor_count == 0 || processor_count >= 4;
     const bool has_8gb_ram = Common::GetMemInfo().TotalPhysicalMemory >= 8_GiB;
@@ -3992,7 +3991,7 @@ void GMainWindow::ToggleWindowMode() {
 
 void GMainWindow::ResetWindowSize(u32 width, u32 height) {
     const auto aspect_ratio = Layout::EmulationAspectRatio(
-        static_cast<Layout::AspectRatio>(Settings::values.aspect_ratio.GetValue()),
+        static_cast<Settings::AspectRatio>(Settings::values.aspect_ratio.GetValue()),
         static_cast<float>(height) / width);
     if (!ui->action_Single_Window_Mode->isChecked()) {
         render_window->resize(height / aspect_ratio, height);
@@ -4303,7 +4302,7 @@ void GMainWindow::OnIncreaseVolume() {
 void GMainWindow::OnToggleAdaptingFilter() {
     auto filter = Settings::values.scaling_filter.GetValue();
     filter = static_cast<Settings::ScalingFilter>(static_cast<u32>(filter) + 1);
-    if (filter == Settings::ScalingFilter::MaxEnum) {
+    if (static_cast<u32>(filter) > static_cast<u32>(Settings::EnumMetadata<Settings::ScalingFilter>::GetLast())) {
         filter = Settings::ScalingFilter::NearestNeighbor;
     }
     Settings::values.scaling_filter.SetValue(filter);
@@ -7255,7 +7254,7 @@ int main(int argc, char* argv[]) {
                 qputenv("QT_QPA_PLATFORM", QByteArray("windows:darkmode=2"));
             } else {
                 // Concatenate to the existing value
-                qputenv("QT_QPA_PLATFORM", current_qt_qpa + ",darkmode=2");
+                qputenv("QT_QPA_PLATFORM", QByteArray(current_qt_qpa + ",darkmode=2"));
             }
         } else {
             // When setting is no Auto, adapt window decoration to the palette used
@@ -7264,7 +7263,7 @@ int main(int argc, char* argv[]) {
                 qputenv("QT_QPA_PLATFORM", QByteArray("windows:darkmode=1"));
             } else {
                 // Concatenate to the existing value
-                qputenv("QT_QPA_PLATFORM", current_qt_qpa + ",darkmode=1");
+                qputenv("QT_QPA_PLATFORM", QByteArray(current_qt_qpa + ",darkmode=1"));
             }
         }
     }
