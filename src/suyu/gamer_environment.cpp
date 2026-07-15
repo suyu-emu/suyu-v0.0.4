@@ -38,6 +38,7 @@
 #include <QUrlQuery>
 
 #include "suyu/game_list.h"
+#include "suyu/game_list_p.h"
 #include "suyu/main.h"
 
 namespace {
@@ -58,6 +59,31 @@ QIcon DecorationToIcon(const QVariant& decoration) {
     }
 
     return {};
+}
+
+// The list view's Qt::DecorationRole pixmap is pre-scaled to the small list
+// icon size (default 64 logical px). Upscaling that to fill a much larger
+// tile card looks soft. Prefer the raw NACP icon bytes (native ~256x256,
+// stashed by GameListItemPath) and decode a pixmap sized for this tile
+// directly, so the card always renders from full-resolution source data.
+QPixmap TileArtwork(const QModelIndex& index, const QSize& target) {
+    const QByteArray raw = index.data(GameListItemPath::RawIconRole).toByteArray();
+    if (!raw.isEmpty()) {
+        QPixmap source;
+        if (source.loadFromData(reinterpret_cast<const uchar*>(raw.constData()),
+                                static_cast<uint>(raw.size()))) {
+            const qreal dpr = QGuiApplication::primaryScreen()
+                                  ? QGuiApplication::primaryScreen()->devicePixelRatio()
+                                  : 1.0;
+            QPixmap scaled = source.scaled(target * dpr, Qt::KeepAspectRatioByExpanding,
+                                           Qt::SmoothTransformation);
+            scaled.setDevicePixelRatio(dpr);
+            return scaled;
+        }
+    }
+
+    const QIcon icon = DecorationToIcon(index.data(Qt::DecorationRole));
+    return icon.pixmap(target);
 }
 
 } // namespace
@@ -108,8 +134,7 @@ void GameCardDelegate::paint(QPainter* painter, const QStyleOptionViewItem& opti
 
     painter->setClipPath(iconClip);
 
-    const QIcon icon   = DecorationToIcon(index.data(Qt::DecorationRole));
-    const QPixmap pix  = icon.pixmap(QSize(iconRect.width(), ICON_H));
+    const QPixmap pix = TileArtwork(index, QSize(iconRect.width(), ICON_H));
     if (!pix.isNull()) {
         // Scale to fill, centre-crop
         QPixmap scaled = pix.scaled(iconRect.size(), Qt::KeepAspectRatioByExpanding,

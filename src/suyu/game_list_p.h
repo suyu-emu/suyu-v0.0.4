@@ -115,6 +115,10 @@ public:
     static constexpr int FullPathRole = SortRole + 2;
     static constexpr int ProgramIdRole = SortRole + 3;
     static constexpr int FileTypeRole = SortRole + 4;
+    // Raw NACP icon bytes (native ~256x256), for consumers that need to render
+    // larger than the list view's small Qt::DecorationRole pixmap without
+    // upscaling an already-downscaled source (e.g. the gamer-mode tile grid).
+    static constexpr int RawIconRole = SortRole + 5;
 
     GameListItemPath() = default;
     GameListItemPath(const QString& game_path, const std::vector<u8>& picture_data,
@@ -124,6 +128,9 @@ public:
         setData(game_name, TitleRole);
         setData(qulonglong(program_id), ProgramIdRole);
         setData(game_type, FileTypeRole);
+        setData(QByteArray(reinterpret_cast<const char*>(picture_data.data()),
+                           static_cast<int>(picture_data.size())),
+               RawIconRole);
 
         const u32 size = UISettings::values.game_icon_size.GetValue();
 
