@@ -53,7 +53,7 @@ else()
 endif()
 
 set(BUILD_ID ${GIT_REFSPEC})
-set(BUILD_FULLNAME "${REPO_NAME} ${BUILD_VERSION} ")
+set(BUILD_FULLNAME "${REPO_NAME} v0.04 (early access)")
 set(CXX_COMPILER "${CMAKE_CXX_COMPILER_ID} ${CMAKE_CXX_COMPILER_VERSION}")
 
 configure_file(scm_rev.cpp.in scm_rev.cpp @ONLY)
