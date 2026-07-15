@@ -5415,7 +5415,15 @@ void GMainWindow::ApplyAppMode(AppMode mode) {
                 [this](const QJsonObject& /*params*/) -> QJsonObject {
                     const bool was_running = emulation_running;
                     if (emulation_running) {
-                        OnStopGame();
+                        // Programmatic stop: skip the interactive confirm dialog,
+                        // which would block the GUI thread waiting for a click.
+                        play_time_manager->Stop();
+                        game_list->PopulateAsync(UISettings::values.game_dirs);
+                        if (OnShutdownBegin()) {
+                            OnShutdownBeginDialog();
+                        } else {
+                            OnEmulationStopped();
+                        }
                     }
                     return QJsonObject{{QStringLiteral("success"), true},
                                        {QStringLiteral("was_running"), was_running},

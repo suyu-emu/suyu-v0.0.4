@@ -12,6 +12,7 @@
 #include <QJsonParseError>
 #include <QStandardPaths>
 #include <QTcpServer>
+#include <QPointer>
 #include <QTcpSocket>
 
 #include "common/fs/path_util.h"
@@ -450,6 +451,11 @@ void McpServer::OnReadyRead() {
 }
 
 void McpServer::HandleRequest(const QByteArray& data, QTcpSocket* socket) {
+    // Tool handlers can spin the event loop for a long time (e.g. stopping
+    // emulation); the client may disconnect meanwhile and the socket be
+    // deleted via deleteLater. Track it so the response write below can't
+    // touch a freed socket.
+    QPointer<QTcpSocket> socket_guard{socket};
     QJsonParseError error;
     const QJsonDocument doc = QJsonDocument::fromJson(data, &error);
 
@@ -547,8 +553,11 @@ void McpServer::HandleRequest(const QByteArray& data, QTcpSocket* socket) {
         }
     }
 
+    if (!socket_guard || socket_guard->state() != QAbstractSocket::ConnectedState) {
+        return;
+    }
     const QByteArray response_data = QJsonDocument(response).toJson(QJsonDocument::Compact);
-    socket->write(response_data);
-    socket->write("\n");
-    socket->flush();
+    socket_guard->write(response_data);
+    socket_guard->write("\n");
+    socket_guard->flush();
 }
