@@ -410,7 +410,23 @@ void RasterizerVulkan::Clear(u32 layer_count) {
     texture_cache.UpdateRenderTargets(true);
     const Framebuffer* const framebuffer = texture_cache.GetFramebuffer();
     const VkExtent2D render_area = framebuffer->RenderArea();
-    scheduler.RequestRenderpass(framebuffer);
+
+    constexpr bool ENABLE_DEFERRED_CLEAR = true;
+    const bool color_full_channels = regs.clear_surface.R && regs.clear_surface.G &&
+                                     regs.clear_surface.B && regs.clear_surface.A;
+    const bool stencil_partial = use_stencil && framebuffer->HasAspectStencilBit() &&
+                                 regs.stencil_front_mask != 0xFF && regs.stencil_front_mask != 0;
+    const bool ds_used = use_depth || use_stencil;
+    const bool ds_deferrable =
+        !ds_used || ((!framebuffer->HasAspectDepthBit() || use_depth) &&
+                     (!framebuffer->HasAspectStencilBit() || use_stencil) && !stencil_partial);
+    const bool can_defer_clear = ENABLE_DEFERRED_CLEAR && !regs.clear_control.use_scissor &&
+                                 regs.clear_surface.layer == 0 &&
+                                 !scheduler.IsRenderPassActive() &&
+                                 (!use_color || color_full_channels) && ds_deferrable;
+    if (!can_defer_clear) {
+        scheduler.RequestRenderpass(framebuffer);
+    }
 
     query_cache.NotifySegment(true);
     query_cache.CounterEnable(VideoCommon::QueryType::ZPassPixelCount64, maxwell3d->regs.zpass_pixel_count_enable);
@@ -494,15 +510,19 @@ void RasterizerVulkan::Clear(u32 layer_count) {
                 clear_value.color.int32[i] = s32(f32(s64(int_size - 1) << 1) * (regs.clear_color[i] - 0.5f));
         }
 
-        if (regs.clear_surface.R && regs.clear_surface.G && regs.clear_surface.B && regs.clear_surface.A) {
-            scheduler.Record([color_attachment, clear_value, clear_rect](vk::CommandBuffer cmdbuf) {
-                const VkClearAttachment attachment{
-                    .aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
-                    .colorAttachment = color_attachment,
-                    .clearValue = clear_value,
-                };
-                cmdbuf.ClearAttachments(attachment, clear_rect);
-            });
+        if (color_full_channels) {
+            if (can_defer_clear) {
+                scheduler.DeferColorClear(framebuffer, color_attachment, clear_value);
+            } else {
+                scheduler.Record([color_attachment, clear_value, clear_rect](vk::CommandBuffer cmdbuf) {
+                    const VkClearAttachment attachment{
+                        .aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
+                        .colorAttachment = color_attachment,
+                        .clearValue = clear_value,
+                    };
+                    cmdbuf.ClearAttachments(attachment, clear_rect);
+                });
+            }
         } else {
             u8 color_mask = u8(regs.clear_surface.R | regs.clear_surface.G << 1 | regs.clear_surface.B << 2 | regs.clear_surface.A << 3);
             Region2D dst_region = {
@@ -536,6 +556,11 @@ void RasterizerVulkan::Clear(u32 layer_count) {
         blit_image.ClearDepthStencil(framebuffer, use_depth, regs.clear_depth,
                                      u8(regs.stencil_front_mask), regs.clear_stencil,
                                      regs.stencil_front_func_mask, dst_region);
+    } else if (can_defer_clear) {
+        VkClearValue ds_value{};
+        ds_value.depthStencil.depth = regs.clear_depth;
+        ds_value.depthStencil.stencil = regs.clear_stencil;
+        scheduler.DeferDepthStencilClear(framebuffer, ds_value);
     } else {
         scheduler.Record([clear_depth = regs.clear_depth, clear_stencil = regs.clear_stencil,
                           clear_rect, aspect_flags](vk::CommandBuffer cmdbuf) {
@@ -569,13 +594,20 @@ void RasterizerVulkan::DispatchCompute() {
         const auto [buffer, offset] =
             buffer_cache.ObtainBuffer(*indirect_address, 12, sync_info, post_op);
         scheduler.RequestOutsideRenderPassOperationContext();
-        scheduler.Record([indirect_buffer = buffer->Handle(),
+        scheduler.Record([pipeline, indirect_buffer = buffer->Handle(),
                           indirect_offset = offset](vk::CommandBuffer cmdbuf) {
+            if (!pipeline->IsBound()) {
+                return;
+            }
             cmdbuf.DispatchIndirect(indirect_buffer, indirect_offset);
         });
         return;
     }
     const std::array<u32, 3> dim{qmd.grid_dim_x, qmd.grid_dim_y, qmd.grid_dim_z};
+    const std::array<u32, 3> max_dim{device.GetMaxComputeWorkGroupCount()};
+    if (dim[0] > max_dim[0] || dim[1] > max_dim[1] || dim[2] > max_dim[2]) {
+        return;
+    }
     scheduler.RequestOutsideRenderPassOperationContext();
     static constexpr VkMemoryBarrier READ_BARRIER{
         .sType = VK_STRUCTURE_TYPE_MEMORY_BARRIER,
@@ -585,7 +617,12 @@ void RasterizerVulkan::DispatchCompute() {
     };
     scheduler.Record([](vk::CommandBuffer cmdbuf) { cmdbuf.PipelineBarrier(vk::PIPELINE_STAGE_GRAPHICS_COMPUTE_TRANSFER, VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
                                0, READ_BARRIER); });
-    scheduler.Record([dim](vk::CommandBuffer cmdbuf) { cmdbuf.Dispatch(dim[0], dim[1], dim[2]); });
+    scheduler.Record([pipeline, dim](vk::CommandBuffer cmdbuf) {
+        if (!pipeline->IsBound()) {
+            return;
+        }
+        cmdbuf.Dispatch(dim[0], dim[1], dim[2]);
+    });
 
     // Log compute dispatch
     if (GPU::Logging::IsActive() &&
@@ -1309,15 +1346,22 @@ void RasterizerVulkan::UpdateStencilFaces(Tegra::Engines::Maxwell3D::Regs& regs)
     }
     if (update_references) {
         [&]() {
+            bool changed;
             if (regs.stencil_two_side_enable) {
-                if (!state_tracker.CheckStencilReferenceFront(regs.stencil_front_ref) &&
-                    !state_tracker.CheckStencilReferenceBack(regs.stencil_back_ref)) {
-                    return;
-                }
+                const bool front_changed =
+                    state_tracker.CheckStencilReferenceFront(regs.stencil_front_ref);
+                const bool back_changed =
+                    state_tracker.CheckStencilReferenceBack(regs.stencil_back_ref);
+                changed = front_changed || back_changed;
             } else {
-                if (!state_tracker.CheckStencilReferenceFront(regs.stencil_front_ref)) {
-                    return;
-                }
+                const bool front_changed =
+                    state_tracker.CheckStencilReferenceFront(regs.stencil_front_ref);
+                const bool back_changed =
+                    state_tracker.CheckStencilReferenceBack(regs.stencil_front_ref);
+                changed = front_changed || back_changed;
+            }
+            if (!changed) {
+                return;
             }
             scheduler.Record([front_ref = regs.stencil_front_ref, back_ref = regs.stencil_back_ref,
                               two_sided = regs.stencil_two_side_enable](vk::CommandBuffer cmdbuf) {
@@ -1334,15 +1378,22 @@ void RasterizerVulkan::UpdateStencilFaces(Tegra::Engines::Maxwell3D::Regs& regs)
     }
     if (update_write_mask) {
         [&]() {
+            bool changed;
             if (regs.stencil_two_side_enable) {
-                if (!state_tracker.CheckStencilWriteMaskFront(regs.stencil_front_mask) &&
-                    !state_tracker.CheckStencilWriteMaskBack(regs.stencil_back_mask)) {
-                    return;
-                }
+                const bool front_changed =
+                    state_tracker.CheckStencilWriteMaskFront(regs.stencil_front_mask);
+                const bool back_changed =
+                    state_tracker.CheckStencilWriteMaskBack(regs.stencil_back_mask);
+                changed = front_changed || back_changed;
             } else {
-                if (!state_tracker.CheckStencilWriteMaskFront(regs.stencil_front_mask)) {
-                    return;
-                }
+                const bool front_changed =
+                    state_tracker.CheckStencilWriteMaskFront(regs.stencil_front_mask);
+                const bool back_changed =
+                    state_tracker.CheckStencilWriteMaskBack(regs.stencil_front_mask);
+                changed = front_changed || back_changed;
+            }
+            if (!changed) {
+                return;
             }
             scheduler.Record([front_write_mask = regs.stencil_front_mask,
                               back_write_mask = regs.stencil_back_mask,
@@ -1360,15 +1411,22 @@ void RasterizerVulkan::UpdateStencilFaces(Tegra::Engines::Maxwell3D::Regs& regs)
     }
     if (update_compare_masks) {
         [&]() {
+            bool changed;
             if (regs.stencil_two_side_enable) {
-                if (!state_tracker.CheckStencilCompareMaskFront(regs.stencil_front_func_mask) &&
-                    !state_tracker.CheckStencilCompareMaskBack(regs.stencil_back_func_mask)) {
-                    return;
-                }
+                const bool front_changed =
+                    state_tracker.CheckStencilCompareMaskFront(regs.stencil_front_func_mask);
+                const bool back_changed =
+                    state_tracker.CheckStencilCompareMaskBack(regs.stencil_back_func_mask);
+                changed = front_changed || back_changed;
             } else {
-                if (!state_tracker.CheckStencilCompareMaskFront(regs.stencil_front_func_mask)) {
-                    return;
-                }
+                const bool front_changed =
+                    state_tracker.CheckStencilCompareMaskFront(regs.stencil_front_func_mask);
+                const bool back_changed =
+                    state_tracker.CheckStencilCompareMaskBack(regs.stencil_front_func_mask);
+                changed = front_changed || back_changed;
+            }
+            if (!changed) {
+                return;
             }
             scheduler.Record([front_test_mask = regs.stencil_front_func_mask,
                               back_test_mask = regs.stencil_back_func_mask,

@@ -93,30 +93,27 @@ void Scheduler::DispatchWork() {
     }
 }
 
-void Scheduler::RequestRenderpass(const Framebuffer* framebuffer) {
-    const VkRenderPass renderpass = framebuffer->RenderPass();
+void Scheduler::BeginRenderPassImpl(const Framebuffer* framebuffer, VkRenderPass renderpass,
+                                    const VkClearValue* clear_values, u32 clear_value_count) {
     const VkFramebuffer framebuffer_handle = framebuffer->Handle();
     const VkExtent2D render_area = framebuffer->RenderArea();
-    if (renderpass == state.renderpass && framebuffer_handle == state.framebuffer &&
-        render_area.width == state.render_area.width &&
-        render_area.height == state.render_area.height) {
-        return;
-    }
-    EndRenderPass();
     state.renderpass = renderpass;
     state.framebuffer = framebuffer_handle;
     state.render_area = render_area;
 
-    // Log render pass begin
-    if (GPU::Logging::IsActive() &&
-        Settings::values.gpu_log_vulkan_calls.GetValue()) {
-        const std::string render_pass_info = fmt::format(
-            "renderArea={}x{}, numImages={}",
-            render_area.width, render_area.height, framebuffer->NumImages());
+    if (GPU::Logging::IsActive() && Settings::values.gpu_log_vulkan_calls.GetValue()) {
+        const std::string render_pass_info =
+            fmt::format("renderArea={}x{}, numImages={}", render_area.width, render_area.height,
+                        framebuffer->NumImages());
         GPU::Logging::GPULogger::GetInstance().LogRenderPassBegin(render_pass_info);
     }
 
-    Record([renderpass, framebuffer_handle, render_area](vk::CommandBuffer cmdbuf) {
+    std::array<VkClearValue, 9> values{};
+    for (u32 i = 0; i < clear_value_count && i < values.size(); ++i) {
+        values[i] = clear_values[i];
+    }
+    Record([renderpass, framebuffer_handle, render_area, values, clear_value_count](
+               vk::CommandBuffer cmdbuf) {
         const VkRenderPassBeginInfo renderpass_bi{
             .sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO,
             .pNext = nullptr,
@@ -127,14 +124,88 @@ void Scheduler::RequestRenderpass(const Framebuffer* framebuffer) {
                     .offset = {.x = 0, .y = 0},
                     .extent = render_area,
                 },
-            .clearValueCount = 0,
-            .pClearValues = nullptr,
+            .clearValueCount = clear_value_count,
+            .pClearValues = clear_value_count != 0 ? values.data() : nullptr,
         };
         cmdbuf.BeginRenderPass(renderpass_bi, VK_SUBPASS_CONTENTS_INLINE);
     });
     num_renderpass_images = framebuffer->NumImages();
     renderpass_images = framebuffer->Images();
     renderpass_image_ranges = framebuffer->ImageRanges();
+}
+
+void Scheduler::RealizeDeferredClear() {
+    if (deferred_clear.framebuffer == nullptr) {
+        return;
+    }
+    const DeferredClear dc = deferred_clear;
+    deferred_clear = {};
+
+    std::array<VkClearValue, 9> clear_values{};
+    u32 count = 0;
+    const RenderPassKey& base = dc.framebuffer->RenderPassKeyBase();
+    for (u32 slot = 0; slot < 8; ++slot) {
+        if (base.color_formats[slot] == VideoCore::Surface::PixelFormat::Invalid) {
+            continue;
+        }
+        clear_values[count++] = dc.color_values[slot];
+    }
+    if (base.depth_format != VideoCore::Surface::PixelFormat::Invalid) {
+        clear_values[count++] = dc.depth_stencil_value;
+    }
+    const u32 color_discard_mask =
+        dc.framebuffer->DiscardsMsaaColor() ? dc.color_clear_mask : 0u;
+    const VkRenderPass renderpass = dc.framebuffer->RenderPassVariant(
+        dc.color_clear_mask, dc.depth_stencil, color_discard_mask);
+    EndRenderPass();
+    BeginRenderPassImpl(dc.framebuffer, renderpass, clear_values.data(), count);
+}
+
+bool Scheduler::DeferColorClear(const Framebuffer* framebuffer, u32 rt_slot,
+                                const VkClearValue& value) {
+    if (IsRenderPassActive()) {
+        return false;
+    }
+    if (deferred_clear.framebuffer != nullptr && deferred_clear.framebuffer != framebuffer) {
+        RealizeDeferredClear();
+        EndRenderPass();
+    }
+    deferred_clear.framebuffer = framebuffer;
+    deferred_clear.color_clear_mask |= 1u << rt_slot;
+    deferred_clear.color_values[rt_slot] = value;
+    return true;
+}
+
+bool Scheduler::DeferDepthStencilClear(const Framebuffer* framebuffer, const VkClearValue& value) {
+    if (IsRenderPassActive()) {
+        return false;
+    }
+    if (deferred_clear.framebuffer != nullptr && deferred_clear.framebuffer != framebuffer) {
+        RealizeDeferredClear();
+        EndRenderPass();
+    }
+    deferred_clear.framebuffer = framebuffer;
+    deferred_clear.depth_stencil = true;
+    deferred_clear.depth_stencil_value = value;
+    return true;
+}
+
+void Scheduler::RequestRenderpass(const Framebuffer* framebuffer) {
+    if (deferred_clear.framebuffer == framebuffer) {
+        RealizeDeferredClear();
+        return;
+    }
+    const VkRenderPass renderpass = framebuffer->RenderPass();
+    const VkFramebuffer framebuffer_handle = framebuffer->Handle();
+    const VkExtent2D render_area = framebuffer->RenderArea();
+    if (renderpass == state.renderpass && framebuffer_handle == state.framebuffer &&
+        render_area.width == state.render_area.width &&
+        render_area.height == state.render_area.height) {
+        return;
+    }
+    // Ends any active pass and realizes a deferred clear
+    EndRenderPass();
+    BeginRenderPassImpl(framebuffer, renderpass, nullptr, 0);
 }
 
 void Scheduler::RequestOutsideRenderPassOperationContext() {
@@ -308,6 +379,7 @@ void Scheduler::EndPendingOperations() {
 
 void Scheduler::EndRenderPass()
     {
+        RealizeDeferredClear();
         if (!state.renderpass) {
             return;
         }

@@ -12,6 +12,7 @@
 
 #include "shader_recompiler/shader_info.h"
 #include "video_core/renderer_vulkan/vk_compute_pass.h"
+#include "video_core/renderer_vulkan/vk_render_pass_cache.h"
 #include "video_core/renderer_vulkan/vk_staging_buffer_pool.h"
 #include "video_core/texture_cache/image_view_base.h"
 #include "video_core/vulkan_common/vulkan_memory_allocator.h"
@@ -87,7 +88,7 @@ public:
     }
 
     bool CanUploadMSAA() const noexcept {
-        return msaa_copy_pass.operator bool();
+        return true;
     }
 
     void AccelerateImageUpload(Image&, const StagingBufferRef&,
@@ -110,6 +111,24 @@ public:
 
     [[nodiscard]] VkBuffer GetTemporaryBuffer(size_t needed_size);
 
+    struct ResolveShadow {
+        vk::Image image;
+        vk::ImageView view;
+        VkFormat format = VK_FORMAT_UNDEFINED;
+        VkExtent2D extent{};
+        u32 layers = 0;
+        bool up_to_date = false;
+    };
+
+    [[nodiscard]] VkImageView GetOrCreateResolveShadow(VkImage msaa_image, VkFormat format,
+                                                       VkExtent2D extent, u32 layers);
+
+    [[nodiscard]] const ResolveShadow* GetValidResolveShadow(VkImage msaa_image) const;
+
+    void InvalidateResolveShadow(VkImage msaa_image);
+
+    void EraseResolveShadow(VkImage msaa_image);
+
     std::span<const VkFormat> ViewFormats(PixelFormat format) {
         return view_formats[static_cast<std::size_t>(format)];
     }
@@ -130,12 +149,13 @@ public:
     std::optional<ASTCDecoderPass> astc_decoder_pass;
 
     std::optional<BlockLinearUnswizzle3DPass> bl3d_unswizzle_pass;
-    std::optional<MSAACopyPass> msaa_copy_pass;
     const Settings::ResolutionScalingInfo& resolution;
     std::array<std::vector<VkFormat>, VideoCore::Surface::MaxPixelFormat> view_formats;
 
     static constexpr size_t indexing_slots = 8 * sizeof(size_t);
     std::array<vk::Buffer, indexing_slots> buffers{};
+    std::vector<std::pair<u64, vk::Image>> pending_msaa_images;
+    ankerl::unordered_dense::map<VkImage, ResolveShadow> resolve_shadows;
 };
 
 class Framebuffer {
@@ -165,6 +185,13 @@ public:
     [[nodiscard]] VkRenderPass RenderPass() const noexcept {
         return renderpass;
     }
+
+    [[nodiscard]] const RenderPassKey& RenderPassKeyBase() const noexcept {
+        return render_pass_key;
+    }
+
+    [[nodiscard]] VkRenderPass RenderPassVariant(u32 color_clear_mask, bool depth_stencil_clear,
+                                                 u32 color_discard_mask) const;
 
     [[nodiscard]] VkExtent2D RenderArea() const noexcept {
         return render_area;
@@ -206,6 +233,18 @@ public:
         return is_rescaled;
     }
 
+    [[nodiscard]] bool HasResolveColor() const noexcept {
+        return !resolve_images.empty();
+    }
+
+    [[nodiscard]] VkImage ResolveColorImage(size_t index) const noexcept {
+        return index < resolve_images.size() ? *resolve_images[index] : VK_NULL_HANDLE;
+    }
+
+    [[nodiscard]] bool DiscardsMsaaColor() const noexcept {
+        return discard_msaa_color;
+    }
+
 private:
     vk::Framebuffer framebuffer;
     VkRenderPass renderpass{};
@@ -219,6 +258,11 @@ private:
     bool has_depth{};
     bool has_stencil{};
     bool is_rescaled{};
+    std::vector<vk::Image> resolve_images;
+    std::vector<vk::ImageView> resolve_image_views;
+    RenderPassKey render_pass_key{};
+    RenderPassCache* render_pass_cache{nullptr};
+    bool discard_msaa_color{};
 };
 
 class Image : public VideoCommon::ImageBase {

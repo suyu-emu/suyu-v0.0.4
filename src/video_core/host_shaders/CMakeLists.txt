@@ -17,6 +17,9 @@ set(SHADER_FILES
     ${CMAKE_CURRENT_SOURCE_DIR}/astc_decoder.comp
     ${CMAKE_CURRENT_SOURCE_DIR}/blit_color_float.frag
     ${CMAKE_CURRENT_SOURCE_DIR}/block_linear_unswizzle_2d.comp
+    ${CMAKE_CURRENT_SOURCE_DIR}/blit_color_msaa.frag
+    ${CMAKE_CURRENT_SOURCE_DIR}/blit_depth_msaa.frag
+    ${CMAKE_CURRENT_SOURCE_DIR}/blit_depth_stencil_msaa.frag
     ${CMAKE_CURRENT_SOURCE_DIR}/block_linear_unswizzle_3d.comp
     ${CMAKE_CURRENT_SOURCE_DIR}/block_linear_unswizzle_3d_bcn.comp
     ${CMAKE_CURRENT_SOURCE_DIR}/convert_abgr8_to_d24s8.frag
@@ -26,7 +29,9 @@ set(SHADER_FILES
     ${CMAKE_CURRENT_SOURCE_DIR}/convert_depth_to_float.frag
     ${CMAKE_CURRENT_SOURCE_DIR}/convert_float_to_depth.frag
     ${CMAKE_CURRENT_SOURCE_DIR}/convert_msaa_to_non_msaa.comp
+    ${CMAKE_CURRENT_SOURCE_DIR}/convert_msaa_to_non_msaa.frag
     ${CMAKE_CURRENT_SOURCE_DIR}/convert_non_msaa_to_msaa.comp
+    ${CMAKE_CURRENT_SOURCE_DIR}/convert_non_msaa_to_msaa.frag
     ${CMAKE_CURRENT_SOURCE_DIR}/convert_s8d24_to_abgr8.frag
     ${CMAKE_CURRENT_SOURCE_DIR}/full_screen_triangle.vert
     ${CMAKE_CURRENT_SOURCE_DIR}/fxaa.frag

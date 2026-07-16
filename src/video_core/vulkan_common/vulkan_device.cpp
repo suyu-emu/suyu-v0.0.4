@@ -504,8 +504,8 @@ Device::Device(VkInstance instance_, vk::PhysicalDevice physical_, VkSurfaceKHR 
     CollectToolingInfo();
 
     if (is_qualcomm) {
-        LOG_WARNING(Render_Vulkan, "Qualcomm drivers require scaled vertex format emulation");
         must_emulate_scaled_formats = true;
+        LOG_WARNING(Render_Vulkan, "Qualcomm drivers require scaled vertex format emulation.");
         LOG_WARNING(Render_Vulkan, "Qualcomm drivers have broken custom border color.");
         RemoveExtensionFeature(extensions.custom_border_color, features.custom_border_color,
                                VK_EXT_CUSTOM_BORDER_COLOR_EXTENSION_NAME);
@@ -523,11 +523,10 @@ Device::Device(VkInstance instance_, vk::PhysicalDevice physical_, VkSurfaceKHR 
         features.shader_atomic_int64.shaderBufferInt64Atomics = false;
         features.shader_atomic_int64.shaderSharedInt64Atomics = false;
         features.features.shaderInt64 = false;
-        LOG_WARNING(Render_Vulkan, "Qualcomm drivers have broken storage buffer access.");
-        features.bit8_storage.storageBuffer8BitAccess = false;
-        features.bit8_storage.uniformAndStorageBuffer8BitAccess = false;
-        features.bit16_storage.storageBuffer16BitAccess = false;
-        features.bit16_storage.uniformAndStorageBuffer16BitAccess = false;
+        LOG_WARNING(Render_Vulkan, "Qualcomm drivers have broken workgroup memory explicit layout.");
+        RemoveExtensionFeature(extensions.workgroup_memory_explicit_layout,
+                               features.workgroup_memory_explicit_layout,
+                               VK_KHR_WORKGROUP_MEMORY_EXPLICIT_LAYOUT_EXTENSION_NAME);
 
 #if defined(__ANDROID__) && defined(ARCHITECTURE_arm64)
         // BCn patching only safe on Android 9+ (API 28+). Older versions crash on driver load.
@@ -1356,10 +1355,7 @@ void Device::RemoveUnsuitableExtensions() {
 
     // VK_KHR_workgroup_memory_explicit_layout
     extensions.workgroup_memory_explicit_layout =
-        features.features.shaderInt16 &&
         features.workgroup_memory_explicit_layout.workgroupMemoryExplicitLayout &&
-        features.workgroup_memory_explicit_layout.workgroupMemoryExplicitLayout8BitAccess &&
-        features.workgroup_memory_explicit_layout.workgroupMemoryExplicitLayout16BitAccess &&
         features.workgroup_memory_explicit_layout.workgroupMemoryExplicitLayoutScalarBlockLayout;
     RemoveExtensionFeatureIfUnsuitable(extensions.workgroup_memory_explicit_layout,
                                        features.workgroup_memory_explicit_layout,

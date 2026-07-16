@@ -305,6 +305,19 @@ public:
         return properties.driver.driverID;
     }
 
+    /// Returns true for tile-based deferred renderers.
+    bool IsTiler() const {
+        switch (GetDriverID()) {
+        case VK_DRIVER_ID_QUALCOMM_PROPRIETARY:
+        case VK_DRIVER_ID_ARM_PROPRIETARY:
+        case VK_DRIVER_ID_SAMSUNG_PROPRIETARY:
+        case VK_DRIVER_ID_MESA_TURNIP:
+            return true;
+        default:
+            return false;
+        }
+    }
+
     bool ShouldBoostClocks() const;
 
     /// Returns uniform buffer alignment requirement.
@@ -320,6 +333,11 @@ public:
     /// Returns the maximum range for storage buffers.
     VkDeviceSize GetMaxStorageBufferRange() const {
         return properties.properties.limits.maxStorageBufferRange;
+    }
+
+    std::array<u32, 3> GetMaxComputeWorkGroupCount() const {
+        const auto& count = properties.properties.limits.maxComputeWorkGroupCount;
+        return {count[0], count[1], count[2]};
     }
 
     /// Returns the maximum size for push constants.
@@ -372,6 +390,18 @@ FN_MAX_LIMIT_LIST
 
     bool IsSampledImageArrayNonUniformIndexingSupported() const {
         return features.descriptor_indexing.shaderSampledImageArrayNonUniformIndexing;
+    }
+
+    bool IsStorageImageArrayNonUniformIndexingSupported() const {
+        return features.descriptor_indexing.shaderStorageImageArrayNonUniformIndexing;
+    }
+
+    bool IsUniformTexelBufferArrayNonUniformIndexingSupported() const {
+        return features.descriptor_indexing.shaderUniformTexelBufferArrayNonUniformIndexing;
+    }
+
+    bool IsStorageTexelBufferArrayNonUniformIndexingSupported() const {
+        return features.descriptor_indexing.shaderStorageTexelBufferArrayNonUniformIndexing;
     }
 
     /// Returns true if the device supports float64 natively.
@@ -511,6 +541,18 @@ FN_MAX_LIMIT_LIST
     /// Returns true if the device supports VK_KHR_workgroup_memory_explicit_layout.
     bool IsKhrWorkgroupMemoryExplicitLayoutSupported() const {
         return extensions.workgroup_memory_explicit_layout;
+    }
+
+    bool IsWorkgroupMemoryExplicitLayout8BitAccessSupported() const {
+        return extensions.workgroup_memory_explicit_layout &&
+               features.workgroup_memory_explicit_layout.workgroupMemoryExplicitLayout8BitAccess &&
+               features.shader_float16_int8.shaderInt8;
+    }
+
+    bool IsWorkgroupMemoryExplicitLayout16BitAccessSupported() const {
+        return extensions.workgroup_memory_explicit_layout &&
+               features.workgroup_memory_explicit_layout.workgroupMemoryExplicitLayout16BitAccess &&
+               features.features.shaderInt16;
     }
 
     /// Returns true if the device supports VK_KHR_image_format_list.
@@ -763,6 +805,11 @@ FN_MAX_LIMIT_LIST
     /// Returns true if the device supports VK_KHR_shader_atomic_int64.
     bool IsExtShaderAtomicInt64Supported() const {
         return extensions.shader_atomic_int64;
+    }
+
+    bool IsSharedInt64AtomicsSupported() const {
+        return extensions.shader_atomic_int64 &&
+               features.shader_atomic_int64.shaderSharedInt64Atomics;
     }
 
     bool IsExtConditionalRendering() const {

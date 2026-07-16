@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2021 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -181,6 +184,72 @@ void ShiftRightArithmetic64To32(IR::Block& block, IR::Inst& inst) {
     inst.ReplaceUsesWith(ir.CompositeConstruct(ret_lo, ret_hi));
 }
 
+void IAbs64To32(IR::Block& block, IR::Inst& inst) {
+    IR::IREmitter ir(block, IR::Block::InstructionList::s_iterator_to(inst));
+    const auto [lo, hi]{Unpack(ir, inst.Arg(0))};
+
+    const IR::U32 neg_lo{ir.IAdd(ir.BitwiseNot(lo), ir.Imm32(1))};
+    const IR::U32 carry{IR::U32{ir.Select(ir.GetCarryFromOp(neg_lo), ir.Imm32(1u), ir.Imm32(0u))}};
+    const IR::U32 neg_hi{ir.IAdd(ir.BitwiseNot(hi), carry)};
+
+    const IR::U1 is_negative{ir.INotEqual(ir.BitwiseAnd(hi, ir.Imm32(0x80000000u)), ir.Imm32(0u))};
+    const IR::U32 ret_lo{IR::U32{ir.Select(is_negative, neg_lo, lo)}};
+    const IR::U32 ret_hi{IR::U32{ir.Select(is_negative, neg_hi, hi)}};
+    inst.ReplaceUsesWith(ir.CompositeConstruct(ret_lo, ret_hi));
+}
+
+void SelectU64To32(IR::Block& block, IR::Inst& inst) {
+    IR::IREmitter ir(block, IR::Block::InstructionList::s_iterator_to(inst));
+    const IR::U1 condition{inst.Arg(0)};
+    const auto [true_lo, true_hi]{Unpack(ir, inst.Arg(1))};
+    const auto [false_lo, false_hi]{Unpack(ir, inst.Arg(2))};
+
+    const IR::U32 ret_lo{IR::U32{ir.Select(condition, true_lo, false_lo)}};
+    const IR::U32 ret_hi{IR::U32{ir.Select(condition, true_hi, false_hi)}};
+    inst.ReplaceUsesWith(ir.CompositeConstruct(ret_lo, ret_hi));
+}
+
+void UndefU64To32(IR::Block& block, IR::Inst& inst) {
+    IR::IREmitter ir(block, IR::Block::InstructionList::s_iterator_to(inst));
+    inst.ReplaceUsesWith(ir.CompositeConstruct(ir.Imm32(0u), ir.Imm32(0u)));
+}
+
+void ConvertU64U32To32(IR::Block& block, IR::Inst& inst) {
+    IR::IREmitter ir(block, IR::Block::InstructionList::s_iterator_to(inst));
+    inst.ReplaceUsesWith(ir.CompositeConstruct(IR::U32{inst.Arg(0)}, ir.Imm32(0u)));
+}
+
+void ConvertU32U64To32(IR::Block& block, IR::Inst& inst) {
+    IR::IREmitter ir(block, IR::Block::InstructionList::s_iterator_to(inst));
+    inst.ReplaceUsesWith(Unpack(ir, inst.Arg(0)).first);
+}
+
+void IntToFloat64To32(IR::Block& block, IR::Inst& inst, bool is_signed, size_t dest_bitsize) {
+    IR::IREmitter ir(block, IR::Block::InstructionList::s_iterator_to(inst));
+    const auto [lo, hi]{Unpack(ir, inst.Arg(0))};
+    const IR::F32 low{ir.ConvertUToF(32, 32, lo)};
+    const IR::F32 high{is_signed ? IR::F32{ir.ConvertSToF(32, 32, hi)}
+                                 : IR::F32{ir.ConvertUToF(32, 32, hi)}};
+    const IR::F32 combined{ir.FPFma(high, ir.Imm32(4294967296.0f), low)};
+    if (dest_bitsize == 32) {
+        inst.ReplaceUsesWith(combined);
+    } else {
+        inst.ReplaceUsesWith(ir.FPConvert(dest_bitsize, combined));
+    }
+}
+
+void FloatToInt64To32(IR::Block& block, IR::Inst& inst, bool is_signed, size_t src_bitsize) {
+    IR::IREmitter ir(block, IR::Block::InstructionList::s_iterator_to(inst));
+    const IR::F32 value{src_bitsize == 32 ? IR::F32{inst.Arg(0)}
+                                          : IR::F32{ir.FPConvert(32, IR::F16F32F64{inst.Arg(0)})}};
+    const IR::F32 high_f{ir.FPFloor(ir.FPMul(value, ir.Imm32(1.0f / 4294967296.0f)))};
+    const IR::U32 hi{is_signed ? IR::U32{ir.ConvertFToS(32, high_f)}
+                               : IR::U32{ir.ConvertFToU(32, high_f)}};
+    const IR::F32 low_f{ir.FPFma(high_f, ir.FPNeg(ir.Imm32(4294967296.0f)), value)};
+    const IR::U32 lo{IR::U32{ir.ConvertFToU(32, low_f)}};
+    inst.ReplaceUsesWith(ir.CompositeConstruct(lo, hi));
+}
+
 void Lower(IR::Block& block, IR::Inst& inst) {
     switch (inst.GetOpcode()) {
     case IR::Opcode::PackUint2x32:
@@ -218,6 +287,62 @@ void Lower(IR::Block& block, IR::Inst& inst) {
         return inst.ReplaceOpcode(IR::Opcode::GlobalAtomicXor32x2);
     case IR::Opcode::GlobalAtomicExchange64:
         return inst.ReplaceOpcode(IR::Opcode::GlobalAtomicExchange32x2);
+    case IR::Opcode::StorageAtomicIAdd64:
+        return inst.ReplaceOpcode(IR::Opcode::StorageAtomicIAdd32x2);
+    case IR::Opcode::StorageAtomicSMin64:
+        return inst.ReplaceOpcode(IR::Opcode::StorageAtomicSMin32x2);
+    case IR::Opcode::StorageAtomicUMin64:
+        return inst.ReplaceOpcode(IR::Opcode::StorageAtomicUMin32x2);
+    case IR::Opcode::StorageAtomicSMax64:
+        return inst.ReplaceOpcode(IR::Opcode::StorageAtomicSMax32x2);
+    case IR::Opcode::StorageAtomicUMax64:
+        return inst.ReplaceOpcode(IR::Opcode::StorageAtomicUMax32x2);
+    case IR::Opcode::StorageAtomicAnd64:
+        return inst.ReplaceOpcode(IR::Opcode::StorageAtomicAnd32x2);
+    case IR::Opcode::StorageAtomicOr64:
+        return inst.ReplaceOpcode(IR::Opcode::StorageAtomicOr32x2);
+    case IR::Opcode::StorageAtomicXor64:
+        return inst.ReplaceOpcode(IR::Opcode::StorageAtomicXor32x2);
+    case IR::Opcode::StorageAtomicExchange64:
+        return inst.ReplaceOpcode(IR::Opcode::StorageAtomicExchange32x2);
+    case IR::Opcode::BitCastU64F64:
+        return inst.ReplaceOpcode(IR::Opcode::UnpackDouble2x32);
+    case IR::Opcode::BitCastF64U64:
+        return inst.ReplaceOpcode(IR::Opcode::PackDouble2x32);
+    case IR::Opcode::UndefU64:
+        return UndefU64To32(block, inst);
+    case IR::Opcode::SelectU64:
+        return SelectU64To32(block, inst);
+    case IR::Opcode::IAbs64:
+        return IAbs64To32(block, inst);
+    case IR::Opcode::ConvertU64U32:
+        return ConvertU64U32To32(block, inst);
+    case IR::Opcode::ConvertU32U64:
+        return ConvertU32U64To32(block, inst);
+    case IR::Opcode::ConvertS64F16:
+        return FloatToInt64To32(block, inst, true, 16);
+    case IR::Opcode::ConvertS64F32:
+        return FloatToInt64To32(block, inst, true, 32);
+    case IR::Opcode::ConvertS64F64:
+        return FloatToInt64To32(block, inst, true, 64);
+    case IR::Opcode::ConvertU64F16:
+        return FloatToInt64To32(block, inst, false, 16);
+    case IR::Opcode::ConvertU64F32:
+        return FloatToInt64To32(block, inst, false, 32);
+    case IR::Opcode::ConvertU64F64:
+        return FloatToInt64To32(block, inst, false, 64);
+    case IR::Opcode::ConvertF16S64:
+        return IntToFloat64To32(block, inst, true, 16);
+    case IR::Opcode::ConvertF32S64:
+        return IntToFloat64To32(block, inst, true, 32);
+    case IR::Opcode::ConvertF64S64:
+        return IntToFloat64To32(block, inst, true, 64);
+    case IR::Opcode::ConvertF16U64:
+        return IntToFloat64To32(block, inst, false, 16);
+    case IR::Opcode::ConvertF32U64:
+        return IntToFloat64To32(block, inst, false, 32);
+    case IR::Opcode::ConvertF64U64:
+        return IntToFloat64To32(block, inst, false, 64);
     default:
         break;
     }

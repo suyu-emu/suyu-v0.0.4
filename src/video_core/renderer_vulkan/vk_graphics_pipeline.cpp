@@ -124,8 +124,8 @@ PixelFormat DecodeFormat(u8 encoded_format) {
     return PixelFormatFromRenderTargetFormat(format);
 }
 
-RenderPassKey MakeRenderPassKey(const FixedPipelineState& state) {
-    RenderPassKey key;
+RenderPassKey MakeRenderPassKey(const FixedPipelineState& state, const Device& device) {
+    RenderPassKey key{};
     std::ranges::transform(state.color_formats, key.color_formats.begin(), DecodeFormat);
     if (state.depth_enabled != 0) {
         const auto depth_format{static_cast<Tegra::DepthFormat>(state.depth_format.Value())};
@@ -134,6 +134,11 @@ RenderPassKey MakeRenderPassKey(const FixedPipelineState& state) {
         key.depth_format = PixelFormat::Invalid;
     }
     key.samples = MaxwellToVK::MsaaMode(state.msaa_mode);
+    const bool has_color = std::ranges::any_of(key.color_formats, [](PixelFormat format) {
+        return format != PixelFormat::Invalid;
+    });
+    key.resolve_color =
+        key.samples != VK_SAMPLE_COUNT_1_BIT && has_color && device.IsTiler();
     return key;
 }
 
@@ -285,9 +290,20 @@ GraphicsPipeline::GraphicsPipeline(
         descriptor_update_template =
             builder.CreateTemplate(set_layout, *pipeline_layout, uses_push_descriptor);
 
-        const VkRenderPass render_pass{render_pass_cache.Get(MakeRenderPassKey(key.state))};
+        const VkRenderPass render_pass{render_pass_cache.Get(MakeRenderPassKey(key.state, device))};
         Validate();
-        MakePipeline(render_pass);
+        try {
+            MakePipeline(render_pass);
+        } catch (const vk::Exception& exception) {
+            LOG_CRITICAL(Render_Vulkan, "Graphics pipeline build failed: {}", exception.what());
+            std::scoped_lock lock{build_mutex};
+            is_built = true;
+            build_condvar.notify_one();
+            if (shader_notify) {
+                shader_notify->MarkShaderComplete();
+            }
+            return;
+        }
         if (pipeline_statistics) {
             pipeline_statistics->Collect(device, *pipeline);
         }
@@ -519,6 +535,9 @@ bool GraphicsPipeline::ConfigureImpl(bool is_indexed) {
     texture_cache.UpdateRenderTargets(false);
     texture_cache.CheckFeedbackLoop(std::span<const VideoCommon::ImageViewInOut>{views.data(),
                                                                                  views.size()});
+    if (IsBuilt() && !pipeline) {
+        return false;
+    }
     ConfigureDraw(rescaling, render_area);
 
     return true;
@@ -551,6 +570,9 @@ void GraphicsPipeline::ConfigureDraw(const RescalingPushConstant& rescaling,
                       uses_render_area = render_area.uses_render_area,
                       render_area_data = render_area.words](vk::CommandBuffer cmdbuf) {
         if (bind_pipeline) {
+            if (!pipeline) {
+                return;
+            }
             cmdbuf.BindPipeline(VK_PIPELINE_BIND_POINT_GRAPHICS, *pipeline);
         }
         cmdbuf.PushConstants(*pipeline_layout, VK_SHADER_STAGE_ALL_GRAPHICS,

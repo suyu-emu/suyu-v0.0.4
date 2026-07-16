@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2021 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -15,7 +18,7 @@ Id SharedPointer(EmitContext& ctx, Id offset, u32 index_offset = 0) {
     if (index_offset > 0) {
         index = ctx.OpIAdd(ctx.U32[1], index, ctx.Const(index_offset));
     }
-    return ctx.profile.support_explicit_workgroup_layout
+    return ctx.uses_explicit_workgroup_layout
                ? ctx.OpAccessChain(ctx.shared_u32, ctx.shared_memory_u32, ctx.u32_zero_value, index)
                : ctx.OpAccessChain(ctx.shared_u32, ctx.shared_memory_u32, index);
 }
@@ -155,7 +158,7 @@ Id EmitSharedAtomicExchange32(EmitContext& ctx, Id offset, Id value) {
 }
 
 Id EmitSharedAtomicExchange64(EmitContext& ctx, Id offset, Id value) {
-    if (ctx.profile.support_int64_atomics && ctx.profile.support_explicit_workgroup_layout) {
+    if (ctx.profile.support_shared_int64_atomics && ctx.uses_explicit_workgroup_layout) {
         const Id shift_id{ctx.Const(3U)};
         const Id index{ctx.OpShiftRightArithmetic(ctx.U32[1], offset, shift_id)};
         const Id pointer{

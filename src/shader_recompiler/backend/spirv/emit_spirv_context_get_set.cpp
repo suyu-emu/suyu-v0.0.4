@@ -624,12 +624,14 @@ Id EmitRenderArea(EmitContext& ctx) {
 }
 
 Id EmitLoadLocal(EmitContext& ctx, Id word_offset) {
-    const Id pointer{ctx.OpAccessChain(ctx.private_u32, ctx.local_memory, word_offset)};
+    const Id pointer{
+        ctx.OpAccessChain(ctx.private_u32, ctx.local_memory, word_offset, ctx.Const(0U))};
     return ctx.OpLoad(ctx.U32[1], pointer);
 }
 
 void EmitWriteLocal(EmitContext& ctx, Id word_offset, Id value) {
-    const Id pointer{ctx.OpAccessChain(ctx.private_u32, ctx.local_memory, word_offset)};
+    const Id pointer{
+        ctx.OpAccessChain(ctx.private_u32, ctx.local_memory, word_offset, ctx.Const(0U))};
     ctx.OpStore(pointer, value);
 }
 

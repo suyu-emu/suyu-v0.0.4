@@ -48,6 +48,10 @@ public:
     void Configure(Tegra::Engines::KeplerCompute& kepler_compute, Tegra::MemoryManager& gpu_memory,
                    Scheduler& scheduler, BufferCache& buffer_cache, TextureCache& texture_cache);
 
+    bool IsBound() const noexcept {
+        return static_cast<bool>(pipeline);
+    }
+
 private:
     const Device& device;
     vk::PipelineCache& pipeline_cache;
