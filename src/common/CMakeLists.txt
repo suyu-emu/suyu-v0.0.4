@@ -40,11 +40,15 @@ add_library(
     container_hash.h
     demangle.cpp
     demangle.h
+    detached_tasks.cpp
+    detached_tasks.h
     device_power_state.cpp
     device_power_state.h
     div_ceil.h
     dynamic_library.cpp
     dynamic_library.h
+    nvidia_flags.cpp
+    nvidia_flags.h
     elf.h
     error.cpp
     error.h
