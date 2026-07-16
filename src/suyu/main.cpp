@@ -1014,7 +1014,8 @@ void GMainWindow::WebBrowserOpenWebPage(const std::string& main_url,
             while (!future.isFinished()) {
                 QCoreApplication::processEvents();
 
-                std::this_thread::itional_args);
+                std::this_thread::sleep_for(std::chrono::milliseconds(16));
+            }
         }
 
         if (render_window->IsLoadingComplete()) {
