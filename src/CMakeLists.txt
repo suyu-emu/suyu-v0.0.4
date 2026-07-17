@@ -252,6 +252,7 @@ if (YUZU_STATIC_ROOM)
     return()
 endif()
 
+add_subdirectory(nintendo_library)
 add_subdirectory(core)
 add_subdirectory(audio_core)
 add_subdirectory(video_core)
