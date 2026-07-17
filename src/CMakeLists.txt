@@ -274,6 +274,10 @@ if (ENABLE_QT)
     add_subdirectory(suyu)
 endif()
 
+if (SUYU_BUILD_LIBRETRO_CORE)
+    add_subdirectory(libretro_core)
+endif()
+
 if (ENABLE_WEB_SERVICE)
     add_subdirectory(web_service)
 endif()
