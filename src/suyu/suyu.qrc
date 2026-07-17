@@ -8,6 +8,7 @@ SPDX-License-Identifier: GPL-2.0-or-later
         <file alias="suyu.ico">../../dist/suyu.ico</file>
         <file alias="suyu.svg">../../dist/suyu.svg</file>
         <file alias="suyu_logo.svg">../../dist/readme/suyu__Logo-Pill.svg</file>
+        <file alias="suyu_tile_mask.png">../../dist/suyu_tile_mask.png</file>
     </qresource>
     <qresource prefix="/audio">
         <file alias="suyu_loading.mp3">../../dist/suyu_loading.mp3</file>

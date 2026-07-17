@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 
 #include <algorithm>
+#include <array>
 #include <limits>
 #include <unordered_map>
 #include <QBuffer>
@@ -22,6 +23,7 @@
 #include <QVariantAnimation>
 #include "common/logging/log.h"
 #include "common/settings.h"
+#include "suyu/uisettings.h"
 #include "core/frontend/framebuffer_layout.h"
 #include "core/loader/loader.h"
 #include "suyu/loading_screen.h"
@@ -47,14 +49,13 @@
 namespace {
 
 constexpr char LOADING_MUSIC_RESOURCE[] = ":/audio/suyu_loading.mp3";
-constexpr bool LOADING_MUSIC_ENABLED = false;
 constexpr int LOADING_MUSIC_FADE_IN_MS = 420;
 constexpr int LOADING_MUSIC_FADE_OUT_MS = 320;
 constexpr qreal LOADING_MUSIC_VOLUME_SCALE = 0.25;
 constexpr qreal LOADING_MUSIC_VOLUME_CAP = 0.35;
 
 [[maybe_unused]] qreal GetLoadingMusicTargetVolume() {
-    if (Settings::values.audio_muted.GetValue()) {
+    if (Settings::values.audio_muted.GetValue() || !UISettings::values.enable_loading_music.GetValue()) {
         return 0.0;
     }
 
@@ -231,7 +232,7 @@ LoadingScreen::LoadingScreen(QWidget* parent)
     };
 
 #ifdef SUYU_USE_QT_MULTIMEDIA
-    if constexpr (LOADING_MUSIC_ENABLED) {
+    {
         QFile music_resource(QString::fromLatin1(LOADING_MUSIC_RESOURCE));
         if (music_resource.open(QIODevice::ReadOnly)) {
             loading_music_data_ = std::make_unique<QByteArray>(music_resource.readAll());
@@ -537,30 +538,37 @@ void LoadingScreen::paintEvent(QPaintEvent* event) {
     p.fillRect(r, bg);
 
     if (pattern_pixmap_.isNull()) {
-        const int tile_size = 180;
-        pattern_pixmap_ = QPixmap(tile_size, tile_size);
+        // Repeating red-purple-blue tiled suyu icon, replacing the old plain
+        // ring/pie decoration. suyu_tile_mask.png is a white-on-transparent
+        // alpha mask of the logo (see dist/suyu_tile_mask.png) so each tile
+        // can be tinted independently via CompositionMode_SourceIn.
+        QImage mask(QStringLiteral(":/img/suyu_tile_mask.png"));
+        const int tile_size = 130;
+        pattern_pixmap_ = QPixmap(tile_size * 3, tile_size);
         pattern_pixmap_.fill(Qt::transparent);
-        QPainter painter(&pattern_pixmap_);
-        painter.setRenderHint(QPainter::Antialiasing, true);
-        const QColor blue_ring(70, 130, 255, 55);
-        const QColor red_ring(245, 80, 110, 45);
-        for (int y = 32; y < tile_size; y += 64) {
-            for (int x = 32; x < tile_size; x += 64) {
-                const QRect outer(x - 20, y - 20, 40, 40);
-                painter.setPen(QPen((x + y) % 2 == 0 ? blue_ring : red_ring, 1.5));
-                painter.setBrush(Qt::NoBrush);
-                painter.drawEllipse(outer);
 
-                painter.setPen(Qt::NoPen);
-                painter.setBrush((x + y) % 2 == 0 ? QColor(70, 130, 255, 25)
-                                                  : QColor(245, 80, 110, 22));
-                painter.drawPie(outer, 35 * 16, 145 * 16);
-                painter.setBrush((x + y) % 2 == 0 ? QColor(245, 80, 110, 22)
-                                                  : QColor(70, 130, 255, 25));
-                painter.drawPie(outer, 215 * 16, 145 * 16);
+        if (!mask.isNull()) {
+            const QImage scaled_mask =
+                mask.scaled(tile_size, tile_size, Qt::KeepAspectRatio, Qt::SmoothTransformation);
+            static const std::array<QColor, 3> tints{
+                QColor(235, 70, 104, 130),  // red
+                QColor(170, 79, 192, 130),  // purple
+                QColor(64, 126, 255, 130),  // blue
+            };
+            QPainter painter(&pattern_pixmap_);
+            painter.setRenderHint(QPainter::Antialiasing, true);
+            for (int i = 0; i < 3; ++i) {
+                QImage tinted = scaled_mask.convertToFormat(QImage::Format_ARGB32_Premultiplied);
+                QPainter tint_painter(&tinted);
+                tint_painter.setCompositionMode(QPainter::CompositionMode_SourceIn);
+                tint_painter.fillRect(tinted.rect(), tints[i]);
+                tint_painter.end();
+                const QPoint offset(i * tile_size + (tile_size - tinted.width()) / 2,
+                                    (tile_size - tinted.height()) / 2);
+                painter.drawImage(offset, tinted);
             }
+            painter.end();
         }
-        painter.end();
     }
 
     const int tile_w = pattern_pixmap_.width();

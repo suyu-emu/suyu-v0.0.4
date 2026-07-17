@@ -125,6 +125,7 @@ struct Values {
                                       true,
                                       true};
     Setting<bool> disable_web_applet{linkage, true, "disable_web_applet", Category::Ui};
+    Setting<bool> enable_loading_music{linkage, true, "enable_loading_music", Category::Ui};
 
     // Discord RPC
     Setting<bool> enable_discord_presence{linkage, true, "enable_discord_presence", Category::Ui};

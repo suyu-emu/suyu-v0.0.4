@@ -126,6 +126,13 @@
          </widget>
         </item>
         <item>
+         <widget class="QCheckBox" name="enable_loading_music">
+          <property name="text">
+           <string>Play music on the loading screen</string>
+          </property>
+         </widget>
+        </item>
+        <item>
          <layout class="QHBoxLayout" name="game_icon_size_qhbox_layout_2">
           <item>
            <widget class="QLabel" name="game_icon_size_label">
