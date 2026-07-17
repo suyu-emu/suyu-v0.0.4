@@ -175,7 +175,12 @@ LoadingScreen::LoadingScreen(QWidget* parent)
     background_timer_ = new QTimer(this);
     background_timer_->setInterval(30);
     connect(background_timer_, &QTimer::timeout, this, [this] {
-        background_offset_ = (background_offset_ + 1) % 260;
+        // Wrap against the actual tile-strip width (set once the pattern is
+        // built in paintEvent) rather than a hardcoded constant, or the
+        // scroll jumps/discontinues every cycle and reads as the tiles
+        // warping/stretching.
+        const int wrap = pattern_pixmap_.isNull() ? 1 : pattern_pixmap_.width();
+        background_offset_ = (background_offset_ + 1) % wrap;
         update();
     });
     background_timer_->start();
@@ -543,7 +548,7 @@ void LoadingScreen::paintEvent(QPaintEvent* event) {
         // alpha mask of the logo (see dist/suyu_tile_mask.png) so each tile
         // can be tinted independently via CompositionMode_SourceIn.
         QImage mask(QStringLiteral(":/img/suyu_tile_mask.png"));
-        const int tile_size = 130;
+        const int tile_size = 84;
         pattern_pixmap_ = QPixmap(tile_size * 3, tile_size);
         pattern_pixmap_.fill(Qt::transparent);
 
@@ -574,7 +579,7 @@ void LoadingScreen::paintEvent(QPaintEvent* event) {
     const int tile_w = pattern_pixmap_.width();
     const int tile_h = pattern_pixmap_.height();
     p.setOpacity(0.9);
-    for (int y = -tile_h; y < r.height() * 0.58; y += tile_h) {
+    for (int y = -tile_h; y < r.height() * 0.72; y += tile_h) {
         for (int x = -background_offset_; x < r.width(); x += tile_w) {
             p.drawPixmap(x, y, pattern_pixmap_);
         }

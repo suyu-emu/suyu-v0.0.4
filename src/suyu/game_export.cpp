@@ -39,6 +39,7 @@
 #include "common/swap.h"
 #include "core/file_sys/card_image.h"
 #include "core/file_sys/content_archive.h"
+#include "core/file_sys/nca_metadata.h"
 #include "core/file_sys/submission_package.h"
 #include "core/file_sys/vfs/vfs.h"
 #include "core/file_sys/vfs/vfs_real.h"
@@ -625,12 +626,30 @@ static FileSys::VirtualDir ExtractExeFsFromRom(const std::string& rom_path) {
         return e;
     }();
 
+    // Extract the Program NCA's ExeFS from an NSP. NSP::GetExeFS() only
+    // returns a populated result for pre-extracted directory-style NSPs;
+    // for a real packed/encrypted NSP (the normal case) its exefs/romfs
+    // members are never set by the constructor, so it always returns null
+    // there regardless of whether the NSP parsed successfully. The actual
+    // content lives on the Program-type NCA, keyed by the NSP's own program
+    // title ID.
+    const auto exefs_from_nsp = [](const std::shared_ptr<FileSys::NSP>& nsp) -> FileSys::VirtualDir {
+        if (nsp->GetStatus() != Loader::ResultStatus::Success) {
+            return nullptr;
+        }
+        if (auto exefs = nsp->GetExeFS()) {
+            return exefs; // Pre-extracted NSP - already populated.
+        }
+        const auto program_nca =
+            nsp->GetNCA(nsp->GetProgramTitleID(), FileSys::ContentRecordType::Program);
+        return program_nca ? program_nca->GetExeFS() : nullptr;
+    };
+
     // Try NSP
     if (ext == ".nsp") {
         auto nsp = std::make_shared<FileSys::NSP>(file);
-        if (nsp->GetStatus() == Loader::ResultStatus::Success) {
-            auto exefs = nsp->GetExeFS();
-            if (exefs) return exefs;
+        if (auto exefs = exefs_from_nsp(nsp)) {
+            return exefs;
         }
     }
 
@@ -640,8 +659,9 @@ static FileSys::VirtualDir ExtractExeFsFromRom(const std::string& rom_path) {
         if (xci->GetStatus() == Loader::ResultStatus::Success) {
             auto secure_nsp = xci->GetSecurePartitionNSP();
             if (secure_nsp) {
-                auto exefs = secure_nsp->GetExeFS();
-                if (exefs) return exefs;
+                if (auto exefs = exefs_from_nsp(secure_nsp)) {
+                    return exefs;
+                }
             }
         }
     }

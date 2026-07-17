@@ -626,6 +626,9 @@ void NintendoAccountDialog::OpenBrowserLogin() {
             });
 
     web_view->setUrl(QUrl(QStringLiteral("https://accounts.nintendo.com")));
+    dialog->show();
+    dialog->raise();
+    dialog->activateWindow();
 #else
     // No WebEngine — open external browser and let user paste token manually
     QDesktopServices::openUrl(QUrl(QStringLiteral("https://accounts.nintendo.com")));
