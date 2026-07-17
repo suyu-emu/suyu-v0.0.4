@@ -665,6 +665,28 @@ QWidget* GamerEnvironment::BuildSocialPage() {
         "QPushButton:hover { background: rgba(255,255,255,0.18); }"
     ));
     headingRow->addWidget(social_refresh_btn_);
+
+    social_post_btn_ = new QPushButton(tr("New Post"), social_page_);
+    social_post_btn_->setCursor(Qt::PointingHandCursor);
+    social_post_btn_->setFixedHeight(36);
+    social_post_btn_->setStyleSheet(QStringLiteral(
+        "QPushButton {"
+        "  color: white;"
+        "  background: qlineargradient(x1:0,y1:0,x2:1,y2:0, stop:0 #ff8a3d, stop:1 #ff5f9e);"
+        "  border: none;"
+        "  border-radius: 18px;"
+        "  padding: 0 18px;"
+        "  font-weight: 600;"
+        "}"
+        "QPushButton:hover { background: qlineargradient(x1:0,y1:0,x2:1,y2:0, stop:0 #ff9a52, stop:1 #ff73ab); }"
+    ));
+    connect(social_post_btn_, &QPushButton::clicked, this, [] {
+        // Posting requires a Reddit account and write-scope OAuth, which suyu
+        // does not hold server-side secrets for. Open Reddit's own submit
+        // page instead of building a credentialed API integration.
+        QDesktopServices::openUrl(QUrl(QStringLiteral("https://www.reddit.com/r/suyu/submit")));
+    });
+    headingRow->addWidget(social_post_btn_);
     vl->addLayout(headingRow);
 
     auto* redditTab = new QWidget(social_page_);
@@ -832,14 +854,28 @@ void GamerEnvironment::OnRedditFeedFinished(QNetworkReply* reply) {
             : created.secsTo(now) < 86400 ? tr("%1 hours ago").arg(created.secsTo(now) / 3600)
             : tr("%1 days ago").arg(created.secsTo(now) / 86400);
 
+        // Miiverse-style avatar: a colored circle with the author's initial,
+        // colored deterministically from their username.
+        const QChar initial = author.isEmpty() ? QChar(u'?') : author.at(0).toUpper();
+        static const QStringList avatar_colors{
+            QStringLiteral("#ff8a3d"), QStringLiteral("#ff5f9e"), QStringLiteral("#a58aff"),
+            QStringLiteral("#4fd1c5"), QStringLiteral("#63c96b"), QStringLiteral("#5b9dff")};
+        const int color_index = static_cast<uint>(qHash(author)) % avatar_colors.size();
+        const QString avatar_color = avatar_colors[color_index];
+
         html += QStringLiteral(
             "<div class='bubble'>"
+            "<table style='width:100%;border-collapse:collapse;'><tr>"
+            "<td style='width:40px;vertical-align:top;'>"
+            "<div style='width:32px;height:32px;border-radius:16px;background:%1;"
+            "color:white;text-align:center;line-height:32px;font-weight:700;'>%2</div>"
+            "</td>"
+            "<td style='vertical-align:top;'>"
             "<div class='bubble-header'>"
-            "<div class='bubble-meta'>%1 • %2 • %3 pts</div>"
-            "<div class='bubble-meta'>%4</div>"
+            "<div class='bubble-meta'>%3 • %4</div>"
             "</div>"
             "<div class='bubble-title'><a href='%5'>%6</a></div>"
-            ).arg(author.toHtmlEscaped(), QString::number(comments), QString::number(score), age, url, title.toHtmlEscaped());
+            ).arg(avatar_color, initial, author.toHtmlEscaped(), age, url, title.toHtmlEscaped());
 
         if (!selftext.trimmed().isEmpty()) {
             QString body = selftext;
@@ -848,10 +884,17 @@ void GamerEnvironment::OnRedditFeedFinished(QNetworkReply* reply) {
             }
             html += QStringLiteral("<div class='bubble-body'>%1</div>").arg(body.toHtmlEscaped());
         }
-        html += QStringLiteral("</div>");
+
+        // Miiverse-style "stamp" row in place of like/comment buttons.
+        html += QStringLiteral(
+            "<div class='bubble-meta' style='margin-top:8px;'>"
+            "\U0001F44D %1 &nbsp;&nbsp; \U0001F4AC %2"
+            "</div>"
+            "</td></tr></table>"
+            "</div>").arg(QString::number(score), QString::number(comments));
     }
 
-    html += QStringLiteral("<div style='color:rgba(255,255,255,0.65);font-size:10pt;margin-top:10px;'>Click a post to open it in your browser.</div></div>");
+    html += QStringLiteral("<div style='color:rgba(255,255,255,0.65);font-size:10pt;margin-top:10px;'>Click a post to open it in your browser. Tap New Post to share on r/suyu.</div></div>");
     social_browser_->setHtml(html);
 }
 

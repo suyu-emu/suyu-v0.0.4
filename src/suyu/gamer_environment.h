@@ -130,6 +130,7 @@ private:
     QWidget*      social_page_{};
     QTextBrowser* social_browser_{};
     QPushButton*  social_refresh_btn_{};
+    QPushButton*  social_post_btn_{};
     QNetworkAccessManager* reddit_network_manager_{};
     QNetworkReply* reddit_reply_{};
     QNetworkAccessManager* cover_network_manager_{};
