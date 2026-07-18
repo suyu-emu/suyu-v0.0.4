@@ -39,6 +39,10 @@
 
 #include "suyu/game_list.h"
 #include "suyu/uisettings.h"
+
+#ifdef SUYU_USE_QT_WEB_ENGINE
+#include <QWebEngineView>
+#endif
 #include "suyu/game_list_p.h"
 #include "suyu/main.h"
 
@@ -694,6 +698,38 @@ QWidget* GamerEnvironment::BuildSocialPage() {
     auto* redditLayout = new QVBoxLayout(redditTab);
     redditLayout->setContentsMargins(0, 0, 0, 0);
     redditLayout->setSpacing(10);
+
+#ifdef SUYU_USE_QT_WEB_ENGINE
+    // Reddit's official public embed widget (embed.reddit.com) is meant for
+    // external sites and needs no OAuth - but it's still gated by an
+    // anti-bot check that a plain HTTP client can't pass (verified: curl
+    // gets a 403 challenge page even here). A real Chromium engine can
+    // execute that challenge's JS like any browser would, so load the
+    // embed in an actual QWebEngineView instead of fetching JSON by hand.
+    // Custom "frontend": we wrap the embed iframe in our own dark-themed
+    // HTML shell and inject CSS matching suyu's palette once it loads.
+    social_web_view_ = new QWebEngineView(redditTab);
+    social_web_view_->setStyleSheet(QStringLiteral(
+        "QWebEngineView { background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.16); border-radius: 16px; }"));
+    const QString embed_shell = QStringLiteral(
+        "<html><head><style>"
+        "html,body{margin:0;padding:0;background:#150a2e;height:100%;}"
+        "iframe{width:100%;height:100%;border:none;}"
+        "</style></head><body>"
+        "<iframe src='https://embed.reddit.com/r/suyu?theme=dark&ref_source=embed' "
+        "sandbox='allow-scripts allow-same-origin allow-popups'></iframe>"
+        "</body></html>");
+    social_web_view_->setHtml(embed_shell, QUrl(QStringLiteral("https://suyu-emu.local/")));
+    redditLayout->addWidget(social_web_view_, 1);
+    connect(social_refresh_btn_, &QPushButton::clicked, this, [this] {
+        if (social_web_view_) {
+            social_web_view_->reload();
+        }
+    });
+    vl->addWidget(redditTab, 1);
+    return social_page_;
+#endif
+
     social_browser_ = new QTextBrowser(redditTab);
     social_browser_->setOpenExternalLinks(true);
     social_browser_->setStyleSheet(QStringLiteral(

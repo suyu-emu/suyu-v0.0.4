@@ -26,6 +26,9 @@ class GameList;
 class GMainWindow;
 class QNetworkAccessManager;
 class QNetworkReply;
+#ifdef SUYU_USE_QT_WEB_ENGINE
+class QWebEngineView;
+#endif
 
 // Custom delegate that renders each game as a card with cover art + info
 class GameCardDelegate : public QStyledItemDelegate {
@@ -136,6 +139,9 @@ private:
     QNetworkReply* reddit_reply_{};
     QNetworkReply* reddit_token_reply_{};
     QString reddit_access_token_{};
+#ifdef SUYU_USE_QT_WEB_ENGINE
+    QWebEngineView* social_web_view_{};
+#endif
     QNetworkAccessManager* cover_network_manager_{};
     QHash<QString, QIcon> cover_icon_cache_{};
     QSet<QString> cover_requests_in_flight_{};
