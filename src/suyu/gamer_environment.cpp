@@ -38,6 +38,7 @@
 #include <QUrlQuery>
 
 #include "suyu/game_list.h"
+#include "suyu/uisettings.h"
 #include "suyu/game_list_p.h"
 #include "suyu/main.h"
 
@@ -746,14 +747,117 @@ void GamerEnvironment::LoadRedditFeed() {
             "</div>"));
     }
 
-    const QUrl url(QStringLiteral("https://www.reddit.com/r/suyu/hot.json?raw_json=1&limit=10"));
+    // Reddit deprecated unauthenticated .json access on 2026-05-28 - every
+    // request now needs an OAuth bearer token, even for public read-only
+    // listings. See UISettings::values.reddit_client_id's doc comment.
+    const QString client_id =
+        QString::fromStdString(UISettings::values.reddit_client_id.GetValue());
+    if (client_id.isEmpty()) {
+        social_feed_status_ = QStringLiteral("unconfigured");
+        social_feed_error_.clear();
+        if (social_browser_) {
+            social_browser_->setHtml(QStringLiteral(
+                "<div style='color:#f5f5f5;font-family:Segoe UI, sans-serif;padding:16px;'>"
+                "<h3>Reddit feed not configured</h3>"
+                "<p>Reddit now requires an OAuth app ID to read even public posts. "
+                "Create a free one at "
+                "<a href='https://www.reddit.com/prefs/apps' style='color:#a585ff;'>"
+                "reddit.com/prefs/apps</a> (type \"installed app\", no secret needed), "
+                "then set it in Settings &rarr; UI &rarr; Reddit Client ID.</p>"
+                "<p><a href='https://www.reddit.com/r/suyu/new/' style='color:#a585ff;'>"
+                "Open r/suyu in browser instead &rarr;</a></p>"
+                "</div>"));
+        }
+        return;
+    }
+
+    if (reddit_access_token_.isEmpty()) {
+        FetchRedditAccessToken();
+        return;
+    }
+
+    const QUrl url(QStringLiteral("https://oauth.reddit.com/r/suyu/hot.json?raw_json=1&limit=10"));
     QNetworkRequest request(url);
     request.setRawHeader("User-Agent",
-                         QByteArrayLiteral("suyu/1.0 (Qt client; +https://suyu-emu.github.io/website/)"));
-    request.setRawHeader("Accept", QByteArrayLiteral("application/json"));
+                         QByteArrayLiteral("windows:suyu-emulator:v0.04 (by /u/suyu-emu)"));
+    request.setRawHeader("Authorization",
+                         QStringLiteral("Bearer %1").arg(reddit_access_token_).toUtf8());
     request.setAttribute(QNetworkRequest::RedirectPolicyAttribute,
                          QNetworkRequest::NoLessSafeRedirectPolicy);
     reddit_reply_ = reddit_network_manager_->get(request);
+}
+
+void GamerEnvironment::FetchRedditAccessToken() {
+    if (!reddit_network_manager_) {
+        return;
+    }
+
+    const QString client_id =
+        QString::fromStdString(UISettings::values.reddit_client_id.GetValue());
+    if (client_id.isEmpty()) {
+        return;
+    }
+
+    if (reddit_token_reply_) {
+        reddit_token_reply_->deleteLater();
+        reddit_token_reply_ = nullptr;
+    }
+
+    // Installed-app client-credentials grant: no client secret, just the
+    // public client ID, per Reddit's OAuth docs for apps that can't keep a
+    // secret confidential (desktop/mobile clients).
+    const QUrl url(QStringLiteral("https://www.reddit.com/api/v1/access_token"));
+    QNetworkRequest request(url);
+    request.setRawHeader("User-Agent",
+                         QByteArrayLiteral("windows:suyu-emulator:v0.04 (by /u/suyu-emu)"));
+    request.setHeader(QNetworkRequest::ContentTypeHeader,
+                      QStringLiteral("application/x-www-form-urlencoded"));
+    const QByteArray basic_auth =
+        (client_id + QStringLiteral(":")).toUtf8().toBase64();
+    request.setRawHeader("Authorization", QByteArray("Basic ") + basic_auth);
+
+    QUrlQuery body;
+    body.addQueryItem(QStringLiteral("grant_type"),
+                      QStringLiteral("https://oauth.reddit.com/grants/installed_client"));
+    body.addQueryItem(QStringLiteral("device_id"), QStringLiteral("DO_NOT_TRACK_THIS_DEVICE"));
+
+    reddit_token_reply_ =
+        reddit_network_manager_->post(request, body.toString(QUrl::FullyEncoded).toUtf8());
+    connect(reddit_token_reply_, &QNetworkReply::finished, this, [this]() {
+        auto* reply = reddit_token_reply_;
+        if (!reply) {
+            return;
+        }
+        const bool success = reply->error() == QNetworkReply::NoError;
+        const QByteArray bytes = reply->readAll();
+        reply->deleteLater();
+        reddit_token_reply_ = nullptr;
+
+        if (!success) {
+            social_feed_status_ = QStringLiteral("error");
+            social_feed_error_ = QStringLiteral("Failed to authenticate with Reddit");
+            if (social_browser_) {
+                social_browser_->setHtml(QStringLiteral(
+                    "<div style='color:#f5f5f5;font-family:Segoe UI, sans-serif;padding:16px;'>"
+                    "<h3 style='color:#ff7070;'>Unable to authenticate with Reddit</h3>"
+                    "<p>Check that the configured Reddit Client ID is a valid \"installed app\" ID.</p>"
+                    "</div>"));
+            }
+            return;
+        }
+
+        const QJsonDocument doc = QJsonDocument::fromJson(bytes);
+        const QString token =
+            doc.object().value(QStringLiteral("access_token")).toString();
+        if (token.isEmpty()) {
+            social_feed_status_ = QStringLiteral("error");
+            social_feed_error_ = QStringLiteral("Reddit returned no access token");
+            return;
+        }
+
+        reddit_access_token_ = token;
+        LoadRedditFeed();
+    });
 }
 
 void GamerEnvironment::OnRedditFeedFinished(QNetworkReply* reply) {

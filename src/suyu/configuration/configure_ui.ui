@@ -133,6 +133,27 @@
          </widget>
         </item>
         <item>
+         <layout class="QHBoxLayout" name="reddit_client_id_qhbox_layout">
+          <item>
+           <widget class="QLabel" name="reddit_client_id_label">
+            <property name="text">
+             <string>Reddit Client ID:</string>
+            </property>
+            <property name="toolTip">
+             <string>Reddit requires an OAuth app ID to read r/suyu since 2026-05-28. Create a free one at reddit.com/prefs/apps (type "installed app", no secret needed).</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QLineEdit" name="reddit_client_id_edit">
+            <property name="placeholderText">
+             <string>Leave blank to disable the social feed</string>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </item>
+        <item>
          <layout class="QHBoxLayout" name="game_icon_size_qhbox_layout_2">
           <item>
            <widget class="QLabel" name="game_icon_size_label">

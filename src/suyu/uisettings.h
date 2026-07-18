@@ -127,6 +127,13 @@ struct Values {
     Setting<bool> disable_web_applet{linkage, true, "disable_web_applet", Category::Ui};
     Setting<bool> enable_loading_music{linkage, true, "enable_loading_music", Category::Ui};
 
+    // Reddit deprecated unauthenticated .json access on 2026-05-28; reading
+    // r/suyu now requires an OAuth "installed app" client ID (no secret -
+    // create one free at reddit.com/prefs/apps, type "installed app"). Left
+    // blank by default since this project doesn't ship one; the social feed
+    // shows a configuration hint until a maintainer sets this.
+    Setting<std::string> reddit_client_id{linkage, "", "reddit_client_id", Category::Ui};
+
     // Discord RPC
     Setting<bool> enable_discord_presence{linkage, true, "enable_discord_presence", Category::Ui};
 

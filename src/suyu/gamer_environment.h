@@ -100,6 +100,7 @@ private:
     QWidget* BuildLibraryPage();
     QWidget* BuildSocialPage();
     void LoadRedditFeed();
+    void FetchRedditAccessToken();
     QPushButton* CreateNavButton(const QString& icon_text, const QString& label,
                                  bool active = false,
                                  const QIcon& svg_icon = QIcon());
@@ -133,6 +134,8 @@ private:
     QPushButton*  social_post_btn_{};
     QNetworkAccessManager* reddit_network_manager_{};
     QNetworkReply* reddit_reply_{};
+    QNetworkReply* reddit_token_reply_{};
+    QString reddit_access_token_{};
     QNetworkAccessManager* cover_network_manager_{};
     QHash<QString, QIcon> cover_icon_cache_{};
     QSet<QString> cover_requests_in_flight_{};
