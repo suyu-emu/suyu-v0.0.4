@@ -755,17 +755,37 @@ QWidget* GamerEnvironment::BuildSocialPage() {
         if (!ok || !social_web_view_) {
             return;
         }
+        // Miiverse-style skin: soft rounded white "speech bubble" post cards
+        // on a warm pastel-purple community backdrop, big circular avatars,
+        // and a colored top banner strip - Miiverse's signature look, rather
+        // than Reddit's default flat list.
         static const QString js = QStringLiteral(R"JS(
             (function(){
                 var s = document.getElementById('suyu-skin');
                 if (!s) { s = document.createElement('style'); s.id = 'suyu-skin'; document.head.appendChild(s); }
                 s.textContent = `
-                    body { background: #150a2e !important; }
+                    body { background: linear-gradient(180deg, #7b5fc7 0%, #5a3d99 100%) !important; }
                     shreddit-app {
-                        --color-tone-1: #f3f3f3 !important;
-                        --color-tone-2: #cbb8f0 !important;
-                        --color-background: #150a2e !important;
-                        --color-neutral-background: #1f1140 !important;
+                        --color-tone-1: #3a2a5c !important;
+                        --color-tone-2: #7a5fae !important;
+                        --color-background: transparent !important;
+                        --color-neutral-background: #ffffff !important;
+                    }
+                    shreddit-post, faceplate-partial, [slot="post-container"] {
+                        border-radius: 22px !important;
+                        background: #ffffff !important;
+                        box-shadow: 0 3px 0 rgba(0,0,0,0.12) !important;
+                        margin: 10px 8px !important;
+                        border: none !important;
+                        overflow: hidden !important;
+                    }
+                    shreddit-post img, shreddit-post [slot="credit-bar"] img,
+                    faceplate-tracker img {
+                        border-radius: 50% !important;
+                    }
+                    shreddit-post [slot="title"] {
+                        font-weight: 800 !important;
+                        color: #3a2a5c !important;
                     }
                 `;
             })();
