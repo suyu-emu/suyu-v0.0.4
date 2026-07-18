@@ -87,8 +87,21 @@ QPixmap TileArtwork(const QModelIndex& index, const QSize& target) {
         }
     }
 
+    // Fallback for items with no RawIconRole (e.g. the Library grid's
+    // QListWidgetItems, which carry IGDB cover art fetched at a genuinely
+    // high resolution via setIcon() - but QIcon::pixmap(target) alone is
+    // DPI-unaware and returns a 1x-scaled pixmap on HiDPI displays, then
+    // gets stretched to fill the physically-larger tile, causing the same
+    // softness the RawIconRole path above exists to avoid.
     const QIcon icon = DecorationToIcon(index.data(Qt::DecorationRole));
-    return icon.pixmap(target);
+    if (icon.isNull()) {
+        return {};
+    }
+    const qreal dpr =
+        QGuiApplication::primaryScreen() ? QGuiApplication::primaryScreen()->devicePixelRatio() : 1.0;
+    QPixmap scaled = icon.pixmap((QSizeF(target) * dpr).toSize());
+    scaled.setDevicePixelRatio(dpr);
+    return scaled;
 }
 
 } // namespace
