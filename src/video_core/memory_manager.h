@@ -45,7 +45,7 @@ public:
 
     static constexpr bool HAS_FLUSH_INVALIDATION = true;
 
-    size_t GetID() const {
+    inline size_t GetID() const noexcept {
         return unique_identifier;
     }
 
@@ -66,16 +66,15 @@ public:
     [[nodiscard]] const u8* GetPointer(GPUVAddr addr) const;
 
     template <typename T>
-    [[nodiscard]] T* GetPointer(GPUVAddr addr) {
-        const auto address{GpuToCpuAddress(addr)};
-        if (!address) {
+    [[nodiscard]] inline T* GetPointer(GPUVAddr addr) noexcept {
+        const auto address = GpuToCpuAddress(addr);
+        if (!address)
             return {};
-        }
         return memory.GetPointer<T>(*address);
     }
 
     template <typename T>
-    [[nodiscard]] const T* GetPointer(GPUVAddr addr) const {
+    [[nodiscard]] inline const T* GetPointer(GPUVAddr addr) const noexcept {
         return GetPointer<T*>(addr);
     }
 
@@ -85,12 +84,9 @@ public:
      * in the Host Memory counterpart. Note: This functions cause Host GPU Memory
      * Flushes and Invalidations, respectively to each operation.
      */
-    void ReadBlock(GPUVAddr gpu_src_addr, void* dest_buffer, std::size_t size,
-                   VideoCommon::CacheType which = VideoCommon::CacheType::All) const;
-    void WriteBlock(GPUVAddr gpu_dest_addr, const void* src_buffer, std::size_t size,
-                    VideoCommon::CacheType which = VideoCommon::CacheType::All);
-    void CopyBlock(GPUVAddr gpu_dest_addr, GPUVAddr gpu_src_addr, std::size_t size,
-                   VideoCommon::CacheType which = VideoCommon::CacheType::All);
+    void ReadBlock(GPUVAddr gpu_src_addr, void* dest_buffer, std::size_t size, VideoCommon::CacheType which = VideoCommon::CacheType::All) const;
+    void WriteBlock(GPUVAddr gpu_dest_addr, const void* src_buffer, std::size_t size, VideoCommon::CacheType which = VideoCommon::CacheType::All);
+    void CopyBlock(GPUVAddr gpu_dest_addr, GPUVAddr gpu_src_addr, std::size_t size, VideoCommon::CacheType which = VideoCommon::CacheType::All);
 
     /**
      * ReadBlockUnsafe and WriteBlockUnsafe are special versions of ReadBlock and
@@ -160,21 +156,14 @@ public:
     u8* GetSpan(const GPUVAddr src_addr, const std::size_t size);
 
 private:
-    template <bool is_big_pages, typename FuncMapped, typename FuncReserved, typename FuncUnmapped>
-    inline void MemoryOperation(GPUVAddr gpu_src_addr, std::size_t size, FuncMapped&& func_mapped,
-                                FuncReserved&& func_reserved, FuncUnmapped&& func_unmapped) const;
+    template <typename FuncMapped, typename FuncReserved, typename FuncUnmapped>
+    inline void MemoryOperation(GPUVAddr gpu_src_addr, std::size_t size, bool is_big_page, FuncMapped&& func_mapped, FuncReserved&& func_reserved, FuncUnmapped&& func_unmapped) const;
 
-    template <bool is_safe>
-    void ReadBlockImpl(GPUVAddr gpu_src_addr, void* dest_buffer, std::size_t size,
-                       VideoCommon::CacheType which) const;
+    void ReadBlockImpl(GPUVAddr gpu_src_addr, void* dest_buffer, std::size_t size, VideoCommon::CacheType which, bool unsafe) const;
+    void WriteBlockImpl(GPUVAddr gpu_dest_addr, const void* src_buffer, std::size_t size, VideoCommon::CacheType which, bool unsafe);
 
-    template <bool is_safe>
-    void WriteBlockImpl(GPUVAddr gpu_dest_addr, const void* src_buffer, std::size_t size,
-                        VideoCommon::CacheType which);
-
-    template <bool is_big_page>
-    [[nodiscard]] std::size_t PageEntryIndex(GPUVAddr gpu_addr) const {
-        if constexpr (is_big_page) {
+    [[nodiscard]] std::size_t PageEntryIndex(GPUVAddr gpu_addr, bool is_big_page) const {
+        if (is_big_page) {
             return (gpu_addr >> big_page_bits) & big_page_table_mask;
         } else {
             return (gpu_addr >> page_bits) & page_table_mask;
@@ -187,9 +176,7 @@ private:
     template <bool is_gpu_address>
     void GetSubmappedRangeImpl(
         GPUVAddr gpu_addr, std::size_t size,
-        boost::container::small_vector<
-            std::pair<std::conditional_t<is_gpu_address, GPUVAddr, DAddr>, std::size_t>, 32>&
-            result) const;
+        boost::container::small_vector<std::pair<std::conditional_t<is_gpu_address, GPUVAddr, DAddr>, std::size_t>, 32>& result) const;
 
     Core::System& system;
     MaxwellDeviceMemoryManager& memory;
@@ -219,19 +206,11 @@ private:
     std::vector<u64> entries;
     std::vector<u64> big_entries;
 
-    template <EntryType entry_type>
-    GPUVAddr PageTableOp(GPUVAddr gpu_addr, [[maybe_unused]] DAddr dev_addr, size_t size,
-                         PTEKind kind);
+    GPUVAddr PageTableOp(GPUVAddr gpu_addr, [[maybe_unused]] DAddr dev_addr, size_t size, PTEKind kind, EntryType entry_type);
+    GPUVAddr BigPageTableOp(GPUVAddr gpu_addr, [[maybe_unused]] DAddr dev_addr, size_t size, PTEKind kind, EntryType entry_type);
 
-    template <EntryType entry_type>
-    GPUVAddr BigPageTableOp(GPUVAddr gpu_addr, [[maybe_unused]] DAddr dev_addr, size_t size,
-                            PTEKind kind);
-
-    template <bool is_big_page>
-    inline EntryType GetEntry(size_t position) const;
-
-    template <bool is_big_page>
-    inline void SetEntry(size_t position, EntryType entry);
+    inline EntryType GetEntry(size_t position, bool is_big_page) const;
+    inline void SetEntry(size_t position, EntryType entry, bool is_big_page);
 
     Common::MultiLevelPageTable<u32> page_table;
     Common::RangeMap<GPUVAddr, PTEKind> kind_map;
