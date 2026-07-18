@@ -22,11 +22,13 @@
 #include <QVBoxLayout>
 
 #include <algorithm>
+#include <chrono>
 #include <cstring>
 #include <span>
 #include <vector>
 
 #include "common/assert.h"
+#include "common/logging/log.h"
 #include "dynarmic/common/fp/fpcr.h"
 #include "dynarmic/frontend/A64/a64_location_descriptor.h"
 #include "dynarmic/frontend/A64/translate/a64_translate.h"
@@ -640,14 +642,25 @@ static FileSys::VirtualDir ExtractExeFsFromRom(const std::string& rom_path) {
         if (auto exefs = nsp->GetExeFS()) {
             return exefs; // Pre-extracted NSP - already populated.
         }
+        const auto t_nca_start = std::chrono::steady_clock::now();
         const auto program_nca =
             nsp->GetNCA(nsp->GetProgramTitleID(), FileSys::ContentRecordType::Program);
-        return program_nca ? program_nca->GetExeFS() : nullptr;
+        const auto t_nca_got = std::chrono::steady_clock::now();
+        const auto exefs = program_nca ? program_nca->GetExeFS() : nullptr;
+        const auto t_exefs_got = std::chrono::steady_clock::now();
+        LOG_INFO(Frontend, "AOT diag: GetNCA took {} ms, NCA::GetExeFS took {} ms",
+                 std::chrono::duration_cast<std::chrono::milliseconds>(t_nca_got - t_nca_start).count(),
+                 std::chrono::duration_cast<std::chrono::milliseconds>(t_exefs_got - t_nca_got).count());
+        return exefs;
     };
 
     // Try NSP
     if (ext == ".nsp") {
+        const auto t_ctor_start = std::chrono::steady_clock::now();
         auto nsp = std::make_shared<FileSys::NSP>(file);
+        const auto t_ctor_end = std::chrono::steady_clock::now();
+        LOG_INFO(Frontend, "AOT diag: NSP ctor took {} ms",
+                 std::chrono::duration_cast<std::chrono::milliseconds>(t_ctor_end - t_ctor_start).count());
         if (auto exefs = exefs_from_nsp(nsp)) {
             return exefs;
         }
@@ -799,10 +812,19 @@ QString GameExportDialog::RunAotPrecompile(const QString& exefs_dir,
     // First, try to open the ROM via VFS to extract ExeFS directly
     const QString rom_path = rom_path_edit->text();
     if (!rom_path.isEmpty() && QFile::exists(rom_path) && QFileInfo(rom_path).isFile()) {
+        const auto t_extract_start = std::chrono::steady_clock::now();
         auto exefs_vdir = ExtractExeFsFromRom(rom_path.toStdString());
+        const auto t_extract_end = std::chrono::steady_clock::now();
+        LOG_INFO(Frontend, "AOT diag: ExtractExeFsFromRom took {} ms",
+                 std::chrono::duration_cast<std::chrono::milliseconds>(t_extract_end - t_extract_start).count());
         if (exefs_vdir) {
             used_vfs = true;
+            const auto t_getfiles_start = std::chrono::steady_clock::now();
             const auto nso_files = exefs_vdir->GetFiles();
+            const auto t_getfiles_end = std::chrono::steady_clock::now();
+            LOG_INFO(Frontend, "AOT diag: GetFiles() took {} ms, {} entries",
+                     std::chrono::duration_cast<std::chrono::milliseconds>(t_getfiles_end - t_getfiles_start).count(),
+                     nso_files.size());
 
             // Standard NSO module names in load order
             static const std::vector<std::string> module_names = {
@@ -811,7 +833,13 @@ QString GameExportDialog::RunAotPrecompile(const QString& exefs_dir,
             };
 
             for (const auto& nso_file : nso_files) {
+                const auto t_file_start = std::chrono::steady_clock::now();
                 auto result = AnalyzeNsoFile(nso_file, full_scan);
+                const auto t_file_end = std::chrono::steady_clock::now();
+                LOG_INFO(Frontend, "AOT diag: AnalyzeNsoFile({}) took {} ms, size={}",
+                         nso_file->GetName(),
+                         std::chrono::duration_cast<std::chrono::milliseconds>(t_file_end - t_file_start).count(),
+                         nso_file->GetSize());
                 if (result.has_value()) {
                     module_results.push_back(std::move(*result));
                 }
@@ -821,6 +849,7 @@ QString GameExportDialog::RunAotPrecompile(const QString& exefs_dir,
             const QString exefs_cache = cache_dir + QDir::separator() + QStringLiteral("exefs");
             QDir().mkpath(exefs_cache);
             for (const auto& f : nso_files) {
+                const auto t_cache_start = std::chrono::steady_clock::now();
                 const QString out_path = exefs_cache + QDir::separator() +
                                          QString::fromStdString(f->GetName());
                 QFile out_file(out_path);
@@ -830,6 +859,9 @@ QString GameExportDialog::RunAotPrecompile(const QString& exefs_dir,
                                 static_cast<qint64>(nso_bytes.size()));
                     out_file.close();
                 }
+                const auto t_cache_end = std::chrono::steady_clock::now();
+                LOG_INFO(Frontend, "AOT diag: cache copy of {} took {} ms", f->GetName(),
+                         std::chrono::duration_cast<std::chrono::milliseconds>(t_cache_end - t_cache_start).count());
             }
         }
     }
