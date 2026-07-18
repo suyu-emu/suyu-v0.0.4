@@ -586,17 +586,27 @@ void LoadingScreen::paintEvent(QPaintEvent* event) {
     }
     p.setOpacity(1.0);
 
+    // The fade must reach fully opaque black by the point tile-drawing stops
+    // (r.height() * 0.72), or the tiles remain faintly visible through the
+    // "black" region below them instead of being fully covered.
     QLinearGradient pattern_fade(r.topLeft(), QPointF(r.left(), r.height() * 0.72));
     pattern_fade.setColorAt(0.0, QColor(0, 0, 0, 0));
-    pattern_fade.setColorAt(0.52, QColor(0, 0, 0, 85));
-    pattern_fade.setColorAt(1.0, QColor(0, 0, 0, 220));
+    pattern_fade.setColorAt(0.45, QColor(0, 0, 0, 90));
+    pattern_fade.setColorAt(0.85, QColor(0, 0, 0, 245));
+    pattern_fade.setColorAt(1.0, QColor(0, 0, 0, 255));
     p.fillRect(QRect(r.left(), r.top(), r.width(), static_cast<int>(r.height() * 0.72)),
                pattern_fade);
+
+    // Solid black for the remainder of the widget below the tiled region -
+    // nothing should be able to show through here at all.
+    p.fillRect(QRect(r.left(), static_cast<int>(r.height() * 0.72), r.width(),
+                     r.height() - static_cast<int>(r.height() * 0.72)),
+               QColor(5, 8, 18, 255));
 
     QLinearGradient vignette(r.topLeft(), r.bottomLeft());
     vignette.setColorAt(0.0, QColor(0, 0, 0, 25));
     vignette.setColorAt(0.5, QColor(0, 0, 0, 105));
-    vignette.setColorAt(1.0, QColor(0, 0, 0, 185));
+    vignette.setColorAt(1.0, QColor(0, 0, 0, 255));
     p.fillRect(r, vignette);
 }
 
