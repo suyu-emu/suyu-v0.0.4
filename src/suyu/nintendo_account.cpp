@@ -3,6 +3,8 @@
 
 #include "suyu/nintendo_account.h"
 
+#include "common/logging/log.h"
+
 #include <QDesktopServices>
 #include <QGroupBox>
 #include <QHBoxLayout>
@@ -591,7 +593,9 @@ void NintendoAccountDialog::OnTokenSubmitted() {
 }
 
 void NintendoAccountDialog::OpenBrowserLogin() {
+    LOG_INFO(Frontend, "NNID diag: OpenBrowserLogin() entered");
 #ifdef SUYU_USE_QT_WEB_ENGINE
+    LOG_INFO(Frontend, "NNID diag: SUYU_USE_QT_WEB_ENGINE branch taken");
     auto* dialog = new QDialog(this);
     dialog->setWindowTitle(tr("Nintendo Account Sign-In"));
     dialog->resize(900, 700);
@@ -626,9 +630,12 @@ void NintendoAccountDialog::OpenBrowserLogin() {
             });
 
     web_view->setUrl(QUrl(QStringLiteral("https://accounts.nintendo.com")));
+    LOG_INFO(Frontend, "NNID diag: calling dialog->show(), isVisible before={}", dialog->isVisible());
     dialog->show();
     dialog->raise();
     dialog->activateWindow();
+    LOG_INFO(Frontend, "NNID diag: after show(), isVisible={} geometry={},{} {}x{}",
+             dialog->isVisible(), dialog->x(), dialog->y(), dialog->width(), dialog->height());
 #else
     // No WebEngine — open external browser and let user paste token manually
     QDesktopServices::openUrl(QUrl(QStringLiteral("https://accounts.nintendo.com")));

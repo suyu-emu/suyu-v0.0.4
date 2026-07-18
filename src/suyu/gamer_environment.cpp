@@ -41,7 +41,9 @@
 #include "suyu/uisettings.h"
 
 #ifdef SUYU_USE_QT_WEB_ENGINE
+#include <QWebEngineProfile>
 #include <QWebEngineView>
+#include <QWebEnginePage>
 #endif
 #include "suyu/game_list_p.h"
 #include "suyu/main.h"
@@ -154,11 +156,21 @@ void GameCardDelegate::paint(QPainter* painter, const QStyleOptionViewItem& opti
 
     const QPixmap pix = TileArtwork(index, QSize(iconRect.width(), ICON_H));
     if (!pix.isNull()) {
-        // Scale to fill, centre-crop
-        QPixmap scaled = pix.scaled(iconRect.size(), Qt::KeepAspectRatioByExpanding,
+        // pix already carries a devicePixelRatio tag from TileArtwork (sized
+        // in physical pixels for HiDPI sharpness). QPixmap::scaled()'s target
+        // size argument is in raw/physical pixels and does NOT re-derive from
+        // an existing DPR tag, so scaling to iconRect.size() (logical) here
+        // would silently shrink the image to iconRect.size()/dpr once drawn -
+        // exactly the "shrunk into the top-left corner" symptom. Scale in
+        // physical pixels explicitly, then (re)tag the result.
+        const qreal dpr = pix.devicePixelRatio();
+        const QSize physical_target(qRound(iconRect.width() * dpr), qRound(ICON_H * dpr));
+        QPixmap scaled = pix.scaled(physical_target, Qt::KeepAspectRatioByExpanding,
                                     Qt::SmoothTransformation);
-        QPoint offset((iconRect.width() - scaled.width()) / 2,
-                      (ICON_H - scaled.height()) / 2);
+        scaled.setDevicePixelRatio(dpr);
+        const QPoint offset(
+            qRound((iconRect.width() - scaled.width() / dpr) / 2.0),
+            qRound((ICON_H - scaled.height() / dpr) / 2.0));
         painter->drawPixmap(iconRect.topLeft() + offset, scaled);
     } else {
         // Placeholder gradient when no icon
@@ -698,10 +710,16 @@ QWidget* GamerEnvironment::BuildSocialPage() {
         "}"
         "QPushButton:hover { background: qlineargradient(x1:0,y1:0,x2:1,y2:0, stop:0 #ff9a52, stop:1 #ff73ab); }"
     ));
-    connect(social_post_btn_, &QPushButton::clicked, this, [] {
-        // Posting requires a Reddit account and write-scope OAuth, which suyu
-        // does not hold server-side secrets for. Open Reddit's own submit
-        // page instead of building a credentialed API integration.
+    connect(social_post_btn_, &QPushButton::clicked, this, [this] {
+#ifdef SUYU_USE_QT_WEB_ENGINE
+        // The embedded view is a real, logged-in-capable Reddit session
+        // (QWebEngineProfile persists cookies), so posting can happen right
+        // here instead of shelling out to an external browser.
+        if (social_web_view_) {
+            social_web_view_->setUrl(QUrl(QStringLiteral("https://www.reddit.com/r/suyu/submit")));
+            return;
+        }
+#endif
         QDesktopServices::openUrl(QUrl(QStringLiteral("https://www.reddit.com/r/suyu/submit")));
     });
     headingRow->addWidget(social_post_btn_);
@@ -719,20 +737,43 @@ QWidget* GamerEnvironment::BuildSocialPage() {
     // gets a 403 challenge page even here). A real Chromium engine can
     // execute that challenge's JS like any browser would, so load the
     // embed in an actual QWebEngineView instead of fetching JSON by hand.
-    // Custom "frontend": we wrap the embed iframe in our own dark-themed
-    // HTML shell and inject CSS matching suyu's palette once it loads.
+    // Real, interactive Reddit session - not the read-only embed widget -
+    // so the user can actually log in and post from inside suyu, matching
+    // the earlier Miiverse-style social feed. QWebEngineProfile persists
+    // cookies to disk (per-profile storage name below), so a login here
+    // survives across restarts like a normal browser. "Custom frontend":
+    // inject our own CSS once each page finishes loading to reskin Reddit's
+    // chrome toward suyu's dark purple palette, rather than a plain iframe.
+    auto* profile = new QWebEngineProfile(QStringLiteral("suyuSocialFeed"), redditTab);
+    profile->setPersistentCookiesPolicy(QWebEngineProfile::ForcePersistentCookies);
     social_web_view_ = new QWebEngineView(redditTab);
+    social_web_view_->setPage(new QWebEnginePage(profile, social_web_view_));
     social_web_view_->setStyleSheet(QStringLiteral(
         "QWebEngineView { background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.16); border-radius: 16px; }"));
-    const QString embed_shell = QStringLiteral(
-        "<html><head><style>"
-        "html,body{margin:0;padding:0;background:#150a2e;height:100%;}"
-        "iframe{width:100%;height:100%;border:none;}"
-        "</style></head><body>"
-        "<iframe src='https://embed.reddit.com/r/suyu?theme=dark&ref_source=embed' "
-        "sandbox='allow-scripts allow-same-origin allow-popups'></iframe>"
-        "</body></html>");
-    social_web_view_->setHtml(embed_shell, QUrl(QStringLiteral("https://suyu-emu.local/")));
+
+    connect(social_web_view_, &QWebEngineView::loadFinished, this, [this](bool ok) {
+        if (!ok || !social_web_view_) {
+            return;
+        }
+        static const QString js = QStringLiteral(R"JS(
+            (function(){
+                var s = document.getElementById('suyu-skin');
+                if (!s) { s = document.createElement('style'); s.id = 'suyu-skin'; document.head.appendChild(s); }
+                s.textContent = `
+                    body { background: #150a2e !important; }
+                    shreddit-app {
+                        --color-tone-1: #f3f3f3 !important;
+                        --color-tone-2: #cbb8f0 !important;
+                        --color-background: #150a2e !important;
+                        --color-neutral-background: #1f1140 !important;
+                    }
+                `;
+            })();
+        )JS");
+        social_web_view_->page()->runJavaScript(js);
+    });
+
+    social_web_view_->setUrl(QUrl(QStringLiteral("https://www.reddit.com/r/suyu/")));
     redditLayout->addWidget(social_web_view_, 1);
     connect(social_refresh_btn_, &QPushButton::clicked, this, [this] {
         if (social_web_view_) {
