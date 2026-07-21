@@ -199,6 +199,9 @@ void ConfigureUi::ApplyConfiguration() {
     UISettings::values.show_types = ui->show_types->isChecked();
     UISettings::values.show_play_time = ui->show_play_time->isChecked();
     UISettings::values.enable_loading_music = ui->enable_loading_music->isChecked();
+    UISettings::values.loading_music_path = ui->loading_music_path_edit->text().toStdString();
+    UISettings::values.enable_social_music = ui->enable_social_music->isChecked();
+    UISettings::values.social_music_path = ui->social_music_path_edit->text().toStdString();
     UISettings::values.reddit_client_id = ui->reddit_client_id_edit->text().toStdString();
     UISettings::values.game_icon_size = ui->game_icon_size_combobox->currentData().toUInt();
     UISettings::values.folder_icon_size = ui->folder_icon_size_combobox->currentData().toUInt();
@@ -289,6 +292,27 @@ void ConfigureUi::SetConfiguration() {
     ui->show_types->setChecked(UISettings::values.show_types.GetValue());
     ui->show_play_time->setChecked(UISettings::values.show_play_time.GetValue());
     ui->enable_loading_music->setChecked(UISettings::values.enable_loading_music.GetValue());
+    ui->loading_music_path_edit->setText(
+        QString::fromStdString(UISettings::values.loading_music_path.GetValue()));
+    ui->enable_social_music->setChecked(UISettings::values.enable_social_music.GetValue());
+    ui->social_music_path_edit->setText(
+        QString::fromStdString(UISettings::values.social_music_path.GetValue()));
+    connect(ui->loading_music_path_browse, &QToolButton::clicked, this, [this] {
+        const QString path = QFileDialog::getOpenFileName(
+            this, tr("Select Custom Loading Music"), QString(),
+            tr("Audio Files (*.mp3 *.wav *.ogg *.flac);;All Files (*)"));
+        if (!path.isEmpty()) {
+            ui->loading_music_path_edit->setText(path);
+        }
+    });
+    connect(ui->social_music_path_browse, &QToolButton::clicked, this, [this] {
+        const QString path = QFileDialog::getOpenFileName(
+            this, tr("Select Custom Social Music"), QString(),
+            tr("Audio Files (*.mp3 *.wav *.ogg *.flac);;All Files (*)"));
+        if (!path.isEmpty()) {
+            ui->social_music_path_edit->setText(path);
+        }
+    });
     ui->reddit_client_id_edit->setText(
         QString::fromStdString(UISettings::values.reddit_client_id.GetValue()));
     ui->game_icon_size_combobox->setCurrentIndex(

@@ -364,7 +364,10 @@ bool SteamIntegration::AddGameShortcut(const QString& game_title, const QString&
     new_sc.start_dir = QStringLiteral("\"%1\"").arg(QFileInfo(exe_path).absolutePath());
     new_sc.icon = icon_path.isEmpty() ? QString() : QFileInfo(icon_path).absoluteFilePath();
     new_sc.shortcut_path = QFileInfo(exe_path).absolutePath();
-    new_sc.launch_options = QStringLiteral("-g \"%1\"").arg(rom_path);
+    // Empty rom_path means "suyu itself" (its own library UI), not a
+    // specific game - don't pass an empty -g "" argument in that case.
+    new_sc.launch_options =
+        rom_path.isEmpty() ? QString() : QStringLiteral("-g \"%1\"").arg(rom_path);
     new_sc.allow_desktop_config = true;
     new_sc.allow_overlay = true;
     new_sc.tags.append(QStringLiteral("suyu"));
@@ -386,6 +389,17 @@ bool SteamIntegration::AddGameShortcut(const QString& game_title, const QString&
 
     emit ShortcutAdded(game_title);
     return true;
+}
+
+bool SteamIntegration::AddSuyuSelfShortcut() {
+    // suyu.ico sits next to the executable in every build/install layout
+    // (see dist/suyu.ico, deployed alongside bin/suyu.exe).
+    const QString exe_dir = QFileInfo(QCoreApplication::applicationFilePath()).absolutePath();
+    QString icon_path = QDir(exe_dir).filePath(QStringLiteral("suyu.ico"));
+    if (!QFileInfo::exists(icon_path)) {
+        icon_path.clear();
+    }
+    return AddGameShortcut(QStringLiteral("suyu"), QString(), icon_path);
 }
 
 bool SteamIntegration::RemoveGameShortcut(const QString& game_title) {

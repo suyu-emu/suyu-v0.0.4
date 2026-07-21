@@ -1693,6 +1693,18 @@ void GMainWindow::ConnectMenuEvents() {
     connect_menu(ui->action_Load_Amiibo, &GMainWindow::OnLoadAmiibo);
     connect_menu(ui->action_Export_Game, &GMainWindow::OnExportGame);
 
+    // Not in the .ui file: EmulatorCoreManager (src/suyu/emulator_core_manager.*)
+    // already has a real, working libretro path - LaunchGame() shells out to
+    // RetroArch with -L <core> <rom> - but nothing in the UI ever let a user
+    // pick a core/ROM to actually reach it. Added here as a plain runtime
+    // QAction rather than editing the .ui, since this is the one place menu
+    // actions get connected once at startup.
+    {
+        auto* load_libretro_action = new QAction(tr("Load Libretro Core..."), this);
+        ui->menu_Tools->addAction(load_libretro_action);
+        connect_menu(load_libretro_action, &GMainWindow::OnLoadLibretroCore);
+    }
+
     // Emulation
     connect_menu(ui->action_Pause, &GMainWindow::OnPauseContinueGame);
     connect_menu(ui->action_Stop, &GMainWindow::OnStopGame);
@@ -5221,6 +5233,23 @@ void GMainWindow::ApplyAppMode(AppMode mode) {
                 });
 
             mcp_server_->RegisterTool(
+                QStringLiteral("social_debug_navigate"),
+                QStringLiteral("Test-only: navigate the Social page's embedded browser view directly to a URL."),
+                QJsonObject{{QStringLiteral("type"), QStringLiteral("object")},
+                            {QStringLiteral("properties"),
+                             QJsonObject{{QStringLiteral("url"),
+                                          QJsonObject{{QStringLiteral("type"), QStringLiteral("string")}}}}},
+                            {QStringLiteral("required"), QJsonArray{QStringLiteral("url")}}},
+                [this](const QJsonObject& params) -> QJsonObject {
+                    if (!gamer_env_) {
+                        return QJsonObject{{QStringLiteral("success"), false},
+                                           {QStringLiteral("error"), QStringLiteral("Gamer environment is not available")}};
+                    }
+                    gamer_env_->DebugNavigateSocial(params[QStringLiteral("url")].toString());
+                    return QJsonObject{{QStringLiteral("success"), true}};
+                });
+
+            mcp_server_->RegisterTool(
                 QStringLiteral("get_lobby_row_counts"),
                 QStringLiteral("Fetch multiplayer lobby row counts after filters for smoke tests."),
                 QJsonObject{{QStringLiteral("type"), QStringLiteral("object")},
@@ -5368,6 +5397,35 @@ void GMainWindow::ApplyAppMode(AppMode mode) {
                         OnInstallFirmware();
                     } else if (action == QStringLiteral("install_keys_dialog")) {
                         OnInstallDecryptionKeys();
+                    } else if (action == QStringLiteral("aot_test_export")) {
+                        // Test-only: directly drive a real export run on
+                        // whatever GameExportDialog is currently the active
+                        // modal (opened via export_game first), bypassing
+                        // its file pickers, so live automation can trigger
+                        // and observe the AOT pipeline's known hang past
+                        // ~15% progress without needing UI clicks.
+                        auto* dialog = qobject_cast<GameExportDialog*>(QApplication::activeModalWidget());
+                        if (!dialog) {
+                            return QJsonObject{{QStringLiteral("success"), false},
+                                               {QStringLiteral("error"), QStringLiteral("No GameExportDialog is currently open")}};
+                        }
+                        const QString rom_path = QStringLiteral(
+                            "C:/Program Files (x86)/Steam/steamapps/common/Super Smash Bros. Ultimate/Super Smash Bros. Ultimate.xci");
+                        const QString output_dir = QStringLiteral("C:/Users/charl/Documents/SuyuEclipse/aot_test_output");
+                        QDir().mkpath(output_dir);
+                        dialog->TriggerExportForTesting(rom_path, output_dir);
+                    } else if (action == QStringLiteral("nintendo_test_one_click")) {
+                        // Test-only: directly invoke the One-Click Sign In
+                        // handler on whatever NintendoAccountDialog is
+                        // currently the active modal, bypassing widget click
+                        // delivery, to isolate handler-logic bugs from
+                        // click-delivery bugs during live debugging.
+                        auto* dialog = qobject_cast<NintendoAccountDialog*>(QApplication::activeModalWidget());
+                        if (!dialog) {
+                            return QJsonObject{{QStringLiteral("success"), false},
+                                               {QStringLiteral("error"), QStringLiteral("No NintendoAccountDialog is currently open")}};
+                        }
+                        dialog->TriggerOneClickSignInForTesting();
                     } else {
                         return QJsonObject{{QStringLiteral("success"), false},
                                            {QStringLiteral("error"), QStringLiteral("Unknown action: %1").arg(action)}};
@@ -5822,27 +5880,93 @@ void GMainWindow::OnExportGame() {
     dialog.exec();
 }
 
+void GMainWindow::OnLoadLibretroCore() {
+    if (!core_manager_) {
+        core_manager_ = new EmulatorCoreManager(this);
+        core_manager_->ScanCores();
+    }
+
+    const QString core_path = QFileDialog::getOpenFileName(
+        this, tr("Select a Libretro Core"), QString(),
+#ifdef _WIN32
+        tr("Libretro Core (*.dll)")
+#elif defined(__APPLE__)
+        tr("Libretro Core (*.dylib)")
+#else
+        tr("Libretro Core (*.so)")
+#endif
+    );
+    if (core_path.isEmpty()) {
+        return;
+    }
+
+    if (!core_manager_->LoadLibretroCore(core_path)) {
+        QMessageBox::warning(this, tr("Libretro Core"),
+                              tr("Failed to load the selected file as a libretro core."));
+        return;
+    }
+
+    const QString rom_path = QFileDialog::getOpenFileName(this, tr("Select a ROM to Launch"));
+    if (rom_path.isEmpty()) {
+        return;
+    }
+
+    if (!core_manager_->SelectCore(QFileInfo(core_path).baseName()) ||
+        !core_manager_->LaunchGame(rom_path)) {
+        QMessageBox::warning(
+            this, tr("Libretro Core"),
+            tr("Loaded the core, but launching failed. Make sure RetroArch is "
+               "installed and on your PATH - suyu launches libretro cores via "
+               "'retroarch.exe -L <core> <rom>' rather than hosting them directly."));
+    }
+}
+
 void GMainWindow::OnNintendoAccount() {
-    NintendoAccountDialog dialog(this);
-    connect(&dialog, &NintendoAccountDialog::OwnedLibraryUpdated, this, [this](int) {
+    // Was a stack-allocated dialog run via exec(): if that nested event loop
+    // ever returned early during the One-Click Sign In click (confirmed live
+    // - dialog vanished with no crash, its own deferred QTimer::singleShot(0)
+    // for building the sign-in browser silently never fired because Qt skips
+    // a timer callback whose context object was already destroyed), the
+    // local `dialog` was destructed immediately, tearing down everything
+    // including that pending timer's context. A heap-allocated, non-modal
+    // stacking-safe dialog with WA_DeleteOnClose survives independently of
+    // any nested-loop quirk, so the deferred sign-in browser construction
+    // always has a live parent to attach to.
+    auto* dialog = new NintendoAccountDialog(this);
+    dialog->setAttribute(Qt::WA_DeleteOnClose);
+    connect(dialog, &NintendoAccountDialog::OwnedLibraryUpdated, this, [this](int) {
         if (game_list) {
             game_list->PopulateAsync(UISettings::values.game_dirs);
         }
     });
-    connect(&dialog, &NintendoAccountDialog::AccountUnlinked, this, [this]() {
+    connect(dialog, &NintendoAccountDialog::AccountUnlinked, this, [this]() {
         if (game_list) {
             game_list->PopulateAsync(UISettings::values.game_dirs);
         }
     });
-    dialog.exec();
+    dialog->show();
 }
 
 void GMainWindow::OnSteamIntegration() {
     SteamIntegration steam(this);
     const bool installed = steam.IsSteamInstalled();
+
+    // Seamless/automated: add suyu itself (icon + overlay-enabled shortcut)
+    // the first time this is opened, so the whole library shows up in Steam
+    // without the user needing to add every game one-by-one. AddGameShortcut
+    // already no-ops if a "suyu" shortcut is already present.
+    bool self_added_this_run = false;
+    if (installed) {
+        self_added_this_run = steam.AddSuyuSelfShortcut();
+    }
+
     const auto shortcuts = steam.ListShortcuts();
 
     QString message = installed ? tr("Steam is installed.\n") : tr("Steam is not detected.\n");
+    if (self_added_this_run) {
+        message += tr("suyu itself has been added to your Steam library (overlay enabled) - "
+                       "restart Steam to see it.\n");
+    }
     message += tr("%1 game shortcut(s) currently managed.\n").arg(shortcuts.size());
     message += tr("Steam is detected by standard install paths, Steam registry settings, or the STEAM_PATH environment variable.\n");
     message += tr("Artwork is fetched from the Steam Store public search endpoint with no API key required.\n");
@@ -5892,11 +6016,6 @@ static QString GetSteamArtworkType() {
     return settings.value(QStringLiteral("steam/artwork_type"), QStringLiteral("grids")).toString();
 }
 
-static void SetSteamArtworkType(const QString& artwork_type) {
-    QSettings settings(QStringLiteral("suyu"), QStringLiteral("SuyuEclipse"));
-    settings.setValue(QStringLiteral("steam/artwork_type"), artwork_type);
-}
-
 static QString GetSteamArtworkCacheDir() {
     return QString::fromStdString(Common::FS::PathToUTF8String(
         Common::FS::GetSuyuPath(Common::FS::SuyuPath::CacheDir) / "steam_artwork"));
@@ -5934,29 +6053,11 @@ void GMainWindow::OnGameListCreateSteamShortcut(u64 program_id, const std::strin
         }
     }
 
-    const QString artwork_type = GetSteamArtworkType();
-    const QStringList artwork_labels = {tr("Grid"), tr("Hero"), tr("Icon"), tr("Artwork")};
-    const QStringList artwork_values = {QStringLiteral("grids"), QStringLiteral("heroes"),
-                                        QStringLiteral("icons"), QStringLiteral("artworks")};
-    int default_index = artwork_values.indexOf(artwork_type);
-    if (default_index < 0) {
-        default_index = 0;
-    }
-
-    bool type_ok = false;
-    const QString selected_artwork_label = QInputDialog::getItem(
-        this, tr("Steam Store Artwork Type"),
-        tr("Choose the artwork style to fetch from the Steam Store:"),
-        artwork_labels, default_index, false, &type_ok);
-
-    QString selected_artwork_type = artwork_type;
-    if (type_ok && !selected_artwork_label.isEmpty()) {
-        const int selected_index = artwork_labels.indexOf(selected_artwork_label);
-        if (selected_index >= 0 && selected_index < artwork_values.size()) {
-            selected_artwork_type = artwork_values[selected_index];
-            SetSteamArtworkType(selected_artwork_type);
-        }
-    }
+    // Seamless/automated: use the saved artwork preference (or the "grids"
+    // default, matching Steam's standard library cover format) without
+    // interrupting with a picker dialog every time a game is added. The
+    // preference can still be changed once via Settings if desired.
+    const QString selected_artwork_type = GetSteamArtworkType();
 
     const QString cache_dir = GetSteamArtworkCacheDir();
     QDir().mkpath(cache_dir);
@@ -5968,9 +6069,7 @@ void GMainWindow::OnGameListCreateSteamShortcut(u64 program_id, const std::strin
             QMessageBox::information(
                 this, tr("Steam Integration"),
                 tr("%1 has been added to Steam using cached %2 artwork.")
-                    .arg(qt_game_title,
-                         selected_artwork_label.isEmpty() ? tr("store")
-                                                          : selected_artwork_label.toLower()));
+                    .arg(qt_game_title, selected_artwork_type));
         } else {
             QMessageBox::warning(this, tr("Steam Integration"),
                                  tr("Failed to add %1 to Steam using cached artwork.")
@@ -7369,5 +7468,15 @@ int main(int argc, char* argv[]) {
 
     int result = app.exec();
     detached_tasks.WaitForAllTasks();
+    // Common::Log::Start() launches a dedicated backend thread that only
+    // flushes to disk on its own size-threshold check inside Write() - there
+    // was no explicit Stop()/flush anywhere in shutdown, so any log entries
+    // sitting in the not-yet-threshold-sized buffer were silently lost on
+    // every exit (confirmed live: the log file was frozen at the same ~15
+    // startup lines across dozens of runs, including ones that did
+    // significant, real, verified-via-output-files work like a full AOT
+    // export - the entries were being queued, just never reaching disk).
+    // Stop() drains the queue and flushes every backend before returning.
+    Common::Log::Stop();
     return result;
 }

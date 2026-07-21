@@ -126,6 +126,15 @@ struct Values {
                                       true};
     Setting<bool> disable_web_applet{linkage, true, "disable_web_applet", Category::Ui};
     Setting<bool> enable_loading_music{linkage, true, "enable_loading_music", Category::Ui};
+    // Absolute path to a user-supplied audio file to use instead of the
+    // bundled loading screen music. Empty means use the bundled track.
+    Setting<std::string> loading_music_path{linkage, "", "loading_music_path", Category::Ui};
+
+    Setting<bool> enable_social_music{linkage, true, "enable_social_music", Category::Ui};
+    // Absolute path to a user-supplied audio file to use instead of the
+    // bundled "Midnight Tokyo" lofi track on the Social page. Empty means
+    // use the bundled track.
+    Setting<std::string> social_music_path{linkage, "", "social_music_path", Category::Ui};
 
     // Reddit deprecated unauthenticated .json access on 2026-05-28; reading
     // r/suyu now requires an OAuth "installed app" client ID (no secret -

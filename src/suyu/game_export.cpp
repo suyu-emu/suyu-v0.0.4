@@ -335,6 +335,12 @@ void GameExportDialog::SetRomPath(const QString& path, quint64 program_id) {
     }
 }
 
+void GameExportDialog::TriggerExportForTesting(const QString& rom_path, const QString& output_dir) {
+    SetRomPath(rom_path);
+    output_path_edit->setText(output_dir);
+    OnExport();
+}
+
 void GameExportDialog::OnBrowseRom() {
     const QString file = QFileDialog::getOpenFileName(
         this, tr("Select ROM"), QString(),
@@ -727,7 +733,21 @@ static bool SerializeTranslatedBlocks(const NsoAnalysisResult& mod, const QStrin
 
     const std::span<const u8> text_span{mod.text_bytes.data(), mod.text_bytes.size()};
 
+    // A full commercial title can have tens of thousands of basic blocks
+    // (confirmed live: Smash Ultimate alone generates 90,000+), each
+    // processed synchronously on the GUI thread with no event pumping in
+    // between. That's not a hang/deadlock - CPU usage stays high and real
+    // files keep getting written the whole time - but Windows still marks
+    // the window "Not Responding" and the UI can't repaint, which reads
+    // exactly like a hang to a user. Pumping the event loop periodically
+    // keeps the window responsive (repaints, can still be dragged/moved)
+    // without needing a full move-to-background-thread rewrite of a
+    // pipeline that touches several dialog widgets throughout.
+    size_t blocks_processed = 0;
     for (const auto& block : mod.blocks) {
+        if (++blocks_processed % 250 == 0) {
+            QApplication::processEvents();
+        }
         const QString stem = QStringLiteral("%1_%2")
                                  .arg(mod.name)
                                  .arg(block.vaddr, 8, 16, QLatin1Char('0'));
@@ -959,7 +979,11 @@ QString GameExportDialog::RunAotPrecompile(const QString& exefs_dir,
             map_file.write(reinterpret_cast<const char*>(&version), 4);
             map_file.write(reinterpret_cast<const char*>(&block_count), 4);
 
+            size_t map_blocks_written = 0;
             for (const auto& block : mod.blocks) {
+                if (++map_blocks_written % 1000 == 0) {
+                    QApplication::processEvents();
+                }
                 map_file.write(reinterpret_cast<const char*>(&block.vaddr), 4);
                 map_file.write(reinterpret_cast<const char*>(&block.size), 4);
                 map_file.write(reinterpret_cast<const char*>(&block.instruction_count), 4);

@@ -11,6 +11,7 @@
 #include <QCursor>
 #include <QDesktopServices>
 #include <QDir>
+#include <QFileDialog>
 #include <QFileInfo>
 #include <QFile>
 #include <QGraphicsDropShadowEffect>
@@ -44,11 +45,96 @@
 #include <QWebEngineProfile>
 #include <QWebEngineView>
 #include <QWebEnginePage>
+#include <QWebEngineHistory>
+#include <QDialog>
+#endif
+#ifdef SUYU_USE_QT_MULTIMEDIA
+#if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
+#include <QAudioOutput>
+#include <QMediaPlayer>
+#else
+#include <QMediaContent>
+#include <QMediaPlayer>
+#endif
 #endif
 #include "suyu/game_list_p.h"
 #include "suyu/main.h"
 
 namespace {
+
+#ifdef SUYU_USE_QT_WEB_ENGINE
+// The default QWebEnginePage silently drops any navigation that tries to
+// open a new window/tab (window.open(), target="_blank", or a JS-driven
+// popup) - it does nothing at all unless createWindow() is overridden,
+// which is exactly why "Continue with Google" (and other SSO providers,
+// which all popup an OAuth window) previously just stopped dead with no
+// visible error. Overriding it to hand back a page backed by the SAME
+// profile (so it shares login cookies) inside a small dialog lets the
+// OAuth flow actually complete; the dialog closes itself and reloads the
+// opener once the popup navigates back to reddit.com (the provider
+// redirects there on success).
+class SuyuWebPopupPage : public QWebEnginePage {
+public:
+    explicit SuyuWebPopupPage(QWebEngineProfile* profile, QWebEngineView* opener_view)
+        : QWebEnginePage(profile, opener_view), opener_view_(opener_view) {}
+
+protected:
+    QWebEnginePage* createWindow(QWebEnginePage::WebWindowType /*type*/) override {
+        auto* dialog = new QDialog(opener_view_);
+        dialog->setWindowTitle(QObject::tr("Sign In"));
+        dialog->resize(560, 680);
+        dialog->setAttribute(Qt::WA_DeleteOnClose);
+        dialog->setModal(true);
+        auto* layout = new QVBoxLayout(dialog);
+        layout->setContentsMargins(0, 0, 0, 0);
+        auto* popup_view = new QWebEngineView(dialog);
+        auto* popup_page = new SuyuWebPopupPage(profile(), popup_view);
+        popup_view->setPage(popup_page);
+        layout->addWidget(popup_view);
+
+        QObject::connect(popup_page, &QWebEnginePage::urlChanged, dialog,
+                          [dialog, this](const QUrl& url) {
+                              // The OAuth provider redirects back to reddit.com
+                              // once sign-in succeeds - close the popup and
+                              // reload the opener so it picks up the new
+                              // session cookie.
+                              if (url.host().contains(QStringLiteral("reddit.com"))) {
+                                  dialog->close();
+                                  if (opener_view_) {
+                                      opener_view_->reload();
+                                  }
+                              }
+                          });
+        dialog->show();
+        return popup_page;
+    }
+
+    bool acceptNavigationRequest(const QUrl& url, QWebEnginePage::NavigationType type,
+                                 bool isMainFrame) override {
+        // Back/Refresh/New Post/Music were originally wired via
+        // location.hash changes clicked from injected JS, but that touches
+        // the page's real navigation history - a hash change IS a history
+        // entry, so calling history()->back() right after just undoes that
+        // same hash push and never reaches the actual previous real page
+        // (confirmed live: Back silently no-op'd, landing back on the same
+        // page minus the hash instead of going to r/suyu). Routing pill
+        // clicks through a fake https://suyu-action/<name> URL instead and
+        // intercepting it here means clicking Back never touches history at
+        // all, so QWebEngineHistory reflects only genuine page navigations.
+        if (url.host() == QStringLiteral("suyu-action") && action_callback) {
+            action_callback(url.path());
+            return false;
+        }
+        return QWebEnginePage::acceptNavigationRequest(url, type, isMainFrame);
+    }
+
+public:
+    std::function<void(const QString&)> action_callback;
+
+private:
+    QWebEngineView* opener_view_;
+};
+#endif
 
 QIcon DecorationToIcon(const QVariant& decoration) {
     if (decoration.canConvert<QIcon>()) {
@@ -369,7 +455,27 @@ QJsonObject GamerEnvironment::GetMcpState() const {
 }
 
 void GamerEnvironment::RefreshSocialFeed() {
+#ifdef SUYU_USE_QT_WEB_ENGINE
+    // LoadRedditFeed() below is the legacy OAuth-JSON path used only by the
+    // non-WebEngine fallback build (it operates on social_browser_, which is
+    // never created when WebEngine is compiled in). This public entry point
+    // is called by external automation (e.g. the refresh_social_feed MCP
+    // tool), not just the in-UI Refresh button, so it must reload the actual
+    // embedded view rather than silently no-op'ing against the wrong widget.
+    if (social_web_view_) {
+        social_web_view_->reload();
+        return;
+    }
+#endif
     LoadRedditFeed();
+}
+
+void GamerEnvironment::DebugNavigateSocial(const QString& url) {
+#ifdef SUYU_USE_QT_WEB_ENGINE
+    if (social_web_view_) {
+        social_web_view_->setUrl(QUrl(url));
+    }
+#endif
 }
 
 // ── UI construction ──────────────────────────────────────────────────────────
@@ -657,73 +763,40 @@ QWidget* GamerEnvironment::BuildLibraryPage() {
     return library_page_;
 }
 
+QString GamerEnvironment::LoadingScreenTileDataUri() const {
+    // Reused so the Social page background matches the loading screen's
+    // tiled logo pattern instead of a plain gradient. Built as a runtime
+    // QString (not a compile-time raw string literal) specifically because
+    // the base64 payload (~127KB) would blow past MSVC's ~16KB limit for a
+    // single string literal inside a macro like QStringLiteral(R"(...)")
+    // (the exact bug that caused the earlier "string too big" C2026 build
+    // error when the JS blob itself got too large).
+    static QString cached;
+    if (!cached.isEmpty()) {
+        return cached;
+    }
+    QFile mask_file(QStringLiteral(":/img/suyu_tile_mask.png"));
+    if (mask_file.open(QIODevice::ReadOnly)) {
+        cached = QStringLiteral("data:image/png;base64,") +
+                 QString::fromLatin1(mask_file.readAll().toBase64());
+    }
+    return cached;
+}
+
 QWidget* GamerEnvironment::BuildSocialPage() {
     social_page_ = new QWidget(this);
     social_page_->setAttribute(Qt::WA_TranslucentBackground);
     social_page_->setAutoFillBackground(false);
 
     auto* vl = new QVBoxLayout(social_page_);
-    vl->setContentsMargins(24, 24, 24, 24);
-    vl->setSpacing(12);
+    // No outer margins/native header row: Back, Refresh, New Post, Music,
+    // and Log In are all rendered as one unified row of pills INSIDE the
+    // page itself (see the injected JS below), so nothing sits as a
+    // separate native bar above the widget.
+    vl->setContentsMargins(0, 0, 0, 0);
+    vl->setSpacing(0);
 
-    auto* headingRow = new QHBoxLayout();
-    headingRow->setContentsMargins(0, 0, 0, 0);
-    headingRow->setSpacing(12);
-
-    auto* heading = new QLabel(tr("Community"), social_page_);
-    {
-        QFont f = heading->font();
-        f.setPixelSize(22);
-        f.setBold(true);
-        heading->setFont(f);
-    }
-    heading->setStyleSheet(QStringLiteral("color: white;"));
-    headingRow->addWidget(heading);
-    headingRow->addStretch();
-
-    social_refresh_btn_ = new QPushButton(tr("Refresh"), social_page_);
-    social_refresh_btn_->setCursor(Qt::PointingHandCursor);
-    social_refresh_btn_->setFixedHeight(36);
-    social_refresh_btn_->setStyleSheet(QStringLiteral(
-        "QPushButton {"
-        "  color: white;"
-        "  background: rgba(255,255,255,0.12);"
-        "  border: 1px solid rgba(255,255,255,0.18);"
-        "  border-radius: 18px;"
-        "  padding: 0 16px;"
-        "}"
-        "QPushButton:hover { background: rgba(255,255,255,0.18); }"
-    ));
-    headingRow->addWidget(social_refresh_btn_);
-
-    social_post_btn_ = new QPushButton(tr("New Post"), social_page_);
-    social_post_btn_->setCursor(Qt::PointingHandCursor);
-    social_post_btn_->setFixedHeight(36);
-    social_post_btn_->setStyleSheet(QStringLiteral(
-        "QPushButton {"
-        "  color: white;"
-        "  background: qlineargradient(x1:0,y1:0,x2:1,y2:0, stop:0 #ff8a3d, stop:1 #ff5f9e);"
-        "  border: none;"
-        "  border-radius: 18px;"
-        "  padding: 0 18px;"
-        "  font-weight: 600;"
-        "}"
-        "QPushButton:hover { background: qlineargradient(x1:0,y1:0,x2:1,y2:0, stop:0 #ff9a52, stop:1 #ff73ab); }"
-    ));
-    connect(social_post_btn_, &QPushButton::clicked, this, [this] {
-#ifdef SUYU_USE_QT_WEB_ENGINE
-        // The embedded view is a real, logged-in-capable Reddit session
-        // (QWebEngineProfile persists cookies), so posting can happen right
-        // here instead of shelling out to an external browser.
-        if (social_web_view_) {
-            social_web_view_->setUrl(QUrl(QStringLiteral("https://www.reddit.com/r/suyu/submit")));
-            return;
-        }
-#endif
-        QDesktopServices::openUrl(QUrl(QStringLiteral("https://www.reddit.com/r/suyu/submit")));
-    });
-    headingRow->addWidget(social_post_btn_);
-    vl->addLayout(headingRow);
+    social_music_enabled_ = UISettings::values.enable_social_music.GetValue();
 
     auto* redditTab = new QWidget(social_page_);
     auto* redditLayout = new QVBoxLayout(redditTab);
@@ -731,75 +804,571 @@ QWidget* GamerEnvironment::BuildSocialPage() {
     redditLayout->setSpacing(10);
 
 #ifdef SUYU_USE_QT_WEB_ENGINE
-    // Reddit's official public embed widget (embed.reddit.com) is meant for
-    // external sites and needs no OAuth - but it's still gated by an
-    // anti-bot check that a plain HTTP client can't pass (verified: curl
-    // gets a 403 challenge page even here). A real Chromium engine can
-    // execute that challenge's JS like any browser would, so load the
-    // embed in an actual QWebEngineView instead of fetching JSON by hand.
-    // Real, interactive Reddit session - not the read-only embed widget -
-    // so the user can actually log in and post from inside suyu, matching
-    // the earlier Miiverse-style social feed. QWebEngineProfile persists
-    // cookies to disk (per-profile storage name below), so a login here
-    // survives across restarts like a normal browser. "Custom frontend":
-    // inject our own CSS once each page finishes loading to reskin Reddit's
-    // chrome toward suyu's dark purple palette, rather than a plain iframe.
+    // reddit.com's current frontend (shreddit-app) renders posts as web
+    // components with closed/encapsulated Shadow DOM - injected page CSS
+    // cannot reach the actual visual elements inside a shadow root (only
+    // ::part()/custom-properties cross that boundary, and Reddit exposes
+    // neither for post layout), which is why an earlier attempt to reskin
+    // it as CSS-only never visually changed anything. old.reddit.com is
+    // still fully supported, still lets you log in and post, and is
+    // classic server-rendered HTML with plain class names (.thing, .title,
+    // .tagline, .midcol) and NO shadow DOM, so a real reskin is possible.
+    // We inject CSS to restyle it as Miiverse-style rounded white "speech
+    // bubble" post cards (with a little bubble tail) on a warm purple
+    // community backdrop, plus JS to synthesize a circular Mii-style
+    // avatar badge per post (old reddit has no avatar images by default).
     auto* profile = new QWebEngineProfile(QStringLiteral("suyuSocialFeed"), redditTab);
     profile->setPersistentCookiesPolicy(QWebEngineProfile::ForcePersistentCookies);
     social_web_view_ = new QWebEngineView(redditTab);
-    social_web_view_->setPage(new QWebEnginePage(profile, social_web_view_));
+    auto* social_page = new SuyuWebPopupPage(profile, social_web_view_);
+    social_web_view_->setPage(social_page);
     social_web_view_->setStyleSheet(QStringLiteral(
         "QWebEngineView { background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.16); border-radius: 16px; }"));
+
+    // Back/Refresh/New Post/Music pills are plain https://suyu-action/<name>
+    // links intercepted by SuyuWebPopupPage::acceptNavigationRequest (see
+    // its comment for why - NOT a location.hash bridge, which broke Back by
+    // polluting the page's own navigation history).
+    social_page->action_callback = [this](const QString& action) {
+        if (!social_web_view_) {
+            return;
+        }
+        if (action == QStringLiteral("/refresh")) {
+            social_web_view_->reload();
+        } else if (action == QStringLiteral("/newpost")) {
+            social_web_view_->setUrl(QUrl(QStringLiteral("https://old.reddit.com/r/suyu/submit")));
+        } else if (action == QStringLiteral("/back")) {
+            // Browser-style back navigation within the page (post -> r/suyu,
+            // login -> r/suyu) rather than always leaving the Social tab -
+            // only fall back to that when there's nowhere left to go back to.
+            LOG_INFO(Frontend, "Social back diag: canGoBack={} count={} currentIndex={} currentUrl={}",
+                     social_web_view_->history()->canGoBack(),
+                     social_web_view_->history()->count(),
+                     social_web_view_->history()->currentItemIndex(),
+                     social_web_view_->url().toString().toStdString());
+            if (social_web_view_->history()->canGoBack()) {
+                social_web_view_->back();
+                // Chromium's back/forward-cache restore for a page whose DOM
+                // we've heavily mutated via JS (document.body.innerHTML)
+                // doesn't reliably re-fire loadFinished, so the Miiverse
+                // reskin JS never reapplies and the page comes back as raw
+                // unstyled Reddit (confirmed live). A follow-up reload()
+                // forces a genuine fresh network load of the now-current
+                // (already-back-navigated) URL, which does reliably fire
+                // loadFinished and reapply the reskin.
+                QTimer::singleShot(50, this, [this] {
+                    if (social_web_view_) {
+                        social_web_view_->reload();
+                    }
+                });
+            } else {
+                OnNavLibraryClicked();
+            }
+        } else if (action == QStringLiteral("/music")) {
+            social_music_enabled_ = !social_music_enabled_;
+            UISettings::values.enable_social_music.SetValue(social_music_enabled_);
+            if (social_music_enabled_) {
+                StartSocialMusic();
+            } else {
+                StopSocialMusic();
+            }
+            social_web_view_->page()->runJavaScript(QStringLiteral(
+                "(function(){var p=document.getElementById('suyu-music-pill');"
+                "if(p){p.textContent='%1';}window.__suyuMusicEnabled=%2;})();")
+                .arg(social_music_enabled_ ? QStringLiteral("🎵") : QStringLiteral("🔇"))
+                .arg(social_music_enabled_ ? QStringLiteral("true") : QStringLiteral("false")));
+        } else if (action == QStringLiteral("/open_external_reddit_login")) {
+            // Opens the user's own default system browser to log into Reddit
+            // there instead of the embedded view - for users who'd rather
+            // use already-saved passwords/passkeys/extensions. This is a
+            // fully separate browser session/cookie jar from the embedded
+            // QWebEngineProfile, so it doesn't feed a token back into suyu;
+            // it's an alternative sign-in surface, not a linked session.
+            QDesktopServices::openUrl(QUrl(QStringLiteral("https://old.reddit.com/login")));
+        }
+    };
+
+    // Reddit's actual login widget (even reached via old.reddit.com/login -
+    // Reddit now serves its modern Shadow-DOM login UI there regardless of
+    // entry point) completes sign-in via client-side SPA routing/pushState,
+    // not a full page navigation - so loadFinished never fires again after
+    // a successful login, and the Miiverse reskin (which only runs on
+    // loadFinished) never rebuilds to show the now-logged-in state. This
+    // was reported live as "doesn't work after signin" for both accounts;
+    // Nintendo's was a separate, deeper OAuth bug (see ExchangeSessionTokenCode),
+    // but Reddit's is exactly this SPA-navigation gap. urlChanged DOES still
+    // fire on pushState navigation even without a real network load, so use
+    // it to detect "we just left a login-ish URL" and force a real reload()
+    // - a fresh server-rendered old.reddit.com page load that legitimately
+    // reflects the new session cookie and fires loadFinished normally.
+    connect(social_web_view_, &QWebEngineView::urlChanged, this,
+            [this](const QUrl& url) {
+                const bool is_login = url.path().contains(QStringLiteral("login"));
+                if (social_was_on_login_page_ && !is_login && social_web_view_) {
+                    social_web_view_->reload();
+                }
+                social_was_on_login_page_ = is_login;
+            });
 
     connect(social_web_view_, &QWebEngineView::loadFinished, this, [this](bool ok) {
         if (!ok || !social_web_view_) {
             return;
         }
-        // Miiverse-style skin: soft rounded white "speech bubble" post cards
-        // on a warm pastel-purple community backdrop, big circular avatars,
-        // and a colored top banner strip - Miiverse's signature look, rather
-        // than Reddit's default flat list.
+        // Six different attempts to reskin Reddit's OWN rendered page (CSS
+        // overrides, position:fixed detection, MutationObserver, hiding
+        // iframes, walking Shadow DOM) each hit some new Reddit-owned DOM
+        // quirk (ads, shadow-DOM web components even on old.reddit, nag
+        // widgets that survive every removal strategy). Fighting Reddit's
+        // live markup is a losing, unbounded game. Instead: fetch the raw
+        // post data from Reddit's own JSON API (old.reddit.com still serves
+        // it, same-origin, uses the existing session cookies) and render an
+        // entirely custom Miiverse-style DOM ourselves - pinned posts as
+        // square community tiles up top, regular posts as speech-bubble
+        // cards with real fetched profile pictures, Miiverse-style icons for
+        // comments/likes. We own 100% of the resulting DOM, so none of
+        // Reddit's chrome/ads/nags/shadow-DOM can appear in it at all.
+        // Login/submit/comment permalinks are left as real Reddit pages
+        // (those are inherently short excursions, not the main feed view).
         static const QString js = QStringLiteral(R"JS(
             (function(){
-                var s = document.getElementById('suyu-skin');
-                if (!s) { s = document.createElement('style'); s.id = 'suyu-skin'; document.head.appendChild(s); }
-                s.textContent = `
-                    body { background: linear-gradient(180deg, #7b5fc7 0%, #5a3d99 100%) !important; }
-                    shreddit-app {
-                        --color-tone-1: #3a2a5c !important;
-                        --color-tone-2: #7a5fae !important;
-                        --color-background: transparent !important;
-                        --color-neutral-background: #ffffff !important;
+                var path = location.pathname;
+                var isListing = (path === '/r/suyu/' || path === '/r/suyu' || path === '/');
+                var isLogin = path.indexOf('login') !== -1;
+
+                // Back/Music must work from EVERY page - a post's comments,
+                // the login page, the submit form - not just the main feed,
+                // so this floating pill bar is injected unconditionally,
+                // regardless of which branch below runs. Back asks C++ to
+                // use the view's own navigation history (so "back" from a
+                // post returns to r/suyu, matching real browser-back
+                // semantics) and only falls back to leaving the Social tab
+                // entirely when there's nowhere left to go back to.
+                function pill(text, actionName) {
+                    var a = document.createElement('a');
+                    a.textContent = text;
+                    // A fake https://suyu-action/<name> link, intercepted by
+                    // SuyuWebPopupPage::acceptNavigationRequest in C++ (which
+                    // blocks the navigation and runs the real action instead)
+                    // - NOT a location.hash change, because a hash change is
+                    // itself a real history entry, and that broke Back:
+                    // calling history()->back() right after just undid our
+                    // own hash push instead of reaching the actual previous
+                    // page (confirmed live).
+                    a.href = 'https://suyu-action/' + actionName;
+                    a.style.cssText = 'pointer-events:auto;color:#fff;'
+                        + 'background:rgba(40,20,70,0.55);backdrop-filter:blur(6px);'
+                        + 'padding:6px 16px;border-radius:14px;text-decoration:none;'
+                        + 'font-weight:700;font-size:12px;box-shadow:0 2px 0 rgba(0,0,0,0.2);'
+                        + 'display:inline-block;';
+                    return a;
+                }
+                // Back always floats top-LEFT on every page. Music floats
+                // top-RIGHT too, but only on pages that have no in-page
+                // header of their own (post/login) - on the main feed the
+                // music pill instead sits inline in that page's own header
+                // next to Refresh/New Post/Log In, so the two never fight
+                // over the same corner.
+                function injectBackPill() {
+                    if (document.getElementById('suyu-back-pill')) { return; }
+                    var back = pill('⟵ Back', 'back');
+                    back.id = 'suyu-back-pill';
+                    back.style.cssText += 'position:fixed;top:10px;left:10px;z-index:2147483647;';
+                    document.body.appendChild(back);
+                }
+                function injectFloatingMusicPill() {
+                    if (document.getElementById('suyu-music-pill')) { return; }
+                    var musicPill = pill(window.__suyuMusicEnabled === false ? '🔇' : '🎵', 'music');
+                    musicPill.id = 'suyu-music-pill';
+                    musicPill.style.cssText += 'position:fixed;top:10px;right:10px;z-index:2147483647;';
+                    document.body.appendChild(musicPill);
+                }
+
+                if (isLogin) {
+                    // Can't replace the login page's DOM (the actual <form>
+                    // must stay functional), so restyle it in place instead:
+                    // purple gradient backdrop + a rounded white card
+                    // wrapping the form, Miiverse-ish button colors. Also
+                    // covers "Continue with Google"/other SSO buttons,
+                    // which submit via a normal link/form post on this same
+                    // page (the popup case is handled by
+                    // SuyuWebPopupPage::createWindow in C++ for providers
+                    // that open a separate OAuth window).
+                    if (!window.__suyuLoginSkinned) {
+                        window.__suyuLoginSkinned = true;
+                        var lcss = document.createElement('style');
+                        lcss.textContent = ''
+                            + 'html,body{background:linear-gradient(180deg,#8f6fd1 0%,#5a3d99 100%) !important;}'
+                            + '.content{max-width:400px !important;margin:60px auto !important;'
+                            + '  background:#fff !important;border-radius:24px !important;'
+                            + '  box-shadow:0 4px 0 rgba(0,0,0,0.2) !important;padding:24px !important;}'
+                            + '#login-form-side, .side, #header{display:none !important;}'
+                            + '.submit input[type=submit], button[type=submit], .btn, [role="button"]{'
+                            + '  background:#3ecf8e !important;color:#fff !important;border:none !important;'
+                            + '  border-radius:14px !important;font-weight:700 !important;}';
+                        document.head.appendChild(lcss);
                     }
-                    shreddit-post, faceplate-partial, [slot="post-container"] {
-                        border-radius: 22px !important;
-                        background: #ffffff !important;
-                        box-shadow: 0 3px 0 rgba(0,0,0,0.12) !important;
-                        margin: 10px 8px !important;
-                        border: none !important;
-                        overflow: hidden !important;
+                    injectBackPill();
+                    injectFloatingMusicPill();
+                    if (!document.getElementById('suyu-external-browser-pill')) {
+                        // Alternative for users who'd rather sign in through
+                        // their own default system browser (already-saved
+                        // Reddit password/passkey, extensions, etc.) instead
+                        // of this embedded view - dispatched to C++ via the
+                        // same suyu-action:// interception the other pills
+                        // use, which calls QDesktopServices::openUrl.
+                        var extPill = pill('Sign In via Your Browser', 'open_external_reddit_login');
+                        extPill.id = 'suyu-external-browser-pill';
+                        // Fixed positioning, same as the other pills - the
+                        // login page's DOM structure varies (classic
+                        // old.reddit markup vs the modern Shadow-DOM login
+                        // widget), so appending into a page-specific
+                        // container like '.content' isn't reliable; a
+                        // fixed-position node anchored to the viewport
+                        // always ends up visible regardless of host layout.
+                        extPill.style.cssText += 'position:fixed;bottom:16px;left:50%;'
+                            + 'transform:translateX(-50%);z-index:2147483647;';
+                        document.body.appendChild(extPill);
                     }
-                    shreddit-post img, shreddit-post [slot="credit-bar"] img,
-                    faceplate-tracker img {
-                        border-radius: 50% !important;
+                    return;
+                }
+
+                if (!isListing) {
+                )JS") + QStringLiteral(R"JS(
+                    // A post/comments/submit page. old.reddit's comment page
+                    // (unlike the modern login page) is still classic
+                    // server-rendered HTML with no Shadow DOM, so - just
+                    // like the main listing - a real CSS reskin is possible
+                    // here too, instead of leaving it as raw Reddit chrome
+                    // (which is what made the Miiverse look "disappear"
+                    // whenever a post was opened).
+                    if (!window.__suyuPostSkinned) {
+                        window.__suyuPostSkinned = true;
+                        var pcss = document.createElement('style');
+                        pcss.textContent = ''
+                            + 'html,body{background:linear-gradient(180deg,#8f6fd1 0%,#5a3d99 100%) '
+                            + '  url(__SUYU_TILE_URI__) !important;background-size:auto,220px;'
+                            + '  background-blend-mode:normal,overlay;background-repeat:no-repeat,repeat;'
+                            + '  font-family:"Segoe UI",sans-serif !important;}'
+                            + '#header,.side,.tabmenu,.infobar{display:none !important;}'
+                            + '.content{margin:50px auto 24px !important;max-width:760px !important;'
+                            + '  background:transparent !important;}'
+                            + '.link{background:#fff !important;border-radius:22px !important;'
+                            + '  box-shadow:0 3px 0 rgba(0,0,0,0.15) !important;'
+                            + '  margin:0 8px 20px 52px !important;padding:14px 18px !important;'
+                            + '  border:none !important;position:relative !important;}'
+                            + '.link:after{content:"";position:absolute;left:-9px;top:22px;'
+                            + '  border-width:8px 9px 8px 0;border-style:solid;'
+                            + '  border-color:transparent #fff transparent transparent;}'
+                            + '.link .midcol{display:none !important;}'
+                            + '.link a.title{color:#3a2a5c !important;font-weight:800 !important;'
+                            + '  font-size:16px !important;text-decoration:none !important;}'
+                            + '.link p.tagline{color:#9a8fc2 !important;font-size:11px !important;}'
+                            + '.commentarea{background:transparent !important;margin:0 8px !important;}'
+                            + '.comment{background:#fff !important;border-radius:16px !important;'
+                            + '  box-shadow:0 2px 0 rgba(0,0,0,0.12) !important;'
+                            + '  margin:0 0 10px 44px !important;padding:10px 14px !important;'
+                            + '  border:none !important;position:relative !important;}'
+                            + '.comment:after{content:"";position:absolute;left:-8px;top:14px;'
+                            + '  border-width:7px 8px 7px 0;border-style:solid;'
+                            + '  border-color:transparent #fff transparent transparent;}'
+                            + '.comment .midcol{display:none !important;}'
+                            + '.comment .tagline{color:#9a8fc2 !important;font-size:11px !important;}'
+                            + '.comment .tagline .author{color:#7a5fae !important;font-weight:700 !important;}'
+                            + '.usertext-body{color:#4a3a6c !important;font-size:12.5px !important;}'
+                            + '.link ul.flat-list.buttons li a, .comment ul.flat-list.buttons li a{'
+                            + '  background:#3ecf8e !important;color:#fff !important;'
+                            + '  border-radius:12px !important;padding:3px 10px !important;'
+                            + '  text-decoration:none !important;font-weight:700 !important;}';
+                        document.head.appendChild(pcss);
+
+                        // Synthesize the same circular colored-avatar badges
+                        // used on the main feed for the post author and each
+                        // commenter (old.reddit has no avatar images).
+                        var PALETTE2 = ['#ff8a3d','#ff5f9e','#3ecf8e','#5a9bff','#c77dff','#ffcd3d'];
+                        function hashColor2(str) {
+                            var h = 0;
+                            for (var i = 0; i < str.length; i++) { h = (h * 31 + str.charCodeAt(i)) >>> 0; }
+                            return PALETTE2[h % PALETTE2.length];
+                        }
+                        document.querySelectorAll('.link, .comment').forEach(function(el) {
+                            var authorEl = el.querySelector('p.tagline a.author, .tagline a.author');
+                            var name = authorEl ? authorEl.textContent.trim() : '?';
+                            var badge = document.createElement('div');
+                            badge.style.cssText = 'position:absolute;left:-40px;top:10px;width:32px;'
+                                + 'height:32px;border-radius:50%;display:flex;align-items:center;'
+                                + 'justify-content:center;color:#fff;font-weight:800;font-size:13px;'
+                                + 'box-shadow:0 2px 0 rgba(0,0,0,0.2);background:' + hashColor2(name) + ';';
+                            badge.textContent = name.charAt(0).toUpperCase();
+                            el.appendChild(badge);
+                        });
                     }
-                    shreddit-post [slot="title"] {
-                        font-weight: 800 !important;
-                        color: #3a2a5c !important;
+                    // A post/comments/submit page - leave Reddit's real
+                    // content alone (comments need to stay functional) but
+                    // still surface Back/Music so navigation is consistent.
+                    injectBackPill();
+                    injectFloatingMusicPill();
+                    return;
+                }
+
+                if (window.__suyuMiiverseBuilt) { injectBackPill(); return; }
+                window.__suyuMiiverseBuilt = true;
+
+                var PALETTE = ['#ff8a3d','#ff5f9e','#3ecf8e','#5a9bff','#c77dff','#ffcd3d'];
+                function hashColor(str) {
+                    var h = 0;
+                    for (var i = 0; i < str.length; i++) { h = (h * 31 + str.charCodeAt(i)) >>> 0; }
+                    return PALETTE[h % PALETTE.length];
+                }
+                function esc(s) {
+                    var d = document.createElement('div');
+                    d.textContent = s || '';
+                    return d.innerHTML;
+                }
+                function unescapeHtml(s) {
+                    var d = document.createElement('div');
+                    d.innerHTML = s || '';
+                    return d.textContent;
+                }
+
+                function renderMiiverse(pinned, regular, username, avatars) {
+                    var css = document.createElement('style');
+                    css.textContent = ''
+                        // Light mode: white/grey "liquid glass" - frosted
+                        // translucent cards over a soft diagonal grey-white
+                        // backdrop. Dark mode: the loading screen's own
+                        // purple gradient, so Social visually matches it.
+                        // The tile-mask image is the same suyu logo pattern
+                        // tiled on the loading screen - substituted in from
+                        // C++ (a __SUYU_TILE_URI__ token) rather than
+                        // embedded as a literal here, since the base64
+                        // payload is ~127KB and would blow past MSVC's
+                        // ~16KB single-string-literal limit (the exact bug
+                        // that caused the earlier "string too big" error).
+                        + '@media (prefers-color-scheme: light) {'
+                        + '  html,body{background:'
+                        + '    linear-gradient(135deg,rgba(244,244,247,0.94) 0%,rgba(220,220,228,0.94) 100%),'
+                        + '    url(__SUYU_TILE_URI__) !important;'
+                        + '    background-size:auto,220px;background-blend-mode:normal,soft-light;'
+                        + '    background-repeat:no-repeat,repeat;}'
+                        + '  .mv-card{background:rgba(255,255,255,0.72) !important;'
+                        + '    backdrop-filter:blur(14px) saturate(160%);color:#2a2140;}'
+                        + '  .mv-card:after{border-color:rgba(255,255,255,0.72) transparent transparent transparent !important;}'
+                        + '  .mv-title, .mv-meta b{color:#4b3b78 !important;}'
+                        + '  .mv-header a, .mv-announce{color:#2a2140 !important;}'
+                        + '  .mv-header a{background:rgba(60,40,100,0.08) !important;}'
+                        + '  .mv-announce{background:rgba(255,255,255,0.72) !important;}'
+                        + '}'
+                        + '@media (prefers-color-scheme: dark) {'
+                        + '  html,body{background:'
+                        + '    linear-gradient(180deg,rgba(123,95,199,0.94) 0%,rgba(58,42,92,0.94) 100%),'
+                        + '    url(__SUYU_TILE_URI__) !important;'
+                        + '    background-size:auto,220px;background-blend-mode:normal,overlay;'
+                        + '    background-repeat:no-repeat,repeat;}'
+                        + '}'
+                        + 'html,body{background:'
+                        + '  linear-gradient(180deg,rgba(143,111,209,0.94) 0%,rgba(90,61,153,0.94) 100%),'
+                        + '  url(__SUYU_TILE_URI__);'
+                        + '  background-size:auto,220px;background-blend-mode:normal,overlay;'
+                        + '  background-repeat:no-repeat,repeat;'
+                        + '  font-family:"Segoe UI",sans-serif !important;margin:0 !important;padding:0 !important;}'
+                        + '.mv-header{display:flex;align-items:center;justify-content:flex-end;gap:10px;padding:10px 14px;}'
+                        + '.mv-header a{color:#fff;background:rgba(255,255,255,0.18);padding:6px 16px;'
+                        + '  border-radius:14px;text-decoration:none;font-weight:700;font-size:12px;'
+                        + '  cursor:pointer;}'
+                        + '.mv-header a:hover{background:rgba(255,255,255,0.28);}'
+                        // Announcements carousel (was small pinned tiles) -
+                        // one big card at a time, auto-advancing.
+                        + '.mv-announce-wrap{position:relative;margin:4px 16px 20px;height:150px;}'
+                        + '.mv-announce{position:absolute;inset:0;border-radius:20px;background:#fff;'
+                        + '  box-shadow:0 3px 0 rgba(0,0,0,0.15);display:flex;flex-direction:column;'
+                        + '  justify-content:center;padding:18px 24px;text-decoration:none;color:#3a2a5c;'
+                        + '  opacity:0;transition:opacity 0.6s ease;pointer-events:none;}'
+                        + '.mv-announce.active{opacity:1;pointer-events:auto;}'
+                        + '.mv-announce .badge{display:inline-block;background:#ff8a3d;color:#fff;'
+                        + '  font-size:10px;font-weight:800;padding:3px 10px;border-radius:10px;'
+                        + '  margin-bottom:8px;width:fit-content;}'
+                        + '.mv-announce .atitle{font-size:18px;font-weight:800;}'
+                        + '.mv-announce-dots{position:absolute;bottom:8px;left:0;right:0;'
+                        + '  display:flex;justify-content:center;gap:6px;}'
+                        + '.mv-announce-dots span{width:7px;height:7px;border-radius:50%;'
+                        + '  background:rgba(255,255,255,0.4);}'
+                        + '.mv-announce-dots span.active{background:#fff;}'
+                        + '.mv-feed{padding:0 16px 24px;max-width:720px;margin:0 auto;}'
+                        + '.mv-card{background:#fff;border-radius:22px;box-shadow:0 3px 0 rgba(0,0,0,0.15);'
+                        + '  margin:0 0 22px 44px;padding:14px 18px;position:relative;}'
+                        // Tail now points LEFT, toward the avatar (which
+                        // sits to the card's upper-left), instead of down
+                        // at nothing in particular.
+                        + '.mv-card:after{content:"";position:absolute;left:-9px;top:26px;'
+                        + '  border-width:8px 9px 8px 0;border-style:solid;'
+                        + '  border-color:transparent #fff transparent transparent;}'
+                        + '.mv-avatar{position:absolute;left:-50px;top:12px;width:40px;height:40px;'
+                        + '  border-radius:50%;display:flex;align-items:center;justify-content:center;'
+                        + '  color:#fff;font-weight:800;font-size:16px;box-shadow:0 2px 0 rgba(0,0,0,0.2);'
+                        + '  background-size:cover;background-position:center;}'
+                        + '.mv-title{color:#3a2a5c;font-weight:800;font-size:15px;text-decoration:none;display:block;margin-bottom:4px;}'
+                        + '.mv-meta{color:#9a8fc2;font-size:11px;margin-bottom:8px;}'
+                        + '.mv-meta b{color:#7a5fae;}'
+                        + '.mv-body{color:#4a3a6c;font-size:12.5px;line-height:1.5;margin-bottom:10px;'
+                        + '  max-height:4.5em;overflow:hidden;}'
+                        + '.mv-embed{margin-bottom:10px;border-radius:14px;overflow:hidden;background:#f2effa;}'
+                        + '.mv-embed img, .mv-embed video{width:100%;max-height:280px;object-fit:cover;display:block;}'
+                        + '.mv-linkcard{display:flex;align-items:center;gap:10px;margin-bottom:10px;'
+                        + '  border-radius:14px;background:#f2effa;padding:8px;text-decoration:none;color:#4a3a6c;}'
+                        + '.mv-linkcard img{width:56px;height:56px;border-radius:10px;object-fit:cover;flex-shrink:0;}'
+                        + '.mv-linkcard .domain{font-size:10px;color:#9a8fc2;font-weight:700;}'
+                        + '.mv-actions{display:flex;gap:8px;}'
+                        + '.mv-actions a{background:#3ecf8e;color:#fff;border-radius:14px;padding:5px 14px;'
+                        + '  font-weight:700;font-size:11px;text-decoration:none;display:inline-flex;'
+                        + '  align-items:center;gap:4px;}'
+                        + '.mv-actions a.yeah{background:#ff8a3d;}';
+                    document.head.appendChild(css);
+                )JS") + QStringLiteral(R"JS(
+                    var loginPill = username
+                        ? '<a href="/user/' + encodeURIComponent(username) + '">' + esc(username) + '</a>'
+                        : '<a href="/login?dest=' + encodeURIComponent(location.href) + '">Log In</a>';
+                    var musicIcon = window.__suyuMusicEnabled === false ? '🔇' : '🎵';
+                    var header = '<div class="mv-header">'
+                        + '<a href="https://suyu-action/refresh">⟳ Refresh</a>'
+                        + '<a href="https://suyu-action/newpost">✏️ New Post</a>'
+                        + '<a id="suyu-music-pill" href="https://suyu-action/music">' + musicIcon + '</a>'
+                        + loginPill + '</div>';
+
+                    var announceHtml = '';
+                    if (pinned.length) {
+                        announceHtml += '<div class="mv-announce-wrap" id="mv-announce-wrap">';
+                        pinned.forEach(function(p, i) {
+                            announceHtml += '<a class="mv-announce' + (i === 0 ? ' active' : '') + '" '
+                                + 'data-idx="' + i + '" href="' + esc(p.permalink) + '">'
+                                + '<span class="badge">📣 Announcement</span>'
+                                + '<span class="atitle">' + esc(p.title) + '</span></a>';
+                        });
+                        if (pinned.length > 1) {
+                            announceHtml += '<div class="mv-announce-dots">';
+                            pinned.forEach(function(p, i) {
+                                announceHtml += '<span' + (i === 0 ? ' class="active"' : '') + '></span>';
+                            });
+                            announceHtml += '</div>';
+                        }
+                        announceHtml += '</div>';
                     }
-                `;
+
+                    function renderEmbed(p) {
+                        if (p.is_video && p.media && p.media.reddit_video && p.media.reddit_video.fallback_url) {
+                            return '<div class="mv-embed"><video src="' + esc(p.media.reddit_video.fallback_url)
+                                + '" controls preload="metadata"></video></div>';
+                        }
+                        if (p.preview && p.preview.images && p.preview.images[0] && p.preview.images[0].source) {
+                            var imgUrl = unescapeHtml(p.preview.images[0].source.url);
+                            return '<div class="mv-embed"><img src="' + esc(imgUrl) + '" loading="lazy"></div>';
+                        }
+                        if (p.thumbnail && p.thumbnail.indexOf('http') === 0 && !p.is_self) {
+                            var domain = p.domain || '';
+                            return '<a class="mv-linkcard" href="' + esc(p.url || p.permalink) + '" target="_blank">'
+                                + '<img src="' + esc(p.thumbnail) + '">'
+                                + '<div><div class="domain">' + esc(domain) + '</div>'
+                                + '<div>' + esc((p.title || '').slice(0, 60)) + '</div></div></a>';
+                        }
+                        return '';
+                    }
+
+                    var feedHtml = '<div class="mv-feed">';
+                    regular.forEach(function(p) {
+                        var avatarUrl = avatars[p.author];
+                        var avatarStyle = avatarUrl
+                            ? 'background-image:url(\'' + avatarUrl + '\');'
+                            : 'background:' + hashColor(p.author) + ';';
+                        var avatarLetter = avatarUrl ? '' : esc((p.author || '?').charAt(0).toUpperCase());
+                        var bodyText = p.selftext ? p.selftext.slice(0, 220) : '';
+                        feedHtml += '<div class="mv-card">'
+                            + '<div class="mv-avatar" style="' + avatarStyle + '">' + avatarLetter + '</div>'
+                            + '<a class="mv-title" href="' + esc(p.permalink) + '">' + esc(p.title) + '</a>'
+                            + '<div class="mv-meta">by <b>' + esc(p.author) + '</b> &middot; '
+                            + esc(String(p.num_comments)) + ' comments</div>'
+                            + renderEmbed(p)
+                            + (bodyText ? '<div class="mv-body">' + esc(bodyText) + '</div>' : '')
+                            + '<div class="mv-actions">'
+                            + '<a class="yeah" href="' + esc(p.permalink) + '">👍 Yeah! ' + esc(String(p.score)) + '</a>'
+                            + '<a href="' + esc(p.permalink) + '">💬 ' + esc(String(p.num_comments)) + '</a>'
+                            + '</div></div>';
+                    });
+                    feedHtml += '</div>';
+
+                    document.body.innerHTML = header + announceHtml + feedHtml;
+                    injectBackPill();
+
+                    // Auto-advancing slideshow for announcements - pauses on
+                    // hover/interaction, resumes after the mouse leaves.
+                    if (pinned.length > 1) {
+                        var wrap = document.getElementById('mv-announce-wrap');
+                        var slides = wrap.querySelectorAll('.mv-announce');
+                        var dots = wrap.querySelectorAll('.mv-announce-dots span');
+                        var idx = 0;
+                        var timer = null;
+                        function show(next) {
+                            slides[idx].classList.remove('active');
+                            dots[idx].classList.remove('active');
+                            idx = next;
+                            slides[idx].classList.add('active');
+                            dots[idx].classList.add('active');
+                        }
+                        function start() {
+                            stop();
+                            timer = setInterval(function() { show((idx + 1) % slides.length); }, 4000);
+                        }
+                        function stop() { if (timer) { clearInterval(timer); timer = null; } }
+                        wrap.addEventListener('mouseenter', stop);
+                        wrap.addEventListener('mouseleave', start);
+                        start();
+                    }
+                }
+
+                function fetchAvatars(authors) {
+                    var unique = Array.from(new Set(authors)).slice(0, 15);
+                    return Promise.all(unique.map(function(name) {
+                        return fetch('/user/' + encodeURIComponent(name) + '/about.json', { credentials: 'include' })
+                            .then(function(r) { return r.ok ? r.json() : null; })
+                            .then(function(d) {
+                                var url = d && d.data && d.data.icon_img;
+                                return [name, url ? url.split('?')[0] : null];
+                            })
+                            .catch(function() { return [name, null]; });
+                    })).then(function(pairs) {
+                        var map = {};
+                        pairs.forEach(function(p) { if (p[1]) { map[p[0]] = p[1]; } });
+                        return map;
+                    });
+                }
+
+                Promise.all([
+                    fetch('/r/suyu/.json?raw_json=1&limit=25', { credentials: 'include' }).then(function(r) { return r.json(); }),
+                    fetch('/api/me.json', { credentials: 'include' }).then(function(r) { return r.ok ? r.json() : null; }).catch(function() { return null; })
+                ]).then(function(results) {
+                    var listing = results[0];
+                    var me = results[1];
+                    var username = me && me.data && me.data.name ? me.data.name : null;
+                    var posts = listing.data.children.map(function(c) { return c.data; });
+                    var pinned = posts.filter(function(p) { return p.stickied; });
+                    var regular = posts.filter(function(p) { return !p.stickied; });
+                    fetchAvatars(posts.map(function(p) { return p.author; })).then(function(avatars) {
+                        renderMiiverse(pinned, regular, username, avatars);
+                    });
+                }).catch(function() {
+                    window.__suyuMiiverseBuilt = false;
+                });
             })();
         )JS");
-        social_web_view_->page()->runJavaScript(js);
+        // Substitute the tile-mask data URI at runtime (a plain QString
+        // replace, not a compile-time literal) - see LoadingScreenTileDataUri()'s
+        // comment for why this can't just be embedded directly in the R"JS(...)"
+        // block above.
+        QString final_js = js;
+        final_js.replace(QStringLiteral("__SUYU_TILE_URI__"), LoadingScreenTileDataUri());
+        social_web_view_->page()->runJavaScript(final_js);
     });
 
-    social_web_view_->setUrl(QUrl(QStringLiteral("https://www.reddit.com/r/suyu/")));
+    social_web_view_->setUrl(QUrl(QStringLiteral("https://old.reddit.com/r/suyu/")));
     redditLayout->addWidget(social_web_view_, 1);
-    connect(social_refresh_btn_, &QPushButton::clicked, this, [this] {
-        if (social_web_view_) {
-            social_web_view_->reload();
-        }
-    });
     vl->addWidget(redditTab, 1);
     return social_page_;
 #endif
@@ -834,6 +1403,49 @@ QWidget* GamerEnvironment::BuildSocialPage() {
 
     LoadRedditFeed();
     return social_page_;
+}
+
+void GamerEnvironment::StartSocialMusic() {
+#ifdef SUYU_USE_QT_MULTIMEDIA
+    if (!UISettings::values.enable_social_music.GetValue()) {
+        return;
+    }
+    if (!social_music_player_) {
+        // A user-supplied custom track (Settings) takes priority over the
+        // bundled "Midnight Tokyo" lofi track.
+        const QString custom_path =
+            QString::fromStdString(UISettings::values.social_music_path.GetValue());
+        const QUrl source_url = custom_path.isEmpty()
+            ? QUrl(QStringLiteral("qrc:/audio/midnight_tokyo_lofi.mp3"))
+            : QUrl::fromLocalFile(custom_path);
+        social_music_player_ = new QMediaPlayer(this);
+#if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
+        social_music_output_ = new QAudioOutput(this);
+        social_music_output_->setVolume(0.5);
+        social_music_player_->setAudioOutput(social_music_output_);
+        social_music_player_->setSource(source_url);
+#else
+        social_music_player_->setVolume(50);
+        social_music_player_->setMedia(QUrl(source_url));
+#endif
+        connect(social_music_player_, &QMediaPlayer::mediaStatusChanged, this,
+                [this](QMediaPlayer::MediaStatus status) {
+                    if (status == QMediaPlayer::EndOfMedia && social_music_player_) {
+                        social_music_player_->setPosition(0);
+                        social_music_player_->play();
+                    }
+                });
+    }
+    social_music_player_->play();
+#endif
+}
+
+void GamerEnvironment::StopSocialMusic() {
+#ifdef SUYU_USE_QT_MULTIMEDIA
+    if (social_music_player_) {
+        social_music_player_->pause();
+    }
+#endif
 }
 
 void GamerEnvironment::LoadRedditFeed() {
@@ -1349,10 +1961,12 @@ QString GamerEnvironment::ExtractIgdbImageUrl(const QString& html) const {
     if (url.startsWith(QStringLiteral("//"))) {
         url.prepend(QStringLiteral("https:"));
     }
-    // Request a higher resolution cover variant so the gamer grid is not limited by the
-    // initial thumbnail URL embedded in the search results.
+    // Request the ORIGINAL uploaded resolution (IGDB's "t_original" variant
+    // is uncapped, unlike the fixed 528x748 ceiling of t_cover_big_2x used
+    // previously) so the gamer grid isn't limited to a size smaller than
+    // what the cover was actually uploaded at.
     static const QRegularExpression size_re(QStringLiteral(R"(/t_[^/]+/)"));
-    url.replace(size_re, QStringLiteral("/t_cover_big_2x/"));
+    url.replace(size_re, QStringLiteral("/t_original/"));
     return url;
 }
 
@@ -1519,6 +2133,34 @@ void GamerEnvironment::ShowGameMenu(QListWidgetItem* item, const QPoint& global_
         }
     });
 
+    // Nintendo-owned titles with no matching local file previously had no
+    // way forward here - "Launch" just sits disabled forever, which is what
+    // "doesn't work, library isn't dynamic" actually meant: an owned entry
+    // can never become playable without a bridge from "I own this" to
+    // "here's the actual file". Locating it once launches immediately AND
+    // registers the folder as a normal scan directory, so every future
+    // library populate finds it as a real entry through the exact same path
+    // a manually-added game uses (real icon/artwork included).
+    if (stored_path.startsWith(QStringLiteral("owned://"))) {
+        QAction* locate_action = menu.addAction(tr("Locate ROM..."));
+        connect(locate_action, &QAction::triggered, this, [this, title]() {
+            const QString rom_path = QFileDialog::getOpenFileName(
+                this, tr("Locate ROM for %1").arg(title), QString(),
+                tr("Switch ROM (*.nsp *.xci *.nca);;All Files (*)"));
+            if (rom_path.isEmpty()) {
+                return;
+            }
+            const QString dir_path = QFileInfo(rom_path).absolutePath();
+            const UISettings::GameDir game_dir{dir_path.toStdString(), true, true};
+            if (!UISettings::values.game_dirs.contains(game_dir) && game_list_) {
+                UISettings::values.game_dirs.append(game_dir);
+                game_list_->PopulateAsync(UISettings::values.game_dirs);
+                QTimer::singleShot(500, this, &GamerEnvironment::RefreshGameGrid);
+            }
+            emit GameLaunchRequested(rom_path);
+        });
+    }
+
     QAction* open_location_action = menu.addAction(tr("Open Game Location"));
     open_location_action->setEnabled(!stored_path.isEmpty());
     connect(open_location_action, &QAction::triggered, this, [stored_path]() {
@@ -1555,16 +2197,19 @@ void GamerEnvironment::OnLoadGameClicked() {
 }
 
 void GamerEnvironment::OnNavLibraryClicked() {
+    StopSocialMusic();
     ApplyNavSelection(nav_buttons_[0]);
     content_stack_->setCurrentIndex(0);
     PopulateFromModel();
 }
 
 void GamerEnvironment::OnNavSettingsClicked() {
+    StopSocialMusic();
     emit OpenSettingsRequested();
 }
 
 void GamerEnvironment::OnNavMultiplayerClicked() {
+    StopSocialMusic();
     emit OpenMultiplayerRequested();
 }
 
@@ -1572,6 +2217,7 @@ void GamerEnvironment::OnNavSocialClicked() {
     ApplyNavSelection(nav_buttons_[3]);
     content_stack_->setCurrentIndex(1);
     LoadRedditFeed();
+    StartSocialMusic();
 }
 
 void GamerEnvironment::OnNavMoreOptionsClicked() {

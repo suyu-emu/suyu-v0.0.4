@@ -1,6 +1,7 @@
 #pragma once
 
 #include <cstddef>
+#include <cstdint>
 #include <memory>
 #include <string>
 #include <vector>
@@ -38,6 +39,30 @@ public:
     void Reset();
     void Unload();
 
+    // Latest frame/audio pulled from the core's callbacks, for a frontend
+    // renderer/audio-backend to consume after each Run().
+    struct VideoFrame {
+        const void* data{};
+        unsigned width{};
+        unsigned height{};
+        size_t pitch{};
+    };
+    [[nodiscard]] const VideoFrame& LastVideoFrame() const {
+        return last_frame;
+    }
+    [[nodiscard]] const std::vector<int16_t>& LastAudioSamples() const {
+        return last_audio;
+    }
+
+    // Savestate support (retro_serialize/unserialize passthrough).
+    bool SaveState(std::vector<uint8_t>& out_data);
+    bool LoadState(const std::vector<uint8_t>& in_data);
+
+    // Called from the free-function libretro callback trampolines; not part
+    // of the public frontend API but must be callable from outside the class.
+    void OnVideoFrame(const void* data, unsigned width, unsigned height, size_t pitch);
+    void OnAudioSamples(const int16_t* data, size_t frames);
+
     // Nintendo Library integration
     bool InitializeNintendoLibrary();
     bool AuthenticateNintendoAccount(const std::string& username, const std::string& password);
@@ -49,6 +74,8 @@ private:
     std::string loaded_game_path;
     retro_game_info game_info;
     std::unique_ptr<Nintendo::Library> nintendo_library;
+    VideoFrame last_frame;
+    std::vector<int16_t> last_audio;
 
     // Libretro function pointers
     void (*retro_init)() = nullptr;

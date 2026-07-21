@@ -438,6 +438,7 @@ private slots:
     void OnToggleStatusBar();
     void OnToggleFoldersInList();
     void OnExportGame();
+    void OnLoadLibretroCore();
     void OnNintendoAccount();
     void OnSteamIntegration();
     void OnOpenUserManual();

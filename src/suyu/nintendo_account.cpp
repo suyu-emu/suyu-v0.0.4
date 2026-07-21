@@ -13,6 +13,7 @@
 #include <QJsonObject>
 #include <QNetworkAccessManager>
 #include <QNetworkReply>
+#include <QTimer>
 #include <QNetworkRequest>
 #include <QProgressBar>
 #include <QRegularExpression>
@@ -23,8 +24,58 @@
 #ifdef SUYU_USE_QT_WEB_ENGINE
 #include <QWebEngineCookieStore>
 #include <QWebEngineProfile>
+#include <QWebEnginePage>
 #include <QWebEngineView>
 #endif
+
+#include <QCryptographicHash>
+#include <QRandomGenerator>
+
+namespace {
+// Real client_id used by Nintendo Switch Online / nxapi-style console-linking
+// flows (public, not a secret - PKCE public clients don't have one).
+constexpr auto kNintendoClientId = "71b963c1b7b6d119";
+
+QString GeneratePkceVerifier() {
+    // 32 random bytes, base64url (no padding) - within the 43-128 char range
+    // the spec requires.
+    QByteArray bytes(32, Qt::Uninitialized);
+    for (int i = 0; i < bytes.size(); ++i) {
+        bytes[i] = static_cast<char>(QRandomGenerator::global()->bounded(256));
+    }
+    return QString::fromLatin1(bytes.toBase64(QByteArray::Base64UrlEncoding | QByteArray::OmitTrailingEquals));
+}
+
+QString PkceChallengeFromVerifier(const QString& verifier) {
+    const QByteArray hash =
+        QCryptographicHash::hash(verifier.toLatin1(), QCryptographicHash::Sha256);
+    return QString::fromLatin1(hash.toBase64(QByteArray::Base64UrlEncoding | QByteArray::OmitTrailingEquals));
+}
+
+#ifdef SUYU_USE_QT_WEB_ENGINE
+// Real Nintendo login redirects to a custom npf<client_id>://auth URI scheme
+// (meant for a console's embedded webview to intercept, not a normal
+// browser) carrying session_token_code in the URL fragment. QtWebEngine
+// won't actually navigate to an unknown scheme, but acceptNavigationRequest
+// still fires with the attempted URL first, which is the only hook that can
+// observe it.
+class NintendoLoginPage : public QWebEnginePage {
+public:
+    NintendoLoginPage(QWebEngineProfile* profile, QObject* parent) : QWebEnginePage(profile, parent) {}
+    std::function<void(const QUrl&)> on_redirect;
+
+protected:
+    bool acceptNavigationRequest(const QUrl& url, QWebEnginePage::NavigationType,
+                                 bool) override {
+        if (url.scheme().startsWith(QStringLiteral("npf")) && on_redirect) {
+            on_redirect(url);
+            return false;
+        }
+        return true;
+    }
+};
+#endif
+} // namespace
 
 // XOR key derived from application identity (not cryptographic — obfuscation only)
 static constexpr char kObfuscationKey[] = "SuyuEclipse2024NintendoLink";
@@ -219,6 +270,28 @@ void NintendoAccountDialog::SetupUi() {
     connect(browser_login_button, &QPushButton::clicked, this,
             &NintendoAccountDialog::OpenBrowserLogin);
 
+    // Alternative for users who'd rather sign in with their own default
+    // browser (already-saved passwords/passkeys, extensions, etc.) instead
+    // of the embedded WebEngine view. Opens the real system browser and
+    // relies on the existing manual token-paste flow below to link the
+    // resulting session - no OAuth app registration or loopback listener
+    // needed, matching how the non-WebEngine fallback already behaves.
+    external_browser_button = new QPushButton(tr("Sign In via Your Browser"), this);
+    external_browser_button->setStyleSheet(
+        QStringLiteral("QPushButton { background-color: #333; color: white; font-size: 12px; "
+                        "padding: 8px 16px; border-radius: 6px; } "
+                        "QPushButton:hover { background-color: #444; }"));
+    layout->addWidget(external_browser_button);
+    connect(external_browser_button, &QPushButton::clicked, this, [this]() {
+        QDesktopServices::openUrl(QUrl(QStringLiteral("https://accounts.nintendo.com")));
+        status_label->setText(
+            tr("Browser opened - after signing in, copy the session_token cookie "
+               "and paste it below, then click 'Link Saved Session'"));
+        status_label->setStyleSheet(
+            QStringLiteral("font-size: 16px; font-weight: bold; color: #ff9800;"));
+        token_input->setFocus();
+    });
+
     layout->addSpacing(6);
 
     // Instructions
@@ -287,6 +360,7 @@ void NintendoAccountDialog::RefreshStatus() {
         verify_button->setEnabled(true);
         token_input->setEnabled(false);
         browser_login_button->setVisible(false);
+        external_browser_button->setVisible(false);
         instructions_label->setVisible(false);
 
         if (!owned_library_.empty()) {
@@ -312,6 +386,7 @@ void NintendoAccountDialog::RefreshStatus() {
         token_input->setEnabled(true);
         token_input->clear();
         browser_login_button->setVisible(true);
+        external_browser_button->setVisible(true);
         instructions_label->setVisible(true);
     }
 }
@@ -378,6 +453,60 @@ void NintendoAccountDialog::ClearCredentials() {
     user_id_.clear();
     owned_library_.clear();
     ClearNintendoOwnedLibrary();
+}
+
+void NintendoAccountDialog::ExchangeSessionTokenCode(const QString& session_token_code) {
+    progress_bar->setVisible(true);
+    status_label->setText(tr("Finishing sign-in..."));
+    status_label->setStyleSheet(QStringLiteral("font-size: 16px; font-weight: bold; color: #ff9800;"));
+
+    // Second leg of the real PKCE flow: session_token_code + the verifier
+    // that produced its challenge -> the actual long-lived session_token,
+    // which VerifySessionToken() then exchanges for an access_token exactly
+    // as it already did for the manual-paste path.
+    const QUrl url(QStringLiteral("https://accounts.nintendo.com/connect/1.0.0/api/session_token"));
+    QNetworkRequest request(url);
+    request.setHeader(QNetworkRequest::ContentTypeHeader,
+                      QStringLiteral("application/json; charset=utf-8"));
+    request.setRawHeader("Accept", "application/json");
+    request.setRawHeader("Host", "accounts.nintendo.com");
+
+    QJsonObject body;
+    body[QStringLiteral("client_id")] = QLatin1String(kNintendoClientId);
+    body[QStringLiteral("session_token_code")] = session_token_code;
+    body[QStringLiteral("session_token_code_verifier")] = pending_code_verifier_;
+
+    if (!network_manager_) {
+        network_manager_ = new QNetworkAccessManager(this);
+    }
+    QNetworkReply* reply =
+        network_manager_->post(request, QJsonDocument(body).toJson(QJsonDocument::Compact));
+
+    connect(reply, &QNetworkReply::finished, this, [this, reply]() {
+        reply->deleteLater();
+        pending_code_verifier_.clear();
+        pending_state_.clear();
+
+        if (reply->error() != QNetworkReply::NoError) {
+            progress_bar->setVisible(false);
+            status_label->setText(tr("Sign-in failed: network error"));
+            status_label->setStyleSheet(
+                QStringLiteral("font-size: 16px; font-weight: bold; color: #ff9800;"));
+            return;
+        }
+
+        const QJsonObject obj = QJsonDocument::fromJson(reply->readAll()).object();
+        const QString session_token = obj[QStringLiteral("session_token")].toString();
+        if (session_token.isEmpty()) {
+            progress_bar->setVisible(false);
+            status_label->setText(tr("Sign-in failed: Nintendo did not return a session token"));
+            status_label->setStyleSheet(
+                QStringLiteral("font-size: 16px; font-weight: bold; color: #ff9800;"));
+            return;
+        }
+
+        VerifySessionToken(session_token);
+    });
 }
 
 void NintendoAccountDialog::VerifySessionToken(const QString& token) {
@@ -593,13 +722,42 @@ void NintendoAccountDialog::OnTokenSubmitted() {
 }
 
 void NintendoAccountDialog::OpenBrowserLogin() {
+    if (FILE* f = fopen("C:\\Users\\charl\\Documents\\SuyuEclipse\\nnid_raw_diag.txt", "a")) {
+        fprintf(f, "OpenBrowserLogin entered\n");
+        fclose(f);
+    }
     LOG_INFO(Frontend, "NNID diag: OpenBrowserLogin() entered");
 #ifdef SUYU_USE_QT_WEB_ENGINE
     LOG_INFO(Frontend, "NNID diag: SUYU_USE_QT_WEB_ENGINE branch taken");
+    // Constructing a QWebEngineProfile/QWebEngineView synchronously inside
+    // the click handler crashed live (0xc0000005 in Qt6Core.dll) - clicking
+    // One-Click Sign In from inside this dialog's own nested exec() loop
+    // hits WebEngine init/GPU-process bootstrap re-entrancy that isn't safe
+    // to do directly from within the click's own call stack. Deferring to
+    // the next event loop iteration via a 0ms singleShot lets the click
+    // event finish unwinding first, which is the standard fix for this
+    // class of QtWebEngine re-entrancy crash.
+    if (FILE* f = fopen("C:\\Users\\charl\\Documents\\SuyuEclipse\\nnid_raw_diag.txt", "a")) {
+        fprintf(f, "before singleShot schedule, this->isVisible=%d\n", this->isVisible());
+        fclose(f);
+    }
+    QTimer::singleShot(0, this, [this]() {
+    if (FILE* f = fopen("C:\\Users\\charl\\Documents\\SuyuEclipse\\nnid_raw_diag.txt", "a")) {
+        fprintf(f, "singleShot lambda fired, this->isVisible=%d\n", this->isVisible());
+        fclose(f);
+    }
     auto* dialog = new QDialog(this);
     dialog->setWindowTitle(tr("Nintendo Account Sign-In"));
     dialog->resize(900, 700);
     dialog->setAttribute(Qt::WA_DeleteOnClose);
+    // Neither this dialog nor its parent NintendoAccountDialog should be
+    // Qt::ApplicationModal here - both are now shown via show(), not
+    // exec(), and stacking two ApplicationModal top-levels (even
+    // sequentially, one per QTimer::singleShot(0) tick) reproduced the same
+    // silent-disappearance bug that a genuinely non-modal child under an
+    // exec()-driven application-modal parent did in an earlier version of
+    // this code. Leaving both non-modal (or window-modal at most) avoids
+    // Qt's application-modal stack entirely.
 
     auto* layout = new QVBoxLayout(dialog);
 
@@ -612,30 +770,64 @@ void NintendoAccountDialog::OpenBrowserLogin() {
     layout->addWidget(hint);
 
     auto* profile = new QWebEngineProfile(QStringLiteral("NintendoLogin"), dialog);
-    auto* web_view = new QWebEngineView(profile, dialog);
+    auto* web_view = new QWebEngineView(dialog);
     layout->addWidget(web_view, 1);
 
-    // Monitor cookies for session_token
-    auto* cookie_store = profile->cookieStore();
-    connect(cookie_store, &QWebEngineCookieStore::cookieAdded, dialog,
-            [this, dialog](const QNetworkCookie& cookie) {
-                if (cookie.name() == "session_token" &&
-                    cookie.domain().contains(QStringLiteral("nintendo.com"))) {
-                    const QString token = QString::fromUtf8(cookie.value());
-                    if (!token.isEmpty()) {
-                        dialog->close();
-                        VerifySessionToken(token);
-                    }
-                }
-            });
+    // Real Nintendo login is OAuth/PKCE, not a "session_token" cookie on
+    // accounts.nintendo.com (that cookie never gets set by the real login
+    // flow - confirmed this was the actual reason sign-in silently never
+    // completed even after the earlier crash/dialog-lifetime fixes). Build
+    // the real authorize URL and intercept the npf<client_id>://auth
+    // redirect it produces on success.
+    pending_code_verifier_ = GeneratePkceVerifier();
+    pending_state_ = GeneratePkceVerifier();
+    const QString challenge = PkceChallengeFromVerifier(pending_code_verifier_);
 
-    web_view->setUrl(QUrl(QStringLiteral("https://accounts.nintendo.com")));
-    LOG_INFO(Frontend, "NNID diag: calling dialog->show(), isVisible before={}", dialog->isVisible());
+    QUrl authorize_url(QStringLiteral("https://accounts.nintendo.com/connect/1.0.0/authorize"));
+    QUrlQuery query;
+    query.addQueryItem(QStringLiteral("state"), pending_state_);
+    query.addQueryItem(QStringLiteral("redirect_uri"),
+                        QStringLiteral("npf%1://auth").arg(QLatin1String(kNintendoClientId)));
+    query.addQueryItem(QStringLiteral("client_id"), QLatin1String(kNintendoClientId));
+    query.addQueryItem(QStringLiteral("scope"), QStringLiteral("openid user user.mii"));
+    query.addQueryItem(QStringLiteral("response_type"), QStringLiteral("session_token_code"));
+    query.addQueryItem(QStringLiteral("session_token_code_challenge"), challenge);
+    query.addQueryItem(QStringLiteral("session_token_code_challenge_method"), QStringLiteral("S256"));
+    query.addQueryItem(QStringLiteral("theme"), QStringLiteral("login_form"));
+    authorize_url.setQuery(query);
+
+    auto* login_page = new NintendoLoginPage(profile, web_view);
+    web_view->setPage(login_page);
+    login_page->on_redirect = [this, dialog](const QUrl& redirect_url) {
+        // Fragment, not query - session_token_code arrives after the '#'.
+        QUrlQuery fragment(redirect_url.fragment());
+        const QString state = fragment.queryItemValue(QStringLiteral("state"));
+        const QString session_token_code =
+            fragment.queryItemValue(QStringLiteral("session_token_code"));
+        dialog->close();
+        if (state != pending_state_ || session_token_code.isEmpty()) {
+            status_label->setText(tr("Sign-in failed: invalid response from Nintendo"));
+            status_label->setStyleSheet(
+                QStringLiteral("font-size: 16px; font-weight: bold; color: #ff9800;"));
+            return;
+        }
+        ExchangeSessionTokenCode(session_token_code);
+    };
+
+    web_view->setUrl(authorize_url);
+    if (FILE* f = fopen("C:\\Users\\charl\\Documents\\SuyuEclipse\\nnid_raw_diag.txt", "a")) {
+        fprintf(f, "about to call dialog->show()\n");
+        fclose(f);
+    }
     dialog->show();
     dialog->raise();
     dialog->activateWindow();
-    LOG_INFO(Frontend, "NNID diag: after show(), isVisible={} geometry={},{} {}x{}",
-             dialog->isVisible(), dialog->x(), dialog->y(), dialog->width(), dialog->height());
+    if (FILE* f = fopen("C:\\Users\\charl\\Documents\\SuyuEclipse\\nnid_raw_diag.txt", "a")) {
+        fprintf(f, "after show(), isVisible=%d x=%d y=%d w=%d h=%d\n",
+                dialog->isVisible(), dialog->x(), dialog->y(), dialog->width(), dialog->height());
+        fclose(f);
+    }
+    });
 #else
     // No WebEngine — open external browser and let user paste token manually
     QDesktopServices::openUrl(QUrl(QStringLiteral("https://accounts.nintendo.com")));

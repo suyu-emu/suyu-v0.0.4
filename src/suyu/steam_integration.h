@@ -30,6 +30,12 @@ public:
     bool AddGameShortcut(const QString& game_title, const QString& rom_path,
                          const QString& icon_path = {});
 
+    /// Add suyu itself (not a specific game) as a non-Steam shortcut, using
+    /// its own icon, so it - and by extension its whole library - shows up
+    /// in the Steam library/overlay without needing to add each game
+    /// one-by-one. Reuses AddGameShortcut with an empty rom_path.
+    bool AddSuyuSelfShortcut();
+
     /// Remove a previously added shortcut.
     bool RemoveGameShortcut(const QString& game_title);
 

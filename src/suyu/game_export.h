@@ -45,6 +45,12 @@ public:
     void SetRomPath(const QString& path, quint64 program_id = 0);
     void SetLibraryEntries(QVector<LibraryEntry> entries);
 
+    /// Test-only: drive a full export run without needing to click through
+    /// the dialog's file pickers/combo boxes, so live automation can trigger
+    /// and observe the AOT pipeline (including its known hang past ~15%)
+    /// directly.
+    void TriggerExportForTesting(const QString& rom_path, const QString& output_dir);
+
     enum class TargetPlatform {
         Windows,
         Linux,

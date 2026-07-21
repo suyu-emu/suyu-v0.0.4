@@ -133,6 +133,69 @@
          </widget>
         </item>
         <item>
+         <layout class="QHBoxLayout" name="loading_music_path_qhbox_layout">
+          <item>
+           <widget class="QLabel" name="loading_music_path_label">
+            <property name="text">
+             <string>Custom Loading Music:</string>
+            </property>
+            <property name="toolTip">
+             <string>Optional: pick an audio file to replace the bundled loading screen music.</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QLineEdit" name="loading_music_path_edit">
+            <property name="placeholderText">
+             <string>Leave blank to use the bundled track</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QToolButton" name="loading_music_path_browse">
+            <property name="text">
+             <string>Browse...</string>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </item>
+        <item>
+         <widget class="QCheckBox" name="enable_social_music">
+          <property name="text">
+           <string>Play music on the Social page</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <layout class="QHBoxLayout" name="social_music_path_qhbox_layout">
+          <item>
+           <widget class="QLabel" name="social_music_path_label">
+            <property name="text">
+             <string>Custom Social Music:</string>
+            </property>
+            <property name="toolTip">
+             <string>Optional: pick an audio file to replace the bundled "Midnight Tokyo" lofi track on the Social page.</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QLineEdit" name="social_music_path_edit">
+            <property name="placeholderText">
+             <string>Leave blank to use the bundled track</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QToolButton" name="social_music_path_browse">
+            <property name="text">
+             <string>Browse...</string>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </item>
+        <item>
          <layout class="QHBoxLayout" name="reddit_client_id_qhbox_layout">
           <item>
            <widget class="QLabel" name="reddit_client_id_label">

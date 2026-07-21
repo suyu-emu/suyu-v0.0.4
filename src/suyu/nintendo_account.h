@@ -3,6 +3,7 @@
 
 #pragma once
 
+#include <cstdio>
 #include <QDialog>
 #include <QLabel>
 #include <QLineEdit>
@@ -45,6 +46,26 @@ public:
     /// Get the stored Nintendo owned game library.
     [[nodiscard]] std::vector<NintendoOwnedGame> OwnedLibrary() const;
 
+    /// Test-only hook: invokes the same slot the One-Click Sign In button's
+    /// clicked() signal is connected to, bypassing widget click delivery, so
+    /// automation can tell whether the handler itself runs versus the click
+    /// never reaching the button.
+    void TriggerOneClickSignInForTesting() {
+        // Raw-file diagnostic bypassing Common::Log entirely - three
+        // separate LOG_INFO call sites (AOT export, Social back-nav,
+        // Nintendo sign-in) have each independently produced zero output
+        // this session despite their surrounding code definitely executing,
+        // which points at something systemic in the logging pipeline
+        // itself rather than any one of these call sites. This writes with
+        // plain fopen/fprintf so a logger-pipeline bug can't hide whether
+        // this method actually runs.
+        if (FILE* f = fopen("C:\\Users\\charl\\Documents\\SuyuEclipse\\nnid_raw_diag.txt", "a")) {
+            fprintf(f, "TriggerOneClickSignInForTesting entered\n");
+            fclose(f);
+        }
+        OpenBrowserLogin();
+    }
+
 signals:
     void AccountLinked(const QString& nickname);
     void AccountUnlinked();
@@ -78,6 +99,15 @@ private:
     void FetchNintendoOwnedLibrary(const QString& token);
     std::vector<NintendoOwnedGame> ParseNintendoPurchaseHistory(const QString& html);
 
+    /// Real Nintendo login is OAuth/PKCE, not a plain cookie: navigating to
+    /// the authorize URL below and intercepting the npf...://auth redirect
+    /// yields a session_token_code, which is exchanged here (with the PKCE
+    /// verifier) for the actual long-lived session_token that
+    /// VerifySessionToken() already knows how to use.
+    void ExchangeSessionTokenCode(const QString& session_token_code);
+    QString pending_code_verifier_;
+    QString pending_state_;
+
     QLabel* status_label{};
     QLabel* nickname_label{};
     QLabel* user_id_label{};
@@ -87,6 +117,7 @@ private:
     QPushButton* unlink_button{};
     QPushButton* verify_button{};
     QPushButton* browser_login_button{};
+    QPushButton* external_browser_button{};
     QProgressBar* progress_bar{};
     QLabel* instructions_label{};
 

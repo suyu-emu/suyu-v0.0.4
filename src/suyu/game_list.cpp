@@ -6,6 +6,7 @@
 
 #include <QApplication>
 #include <QDir>
+#include <QFileDialog>
 #include <QFileInfo>
 #include <QHeaderView>
 #include <QJsonArray>
@@ -497,10 +498,30 @@ void GameList::ValidateEntry(const QModelIndex& item) {
             return;
 
         if (file_path.startsWith(QStringLiteral("owned://"))) {
-            QMessageBox::information(
-                this, tr("Nintendo Digital Library"),
-                tr("This game is owned digitally on Nintendo Account. Add the ROM or decrypted game folder "
-                   "to your library scan paths to make it playable in Suyu."));
+            // Was a dead-end message box - not "dynamic" in any real sense,
+            // since a Nintendo-owned title with no matching local file can't
+            // be launched by definition. This is the actual bridge: locate
+            // the file once, launch it immediately, and register its folder
+            // as a normal scan directory so every subsequent library
+            // populate finds it through the SAME code path a manually-added
+            // game uses - real icon/artwork/compatibility data included,
+            // rather than reinventing that machinery for owned:// entries.
+            const QString rom_path = QFileDialog::getOpenFileName(
+                this, tr("Locate ROM for %1").arg(selected.data(Qt::DisplayRole).toString()),
+                QString(),
+                tr("Switch ROM (*.nsp *.xci *.nca);;All Files (*)"));
+            if (rom_path.isEmpty()) {
+                return;
+            }
+
+            const QString dir_path = QFileInfo(rom_path).absolutePath();
+            const UISettings::GameDir game_dir{dir_path.toStdString(), true, true};
+            if (!UISettings::values.game_dirs.contains(game_dir)) {
+                UISettings::values.game_dirs.append(game_dir);
+                PopulateAsync(UISettings::values.game_dirs);
+            }
+
+            emit GameChosen(rom_path);
             return;
         }
 

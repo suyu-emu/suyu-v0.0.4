@@ -12,6 +12,8 @@ SPDX-License-Identifier: GPL-2.0-or-later
     </qresource>
     <qresource prefix="/audio">
         <file alias="suyu_loading.mp3">../../dist/suyu_loading.mp3</file>
+        <!-- "Midnight Tokyo" by FASSounds (Pixabay license, royalty-free) -->
+        <file alias="midnight_tokyo_lofi.mp3">../../dist/sounds/midnight_tokyo_lofi.mp3</file>
     </qresource>
     <qresource prefix="/modern_dark">
         <file alias="style.qss">modern_dark.qss</file>

@@ -238,7 +238,12 @@ LoadingScreen::LoadingScreen(QWidget* parent)
 
 #ifdef SUYU_USE_QT_MULTIMEDIA
     {
-        QFile music_resource(QString::fromLatin1(LOADING_MUSIC_RESOURCE));
+        // A user-supplied custom track (Settings) takes priority over the
+        // bundled resource; fall back to the bundled one if unset/unreadable.
+        const QString custom_path =
+            QString::fromStdString(UISettings::values.loading_music_path.GetValue());
+        QFile music_resource(!custom_path.isEmpty() ? custom_path
+                                                     : QString::fromLatin1(LOADING_MUSIC_RESOURCE));
         if (music_resource.open(QIODevice::ReadOnly)) {
             loading_music_data_ = std::make_unique<QByteArray>(music_resource.readAll());
             if (!loading_music_data_->isEmpty()) {

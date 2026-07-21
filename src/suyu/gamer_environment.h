@@ -29,6 +29,12 @@ class QNetworkReply;
 #ifdef SUYU_USE_QT_WEB_ENGINE
 class QWebEngineView;
 #endif
+#ifdef SUYU_USE_QT_MULTIMEDIA
+class QMediaPlayer;
+#if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
+class QAudioOutput;
+#endif
+#endif
 
 // Custom delegate that renders each game as a card with cover art + info
 class GameCardDelegate : public QStyledItemDelegate {
@@ -66,6 +72,10 @@ public:
     // Expose current UI state for MCP inspection.
     QJsonObject GetMcpState() const;
     void RefreshSocialFeed();
+    // Test-only: navigate the Social page's embedded view directly, to
+    // verify page-specific behavior (e.g. the login page skin) without
+    // needing to click an in-page link.
+    void DebugNavigateSocial(const QString& url);
 
 signals:
     void GameLaunchRequested(const QString& path);
@@ -107,6 +117,9 @@ private:
     QPushButton* CreateNavButton(const QString& icon_text, const QString& label,
                                  bool active = false,
                                  const QIcon& svg_icon = QIcon());
+    void StartSocialMusic();
+    void StopSocialMusic();
+    QString LoadingScreenTileDataUri() const;
     void ApplyNavSelection(QPushButton* btn);
     void PopulateFromModel();
     void ShowGameMenu(QListWidgetItem* item, const QPoint& global_pos);
@@ -135,6 +148,20 @@ private:
     QTextBrowser* social_browser_{};
     QPushButton*  social_refresh_btn_{};
     QPushButton*  social_post_btn_{};
+    // Back/Refresh/New Post/Music are all rendered as pills INSIDE the
+    // custom Miiverse header (in the QWebEngineView's own page), not as
+    // separate native widgets above it, so there is no visible native
+    // bar sitting outside the widget. Music playback is still driven by
+    // a native QMediaPlayer (JS can't touch OS audio), so its on/off
+    // state is tracked here rather than via a native checkable button.
+    bool social_music_enabled_{true};
+    bool social_was_on_login_page_{false};
+#ifdef SUYU_USE_QT_MULTIMEDIA
+    QMediaPlayer* social_music_player_{};
+#if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
+    QAudioOutput* social_music_output_{};
+#endif
+#endif
     QNetworkAccessManager* reddit_network_manager_{};
     QNetworkReply* reddit_reply_{};
     QNetworkReply* reddit_token_reply_{};

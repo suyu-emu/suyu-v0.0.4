@@ -106,10 +106,24 @@ public:
 
         bytes_written += file->WriteString(FormatLogMessage(entry).append(1, '\n'));
 
+        // A single failed Flush() (a transient disk/AV/cloud-sync hiccup -
+        // %APPDATA%\Roaming is commonly OneDrive-synced on Windows, a real
+        // source of momentary file-lock contention) used to permanently
+        // disable file logging for the rest of the process with zero
+        // indication why, silently. That exactly matched a live-observed
+        // bug: the log file froze at the same ~15 startup lines across
+        // dozens of runs, even ones that did substantial, confirmed-real
+        // work (a full AOT export writing 90,000+ files) with dedicated
+        // LOG_INFO diagnostics that never once appeared. Tolerate a few
+        // consecutive failures (the write itself isn't lost, just its
+        // flush-to-disk timing) before actually giving up.
         if (!file->Flush()) {
-            enabled = false;
+            if (++consecutive_flush_failures >= 5) {
+                enabled = false;
+            }
             return;
         }
+        consecutive_flush_failures = 0;
 
         using namespace Common::Literals;
         // Prevent logs from exceeding a set maximum size in the event that log entries are spammed.
@@ -138,6 +152,7 @@ private:
     std::unique_ptr<FS::IOFile> file;
     bool enabled = true;
     std::size_t bytes_written = 0;
+    int consecutive_flush_failures = 0;
 };
 
 /**
