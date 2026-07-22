@@ -36,9 +36,9 @@ namespace {
 // flows (public, not a secret - PKCE public clients don't have one).
 constexpr auto kNintendoClientId = "71b963c1b7b6d119";
 
+#ifdef SUYU_USE_QT_WEB_ENGINE
+
 QString GeneratePkceVerifier() {
-    // 32 random bytes, base64url (no padding) - within the 43-128 char range
-    // the spec requires.
     QByteArray bytes(32, Qt::Uninitialized);
     for (int i = 0; i < bytes.size(); ++i) {
         bytes[i] = static_cast<char>(QRandomGenerator::global()->bounded(256));
@@ -51,8 +51,6 @@ QString PkceChallengeFromVerifier(const QString& verifier) {
         QCryptographicHash::hash(verifier.toLatin1(), QCryptographicHash::Sha256);
     return QString::fromLatin1(hash.toBase64(QByteArray::Base64UrlEncoding | QByteArray::OmitTrailingEquals));
 }
-
-#ifdef SUYU_USE_QT_WEB_ENGINE
 // Real Nintendo login redirects to a custom npf<client_id>://auth URI scheme
 // (meant for a console's embedded webview to intercept, not a normal
 // browser) carrying session_token_code in the URL fragment. QtWebEngine
