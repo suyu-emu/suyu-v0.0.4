@@ -102,6 +102,8 @@ RETRO_API void retro_init() {
     g_system->Initialize();
     fprintf(stderr, "[suyu-libretro] setting Null renderer...\n"); fflush(stderr);
     Settings::values.renderer_backend.SetValue(Settings::RendererBackend::Null);
+    Settings::values.cpuopt_fastmem.SetValue(false);
+    Settings::values.cpuopt_fastmem_exclusives.SetValue(false);
     g_system->ApplySettings();
     fprintf(stderr, "[suyu-libretro] setting up filesystem...\n"); fflush(stderr);
     g_system->SetContentProvider(std::make_unique<FileSys::ContentProviderUnion>());
