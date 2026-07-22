@@ -290,6 +290,11 @@ inline RecompileStats EmitProject(const std::string& mod, const u8* text, size_t
        << "add_executable(recompiled main.c recompiled_" << mod << ".c recomp_runtime.c)\n"
        << "# Portable C11: Windows->.exe, Linux/FreeBSD/OpenBSD->ELF, macOS->Mach-O\n";
 
+#ifdef _WIN32
+    _mkdir(out_dir.c_str());
+#else
+    mkdir(out_dir.c_str(), 0755);
+#endif
     auto write = [&](const std::string& name, const std::string& data) {
         std::ofstream o(out_dir + "/" + name, std::ios::binary);
         o.write(data.data(), (std::streamsize)data.size());
