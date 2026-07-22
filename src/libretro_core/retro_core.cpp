@@ -28,8 +28,11 @@
 
 #include "common/logging/log.h"
 #include "core/core.h"
+#include "core/file_sys/registered_cache.h"
+#include "core/file_sys/vfs/vfs_real.h"
 #include "core/frontend/framebuffer_layout.h"
 #include "core/hle/service/am/applet_manager.h"
+#include "core/hle/service/filesystem/filesystem.h"
 #include "libretro_core/libretro.h"
 #include "libretro_core/retro_emu_window.h"
 
@@ -84,6 +87,20 @@ RETRO_API void retro_set_input_state(retro_input_state_t cb) {
 RETRO_API void retro_init() {
     g_system = std::make_unique<Core::System>();
     g_emu_window = std::make_unique<LibretroCore::RetroEmuWindow>();
+
+    // Real root cause of the retro_load_game crash (0xc0000005, confirmed
+    // via Windows Event Log against real content): none of the setup
+    // suyu_cmd (src/suyu_cmd/suyu.cpp, the reference headless frontend this
+    // file's own header comment says to mirror) does before Load() was
+    // happening here - Load() was being called on a System with no
+    // filesystem, no content provider, and never Initialize()'d, all of
+    // which the loader pipeline dereferences unconditionally.
+    g_system->Initialize();
+    g_system->ApplySettings();
+    g_system->SetContentProvider(std::make_unique<FileSys::ContentProviderUnion>());
+    g_system->SetFilesystem(std::make_shared<FileSys::RealVfsFilesystem>());
+    g_system->GetFileSystemController().CreateFactories(*g_system->GetFilesystem());
+    g_system->GetUserChannel().clear();
 }
 
 RETRO_API void retro_deinit() {

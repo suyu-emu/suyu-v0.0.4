@@ -602,43 +602,31 @@ void NintendoAccountDialog::VerifySessionToken(const QString& token) {
     });
 }
 
-void NintendoAccountDialog::FetchNintendoOwnedLibrary(const QString& token) {
-    const QUrl orders_url(QStringLiteral("https://www.nintendo.com/us/orders/"));
-    QNetworkRequest request(orders_url);
-    request.setHeader(QNetworkRequest::UserAgentHeader,
-                      QStringLiteral("Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
-                                     "AppleWebKit/537.36 (KHTML, like Gecko) "
-                                     "Chrome/120.0.0.0 Safari/537.36"));
-    request.setRawHeader("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8");
-    request.setRawHeader("Cookie",
-                         QStringLiteral("session_token=%1").arg(token).toUtf8());
-
-    progress_bar->setVisible(true);
-    library_summary_label->setText(tr("Syncing Nintendo digital library..."));
+void NintendoAccountDialog::FetchNintendoOwnedLibrary(const QString& /*token*/) {
+    // Was sending our OAuth session_token as a Cookie header to
+    // www.nintendo.com/us/orders/ (a regular consumer website, not an API) -
+    // that page requires an actual website login session, which an NNID
+    // OAuth session_token can never satisfy, so this silently failed on
+    // every single call. It LOOKED like a working "sync" (spinner, then
+    // settling into an empty/error state) while never having a real chance
+    // of succeeding - worse than just not having the feature, since it
+    // implied a sync had genuinely been attempted.
+    //
+    // Nintendo does not expose a documented, stable API for digital
+    // purchase/order history. The real path used by community tools
+    // (nxapi, and presumably Playnite's Nintendo integration) for "what did
+    // this account play" is the Nintendo Switch Online app's play-activity
+    // API, which needs a further id_token -> signed 'f' parameter exchange
+    // via a third-party attestation service (e.g. imink) before it'll
+    // authenticate - real, separate work involving an external dependency,
+    // not something to fake here. Tracked for a future session; see
+    // ExchangeSessionTokenCode() which already receives (and could retain)
+    // the id_token this would need as its starting point.
+    library_summary_label->setText(
+        tr("Nintendo Account linked. Digital library sync isn't available - Nintendo "
+           "doesn't expose a public API for purchase history. Use \"Locate ROM...\" "
+           "on a library entry to link it to a local file."));
     library_summary_label->setVisible(true);
-    QNetworkReply* orders_reply = network_manager_->get(request);
-    connect(orders_reply, &QNetworkReply::finished, this, [this, orders_reply]() {
-        orders_reply->deleteLater();
-        progress_bar->setVisible(false);
-
-        if (orders_reply->error() != QNetworkReply::NoError) {
-            library_summary_label->setText(
-                tr("Account linked. Library fetch is temporarily unavailable; you can still use local games."));
-            library_summary_label->setVisible(true);
-            return;
-        }
-
-        const QString html = QString::fromUtf8(orders_reply->readAll());
-        owned_library_ = ParseNintendoPurchaseHistory(html);
-        StoreNintendoOwnedLibrary(owned_library_);
-        if (owned_library_.empty()) {
-            library_summary_label->setText(
-                tr("Account linked. No owned titles were detected from the web profile yet."));
-            library_summary_label->setVisible(true);
-        }
-        RefreshStatus();
-        emit OwnedLibraryUpdated(static_cast<int>(owned_library_.size()));
-    });
 }
 
 std::vector<NintendoOwnedGame> NintendoAccountDialog::ParseNintendoPurchaseHistory(const QString& html) {
