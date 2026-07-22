@@ -1,0 +1,54 @@
+From d46675fbb61eb6d51e478023ce4075e545ad4cfd Mon Sep 17 00:00:00 2001
+From: crueter <crueter@eden-emu.dev>
+Date: Sat, 30 May 2026 21:11:55 -0400
+Subject: [PATCH] use ccache
+
+---
+ CMakeLists.txt               |  1 -
+ cmake/ConfigureOpenSSL.cmake | 12 +++---------
+ 2 files changed, 3 insertions(+), 10 deletions(-)
+
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index 9ffd5a0..9ff14c8 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -28,7 +28,6 @@ option(OPENSSL_ENABLE_PARALLEL "Build and test in parallel if possible" ON)
+ option(OPENSSL_INSTALL "Install OpenSSL components to the <prefix> directory" OFF)
+ option(OPENSSL_INSTALL_CERT "Install cert.pem to the <openssldir> directory" OFF)
+ option(OPENSSL_TEST "Enable testing and build OpenSSL self tests" OFF)
+-option(OPENSSL_USE_CCACHE "Use ccache if available" ON)
+ 
+ if("${OPENSSL_BUILD_TARGET}" STREQUAL "")
+     # Makefile target for build
+diff --git a/cmake/ConfigureOpenSSL.cmake b/cmake/ConfigureOpenSSL.cmake
+index 211c18b..3d8cbed 100644
+--- a/cmake/ConfigureOpenSSL.cmake
++++ b/cmake/ConfigureOpenSSL.cmake
+@@ -69,15 +69,9 @@ function(apply_ccache FILE)
+         message(FATAL_ERROR "Couldn't find Makefile")
+     endif()
+ 
+-    if(OPENSSL_USE_CCACHE)
+-        find_program(CCACHE ccache)
+-
+-        if(NOT CCACHE)
+-            return()
+-        endif()
+-
++    if(USE_CCACHE)
+         file(READ ${FILE} MAKEFILE)
+-        string(REPLACE "\nCC=" "\nCC=ccache " MAKEFILE "${MAKEFILE}")
++        string(REPLACE "\nCC=" "\nCC=${CCACHE_BINARY} " MAKEFILE "${MAKEFILE}")
+ 
+         if(MSVC)
+             string(REPLACE "/Zi /Fdossl_static.pdb " "" MAKEFILE "${MAKEFILE}")
+@@ -171,4 +165,4 @@ function(configure_openssl)
+         string(REPLACE "/W3" "/W0" MAKEFILE "${MAKEFILE}")
+         file(WRITE ${OPENSSL_MAKEFILE} "${MAKEFILE}")
+     endif()
+-endfunction()
+\ No newline at end of file
++endfunction()
+-- 
+2.54.0
+

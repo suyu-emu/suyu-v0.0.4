@@ -1,0 +1,30 @@
+<!--
+SPDX-FileCopyrightText: 2021 yuzu Emulator Project
+SPDX-License-Identifier: GPL-2.0-or-later
+-->
+
+<RCC>
+    <qresource prefix="/img">
+        <file alias="suyu.ico">../../dist/suyu.ico</file>
+        <file alias="suyu.svg">../../dist/suyu.svg</file>
+        <file alias="suyu_logo.svg">../../dist/readme/suyu__Logo-Pill.svg</file>
+        <file alias="suyu_tile_mask.png">../../dist/suyu_tile_mask.png</file>
+    </qresource>
+    <qresource prefix="/audio">
+        <file alias="suyu_loading.mp3">../../dist/suyu_loading.mp3</file>
+        <!-- "Midnight Tokyo" by FASSounds (Pixabay license, royalty-free) -->
+        <file alias="midnight_tokyo_lofi.mp3">../../dist/sounds/midnight_tokyo_lofi.mp3</file>
+    </qresource>
+    <qresource prefix="/modern_dark">
+        <file alias="style.qss">modern_dark.qss</file>
+    </qresource>
+    <qresource prefix="/icons">
+        <file alias="play.svg">icons/play.svg</file>
+        <file alias="settings.svg">icons/settings.svg</file>
+        <file alias="grid_view.svg">icons/grid_view.svg</file>
+        <file alias="list_view.svg">icons/list_view.svg</file>
+        <file alias="search.svg">icons/search.svg</file>
+        <file alias="folder.svg">icons/folder.svg</file>
+        <file alias="game_placeholder.svg">icons/game_placeholder.svg</file>
+    </qresource>
+</RCC>

@@ -1,0 +1,32 @@
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
+// SPDX-FileCopyrightText: 2023 yuzu Emulator Project
+// SPDX-License-Identifier: GPL-2.0-or-later
+
+package org.yuzu.yuzu_emu.features.settings.model
+
+import org.yuzu.yuzu_emu.utils.NativeConfig
+
+enum class ShortSetting(override val key: String) : AbstractShortSetting {
+    RENDERER_SPEED_LIMIT("speed_limit"),
+    RENDERER_TURBO_SPEED_LIMIT("turbo_speed_limit"),
+    RENDERER_SLOW_SPEED_LIMIT("slow_speed_limit"),
+    DEBUG_KNOBS("debug_knobs")
+    ;
+
+    override fun getShort(needsGlobal: Boolean): Short = NativeConfig.getShort(key, needsGlobal)
+
+    override fun setShort(value: Short) {
+        if (NativeConfig.isPerGameConfigLoaded()) {
+            global = false
+        }
+        NativeConfig.setShort(key, value)
+    }
+
+    override val defaultValue: Short by lazy { NativeConfig.getDefaultToString(key).toShort() }
+
+    override fun getValueAsString(needsGlobal: Boolean): String = getShort(needsGlobal).toString()
+
+    override fun reset() = NativeConfig.setShort(key, defaultValue)
+}

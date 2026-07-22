@@ -1,0 +1,277 @@
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
+package org.yuzu.yuzu_emu.model
+
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import org.yuzu.yuzu_emu.R
+import org.yuzu.yuzu_emu.YuzuApplication
+import org.yuzu.yuzu_emu.features.settings.model.BooleanSetting
+import org.yuzu.yuzu_emu.features.settings.model.StringSetting
+import org.yuzu.yuzu_emu.features.settings.utils.SettingsFile
+import org.yuzu.yuzu_emu.model.Driver.Companion.toDriver
+import org.yuzu.yuzu_emu.utils.GpuDriverHelper
+import org.yuzu.yuzu_emu.NativeLibrary
+import org.yuzu.yuzu_emu.utils.GpuDriverMetadata
+import org.yuzu.yuzu_emu.utils.NativeConfig
+import java.io.File
+
+class DriverViewModel : ViewModel() {
+    private val _areDriversLoading = MutableStateFlow(false)
+    private val _isDriverReady = MutableStateFlow(true)
+    private val _isDeletingDrivers = MutableStateFlow(false)
+
+    val isInteractionAllowed: StateFlow<Boolean> =
+        combine(
+            _areDriversLoading,
+            _isDriverReady,
+            _isDeletingDrivers
+        ) { loading, ready, deleting ->
+            !loading && ready && !deleting
+        }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(), initialValue = false)
+
+    var driverData = GpuDriverHelper.getDrivers()
+
+    private val _driverList = MutableStateFlow(emptyList<Driver>())
+    val driverList: StateFlow<List<Driver>> get() = _driverList
+
+    // Used for showing which driver is currently installed within the driver manager card
+    private val _selectedDriverTitle = MutableStateFlow("")
+    val selectedDriverTitle: StateFlow<String> get() = _selectedDriverTitle
+
+    private val _selectedDriverVersion = MutableStateFlow("")
+    val selectedDriverVersion: StateFlow<String> get() = _selectedDriverVersion
+
+    private val _showClearButton = MutableStateFlow(false)
+    val showClearButton = _showClearButton.asStateFlow()
+
+    private val driversToDelete = mutableListOf<String>()
+
+    private var previousDriverPath: String = ""
+    private var activeGame: Game? = null
+
+    private val _shouldShowDriverShaderDialog = MutableStateFlow(false)
+    val shouldShowDriverShaderDialog: StateFlow<Boolean> get() = _shouldShowDriverShaderDialog
+
+    init {
+        updateDriverList()
+        updateDriverNameForGame(null)
+        previousDriverPath = StringSetting.DRIVER_PATH.getString()
+    }
+
+    fun reloadDriverData() {
+        _areDriversLoading.value = true
+        driverData = GpuDriverHelper.getDrivers()
+            .filterNot { driversToDelete.contains(it.first) }
+            .toMutableList()
+        updateDriverList()
+        _areDriversLoading.value = false
+    }
+
+    fun updateDriverList() {
+        val selectedDriver = GpuDriverHelper.customDriverSettingData
+        val systemDriverData = GpuDriverHelper.getSystemDriverInfo()
+        val systemDriverTitle = YuzuApplication.appContext.getString(R.string.system_gpu_driver)
+        val newDriverList = mutableListOf(
+            Driver(
+                selectedDriver == GpuDriverMetadata(),
+                systemDriverTitle,
+                //systemDriverData?.get(0) ?: "",
+                NativeLibrary.getVulkanDriverVersion().takeIf { !it.isNullOrEmpty() } ?: systemDriverTitle,
+                systemDriverData?.get(1) ?: ""
+            )
+        )
+        driverData.forEach {
+            newDriverList.add(it.second.toDriver(it.second == selectedDriver))
+        }
+        _driverList.value = newDriverList
+        previousDriverPath = StringSetting.DRIVER_PATH.getString()
+    }
+
+    fun onOpenDriverManager(game: Game?) {
+        activeGame = game
+        if (game != null) {
+            SettingsFile.loadCustomConfig(game)
+        }
+        updateDriverList()
+    }
+
+    fun showClearButton(value: Boolean) {
+        _showClearButton.value = value
+    }
+
+    fun onDriverSelected(position: Int, skipShaderWipe: Boolean = false) {
+        val newDriverPath = if (position == 0) {
+            ""
+        } else {
+            driverData[position - 1].first
+        }
+
+        if (!skipShaderWipe && newDriverPath != previousDriverPath) {
+            activeGame?.let {
+                wipeGameShaders(it)
+
+                if (!BooleanSetting.DONT_SHOW_DRIVER_SHADER_WARNING.getBoolean(needsGlobal = true)) {
+                    _shouldShowDriverShaderDialog.value = true
+                }
+            }
+        }
+
+        if (position == 0) {
+            StringSetting.DRIVER_PATH.setString("")
+        } else {
+            StringSetting.DRIVER_PATH.setString(driverData[position - 1].first)
+        }
+        previousDriverPath = newDriverPath
+    }
+
+    fun onDriverShaderDialogDismissed(dontShowAgain: Boolean) {
+        if (dontShowAgain) {
+            BooleanSetting.DONT_SHOW_DRIVER_SHADER_WARNING.setBoolean(true)
+            NativeConfig.saveGlobalConfig()
+        }
+        _shouldShowDriverShaderDialog.value = false
+    }
+
+    private fun wipeGameShaders(game: Game) {
+        viewModelScope.launch {
+            withContext(Dispatchers.IO) {
+                val externalFilesDir = YuzuApplication.appContext.getExternalFilesDir(null)
+                    ?: return@withContext
+                val shaderDir = File(
+                    externalFilesDir.absolutePath +
+                    "/shader/" + game.settingsName.lowercase()
+                )
+                if (shaderDir.exists()) {
+                    shaderDir.deleteRecursively()
+                }
+            }
+        }
+    }
+
+    fun onDriverRemoved(removedPosition: Int, selectedPosition: Int) {
+        val driverIndex = removedPosition - 1
+        if (driverIndex !in driverData.indices) {
+            updateDriverList()
+            return
+        }
+
+        driversToDelete.add(driverData[driverIndex].first)
+        driverData.removeAt(driverIndex)
+        val safeSelectedPosition = selectedPosition.coerceIn(0, driverData.size)
+        onDriverSelected(safeSelectedPosition)
+    }
+
+    fun onDriverAdded(driver: Pair<String, GpuDriverMetadata>) {
+        if (driversToDelete.contains(driver.first)) {
+            driversToDelete.remove(driver.first)
+        }
+
+        val existingDriverIndex = driverData.indexOfFirst {
+            it.first == driver.first || it.second == driver.second
+        }
+        if (existingDriverIndex != -1) {
+            onDriverSelected(existingDriverIndex + 1)
+            return
+        }
+        driverData.add(driver)
+        onDriverSelected(driverData.size)
+    }
+
+    fun onCloseDriverManager(game: Game?) {
+        _isDeletingDrivers.value = true
+        try {
+            updateDriverNameForGame(game)
+            if (game == null) {
+                NativeConfig.saveGlobalConfig()
+            } else {
+                NativeConfig.savePerGameConfig()
+                NativeConfig.unloadPerGameConfig()
+                NativeConfig.reloadGlobalConfig()
+            }
+
+            driversToDelete.forEach {
+                val driver = File(it)
+                if (driver.exists()) {
+                    driver.delete()
+                }
+            }
+            driversToDelete.clear()
+        } finally {
+            activeGame = null
+            _isDeletingDrivers.value = false
+        }
+    }
+
+    // It is the Emulation Fragment's responsibility to load per-game settings so that this function
+    // knows what driver to load.
+    fun onLaunchGame() {
+        _isDriverReady.value = false
+
+        val selectedDriverFile = File(StringSetting.DRIVER_PATH.getString())
+        val selectedDriverMetadata = GpuDriverHelper.customDriverSettingData
+        if (GpuDriverHelper.installedCustomDriverData == selectedDriverMetadata) {
+            setDriverReady()
+            return
+        }
+
+        viewModelScope.launch {
+            withContext(Dispatchers.IO) {
+                if (selectedDriverMetadata.name == null) {
+                    GpuDriverHelper.installDefaultDriver()
+                    setDriverReady()
+                    return@withContext
+                }
+
+                if (selectedDriverFile.exists()) {
+                    GpuDriverHelper.installCustomDriver(selectedDriverFile)
+                } else {
+                    GpuDriverHelper.installDefaultDriver()
+                }
+                setDriverReady()
+            }
+        }
+    }
+
+    fun updateDriverNameForGame(game: Game?) {
+        if (!GpuDriverHelper.supportsCustomDriverLoading()) {
+            return
+        }
+
+        if (game == null || NativeConfig.isPerGameConfigLoaded()) {
+            updateName()
+        } else {
+            SettingsFile.loadCustomConfig(game)
+            updateName()
+            NativeConfig.unloadPerGameConfig()
+            NativeConfig.reloadGlobalConfig()
+        }
+    }
+
+    private fun updateName() {
+        val systemDriverTitle = YuzuApplication.appContext.getString(R.string.system_gpu_driver)
+        //val systemDriverVersion = GpuDriverHelper.getSystemDriverInfo()?.get(0) ?: systemDriverTitle //title as fallback just in case
+        val systemDriverVersion = NativeLibrary.getVulkanDriverVersion().takeIf { !it.isNullOrEmpty() } ?: systemDriverTitle
+        val customDriver = GpuDriverHelper.customDriverSettingData
+
+        _selectedDriverTitle.value = customDriver.name
+            ?: systemDriverTitle
+        _selectedDriverVersion.value = customDriver.version
+            ?: systemDriverVersion
+    }
+
+    private fun setDriverReady() {
+        _isDriverReady.value = true
+        updateName()
+    }
+}

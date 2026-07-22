@@ -1,0 +1,32 @@
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
+// SPDX-FileCopyrightText: 2023 yuzu Emulator Project
+// SPDX-License-Identifier: GPL-2.0-or-later
+
+package org.yuzu.yuzu_emu.model
+
+import androidx.annotation.Keep
+
+@Keep
+data class Patch(
+    var enabled: Boolean,
+    val name: String,
+    val version: String,
+    val type: Int,
+    val programId: String,
+    val titleId: String,
+    val numericVersion: Long = 0,
+    val source: Int = 0
+) {
+    companion object {
+        const val SOURCE_UNKNOWN = 0
+        const val SOURCE_NAND = 1
+        const val SOURCE_SDMC = 2
+        const val SOURCE_EXTERNAL = 3
+        const val SOURCE_PACKED = 4
+    }
+
+    val isRemovable: Boolean
+        get() = source != SOURCE_EXTERNAL && source != SOURCE_PACKED
+}

@@ -1,0 +1,101 @@
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
+// SPDX-FileCopyrightText: Copyright 2024 yuzu Emulator Project
+// SPDX-License-Identifier: GPL-2.0-or-later
+
+#pragma once
+
+#include <optional>
+#include <variant>
+
+#include "common/math_util.h"
+#include "video_core/host1x/gpu_device_memory_manager.h"
+#include "video_core/vulkan_common/vulkan_wrapper.h"
+#include "video_core/renderer_vulkan/present/fsr.h"
+#include "video_core/renderer_vulkan/present/sgsr.h"
+#include "video_core/renderer_vulkan/present/fxaa.h"
+#include "video_core/renderer_vulkan/present/smaa.h"
+
+namespace Layout {
+struct FramebufferLayout;
+}
+
+struct PresentFilters;
+
+namespace Tegra {
+struct FramebufferConfig;
+}
+
+namespace Service::android {
+enum class PixelFormat : u32;
+}
+
+namespace Settings {
+enum class AntiAliasing : u32;
+}
+
+namespace Vulkan {
+
+class AntiAliasPass;
+class Device;
+class MemoryAllocator;
+struct PresentPushConstants;
+class RasterizerVulkan;
+class Scheduler;
+
+class Layer final {
+public:
+    explicit Layer(const Device& device, MemoryAllocator& memory_allocator, Scheduler& scheduler,
+                   Tegra::MaxwellDeviceMemoryManager& device_memory, size_t image_count,
+                   VkExtent2D output_size, VkDescriptorSetLayout layout,
+                   const PresentFilters& filters);
+    ~Layer();
+
+    void ConfigureDraw(const Device& device, PresentPushConstants* out_push_constants,
+                       VkDescriptorSet* out_descriptor_set, RasterizerVulkan& rasterizer,
+                       VkSampler sampler, size_t image_index,
+                       const Tegra::FramebufferConfig& framebuffer,
+                       const Layout::FramebufferLayout& layout);
+
+private:
+    void CreateDescriptorPool(const Device& device);
+    void CreateDescriptorSets(const Device& device, VkDescriptorSetLayout layout);
+    void CreateStagingBuffer(const Device& device, const Tegra::FramebufferConfig& framebuffer);
+    void CreateRawImages(const Device& device, const Tegra::FramebufferConfig& framebuffer);
+
+    void RefreshResources(const Device& device, const Tegra::FramebufferConfig& framebuffer);
+    void SetAntiAliasPass(const Device& device);
+    void ReleaseRawImages();
+
+    u64 CalculateBufferSize(const Tegra::FramebufferConfig& framebuffer) const;
+    u64 GetRawImageOffset(const Tegra::FramebufferConfig& framebuffer, size_t image_index) const;
+
+    void SetMatrixData(const Device& device, PresentPushConstants& data, const Layout::FramebufferLayout& layout) const;
+    void SetVertexData(const Device& device, PresentPushConstants& data, const Layout::FramebufferLayout& layout, const Common::Rectangle<f32>& crop) const;
+    void UpdateDescriptorSet(const Device& device, VkImageView image_view, VkSampler sampler, size_t image_index);
+    void UpdateRawImage(const Tegra::FramebufferConfig& framebuffer, size_t image_index);
+
+private:
+    MemoryAllocator& memory_allocator;
+    Scheduler& scheduler;
+    Tegra::MaxwellDeviceMemoryManager& device_memory;
+    const PresentFilters& filters;
+    const size_t image_count{};
+    vk::DescriptorPool descriptor_pool{};
+    vk::DescriptorSets descriptor_sets{};
+
+    vk::Buffer buffer{};
+    std::vector<vk::Image> raw_images{};
+    std::vector<vk::ImageView> raw_image_views{};
+    u32 raw_width{};
+    u32 raw_height{};
+    Service::android::PixelFormat pixel_format{};
+
+    Settings::AntiAliasing anti_alias_setting{};
+    std::variant<std::monostate, FXAA, SMAA> anti_alias{};
+    std::variant<std::monostate, SGSR, FSR> sr_filter{};
+    std::vector<u64> resource_ticks{};
+};
+
+} // namespace Vulkan

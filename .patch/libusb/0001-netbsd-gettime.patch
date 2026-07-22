@@ -1,0 +1,25 @@
+diff --git a/libusb/os/netbsd_usb.c b/libusb/os/netbsd_usb.c
+index a9a50b2..56e681b 100644
+--- a/libusb/os/netbsd_usb.c
++++ b/libusb/os/netbsd_usb.c
+@@ -580,6 +580,20 @@ _access_endpoint(struct libusb_transfer *transfer)
+ 	return hpriv->endpoints[endpt];
+ }
+ 
++void usbi_get_monotonic_time(struct timespec *tp) {
++        struct timeval tv;
++        gettimeofday(&tv, NULL);
++        tp->tv_sec = tv.tv_sec;
++        tp->tv_nsec = tv.tv_usec * 1000ull;
++}
++
++void usbi_get_real_time(struct timespec *tp) {
++	struct timeval tv;
++	gettimeofday(&tv, NULL);
++	tp->tv_sec = tv.tv_sec;
++	tp->tv_nsec = tv.tv_usec * 1000ull;
++}
++
+ int
+ _sync_gen_transfer(struct usbi_transfer *itransfer)
+ {

@@ -1,0 +1,56 @@
+// SPDX-FileCopyrightText: Copyright 2017 Citra Emulator Project
+// SPDX-License-Identifier: GPL-2.0-or-later
+
+#pragma once
+
+#include <memory>
+#include <QDialog>
+#include <QFutureWatcher>
+#include "suyu/multiplayer/validation.h"
+
+namespace Ui {
+class DirectConnect;
+}
+
+namespace Core {
+class System;
+}
+
+class DirectConnectWindow : public QDialog {
+    Q_OBJECT
+
+public:
+    explicit DirectConnectWindow(Core::System& system_, QWidget* parent = nullptr);
+    ~DirectConnectWindow();
+
+    void RetranslateUi();
+
+signals:
+    /**
+     * Signalled by this widget when it is closing itself and destroying any state such as
+     * connections that it might have.
+     */
+    void Closed();
+    void SaveConfig();
+
+private slots:
+    void OnConnection();
+    void OnServerSelected(int index);
+    void OnAddServer();
+    void OnRemoveServer();
+
+private:
+    void Connect();
+    void BeginConnecting();
+    void EndConnecting();
+    void LoadSavedServers();
+    void SaveSavedServers();
+    void UpdateSavedServerList();
+    bool ParseSavedServerEntry(const QString& entry, QString& host, QString& port) const;
+
+    QFutureWatcher<void>* watcher;
+    std::unique_ptr<Ui::DirectConnect> ui;
+    Validation validation;
+    Core::System& system;
+    Network::RoomNetwork& room_network;
+};

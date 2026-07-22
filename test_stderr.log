@@ -1,0 +1,4 @@
+Attribute Qt::AA_EnableHighDpiScaling must be set before QCoreApplication is created.
+qt.qpa.fonts: Unable to enumerate family ' "FONTSPRING DEMO - Roc Grotesk Medium" '
+qt.qpa.fonts: Unable to enumerate family ' "FONTSPRING DEMO - Roc Grotesk Medium" '
+qt.network.ssl: QSslSocket::connectToHostEncrypted: TLS initialization failed

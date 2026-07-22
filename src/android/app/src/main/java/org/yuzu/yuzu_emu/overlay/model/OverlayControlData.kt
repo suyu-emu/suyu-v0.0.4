@@ -1,0 +1,20 @@
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
+package org.yuzu.yuzu_emu.overlay.model
+
+data class OverlayControlData(
+    val id: String,
+    var enabled: Boolean,
+    var landscapePosition: Pair<Double, Double>,
+    var portraitPosition: Pair<Double, Double>,
+    var foldablePosition: Pair<Double, Double>,
+    var individualScale: Float
+) {
+    fun positionFromLayout(layout: OverlayLayout): Pair<Double, Double> =
+        when (layout) {
+            OverlayLayout.Landscape -> landscapePosition
+            OverlayLayout.Portrait -> portraitPosition
+            OverlayLayout.Foldable -> foldablePosition
+        }
+}

@@ -1,0 +1,463 @@
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
+// SPDX-FileCopyrightText: Copyright 2022 yuzu Emulator Project
+// SPDX-License-Identifier: GPL-2.0-or-later
+
+#include <array>
+#include <map>
+#include <span>
+#include <boost/icl/interval_set.hpp>
+#include <dynarmic/interface/A64/a64.h>
+#include <dynarmic/interface/A64/config.h>
+#include <dynarmic/interface/code_page.h>
+
+#include "common/alignment.h"
+#include "common/common_funcs.h"
+#include "common/div_ceil.h"
+#include "common/elf.h"
+#include "common/logging.h"
+#include "core/hle/service/jit/jit_context.h"
+#include "core/memory.h"
+
+using namespace Common::ELF;
+
+namespace Service::JIT {
+
+enum HelperFn {
+    None,
+    Stop,
+    Resolve,
+    Panic,
+    Memcpy,
+    Memmove,
+    Memset,
+    // sm64
+    PanicForPlugin,
+    AbortImpl,
+    UnexpectedImpl,
+    Count
+};
+
+constexpr std::array<u8, 8> SVC0_ARM64 = {
+    0x01, 0x00, 0x00, 0xd4, // svc  #0
+    0xc0, 0x03, 0x5f, 0xd6, // ret
+};
+constexpr size_t STACK_ALIGN = 16;
+
+class JITContextImpl;
+
+using IntervalSet = boost::icl::interval_set<VAddr>::type;
+using IntervalType = boost::icl::interval_set<VAddr>::interval_type;
+
+class DynarmicCallbacks64 : public Dynarmic::A64::UserCallbacks {
+public:
+    explicit DynarmicCallbacks64(Core::Memory::Memory& memory_, std::vector<u8>& local_memory_, IntervalSet& mapped_ranges_, JITContextImpl& parent_)
+        : memory{memory_}
+        , local_memory{local_memory_}
+        , mapped_ranges{mapped_ranges_}
+        , parent{parent_}
+    {}
+
+    std::optional<std::uint32_t> MemoryReadCode(VAddr vaddr) override {
+        static_assert(Core::Memory::YUZU_PAGESIZE == Dynarmic::CODE_PAGE_SIZE);
+        auto const aligned_vaddr = vaddr & ~Core::Memory::YUZU_PAGEMASK;
+        if (last_code_addr != aligned_vaddr) {
+            cached_code_page = ReadMemory<Dynarmic::CodePage>(aligned_vaddr);
+            last_code_addr = aligned_vaddr;
+        }
+        return cached_code_page.inst[(vaddr & Core::Memory::YUZU_PAGEMASK) / sizeof(u32)];
+    }
+    void InstructionSynchronizationBarrierRaised() override {
+        last_code_addr = u64(-1); //reset back, force refetch
+    }
+    u8 MemoryRead8(u64 vaddr) override {
+        return ReadMemory<u8>(vaddr);
+    }
+    u16 MemoryRead16(u64 vaddr) override {
+        return ReadMemory<u16>(vaddr);
+    }
+    u32 MemoryRead32(u64 vaddr) override {
+        return ReadMemory<u32>(vaddr);
+    }
+    u64 MemoryRead64(u64 vaddr) override {
+        return ReadMemory<u64>(vaddr);
+    }
+    u128 MemoryRead128(u64 vaddr) override {
+        return ReadMemory<u128>(vaddr);
+    }
+    std::string MemoryReadCString(u64 vaddr) {
+        std::string result{};
+        u8 next;
+        while ((next = MemoryRead8(vaddr++)) != 0)
+            result += char(next);
+        return result;
+    }
+
+    void MemoryWrite8(u64 vaddr, u8 value) override {
+        WriteMemory<u8>(vaddr, value);
+    }
+    void MemoryWrite16(u64 vaddr, u16 value) override {
+        WriteMemory<u16>(vaddr, value);
+    }
+    void MemoryWrite32(u64 vaddr, u32 value) override {
+        WriteMemory<u32>(vaddr, value);
+    }
+    void MemoryWrite64(u64 vaddr, u64 value) override {
+        WriteMemory<u64>(vaddr, value);
+    }
+    void MemoryWrite128(u64 vaddr, u128 value) override {
+        WriteMemory<u128>(vaddr, value);
+    }
+
+    bool MemoryWriteExclusive8(u64 vaddr, u8 value, u8) override {
+        return WriteMemory<u8>(vaddr, value);
+    }
+    bool MemoryWriteExclusive16(u64 vaddr, u16 value, u16) override {
+        return WriteMemory<u16>(vaddr, value);
+    }
+    bool MemoryWriteExclusive32(u64 vaddr, u32 value, u32) override {
+        return WriteMemory<u32>(vaddr, value);
+    }
+    bool MemoryWriteExclusive64(u64 vaddr, u64 value, u64) override {
+        return WriteMemory<u64>(vaddr, value);
+    }
+    bool MemoryWriteExclusive128(u64 vaddr, u128 value, u128) override {
+        return WriteMemory<u128>(vaddr, value);
+    }
+
+    void CallSVC(u32 swi) override;
+    void ExceptionRaised(u64 pc, Dynarmic::A64::Exception exception) override;
+
+    void AddTicks(u64 ticks) override {}
+    u64 GetTicksRemaining() override {
+        return (std::numeric_limits<u32>::max)();
+    }
+    u64 GetCNTPCT() override {
+        return 0;
+    }
+
+    template<typename T> T ReadMemory(u64 vaddr) {
+        T ret{};
+        if (boost::icl::contains(mapped_ranges, vaddr)) {
+            memory.ReadBlock(vaddr, &ret, sizeof(T));
+        } else if (vaddr + sizeof(T) > local_memory.size()) {
+            LOG_CRITICAL(Service_JIT, "plugin: unmapped read @ 0x{:016x}", vaddr);
+        } else {
+            std::memcpy(&ret, local_memory.data() + vaddr, sizeof(T));
+        }
+        return ret;
+    }
+
+    template <class T>
+    bool WriteMemory(u64 vaddr, const T value) {
+        if (boost::icl::contains(mapped_ranges, vaddr)) {
+            memory.WriteBlock(vaddr, &value, sizeof(T));
+        } else if (vaddr + sizeof(T) > local_memory.size()) {
+            LOG_CRITICAL(Service_JIT, "plugin: unmapped write @ 0x{:016x}", vaddr);
+        } else {
+            std::memcpy(local_memory.data() + vaddr, &value, sizeof(T));
+        }
+        return true;
+    }
+
+private:
+    Core::Memory::Memory& memory;
+    std::vector<u8>& local_memory;
+    IntervalSet& mapped_ranges;
+    JITContextImpl& parent;
+    Dynarmic::CodePage cached_code_page;
+    u64 last_code_addr = u64(-1);
+};
+
+class JITContextImpl {
+public:
+    explicit JITContextImpl(Core::Memory::Memory& memory_) : memory{memory_} {
+        callbacks.emplace(memory, local_memory, mapped_ranges, *this);
+        user_config.callbacks = std::addressof(callbacks.value());
+        jit.emplace(user_config);
+    }
+
+    bool LoadNRO(std::span<const u8> data) {
+        relocbase = local_memory.size();
+        local_memory.insert(local_memory.end(), data.begin(), data.end());
+        if (FixupRelocations()) {
+            InsertHelperFunctions();
+            InsertStack();
+            return true;
+        }
+        return false;
+    }
+
+    bool FixupRelocations() {
+        // The loaded NRO file has ELF relocations that must be processed before it can run.
+        // Normally this would be processed by RTLD, but in HLE context, we don't have
+        // the linker available, so we have to do it ourselves.
+        const VAddr mod_offset{callbacks->MemoryRead32(4)};
+        if (callbacks->MemoryRead32(mod_offset) != Common::MakeMagic('M', 'O', 'D', '0'))
+            return false;
+
+        // For more info about dynamic entries, see the ELF ABI specification:
+        // https://refspecs.linuxbase.org/elf/gabi4+/ch5.dynamic.html
+        // https://refspecs.linuxbase.org/elf/gabi4+/ch4.reloc.html
+        VAddr dynamic_offset{mod_offset + callbacks->MemoryRead32(mod_offset + 4)};
+        VAddr rela_dyn = 0, relr_dyn = 0;
+        size_t num_rela = 0, num_relr = 0;
+        while (true) {
+            const auto dyn{callbacks->ReadMemory<Elf64_Dyn>(dynamic_offset)};
+            dynamic_offset += sizeof(Elf64_Dyn);
+            if (!dyn.d_tag) {
+                break;
+            } else if (dyn.d_tag == ElfDtRela) {
+                rela_dyn = dyn.d_un.d_ptr;
+            } else if (dyn.d_tag == ElfDtRelasz) {
+                num_rela = dyn.d_un.d_val / sizeof(Elf64_Rela);
+            } else if (dyn.d_tag == ElfDtRelr) {
+                relr_dyn = dyn.d_un.d_ptr;
+            } else if (dyn.d_tag == ElfDtRelrsz) {
+                num_relr = dyn.d_un.d_val / sizeof(Elf64_Relr);
+            }
+        }
+
+        for (size_t i = 0; i < num_rela; i++) {
+            const auto rela{callbacks->ReadMemory<Elf64_Rela>(rela_dyn + i * sizeof(Elf64_Rela))};
+            if (Elf64RelType(rela.r_info) == ElfAArch64Relative) {
+                const VAddr contents{callbacks->MemoryRead64(rela.r_offset)};
+                callbacks->MemoryWrite64(rela.r_offset, contents + rela.r_addend);
+            }
+        }
+
+        VAddr relr_where = 0;
+        for (size_t i = 0; i < num_relr; i++) {
+            const auto relr = callbacks->ReadMemory<Elf64_Relr>(relr_dyn + i * sizeof(Elf64_Relr));
+            const auto incr = [&](VAddr where) {
+                callbacks->MemoryWrite64(where, callbacks->MemoryRead64(where) + relocbase);
+            };
+            if ((relr & 1) == 0) {
+                // where pointer
+                relr_where = relocbase + relr;
+                incr(relr_where);
+                relr_where += sizeof(Elf64_Addr);
+            } else {
+                // bitmap
+                for (int bit = 1; bit < 64; bit++) {
+                    if ((relr & (1ULL << bit)) != 0) {
+                        incr(relr_where + i * sizeof(Elf64_Addr));
+                    }
+                }
+                relr_where += 63 * sizeof(Elf64_Addr);
+            }
+        }
+        return true;
+    }
+
+    void InsertHelperFunctions() {
+        for (size_t i = 0; i < size_t(HelperFn::Count); ++i) {
+            helpers[i] = local_memory.size();
+            local_memory.insert(local_memory.end(), SVC0_ARM64.begin(), SVC0_ARM64.end());
+        }
+    }
+
+    void InsertStack() {
+        // Allocate enough space to avoid any reasonable risk of
+        // overflowing the stack during plugin execution
+        const u64 pad_amount = Common::AlignUp(local_memory.size(), STACK_ALIGN) - local_memory.size();
+        local_memory.insert(local_memory.end(), (4096 * 32) + pad_amount, 0);
+        top_of_stack = local_memory.size();
+        heap_pointer = top_of_stack;
+    }
+
+    void MapProcessMemory(VAddr dest_address, std::size_t size) {
+        mapped_ranges.add(IntervalType{dest_address, dest_address + size});
+    }
+
+    void PushArgument(const void* data, size_t size) {
+        const size_t num_words = Common::DivCeil(size, sizeof(u64));
+        const size_t current_pos = argument_stack.size();
+        argument_stack.insert(argument_stack.end(), num_words, 0);
+        std::memcpy(argument_stack.data() + current_pos, data, size);
+    }
+
+    void SetupArguments() {
+        // The first 8 integer registers are used for the first 8 integer
+        // arguments. Floating-point arguments are not handled at this time.
+        //
+        // If a function takes more than 8 arguments, then stack space is reserved
+        // for the remaining arguments, and the remaining arguments are inserted in
+        // ascending memory order, each argument aligned to an 8-byte boundary. The
+        // stack pointer must remain aligned to 16 bytes.
+        //
+        // For more info, see the AArch64 ABI PCS:
+        // https://github.com/ARM-software/abi-aa/blob/main/aapcs64/aapcs64.rst
+        for (size_t i = 0; i < 8 && i < argument_stack.size(); i++)
+            jit->SetRegister(i, argument_stack[i]);
+        if (argument_stack.size() > 8) {
+            const VAddr new_sp = Common::AlignDown(top_of_stack - (argument_stack.size() - 8) * sizeof(u64), STACK_ALIGN);
+            for (size_t i = 8; i < argument_stack.size(); i++)
+                callbacks->MemoryWrite64(new_sp + (i - 8) * sizeof(u64), argument_stack[i]);
+            jit->SetSP(new_sp);
+        }
+        // Reset the call state for the next invocation
+        argument_stack.clear();
+        heap_pointer = top_of_stack;
+    }
+
+    u64 CallFunction(VAddr func) {
+        jit->SetRegister(30, helpers[size_t(HelperFn::Stop)]);
+        jit->SetSP(top_of_stack);
+        SetupArguments();
+
+        jit->SetPC(func);
+        jit->Run();
+        return jit->GetRegister(0);
+    }
+
+    VAddr AddHeap(const void* data, size_t size) {
+        // Require all heap data types to have the same alignment as the
+        // stack pointer, for compatibility
+        const size_t num_bytes = Common::AlignUp(size, STACK_ALIGN);
+        // Make additional memory space if required
+        if (heap_pointer + num_bytes > local_memory.size()) {
+            local_memory.insert(local_memory.end(), (heap_pointer + num_bytes) - local_memory.size(), 0);
+        }
+        const VAddr location{heap_pointer};
+        std::memcpy(local_memory.data() + location, data, size);
+        heap_pointer += num_bytes;
+        return location;
+    }
+
+    void GetHeap(VAddr location, void* data, size_t size) {
+        std::memcpy(data, local_memory.data() + location, size);
+    }
+
+    VAddr GetHelper(const std::string& name) {
+        if (name == "_resolve") return helpers[HelperFn::Resolve];
+        else if (name == "_panic") return helpers[HelperFn::Panic];
+        else if (name == "_stop") return helpers[HelperFn::Stop];
+        else if (name == "memset") return helpers[HelperFn::Memset];
+        else if (name == "memcpy") return helpers[HelperFn::Memcpy];
+        else if (name == "memmove") return helpers[HelperFn::Memmove];
+        else if (name == "PanicForPlugin") return helpers[HelperFn::PanicForPlugin];
+        else if (name == "_ZN2nn4diag6detail9AbortImplEPKcS3_S3_i") return helpers[HelperFn::AbortImpl];
+        else if (name == "_ZN2nn6detail21UnexpectedDefaultImplEPKcS2_i") return helpers[HelperFn::UnexpectedImpl];
+        else {
+            LOG_CRITICAL(Service_JIT, "unresolved {}", name);
+            return helpers[HelperFn::Panic];
+        }
+    }
+
+    std::optional<DynarmicCallbacks64> callbacks;
+    std::optional<Dynarmic::A64::Jit> jit;
+    std::vector<u8> local_memory;
+    std::vector<VAddr> argument_stack;
+    IntervalSet mapped_ranges;
+    Dynarmic::A64::UserConfig user_config;
+    std::array<VAddr, size_t(HelperFn::Count)> helpers;
+    Core::Memory::Memory& memory;
+    VAddr top_of_stack;
+    VAddr heap_pointer;
+    VAddr relocbase;
+};
+
+void DynarmicCallbacks64::CallSVC(u32 swi) {
+    // Service calls are used to implement helper functionality.
+    //
+    // The most important of these is the _stop helper, which transfers control
+    // from the plugin back to HLE context to return a value. However, a few more
+    // are also implemented to reduce the need for direct ARM implementations of
+    // basic functionality, like memory operations.
+    //
+    // When we receive a helper request, the swi number will be zero, and the call
+    // will have originated from an address we know is a helper function. Otherwise,
+    // the plugin may be trying to issue a service call, which we shouldn't handle.
+
+    if (swi != 0) {
+        LOG_CRITICAL(Service_JIT, "plugin issued unknown service call {}", swi);
+        parent.jit->HaltExecution();
+        return;
+    }
+
+    u64 pc{parent.jit->GetPC() - 4};
+    if (pc == parent.helpers[size_t(HelperFn::Memcpy)] || pc == parent.helpers[size_t(HelperFn::Memmove)]) {
+        const VAddr dest{parent.jit->GetRegister(0)};
+        const VAddr src{parent.jit->GetRegister(1)};
+        const size_t n{parent.jit->GetRegister(2)};
+
+        if (dest < src) {
+            for (size_t i = 0; i < n; i++)
+                MemoryWrite8(dest + i, MemoryRead8(src + i));
+        } else {
+            for (size_t i = n; i > 0; i--)
+                MemoryWrite8(dest + i - 1, MemoryRead8(src + i - 1));
+        }
+    } else if (pc == parent.helpers[size_t(HelperFn::Memset)]) {
+        const VAddr dest{parent.jit->GetRegister(0)};
+        const u64 c{parent.jit->GetRegister(1)};
+        const size_t n{parent.jit->GetRegister(2)};
+        for (size_t i = 0; i < n; i++)
+            MemoryWrite8(dest + i, u8(c));
+    } else if (pc == parent.helpers[size_t(HelperFn::Resolve)]) {
+        // X0 contains a char* for a symbol to resolve
+        const auto name{MemoryReadCString(parent.jit->GetRegister(0))};
+        parent.jit->SetRegister(0, u64(parent.GetHelper(name)));
+    } else if (pc == parent.helpers[size_t(HelperFn::Stop)]) {
+        parent.jit->HaltExecution();
+    } else if (pc == parent.helpers[size_t(HelperFn::Panic)]) {
+        LOG_CRITICAL(Service_JIT, "plugin panicked!");
+        parent.jit->HaltExecution();
+    // SM64
+    } else if (pc == parent.helpers[size_t(HelperFn::PanicForPlugin)]) {
+        LOG_CRITICAL(Service_JIT, "plugin panicked!");
+        parent.jit->HaltExecution();
+    } else if (pc == parent.helpers[size_t(HelperFn::AbortImpl)]) {
+        LOG_CRITICAL(Service_JIT, "plugin panicked!");
+        parent.jit->HaltExecution();
+    } else if (pc == parent.helpers[size_t(HelperFn::UnexpectedImpl)]) {
+        LOG_CRITICAL(Service_JIT, "plugin panicked!");
+        parent.jit->HaltExecution();
+    } else {
+        LOG_CRITICAL(Service_JIT, "plugin issued syscall at unknown address 0x{:x}", pc);
+        parent.jit->HaltExecution();
+    }
+}
+
+void DynarmicCallbacks64::ExceptionRaised(u64 pc, Dynarmic::A64::Exception exception) {
+    auto const inst = MemoryRead32(pc);
+    LOG_CRITICAL(Service_JIT, "{} PC @ {:08x}, data = {:08x}", exception, pc, inst);
+    parent.jit->HaltExecution();
+}
+
+JITContext::JITContext(Core::Memory::Memory& memory)
+    : impl{std::make_unique<JITContextImpl>(memory)} {}
+
+JITContext::~JITContext() {}
+
+bool JITContext::LoadNRO(std::span<const u8> data) {
+    return impl->LoadNRO(data);
+}
+
+void JITContext::MapProcessMemory(VAddr dest_address, std::size_t size) {
+    impl->MapProcessMemory(dest_address, size);
+}
+
+u64 JITContext::CallFunction(VAddr func) {
+    return impl->CallFunction(func);
+}
+
+void JITContext::PushArgument(const void* data, size_t size) {
+    impl->PushArgument(data, size);
+}
+
+VAddr JITContext::GetHelper(const std::string& name) {
+    return impl->GetHelper(name);
+}
+
+VAddr JITContext::AddHeap(const void* data, size_t size) {
+    return impl->AddHeap(data, size);
+}
+
+void JITContext::GetHeap(VAddr location, void* data, size_t size) {
+    impl->GetHeap(location, data, size);
+}
+
+} // namespace Service::JIT

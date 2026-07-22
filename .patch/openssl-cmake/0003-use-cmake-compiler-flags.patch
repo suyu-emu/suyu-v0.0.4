@@ -1,0 +1,28 @@
+From 4a3cc92a7abad403529ed1cb4255ca63d9252de4 Mon Sep 17 00:00:00 2001
+From: crueter <crueter@eden-emu.dev>
+Date: Sat, 30 May 2026 21:48:42 -0400
+Subject: [PATCH 2/2] use cmake compiler flags
+
+---
+ cmake/ConfigureOpenSSL.cmake | 5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
+
+diff --git a/cmake/ConfigureOpenSSL.cmake b/cmake/ConfigureOpenSSL.cmake
+index 3d8cbed..3012e05 100644
+--- a/cmake/ConfigureOpenSSL.cmake
++++ b/cmake/ConfigureOpenSSL.cmake
+@@ -135,7 +135,10 @@ function(configure_openssl)
+     endif()
+ 
+     execute_process(
+-        COMMAND ${CONFIGURE_COMMAND}
++        COMMAND ${CMAKE_COMMAND} -E env
++            "CFLAGS=${CMAKE_C_FLAGS}"
++            "CXXFLAGS=${CMAKE_CXX_FLAGS}"
++            ${CONFIGURE_COMMAND}
+         WORKING_DIRECTORY ${CONFIGURE_BUILD_DIR}
+         ${VERBOSE_OPTION}
+         COMMAND_ERROR_IS_FATAL ANY
+-- 
+2.54.0
+

@@ -1,0 +1,28 @@
+From cc15da16e533b2a801934eab2dfeaf3c3949a1dc Mon Sep 17 00:00:00 2001
+From: crueter <crueter@eden-emu.dev>
+Date: Mon, 8 Sep 2025 12:28:55 -0400
+Subject: [PATCH] [cmake] disable NEON runtime check on clang-cl
+
+When enabling runtime NEON checking for clang-cl, the linker would error out with `undefined symbol: __emit`, since clang doesn't actually implement this instruction. Therefore it makes sense to disable the runtime check by default on this platform, until either this is fixed or a clang-cl compatible intrinsic check is added (I don't have enough knowledge of MSVC to do this)
+---
+ cmake/OpusConfig.cmake | 7 ++++++-
+ 1 file changed, 6 insertions(+), 1 deletion(-)
+
+diff --git a/cmake/OpusConfig.cmake b/cmake/OpusConfig.cmake
+index e9319fbad..d0f459e88 100644
+--- a/cmake/OpusConfig.cmake
++++ b/cmake/OpusConfig.cmake
+@@ -71,7 +71,12 @@ elseif(OPUS_CPU_ARM AND NOT OPUS_DISABLE_INTRINSICS)
+   opus_detect_neon(COMPILER_SUPPORT_NEON)
+   if(COMPILER_SUPPORT_NEON)
+     option(OPUS_USE_NEON "Option to enable NEON" ON)
+-    option(OPUS_MAY_HAVE_NEON "Does runtime check for neon support" ON)
++    if (MSVC AND CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
++      set(NEON_RUNTIME_CHECK_DEFAULT OFF)
++    else()
++      set(NEON_RUNTIME_CHECK_DEFAULT ON)
++    endif()
++    option(OPUS_MAY_HAVE_NEON "Does runtime check for neon support" ${NEON_RUNTIME_CHECK_DEFAULT})
+     option(OPUS_PRESUME_NEON "Assume target CPU has NEON support" OFF)
+     if(CMAKE_SYSTEM_PROCESSOR MATCHES "aarch64")
+       set(OPUS_PRESUME_NEON ON)

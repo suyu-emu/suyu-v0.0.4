@@ -1,0 +1,65 @@
+# SPDX-FileCopyrightText: 2013 Citra Emulator Project
+# SPDX-License-Identifier: GPL-2.0-or-later
+
+# SPDX-FileCopyrightText: Eden Emulator Project
+# SPDX-License-Identifier: GPL-3.0-or-later
+
+# Build directory
+/[Bb]uild*/
+doc-build/
+AppDir/
+uruntime
+
+# dtrace and ktrace stuffs
+[dk]trace-out/
+[dk]trace.out
+*.core
+log.txt
+
+# Generated source files
+src/common/scm_rev.cpp
+dist/english_plurals/generated_en.ts
+
+# Project/editor files
+*.swp
+.idea/
+.vs/
+.vscode/
+.cache/
+profile.json.gz
+CMakeLists.txt.user*
+
+# kdevelop
+.kdev4/
+*.kdev4
+
+# *nix related
+# Common convention for backup or temporary files
+*~
+*.core
+dtrace-out/
+
+# Visual Studio CMake settings
+CMakeSettings.json
+.cache/
+
+# OSX global filetypes
+# Created by Finder or Spotlight in directories for various OS functionality (indexing, etc)
+.DS_Store
+.DS_Store?
+._*
+.AppleDouble
+.LSOverride
+.Spotlight-V100
+.Trashes
+
+# Windows global filetypes
+Thumbs.db
+
+# Artifacts
+eden-windows-msvc
+artifacts
+*.AppImage*
+/install*
+vulkansdk*.exe
+*.tar.zst

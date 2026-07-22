@@ -1,0 +1,137 @@
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
+// SPDX-FileCopyrightText: Copyright 2023 yuzu Emulator Project
+// SPDX-License-Identifier: GPL-2.0-or-later
+
+#include "common/scope_exit.h"
+#include "core/core.h"
+#include "core/hle/kernel/k_event.h"
+#include "core/hle/kernel/k_process.h"
+#include "core/hle/kernel/k_scoped_resource_reservation.h"
+#include "core/hle/kernel/svc.h"
+
+namespace Kernel::Svc {
+
+Result SignalEvent(Core::System& system, Handle event_handle) {
+    LOG_DEBUG(Kernel_SVC, "called, event_handle=0x{:08X}", event_handle);
+
+    // Get the current handle table.
+    const KHandleTable& handle_table = GetCurrentProcess(system.Kernel()).GetHandleTable();
+
+    // Fail-safe for system applets
+    const auto program_id = GetCurrentProcess(system.Kernel()).GetProgramId();
+    if ((program_id & 0xFFFFFFFFFFFFFF00ull) == 0x0100000000001000ull) {
+        KScopedAutoObject event = handle_table.GetObject<KEvent>(system.Kernel(), event_handle);
+        if (event.IsNotNull()) {
+            event->Signal(system.Kernel());
+        } else {
+            LOG_WARNING(Kernel_SVC, "SignalEvent best-effort unknown handle=0x{:08X} (ignored)",
+                        event_handle);
+        }
+        R_SUCCEED();
+    }
+
+
+    // Get the event.
+    KScopedAutoObject event = handle_table.GetObject<KEvent>(system.Kernel(), event_handle);
+    R_UNLESS(event.IsNotNull(), ResultInvalidHandle);
+
+    R_RETURN(event->Signal(system.Kernel()));
+}
+
+Result ClearEvent(Core::System& system, Handle event_handle) {
+    LOG_TRACE(Kernel_SVC, "called, event_handle=0x{:08X}", event_handle);
+
+    // Get the current handle table.
+    const auto& handle_table = GetCurrentProcess(system.Kernel()).GetHandleTable();
+
+    // Try to clear the writable event.
+    {
+        KScopedAutoObject event = handle_table.GetObject<KEvent>(system.Kernel(), event_handle);
+        if (event.IsNotNull()) {
+            event->Clear(system.Kernel());
+            R_SUCCEED();
+        }
+    }
+
+    // Try to clear the readable event.
+    {
+        KScopedAutoObject readable_event = handle_table.GetObject<KReadableEvent>(system.Kernel(), event_handle);
+        if (readable_event.IsNotNull()) {
+            readable_event->Clear(system.Kernel());
+            R_SUCCEED();
+        }
+    }
+
+    R_THROW(ResultInvalidHandle);
+}
+
+Result CreateEvent(Core::System& system, Handle* out_write, Handle* out_read) {
+    LOG_DEBUG(Kernel_SVC, "called");
+
+    // Get the kernel reference and handle table.
+    auto& handle_table = GetCurrentProcess(system.Kernel()).GetHandleTable();
+
+    // Reserve a new event from the process resource limit
+    KScopedResourceReservation event_reservation(system.Kernel(), GetCurrentProcessPointer(system.Kernel()),
+                                                 LimitableResource::EventCountMax);
+    R_UNLESS(event_reservation.Succeeded(), ResultLimitReached);
+
+    // Create a new event.
+    KEvent* event = KEvent::Create(system.Kernel());
+    R_UNLESS(event != nullptr, ResultOutOfResource);
+
+    // Initialize the event.
+    event->Initialize(system.Kernel(), GetCurrentProcessPointer(system.Kernel()));
+
+    // Commit the thread reservation.
+    event_reservation.Commit();
+
+    // Ensure that we clean up the event (and its only references are handle table) on function end.
+    SCOPE_EXIT {
+        event->GetReadableEvent().Close(system.Kernel());
+        event->Close(system.Kernel());
+    };
+
+    // Register the event.
+    KEvent::Register(system.Kernel(), event);
+
+    // Add the event to the handle table.
+    R_TRY(handle_table.Add(system.Kernel(), out_write, event));
+
+    // Ensure that we maintain a clean handle state on exit.
+    ON_RESULT_FAILURE {
+        handle_table.Remove(system.Kernel(), *out_write);
+    };
+
+    // Add the readable event to the handle table.
+    R_RETURN(handle_table.Add(system.Kernel(), out_read, std::addressof(event->GetReadableEvent())));
+}
+
+Result SignalEvent64(Core::System& system, Handle event_handle) {
+    R_RETURN(SignalEvent(system, event_handle));
+}
+
+Result ClearEvent64(Core::System& system, Handle event_handle) {
+    R_RETURN(ClearEvent(system, event_handle));
+}
+
+Result CreateEvent64(Core::System& system, Handle* out_write_handle, Handle* out_read_handle) {
+    R_RETURN(CreateEvent(system, out_write_handle, out_read_handle));
+}
+
+Result SignalEvent64From32(Core::System& system, Handle event_handle) {
+    R_RETURN(SignalEvent(system, event_handle));
+}
+
+Result ClearEvent64From32(Core::System& system, Handle event_handle) {
+    R_RETURN(ClearEvent(system, event_handle));
+}
+
+Result CreateEvent64From32(Core::System& system, Handle* out_write_handle,
+                           Handle* out_read_handle) {
+    R_RETURN(CreateEvent(system, out_write_handle, out_read_handle));
+}
+
+} // namespace Kernel::Svc

@@ -1,0 +1,81 @@
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
+// SPDX-FileCopyrightText: Copyright 2024 Torzu Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
+// SPDX-FileCopyrightText: Copyright 2023 yuzu Emulator Project
+// SPDX-License-Identifier: GPL-2.0-or-later
+
+#pragma once
+
+#include <map>
+#include <memory>
+#include <utility>
+#include <vector>
+#include <QObject>
+#include <QString>
+#include "common/common_types.h"
+#include "common/settings_enums.h"
+
+namespace ConfigurationShared {
+using TranslationMap = std::map<u32, std::pair<QString, QString>>;
+using ComboboxTranslations = std::vector<std::pair<u32, QString>>;
+using ComboboxTranslationMap = std::map<u32, ComboboxTranslations>;
+
+std::unique_ptr<TranslationMap> InitializeTranslations(QObject* parent);
+
+std::unique_ptr<ComboboxTranslationMap> ComboboxEnumeration(QObject* parent);
+
+static const std::map<Settings::AntiAliasing, QString> anti_aliasing_texts_map = {
+    {Settings::AntiAliasing::None, QStringLiteral(QT_TRANSLATE_NOOP("MainWindow", "None"))},
+    {Settings::AntiAliasing::Fxaa, QStringLiteral(QT_TRANSLATE_NOOP("MainWindow", "FXAA"))},
+    {Settings::AntiAliasing::Smaa, QStringLiteral(QT_TRANSLATE_NOOP("MainWindow", "SMAA"))},
+};
+
+static const std::map<Settings::ScalingFilter, QString> scaling_filter_texts_map = {
+    {Settings::ScalingFilter::NearestNeighbor,
+     QStringLiteral(QT_TRANSLATE_NOOP("MainWindow", "Nearest"))},
+    {Settings::ScalingFilter::Bilinear,
+     QStringLiteral(QT_TRANSLATE_NOOP("MainWindow", "Bilinear"))},
+    {Settings::ScalingFilter::Bicubic, QStringLiteral(QT_TRANSLATE_NOOP("MainWindow", "Bicubic"))},
+    {Settings::ScalingFilter::ZeroTangent,
+     QStringLiteral(QT_TRANSLATE_NOOP("MainWindow", "Zero-Tangent"))},
+    {Settings::ScalingFilter::BSpline, QStringLiteral(QT_TRANSLATE_NOOP("MainWindow", "B-Spline"))},
+    {Settings::ScalingFilter::Mitchell,
+     QStringLiteral(QT_TRANSLATE_NOOP("MainWindow", "Mitchell"))},
+    {Settings::ScalingFilter::Spline1, QStringLiteral(QT_TRANSLATE_NOOP("MainWindow", "Spline-1"))},
+    {Settings::ScalingFilter::Gaussian,
+     QStringLiteral(QT_TRANSLATE_NOOP("MainWindow", "Gaussian"))},
+    {Settings::ScalingFilter::Lanczos, QStringLiteral(QT_TRANSLATE_NOOP("MainWindow", "Lanczos"))},
+    {Settings::ScalingFilter::ScaleForce,
+     QStringLiteral(QT_TRANSLATE_NOOP("MainWindow", "ScaleForce"))},
+    {Settings::ScalingFilter::Fsr, QStringLiteral(QT_TRANSLATE_NOOP("MainWindow", "FSR"))},
+    {Settings::ScalingFilter::Area, QStringLiteral(QT_TRANSLATE_NOOP("MainWindow", "Area"))},
+    {Settings::ScalingFilter::Mmpx, QStringLiteral(QT_TRANSLATE_NOOP("MainWindow", "MMPX"))},
+    {Settings::ScalingFilter::Sgsr, QStringLiteral(QT_TRANSLATE_NOOP("MainWindow", "SGSR"))},
+    {Settings::ScalingFilter::SgsrEdge, QStringLiteral(QT_TRANSLATE_NOOP("MainWindow", "SGSR EdgeDir"))},
+};
+
+static const std::map<Settings::ConsoleMode, QString> use_docked_mode_texts_map = {
+    {Settings::ConsoleMode::Docked, QStringLiteral(QT_TRANSLATE_NOOP("MainWindow", "Docked"))},
+    {Settings::ConsoleMode::Handheld, QStringLiteral(QT_TRANSLATE_NOOP("MainWindow", "Handheld"))},
+};
+
+static const std::map<Settings::GpuAccuracy, QString> gpu_accuracy_texts_map = {
+    {Settings::GpuAccuracy::Low, QStringLiteral(QT_TRANSLATE_NOOP("MainWindow", "Fast"))},
+    {Settings::GpuAccuracy::High, QStringLiteral(QT_TRANSLATE_NOOP("MainWindow", "Accurate"))},
+};
+
+static const std::map<Settings::RendererBackend, QString> renderer_backend_texts_map = {
+    {Settings::RendererBackend::Vulkan, QStringLiteral(QT_TRANSLATE_NOOP("MainWindow", "Vulkan"))},
+    {Settings::RendererBackend::OpenGL_GLSL,
+     QStringLiteral(QT_TRANSLATE_NOOP("MainWindow", "OpenGL GLSL"))},
+    {Settings::RendererBackend::OpenGL_SPIRV,
+     QStringLiteral(QT_TRANSLATE_NOOP("MainWindow", "OpenGL SPIRV"))},
+    {Settings::RendererBackend::OpenGL_GLASM,
+     QStringLiteral(QT_TRANSLATE_NOOP("MainWindow", "OpenGL GLASM"))},
+    {Settings::RendererBackend::Null, QStringLiteral(QT_TRANSLATE_NOOP("MainWindow", "Null"))},
+};
+
+} // namespace ConfigurationShared

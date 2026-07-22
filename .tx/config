@@ -1,0 +1,21 @@
+[main]
+host = https://app.transifex.com
+
+[o:edenemu:p:eden-emulator:r:android-translations]
+file_filter            = src/android/app/src/main/res/values-<lang>/strings.xml
+source_file            = src/android/app/src/main/res/values/strings.xml
+type                   = ANDROID
+minimum_perc           = 0
+resource_name          = Android Translations
+replace_edited_strings = false
+keep_translations      = false
+lang_map = zh_CN: zh-rCN, zh_TW: zh-rTW, pt_BR: pt-rBR, pt_PT: pt-rPT, vi_VN: vi, ku: ckb, ja_JP: ja, ko_KR: ko, ru_RU: ru
+
+[o:edenemu:p:eden-emulator:r:qt-translations]
+file_filter            = dist/languages/<lang>.ts
+source_file            = dist/languages/en.ts
+type                   = QT
+minimum_perc           = 0
+resource_name          = Qt Translations
+replace_edited_strings = false
+keep_translations      = false

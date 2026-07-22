@@ -1,0 +1,8 @@
+{
+  "name": "mcl",
+  "version": "0.1.12",
+  "description": "Minimal mcl headers for dynarmic",
+  "homepage": "https://github.com/azahar-emu/mcl",
+  "license": "MIT",
+  "dependencies": []
+}

@@ -1,0 +1,170 @@
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
+// SPDX-FileCopyrightText: Copyright 2017 Citra Emulator Project
+// SPDX-License-Identifier: GPL-2.0-or-later
+
+#include <future>
+#include <nlohmann/json.hpp>
+#include "common/logging.h"
+#include "web_service/announce_room_json.h"
+#include "web_service/web_backend.h"
+
+namespace AnnounceMultiplayerRoom {
+
+static void to_json(nlohmann::json& json, const Member& member) {
+    if (!member.username.empty()) {
+        json["username"] = member.username;
+    }
+    json["nickname"] = member.nickname;
+    if (!member.avatar_url.empty()) {
+        json["avatarUrl"] = member.avatar_url;
+    }
+    json["gameName"] = member.game.name;
+    json["gameId"] = member.game.id;
+}
+
+static void from_json(const nlohmann::json& json, Member& member) {
+    member.nickname = json.at("nickname").get<std::string>();
+    member.game.name = json.at("gameName").get<std::string>();
+    member.game.id = json.at("gameId").get<u64>();
+    try {
+        member.username = json.at("username").get<std::string>();
+        member.avatar_url = json.at("avatarUrl").get<std::string>();
+    } catch (const nlohmann::detail::out_of_range&) {
+        member.username = member.avatar_url = "";
+        LOG_DEBUG(Network, "Member \'{}\' isn't authenticated", member.nickname);
+    }
+}
+
+static void to_json(nlohmann::json& json, const Room& room) {
+    json["port"] = room.information.port;
+    json["name"] = room.information.name;
+    if (!room.information.description.empty()) {
+        json["description"] = room.information.description;
+    }
+    json["preferredGameName"] = room.information.preferred_game.name;
+    json["preferredGameId"] = room.information.preferred_game.id;
+    json["maxPlayers"] = room.information.member_slots;
+    json["netVersion"] = room.net_version;
+    json["hasPassword"] = room.has_password;
+    if (room.members.size() > 0) {
+        nlohmann::json member_json = room.members;
+        json["players"] = member_json;
+    }
+}
+
+static void from_json(const nlohmann::json& json, Room& room) {
+    room.verify_uid = json.at("externalGuid").get<std::string>();
+    room.ip = json.at("address").get<std::string>();
+    room.information.name = json.at("name").get<std::string>();
+    try {
+        room.information.description = json.at("description").get<std::string>();
+    } catch (const nlohmann::detail::out_of_range&) {
+        room.information.description = "";
+        LOG_DEBUG(Network, "Room \'{}\' doesn't contain a description", room.information.name);
+    }
+    room.information.host_username = json.at("owner").get<std::string>();
+    room.information.port = json.at("port").get<u16>();
+    room.information.preferred_game.name = json.at("preferredGameName").get<std::string>();
+    room.information.preferred_game.id = json.at("preferredGameId").get<u64>();
+    room.information.member_slots = json.at("maxPlayers").get<u32>();
+    room.net_version = json.at("netVersion").get<u32>();
+    room.has_password = json.at("hasPassword").get<bool>();
+    try {
+        room.members = json.at("players").get<std::vector<Member>>();
+    } catch (const nlohmann::detail::out_of_range& e) {
+        LOG_DEBUG(Network, "Out of range {}", e.what());
+    }
+}
+
+} // namespace AnnounceMultiplayerRoom
+
+namespace WebService {
+
+void RoomJson::SetRoomInformation(const std::string& name, const std::string& description,
+                                  const u16 port, const u32 max_player, const u32 net_version,
+                                  const bool has_password,
+                                  const AnnounceMultiplayerRoom::GameInfo& preferred_game) {
+    room.information.name = name;
+    room.information.description = description;
+    room.information.port = port;
+    room.information.member_slots = max_player;
+    room.net_version = net_version;
+    room.has_password = has_password;
+    room.information.preferred_game = preferred_game;
+}
+void RoomJson::AddPlayer(const AnnounceMultiplayerRoom::Member& member) {
+    room.members.push_back(member);
+}
+
+WebService::WebResult RoomJson::Update() {
+    if (room_id.empty()) {
+        LOG_ERROR(WebService, "Room must be registered to be updated");
+        return WebService::WebResult{WebService::WebResult::Code::LibError,
+                                     "Room is not registered", ""};
+    }
+    nlohmann::json json{{"players", room.members}};
+    return client.PostJson(fmt::format("/lobby/{}", room_id), json.dump(), false);
+}
+
+WebService::WebResult RoomJson::Register() {
+    nlohmann::json json = room;
+    auto result = client.PostJson("/lobby", json.dump(), false);
+    if (result.result_code != WebService::WebResult::Code::Success) {
+        return result;
+    }
+    auto reply_json = nlohmann::json::parse(result.returned_data);
+    room = reply_json.get<AnnounceMultiplayerRoom::Room>();
+    room_id = reply_json.at("id").get<std::string>();
+    return WebService::WebResult{WebService::WebResult::Code::Success, "", room.verify_uid};
+}
+
+void RoomJson::ClearPlayers() {
+    room.members.clear();
+}
+
+AnnounceMultiplayerRoom::RoomList RoomJson::GetRoomList() {
+    auto reply = client.GetJson("/lobby", true).returned_data;
+    if (reply.empty()) {
+        return {};
+    }
+
+    // A single malformed/unexpected room entry from the announce server must
+    // not take down the whole list - or the whole application, since an
+    // exception escaping a QtConcurrent::run task that isn't QException-
+    // derived calls std::terminate() rather than propagating through the
+    // future. Parse entries individually and skip only the bad ones.
+    AnnounceMultiplayerRoom::RoomList rooms;
+    try {
+        const auto parsed = nlohmann::json::parse(reply);
+        const auto& room_array = parsed.at("rooms");
+        rooms.reserve(room_array.size());
+        for (const auto& entry : room_array) {
+            try {
+                rooms.push_back(entry.get<AnnounceMultiplayerRoom::Room>());
+            } catch (const nlohmann::json::exception& e) {
+                LOG_ERROR(WebService, "Skipping malformed room entry from announce server: {}",
+                          e.what());
+            }
+        }
+    } catch (const nlohmann::json::exception& e) {
+        LOG_ERROR(WebService, "Failed to parse room list from announce server: {}", e.what());
+    }
+    return rooms;
+}
+
+void RoomJson::Delete() {
+    if (room_id.empty()) {
+        LOG_ERROR(WebService, "Room must be registered to be deleted");
+    } else {
+        // This jthread won't be destroyed until after the dtor has been ran
+        // Once the thread finishes it will stay resident on the vector -- destroyed and freed by dtor()
+        // this is still valid while in dtor, so... yeah
+        detached_tasks.emplace_back([this](std::stop_token stop_token) {
+            client.DeleteJson(fmt::format("/lobby/{}", room_id), "", false);
+        });
+    }
+}
+
+} // namespace WebService

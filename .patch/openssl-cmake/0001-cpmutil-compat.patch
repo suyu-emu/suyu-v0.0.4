@@ -1,0 +1,214 @@
+From ec4c1fdf526cb9ad045abf59b29ee495bbf5023a Mon Sep 17 00:00:00 2001
+From: crueter <crueter@eden-emu.dev>
+Date: Sat, 30 May 2026 20:56:35 -0400
+Subject: [PATCH] cpmutil compat
+
+---
+ CMakeLists.txt           | 31 ++++++++-----------
+ cmake/FetchOpenSSL.cmake | 64 ----------------------------------------
+ cmake/GetCPM.cmake       |  5 ----
+ 3 files changed, 13 insertions(+), 87 deletions(-)
+ delete mode 100644 cmake/FetchOpenSSL.cmake
+ delete mode 100644 cmake/GetCPM.cmake
+
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index 5420ecc..9ffd5a0 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -19,9 +19,7 @@ include(FetchContent)
+ include(ProcessorCount)
+ include(cmake/ConfigureOpenSSL.cmake)
+ include(cmake/DetectTargetPlatform.cmake)
+-include(cmake/FetchOpenSSL.cmake)
+ include(cmake/FindVcvarsall.cmake)
+-include(cmake/GetCPM.cmake)
+ 
+ # Custom options
+ option(OPENSSL_BUILD_VERBOSE "Enable verbose output from build" OFF)
+@@ -47,9 +45,6 @@ if("${OPENSSL_TARGET_PLATFORM}" STREQUAL "")
+     detect_target_platform(OPENSSL_TARGET_PLATFORM)
+ endif()
+ 
+-# Fetch OpenSSL source
+-fetch_openssl()
+-
+ # Apply patches
+ foreach(patch IN LISTS OPENSSL_PATCH)
+     if(EXISTS "${patch}" AND NOT IS_DIRECTORY "${patch}")
+@@ -59,13 +54,13 @@ foreach(patch IN LISTS OPENSSL_PATCH)
+ 
+         execute_process(
+             COMMAND git init
+-            WORKING_DIRECTORY ${openssl_SOURCE_DIR}
++            WORKING_DIRECTORY ${OpenSSL_SOURCE_DIR}
+             OUTPUT_QUIET
+             ERROR_QUIET
+         )
+         execute_process(
+             COMMAND git apply ${patch}
+-            WORKING_DIRECTORY ${openssl_SOURCE_DIR}
++            WORKING_DIRECTORY ${OpenSSL_SOURCE_DIR}
+             OUTPUT_QUIET
+             ERROR_QUIET
+         )
+@@ -161,8 +156,8 @@ list(PREPEND OPENSSL_CONFIGURE_OPTIONS ${OPENSSL_TARGET_PLATFORM})
+ # Configure OpenSSL
+ configure_openssl(
+     COMMAND ${VCVARSALL_COMMAND}
+-    FILE ${openssl_SOURCE_DIR}/Configure
+-    BUILD_DIR ${openssl_BINARY_DIR}
++    FILE ${OpenSSL_SOURCE_DIR}/Configure
++    BUILD_DIR ${OpenSSL_BINARY_DIR}
+     OPTIONS ${OPENSSL_CONFIGURE_OPTIONS}
+ )
+ 
+@@ -203,8 +198,8 @@ endif()
+ # Parse Makefile
+ parse_makefile(${OPENSSL_MAKEFILE} "INSTALL_LIBS" OPENSSL_STATIC_LIBS)
+ parse_makefile(${OPENSSL_MAKEFILE} "INSTALL_SHLIBS" OPENSSL_SHARED_LIBS)
+-list(TRANSFORM OPENSSL_STATIC_LIBS PREPEND "${openssl_BINARY_DIR}/")
+-list(TRANSFORM OPENSSL_SHARED_LIBS PREPEND "${openssl_BINARY_DIR}/")
++list(TRANSFORM OPENSSL_STATIC_LIBS PREPEND "${OpenSSL_BINARY_DIR}/")
++list(TRANSFORM OPENSSL_SHARED_LIBS PREPEND "${OpenSSL_BINARY_DIR}/")
+ 
+ foreach(LIBRARY IN LISTS OPENSSL_STATIC_LIBS)
+     if(LIBRARY MATCHES "crypto")
+@@ -239,14 +234,14 @@ endif()
+ 
+ # Provide same targets and variables as FindOpenSSL module
+ set(OPENSSL_FOUND ON CACHE BOOL "Override FindOpenSSL variables" FORCE)
+-set(OPENSSL_INCLUDE_DIR ${openssl_SOURCE_DIR}/include ${openssl_BINARY_DIR}/include CACHE STRING "Override FindOpenSSL variables" FORCE)
++set(OPENSSL_INCLUDE_DIR ${OpenSSL_SOURCE_DIR}/include ${OpenSSL_BINARY_DIR}/include CACHE STRING "Override FindOpenSSL variables" FORCE)
+ set(OPENSSL_CRYPTO_LIBRARY ${OPENSSL_${OPENSSL_LIBRARY_TYPE}_CRYPTO_LIBRARY} CACHE STRING "Override FindOpenSSL variables" FORCE)
+ set(OPENSSL_CRYPTO_LIBRARIES ${OPENSSL_CRYPTO_LIBRARY} ${OPENSSL_DEPENDENCIES} CACHE STRING "Override FindOpenSSL variables" FORCE)
+ set(OPENSSL_SSL_LIBRARY ${OPENSSL_${OPENSSL_LIBRARY_TYPE}_SSL_LIBRARY} CACHE STRING "Override FindOpenSSL variables" FORCE)
+ set(OPENSSL_SSL_LIBRARIES ${OPENSSL_SSL_LIBRARY} ${OPENSSL_DEPENDENCIES} CACHE STRING "Override FindOpenSSL variables" FORCE)
+ set(OPENSSL_LIBRARIES ${OPENSSL_CRYPTO_LIBRARY} ${OPENSSL_SSL_LIBRARY} ${OPENSSL_DEPENDENCIES} CACHE STRING "Override FindOpenSSL variables" FORCE)
+ set(OPENSSL_VERSION ${OPENSSL_CONFIGURED_VERSION} CACHE STRING "Override FindOpenSSL variables" FORCE)
+-set(OPENSSL_APPLINK_SOURCE ${openssl_SOURCE_DIR}/ms/applink.c CACHE STRING "Override FindOpenSSL variables" FORCE)
++set(OPENSSL_APPLINK_SOURCE ${OpenSSL_SOURCE_DIR}/ms/applink.c CACHE STRING "Override FindOpenSSL variables" FORCE)
+ 
+ add_library(OpenSSL::Crypto ${OPENSSL_LIBRARY_TYPE} IMPORTED GLOBAL)
+ add_library(OpenSSL::SSL ${OPENSSL_LIBRARY_TYPE} IMPORTED GLOBAL)
+@@ -308,8 +303,8 @@ if(ANDROID)
+ endif()
+ 
+ file(GLOB_RECURSE OPENSSL_SOURCES
+-    ${openssl_SOURCE_DIR}/*.[ch]
+-    ${openssl_SOURCE_DIR}/*.[ch].in
++    ${OpenSSL_SOURCE_DIR}/*.[ch]
++    ${OpenSSL_SOURCE_DIR}/*.[ch].in
+ )
+ 
+ set(OPENSSL_BUILD_OUTPUT
+@@ -322,7 +317,7 @@ add_custom_command(
+     OUTPUT ${OPENSSL_BUILD_OUTPUT}
+     COMMAND ${OPENSSL_BUILD_COMMAND}
+     DEPENDS ${OPENSSL_SOURCES}
+-    WORKING_DIRECTORY ${openssl_BINARY_DIR}
++    WORKING_DIRECTORY ${OpenSSL_BINARY_DIR}
+     VERBATIM
+ )
+ 
+@@ -341,7 +336,7 @@ if(OPENSSL_TEST AND NOT CMAKE_CROSSCOMPILING)
+     add_test(
+         NAME openssl-test
+         COMMAND ${OPENSSL_BUILD_TOOL} test VERBOSE_FAILURE=yes HARNESS_JOBS=${NUMBER_OF_THREADS}
+-        WORKING_DIRECTORY ${openssl_BINARY_DIR}
++        WORKING_DIRECTORY ${OpenSSL_BINARY_DIR}
+     )
+ endif()
+ 
+@@ -356,7 +351,7 @@ if(OPENSSL_INSTALL)
+     install(CODE
+         "execute_process(
+             COMMAND ${OPENSSL_INSTALL_COMMAND}
+-            WORKING_DIRECTORY \"${openssl_BINARY_DIR}\"
++            WORKING_DIRECTORY \"${OpenSSL_BINARY_DIR}\"
+         )"
+     )
+ endif()
+diff --git a/cmake/FetchOpenSSL.cmake b/cmake/FetchOpenSSL.cmake
+deleted file mode 100644
+index a43505d..0000000
+--- a/cmake/FetchOpenSSL.cmake
++++ /dev/null
+@@ -1,64 +0,0 @@
+-function(fetch_openssl)
+-    if(EXISTS "${OPENSSL_SOURCE}" AND IS_DIRECTORY "${OPENSSL_SOURCE}")
+-        # Fetch the local OpenSSL source
+-        if(NOT IS_ABSOLUTE "${OPENSSL_SOURCE}")
+-            string(PREPEND OPENSSL_SOURCE ${CMAKE_SOURCE_DIR}/)
+-        endif()
+-
+-        string(REPLACE "\\" "/" openssl-source_SOURCE_DIR "${OPENSSL_SOURCE}")
+-        set(openssl-source_BINARY_DIR ${CMAKE_CURRENT_BINARY_DIR}/openssl-source-build)
+-    else()
+-        set(CPM_OPTIONS
+-            NAME openssl-source
+-            DOWNLOAD_ONLY ON
+-        )
+-
+-        if(NOT OPENSSL_CONFIGURE_VERBOSE)
+-            list(APPEND CPM_OPTIONS QUIET)
+-        endif()
+-
+-        if("${OPENSSL_SOURCE}" MATCHES "^http")
+-            # Download OpenSSL source from the internet
+-            list(APPEND CPM_OPTIONS URL ${OPENSSL_SOURCE})
+-        else()
+-            # Download OpenSSL source from the official website
+-            if("${OPENSSL_TARGET_VERSION}" STREQUAL "")
+-                set(OPENSSL_TARGET_VERSION ${PROJECT_VERSION})
+-            endif()
+-
+-            if(OPENSSL_TARGET_VERSION VERSION_EQUAL PROJECT_VERSION)
+-                list(APPEND CPM_OPTIONS URL_HASH SHA256=aaf51a1fe064384f811daeaeb4ec4dce7340ec8bd893027eee676af31e83a04f)
+-            endif()
+-
+-            if(OPENSSL_TARGET_VERSION MATCHES "^1\.1\.1[a-w]$")
+-                string(REPLACE "." "_" OPENSSL_TAGGED_VERSION ${OPENSSL_TARGET_VERSION})
+-                list(APPEND CPM_OPTIONS URL https://github.com/openssl/openssl/releases/download/OpenSSL_${OPENSSL_TAGGED_VERSION}/openssl-${OPENSSL_TARGET_VERSION}.tar.gz)
+-            else()
+-                list(APPEND CPM_OPTIONS URL https://github.com/openssl/openssl/releases/download/openssl-${OPENSSL_TARGET_VERSION}/openssl-${OPENSSL_TARGET_VERSION}.tar.gz)
+-            endif()
+-        endif()
+-
+-        CPMAddPackage(${CPM_OPTIONS})
+-    endif()
+-
+-    # Clean build directory if source directory has changed
+-    if(DEFINED CACHE{openssl-source_SOURCE_DIR_OLD} AND NOT openssl-source_SOURCE_DIR STREQUAL openssl-source_SOURCE_DIR_OLD)
+-        set(openssl-source_SOURCE_DIR_OLD ${openssl-source_SOURCE_DIR} CACHE INTERNAL "Previously fetched OpenSSL source")
+-
+-        if(IS_DIRECTORY ${openssl-source_BINARY_DIR})
+-            file(REMOVE_RECURSE ${openssl-source_BINARY_DIR})
+-            file(MAKE_DIRECTORY ${openssl-source_BINARY_DIR})
+-        endif()
+-    endif()
+-
+-    # Override the FindOpenSSL module
+-    FetchContent_Declare(
+-        OpenSSL
+-        SOURCE_DIR ${openssl-source_SOURCE_DIR}
+-        BINARY_DIR ${openssl-source_BINARY_DIR}
+-        OVERRIDE_FIND_PACKAGE
+-    )
+-    FetchContent_MakeAvailable(OpenSSL)
+-
+-    return(PROPAGATE openssl_SOURCE_DIR openssl_BINARY_DIR)
+-endfunction()
+diff --git a/cmake/GetCPM.cmake b/cmake/GetCPM.cmake
+deleted file mode 100644
+index bfc50f5..0000000
+--- a/cmake/GetCPM.cmake
++++ /dev/null
+@@ -1,5 +0,0 @@
+-file(
+-    DOWNLOAD https://github.com/cpm-cmake/CPM.cmake/releases/latest/download/get_cpm.cmake
+-    ${CMAKE_CURRENT_BINARY_DIR}/get_cpm.cmake
+-)
+-include(${CMAKE_CURRENT_BINARY_DIR}/get_cpm.cmake)
+-- 
+2.54.0
+

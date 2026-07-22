@@ -1,0 +1,39 @@
+--- a/CMakeLists.txt	2026-06-01 23:53:16.498043856 -0400
++++ b/CMakeLists.txt	2026-06-01 23:53:23.910543615 -0400
+@@ -312,13 +312,29 @@
+     ${OPENSSL_SHARED_CRYPTO_LIBRARY}
+     ${OPENSSL_SHARED_SSL_LIBRARY}
+ )
+-add_custom_command(
+-    OUTPUT ${OPENSSL_BUILD_OUTPUT}
+-    COMMAND ${OPENSSL_BUILD_COMMAND}
+-    DEPENDS ${OPENSSL_SOURCES}
+-    WORKING_DIRECTORY ${OpenSSL_BINARY_DIR}
+-    VERBATIM
+-)
++if (WIN32)
++    add_custom_command(
++        OUTPUT ${OPENSSL_BUILD_OUTPUT}
++        COMMAND ${OPENSSL_BUILD_COMMAND}
++        DEPENDS ${OPENSSL_SOURCES}
++        WORKING_DIRECTORY ${OpenSSL_BINARY_DIR}
++        VERBATIM)
++else()
++    set(_openssl_build_script "${CMAKE_CURRENT_BINARY_DIR}/BuildOpenSSL.cmake")
++    file(WRITE ${_openssl_build_script}
++        "execute_process(\n"
++        "    COMMAND ${OPENSSL_BUILD_COMMAND}\n"
++        "    WORKING_DIRECTORY ${OpenSSL_BINARY_DIR}\n"
++        "    RESULT_VARIABLE _r)\n"
++        "if(_r)\n"
++        "    message(FATAL_ERROR \"OpenSSL build failed: \${_r}\")\n"
++        "endif()\n")
++    add_custom_command(
++        OUTPUT ${OPENSSL_BUILD_OUTPUT}
++        COMMAND ${CMAKE_COMMAND} -P ${_openssl_build_script}
++        DEPENDS ${OPENSSL_SOURCES}
++        VERBATIM)
++endif()
+ 
+ if(PROJECT_IS_TOP_LEVEL)
+     add_custom_target(openssl-build ALL DEPENDS ${OPENSSL_BUILD_OUTPUT})

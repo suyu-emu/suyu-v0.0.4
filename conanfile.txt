@@ -1,0 +1,69 @@
+[requires]
+# Boost components - using single Boost package with options
+boost/1.84.0
+
+# Core dependencies from vcpkg.json
+fmt/10.2.1
+nlohmann_json/3.11.3
+zlib/1.3.1
+lz4/1.9.4
+zstd/1.5.6
+opus/1.5.2
+catch2/3.5.2  # Testing framework required for SUYU_TESTS
+sdl/2.28.5  # SDL2 for graphics/input/audio
+# qt/6.7.3  # DISABLED: Qt from Conan builds from source (2+ hours), no pre-built binaries available
+# TODO: Re-enable after base migration validates, or use bundled Qt5 binaries
+
+# Additional dependencies
+# Note: Some packages like cubeb, dynarmic, enet, libusb, simpleini, stb,
+# vulkan-memory-allocator, xbyak, cpp-jwt, cpp-httplib, renderdoc-api
+# may need to be built from externals/ or may not be available in Conan Center
+# Check CMakeLists.txt for which are bundled vs external
+
+[generators]
+CMakeDeps
+CMakeToolchain
+
+[options]
+# Boost options - disable problematic components
+# Conan 2.x requires 'package/*:option=value' format
+boost/*:shared=False
+boost/*:without_coroutine=True
+boost/*:without_fiber=True
+boost/*:without_graph=True
+boost/*:without_graph_parallel=True
+boost/*:without_mpi=True
+boost/*:without_python=True
+boost/*:without_wave=True
+
+# Enable required components
+boost/*:without_algorithm=False
+boost/*:without_asio=False
+boost/*:without_bind=False
+boost/*:without_config=False
+boost/*:without_container=False
+boost/*:without_context=False
+boost/*:without_crc=False
+boost/*:without_filesystem=False
+boost/*:without_functional=False
+boost/*:without_heap=False
+boost/*:without_icl=False
+boost/*:without_intrusive=False
+boost/*:without_mpl=False
+boost/*:without_process=False
+boost/*:without_range=False
+boost/*:without_spirit=False
+boost/*:without_test=False
+boost/*:without_timer=False
+boost/*:without_variant=False
+
+# Qt6 options - DISABLED (see requires section)
+# qt/*:shared=True
+# qt/*:gui=True
+# qt/*:qtbase=True
+# qt/*:qtdeclarative=True
+# qt/*:qtmultimedia=True
+# qt/*:qttools=True
+# qt/*:qttranslations=True
+# qt/*:qtwebchannel=True
+# qt/*:qtwebengine=True

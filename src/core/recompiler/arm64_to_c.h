@@ -1,0 +1,324 @@
+// SPDX-FileCopyrightText: Copyright 2026 suyu Emulator Project
+// SPDX-License-Identifier: GPL-2.0-or-later
+//
+// Header-only AArch64 -> portable C static recompiler engine, shared by the standalone
+// tools/static_recompiler CLI and the in-app game export feature.
+//
+// It decodes a subset of user-mode AArch64 and emits C against a GuestContext (N64Recomp-style).
+// Every instruction either translates to native C or emits a runtime fallback, so the generated
+// project ALWAYS builds into a native binary (Windows .exe / Linux+BSD ELF / macOS Mach-O) or can
+// be emitted as plain C source. A full game additionally needs suyu's HLE/GPU runtime, wired in via
+// the generated runtime's recomp_svc()/MMIO hooks.
+
+#pragma once
+
+#include <cstdint>
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
+#include <fstream>
+#include <sstream>
+#include <string>
+#include <vector>
+
+namespace suyu::recomp {
+
+using u8 = uint8_t;
+using u32 = uint32_t;
+using u64 = uint64_t;
+using s32 = int32_t;
+using s64 = int64_t;
+
+struct Block {
+    u64 vaddr;
+    u32 size;
+    u32 count;
+    bool is_entry;
+};
+
+inline bool IsTerminator(u32 i) {
+    if ((i & 0xFC000000) == 0x14000000) return true; // B
+    if ((i & 0xFC000000) == 0x94000000) return true; // BL
+    if ((i & 0xFFFFFC1F) == 0xD61F0000) return true; // BR
+    if ((i & 0xFFFFFC1F) == 0xD63F0000) return true; // BLR
+    if ((i & 0xFFFFFC1F) == 0xD65F0000) return true; // RET
+    if ((i & 0x7F000000) == 0x34000000) return true; // CBZ
+    if ((i & 0x7F000000) == 0x35000000) return true; // CBNZ
+    if ((i & 0x7F000000) == 0x36000000) return true; // TBZ
+    if ((i & 0x7F000000) == 0x37000000) return true; // TBNZ
+    if ((i & 0xFF000010) == 0x54000000) return true; // B.cond
+    if ((i & 0xFFE0001F) == 0xD4000001) return true; // SVC
+    return false;
+}
+
+inline bool DirectBranchTarget(u32 i, u64 pc, u64& out) {
+    if ((i & 0xFC000000) == 0x14000000 || (i & 0xFC000000) == 0x94000000) {
+        s32 imm26 = (s32)(i << 6) >> 6;
+        out = pc + (s64)imm26 * 4;
+        return true;
+    }
+    return false;
+}
+
+inline std::vector<Block> DiscoverBlocks(const u8* text, size_t n_bytes, u64 base) {
+    const u32 n = (u32)(n_bytes / 4);
+    if (n == 0) return {};
+    std::vector<bool> start(n, false);
+    start[0] = true;
+    const u32* p = reinterpret_cast<const u32*>(text);
+    for (u32 i = 0; i < n; ++i) {
+        const u32 insn = p[i];
+        const u64 pc = base + (u64)i * 4;
+        if (IsTerminator(insn)) {
+            if (i + 1 < n) start[i + 1] = true;
+            u64 t = 0;
+            if (DirectBranchTarget(insn, pc, t) && t >= base && (t - base) / 4 < n)
+                start[(u32)((t - base) / 4)] = true;
+        }
+    }
+    std::vector<Block> blocks;
+    u32 s = 0;
+    for (u32 i = 1; i <= n; ++i) {
+        if (i == n || start[i]) {
+            blocks.push_back(Block{base + (u64)s * 4, (i - s) * 4, i - s, s == 0});
+            s = i;
+        }
+    }
+    return blocks;
+}
+
+inline std::string Xz(u32 r) {
+    return r == 31 ? std::string("(uint64_t)0") : ("c->x[" + std::to_string(r) + "]");
+}
+inline std::string Wz(u32 r) {
+    return r == 31 ? std::string("(uint32_t)0") : ("(uint32_t)c->x[" + std::to_string(r) + "]");
+}
+
+// Append C for one instruction. Returns false if the instruction terminates the block.
+inline bool Translate(u32 i, u64 pc, std::string& out) {
+    char buf[256];
+    auto put = [&](const std::string& s) { out += "    " + s + "\n"; };
+    const u64 next = pc + 4;
+
+    if ((i & 0xFFFFF01F) == 0xD503201F) { put("/* nop/hint */"); return true; }
+
+    if ((i & 0x1F800000) == 0x12800000) { // MOVZ/MOVN/MOVK
+        u32 sf = i >> 31, opc = (i >> 29) & 3, hw = (i >> 21) & 3, imm16 = (i >> 5) & 0xFFFF, rd = i & 31;
+        if (rd != 31) {
+            u64 shift = (u64)hw * 16;
+            if (opc == 2) {
+                snprintf(buf, sizeof buf, "c->x[%u] = 0x%llxULL;", rd, (unsigned long long)((u64)imm16 << shift));
+                put(buf);
+            } else if (opc == 0) {
+                u64 v = ~((u64)imm16 << shift); if (!sf) v &= 0xFFFFFFFF;
+                snprintf(buf, sizeof buf, "c->x[%u] = 0x%llxULL;", rd, (unsigned long long)v); put(buf);
+            } else if (opc == 3) {
+                snprintf(buf, sizeof buf, "c->x[%u] = (c->x[%u] & ~(0xFFFFULL<<%llu)) | (0x%xULL<<%llu);",
+                         rd, rd, (unsigned long long)shift, imm16, (unsigned long long)shift); put(buf);
+            }
+            if (!sf) { snprintf(buf, sizeof buf, "c->x[%u] &= 0xFFFFFFFFULL;", rd); put(buf); }
+        }
+        return true;
+    }
+
+    if ((i & 0x1F000000) == 0x11000000) { // ADD/SUB immediate
+        u32 sf = i >> 31, op = (i >> 30) & 1, S = (i >> 29) & 1, sh = (i >> 22) & 1;
+        u32 imm12 = (i >> 10) & 0xFFF, rn = (i >> 5) & 31, rd = i & 31;
+        u64 imm = sh ? ((u64)imm12 << 12) : imm12;
+        snprintf(buf, sizeof buf, "{ uint64_t _a=c->x[%u], _b=%lluULL; uint64_t _r=%s; ", rn,
+                 (unsigned long long)imm, op ? "_a-_b" : "_a+_b");
+        std::string s = buf;
+        if (!sf) s += "_r&=0xFFFFFFFFULL; ";
+        s += "c->x[" + std::to_string(rd) + "]=_r; ";
+        if (S) s += "recomp_set_flags(c," + std::string(op ? "1" : "0") + ",_a,_b,_r," + (sf ? "1" : "0") + "); ";
+        s += "}";
+        if (rd != 31 || S) put(s);
+        return true;
+    }
+
+    if ((i & 0x1F000000) == 0x0A000000) { // logical shifted register
+        u32 sf = i >> 31, opc = (i >> 29) & 3, rm = (i >> 16) & 31, rn = (i >> 5) & 31, rd = i & 31;
+        u32 shift = (i >> 22) & 3, imm6 = (i >> 10) & 0x3F, N = (i >> 21) & 1;
+        std::string rmv = Xz(rm);
+        if (imm6) { const char* o = shift == 0 ? "<<" : ">>"; char sb[96]; snprintf(sb, sizeof sb, "(%s %s %u)", rmv.c_str(), o, imm6); rmv = sb; }
+        std::string a = Xz(rn);
+        const char* lop = opc == 0 ? "&" : opc == 1 ? "|" : opc == 2 ? "^" : "&";
+        std::string expr = N ? ("(" + a + " " + lop + " ~" + rmv + ")") : ("(" + a + " " + lop + " " + rmv + ")");
+        if (rd != 31) {
+            put("c->x[" + std::to_string(rd) + "] = " + expr + ";");
+            if (!sf) { snprintf(buf, sizeof buf, "c->x[%u]&=0xFFFFFFFFULL;", rd); put(buf); }
+        }
+        return true;
+    }
+
+    if ((i & 0x1F200000) == 0x0B000000) { // ADD/SUB shifted register
+        u32 sf = i >> 31, op = (i >> 30) & 1, S = (i >> 29) & 1, shift = (i >> 22) & 3, rm = (i >> 16) & 31, imm6 = (i >> 10) & 0x3F, rn = (i >> 5) & 31, rd = i & 31;
+        std::string rmv = Xz(rm);
+        if (imm6) { const char* o = shift == 0 ? "<<" : ">>"; char sb[96]; snprintf(sb, sizeof sb, "(%s %s %u)", rmv.c_str(), o, imm6); rmv = sb; }
+        std::string a = Xz(rn);
+        snprintf(buf, sizeof buf, "{ uint64_t _a=%s,_b=%s,_r=%s; ", a.c_str(), rmv.c_str(), op ? "_a-_b" : "_a+_b");
+        std::string s = buf; if (!sf) s += "_r&=0xFFFFFFFFULL; ";
+        if (rd != 31) s += "c->x[" + std::to_string(rd) + "]=_r; ";
+        if (S) s += "recomp_set_flags(c," + std::string(op ? "1" : "0") + ",_a,_b,_r," + (sf ? "1" : "0") + "); ";
+        s += "}"; put(s); return true;
+    }
+
+    if ((i & 0x1F000000) == 0x10000000) { // ADR/ADRP
+        u32 op = i >> 31, rd = i & 31; s64 immhi = (s32)(((i >> 5) & 0x7FFFF) << 13) >> 13; u32 immlo = (i >> 29) & 3;
+        if (rd != 31) {
+            if (op) { u64 b = (pc & ~0xFFFULL); s64 imm = ((immhi << 2) | immlo) << 12; snprintf(buf, sizeof buf, "c->x[%u]=0x%llxULL + (int64_t)%lld;", rd, (unsigned long long)b, (long long)imm); }
+            else { s64 imm = (immhi << 2) | immlo; snprintf(buf, sizeof buf, "c->x[%u]=0x%llxULL + (int64_t)%lld;", rd, (unsigned long long)pc, (long long)imm); }
+            put(buf);
+        }
+        return true;
+    }
+
+    if ((i & 0x3B000000) == 0x39000000) { // LDR/STR immediate unsigned offset
+        u32 size = (i >> 30) & 3, opc = (i >> 22) & 3, imm12 = (i >> 10) & 0xFFF, rn = (i >> 5) & 31, rt = i & 31;
+        u64 off = (u64)imm12 << size;
+        std::string addr = "c->x[" + std::to_string(rn) + "] + " + std::to_string(off);
+        const char* ty = size == 0 ? "8" : size == 1 ? "16" : size == 2 ? "32" : "64";
+        if (opc & 1) { if (rt != 31) { snprintf(buf, sizeof buf, "c->x[%u]=recomp_load%s(c,%s);", rt, ty, addr.c_str()); put(buf); } }
+        else { snprintf(buf, sizeof buf, "recomp_store%s(c,%s,%s);", ty, addr.c_str(), Xz(rt).c_str()); put(buf); }
+        return true;
+    }
+
+    u64 t = 0;
+    if (DirectBranchTarget(i, pc, t)) {
+        if ((i & 0xFC000000) == 0x94000000) { snprintf(buf, sizeof buf, "c->x[30]=0x%llxULL;", (unsigned long long)next); put(buf); }
+        snprintf(buf, sizeof buf, "c->pc=0x%llxULL; return;", (unsigned long long)t); put(buf); return false;
+    }
+    if ((i & 0xFFFFFC1F) == 0xD65F0000) { put("c->pc=c->x[30]; return; /* RET */"); return false; }
+    if ((i & 0xFFFFFC1F) == 0xD61F0000) { u32 rn = (i >> 5) & 31; snprintf(buf, sizeof buf, "c->pc=c->x[%u]; return; /* BR */", rn); put(buf); return false; }
+    if ((i & 0xFFFFFC1F) == 0xD63F0000) { u32 rn = (i >> 5) & 31; snprintf(buf, sizeof buf, "c->x[30]=0x%llxULL; c->pc=c->x[%u]; return; /* BLR */", (unsigned long long)next, rn); put(buf); return false; }
+    if ((i & 0xFF000010) == 0x54000000) { s64 off = ((s32)((i >> 5) << 13) >> 13); u64 tt = pc + off * 4; u32 cond = i & 15; snprintf(buf, sizeof buf, "if (recomp_cond(c,%u)) { c->pc=0x%llxULL; } else { c->pc=0x%llxULL; } return;", cond, (unsigned long long)tt, (unsigned long long)next); put(buf); return false; }
+    if ((i & 0x7E000000) == 0x34000000) { u32 sf = i >> 31; bool nz = (i >> 24) & 1; u32 rt = i & 31; s64 off = ((s32)(((i >> 5) & 0x7FFFF) << 13) >> 13); u64 tt = pc + off * 4; std::string v = sf ? Xz(rt) : Wz(rt); snprintf(buf, sizeof buf, "if ((%s)%s0) { c->pc=0x%llxULL; } else { c->pc=0x%llxULL; } return;", v.c_str(), nz ? "!=" : "==", (unsigned long long)tt, (unsigned long long)next); put(buf); return false; }
+    if ((i & 0x7E000000) == 0x36000000) { bool nz = (i >> 24) & 1; u32 b = ((i >> 31) << 5) | ((i >> 19) & 31); u32 rt = i & 31; s64 off = ((s32)(((i >> 5) & 0x3FFF) << 18) >> 18); u64 tt = pc + off * 4; snprintf(buf, sizeof buf, "if (((c->x[%u]>>%u)&1)%s0) { c->pc=0x%llxULL; } else { c->pc=0x%llxULL; } return;", rt, b, nz ? "!=" : "==", (unsigned long long)tt, (unsigned long long)next); put(buf); return false; }
+    if ((i & 0xFFE0001F) == 0xD4000001) { u32 imm = (i >> 5) & 0xFFFF; snprintf(buf, sizeof buf, "c->pc=0x%llxULL; recomp_svc(c,%u); return;", (unsigned long long)next, imm); put(buf); return false; }
+
+    snprintf(buf, sizeof buf, "recomp_unhandled(c,0x%08xU,0x%llxULL); c->pc=0x%llxULL; return;", i, (unsigned long long)pc, (unsigned long long)next);
+    put(buf); return false;
+}
+
+inline std::string FuncName(const std::string& mod, u64 v) {
+    char b[64]; snprintf(b, sizeof b, "blk_%s_%016llx", mod.c_str(), (unsigned long long)v); return b;
+}
+
+const char* RuntimeH();
+const char* RuntimeC();
+
+// Stats returned to the caller for manifest/reporting.
+struct RecompileStats {
+    size_t blocks = 0;
+    size_t instructions = 0;
+    size_t translated_terminators = 0;
+};
+
+// Emit a buildable C project that statically recompiles `text` (raw AArch64 .text at `base`).
+// Writes recompiled_<mod>.c, the shared runtime, main.c and CMakeLists.txt into out_dir.
+inline RecompileStats EmitProject(const std::string& mod, const u8* text, size_t n_bytes, u64 base,
+                                  const std::string& out_dir, bool source_only) {
+    RecompileStats stats;
+    auto blocks = DiscoverBlocks(text, n_bytes, base);
+    const u32* p = reinterpret_cast<const u32*>(text);
+    stats.blocks = blocks.size();
+    stats.instructions = n_bytes / 4;
+
+    std::ostringstream rc;
+    rc << "/* auto-generated by suyu static recompiler - DO NOT EDIT */\n#include \"recomp_runtime.h\"\n\n";
+    for (const auto& b : blocks) {
+        rc << "void " << FuncName(mod, b.vaddr) << "(GuestContext* c){\n";
+        const u32 first = (u32)((b.vaddr - base) / 4);
+        bool open = true;
+        for (u32 k = 0; k < b.count; ++k) {
+            std::string body;
+            open = Translate(p[first + k], b.vaddr + (u64)k * 4, body);
+            rc << body;
+            if (!open) { ++stats.translated_terminators; break; }
+        }
+        if (open) rc << "    c->pc=0x" << std::hex << (b.vaddr + b.size) << std::dec << "ULL; return;\n";
+        rc << "}\n\n";
+    }
+    rc << "#include <stdint.h>\nstruct _ent{uint64_t va; BlockFn fn;};\nstatic const struct _ent _tbl[] = {\n";
+    for (const auto& b : blocks) rc << "  {0x" << std::hex << b.vaddr << std::dec << "ULL, " << FuncName(mod, b.vaddr) << "},\n";
+    rc << "};\nBlockFn recomp_lookup(uint64_t pc){ for(unsigned i=0;i<sizeof(_tbl)/sizeof(_tbl[0]);++i) if(_tbl[i].va==pc) return _tbl[i].fn; return 0; }\n";
+
+    std::ostringstream mc;
+    mc << "#include \"recomp_runtime.h\"\n#include <stdio.h>\n#include <string.h>\n";
+    mc << "int main(void){\n  static uint8_t mem[1<<20];\n  GuestContext c; memset(&c,0,sizeof c);\n";
+    mc << "  c.mem=mem; c.mem_size=sizeof mem; c.mem_base_vaddr=0x" << std::hex << base << std::dec << "ULL;\n";
+    mc << "  c.x[31]=c.mem_base_vaddr + c.mem_size - 16;\n  c.pc=0x" << std::hex << base << std::dec << "ULL;\n";
+    mc << "  recomp_run(&c);\n  printf(\"[recomp] halted at pc=0x%llx\\n\",(unsigned long long)c.pc);\n  return 0;\n}\n";
+
+    std::ostringstream cm;
+    cm << "cmake_minimum_required(VERSION 3.13)\nproject(suyu_recompiled C)\nset(CMAKE_C_STANDARD 11)\n"
+       << "add_executable(recompiled main.c recompiled_" << mod << ".c recomp_runtime.c)\n"
+       << "# Portable C11: Windows->.exe, Linux/FreeBSD/OpenBSD->ELF, macOS->Mach-O\n";
+
+    auto write = [&](const std::string& name, const std::string& data) {
+        std::ofstream o(out_dir + "/" + name, std::ios::binary);
+        o.write(data.data(), (std::streamsize)data.size());
+    };
+    write("recomp_runtime.h", RuntimeH());
+    if (!source_only) write("recomp_runtime.c", RuntimeC());
+    else write("recomp_runtime.c", RuntimeC()); // source mode still includes runtime so it builds
+    write("recompiled_" + mod + ".c", rc.str());
+    write("main.c", mc.str());
+    write("CMakeLists.txt", cm.str());
+    return stats;
+}
+
+inline const char* RuntimeH() {
+    return R"RT(#ifndef SUYU_RECOMP_RUNTIME_H
+#define SUYU_RECOMP_RUNTIME_H
+#include <stdint.h>
+typedef struct GuestContext {
+    uint64_t x[32]; uint64_t pc; uint8_t n,z,c,v;
+    uint8_t* mem; uint64_t mem_size; uint64_t mem_base_vaddr; int halted;
+} GuestContext;
+typedef void (*BlockFn)(GuestContext*);
+BlockFn recomp_lookup(uint64_t pc); void recomp_run(GuestContext* c);
+void recomp_set_flags(GuestContext*,int,uint64_t,uint64_t,uint64_t,int);
+int  recomp_cond(GuestContext*,unsigned);
+uint64_t recomp_load8(GuestContext*,uint64_t); uint64_t recomp_load16(GuestContext*,uint64_t);
+uint64_t recomp_load32(GuestContext*,uint64_t); uint64_t recomp_load64(GuestContext*,uint64_t);
+void recomp_store8(GuestContext*,uint64_t,uint64_t); void recomp_store16(GuestContext*,uint64_t,uint64_t);
+void recomp_store32(GuestContext*,uint64_t,uint64_t); void recomp_store64(GuestContext*,uint64_t,uint64_t);
+void recomp_svc(GuestContext*,unsigned); void recomp_unhandled(GuestContext*,uint32_t,uint64_t);
+#endif
+)RT";
+}
+
+inline const char* RuntimeC() {
+    return R"RT(#include "recomp_runtime.h"
+#include <stdio.h>
+#include <string.h>
+static uint8_t* memptr(GuestContext* c, uint64_t va, uint64_t sz){ uint64_t off=va-c->mem_base_vaddr; if(off+sz>c->mem_size) return 0; return c->mem+off; }
+uint64_t recomp_load8 (GuestContext* c,uint64_t a){uint8_t* p=memptr(c,a,1); return p?*p:0;}
+uint64_t recomp_load16(GuestContext* c,uint64_t a){uint8_t* p=memptr(c,a,2); uint16_t v=0; if(p)memcpy(&v,p,2); return v;}
+uint64_t recomp_load32(GuestContext* c,uint64_t a){uint8_t* p=memptr(c,a,4); uint32_t v=0; if(p)memcpy(&v,p,4); return v;}
+uint64_t recomp_load64(GuestContext* c,uint64_t a){uint8_t* p=memptr(c,a,8); uint64_t v=0; if(p)memcpy(&v,p,8); return v;}
+void recomp_store8 (GuestContext* c,uint64_t a,uint64_t v){uint8_t* p=memptr(c,a,1); if(p)*p=(uint8_t)v;}
+void recomp_store16(GuestContext* c,uint64_t a,uint64_t v){uint8_t* p=memptr(c,a,2); uint16_t t=(uint16_t)v; if(p)memcpy(p,&t,2);}
+void recomp_store32(GuestContext* c,uint64_t a,uint64_t v){uint8_t* p=memptr(c,a,4); uint32_t t=(uint32_t)v; if(p)memcpy(p,&t,4);}
+void recomp_store64(GuestContext* c,uint64_t a,uint64_t v){uint8_t* p=memptr(c,a,8); if(p)memcpy(p,&v,8);}
+void recomp_set_flags(GuestContext* c,int is_sub,uint64_t a,uint64_t b,uint64_t r,int is64){
+  uint64_t m=is64?~0ULL:0xFFFFFFFFULL; r&=m;a&=m;b&=m; uint64_t s=is64?0x8000000000000000ULL:0x80000000ULL;
+  c->z=(r==0); c->n=(r&s)?1:0;
+  if(is_sub){ c->c=(a>=b); c->v=(((a^b)&(a^r))&s)?1:0; } else { c->c=(r<a); c->v=((~(a^b)&(a^r))&s)?1:0; } }
+int recomp_cond(GuestContext* c,unsigned cond){ int n=c->n,z=c->z,cc=c->c,v=c->v,res;
+  switch(cond>>1){case 0:res=z;break;case 1:res=cc;break;case 2:res=n;break;case 3:res=v;break;
+   case 4:res=cc&&!z;break;case 5:res=(n==v);break;case 6:res=(n==v)&&!z;break;default:res=1;}
+  return ((cond&1)&&cond!=15)? !res:res; }
+void recomp_svc(GuestContext* c,unsigned imm){
+  printf("[recomp] SVC #%u x0=%llu x1=%llu x2=%llu x3=%llu\n",imm,(unsigned long long)c->x[0],
+    (unsigned long long)c->x[1],(unsigned long long)c->x[2],(unsigned long long)c->x[3]); c->halted=1; }
+void recomp_unhandled(GuestContext* c,uint32_t insn,uint64_t pc){
+  fprintf(stderr,"[recomp] unhandled 0x%08x at 0x%llx (needs full suyu HLE/JIT)\n",insn,(unsigned long long)pc); c->halted=1; }
+void recomp_run(GuestContext* c){ int g=0; while(!c->halted){ BlockFn f=recomp_lookup(c->pc);
+  if(!f){ fprintf(stderr,"[recomp] no block at 0x%llx\n",(unsigned long long)c->pc); break;} f(c);
+  if(++g>100000000){ fprintf(stderr,"[recomp] watchdog\n"); break; } } }
+)RT";
+}
+
+} // namespace suyu::recomp

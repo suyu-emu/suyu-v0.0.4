@@ -1,0 +1,62 @@
+// SPDX-FileCopyrightText: Copyright 2020 yuzu Emulator Project
+// SPDX-License-Identifier: GPL-2.0-or-later
+
+#pragma once
+
+#include <memory>
+#include <vector>
+#include <QLabel>
+#include <QWidget>
+#include "suyu/configuration/configuration_shared.h"
+#include "suyu/configuration/shared_translation.h"
+
+class QComboBox;
+
+namespace Core {
+class System;
+}
+
+namespace Ui {
+class ConfigureCpu;
+}
+
+namespace ConfigurationShared {
+class Builder;
+}
+
+class ConfigureCpu : public ConfigurationShared::Tab {
+    Q_OBJECT
+
+public:
+    explicit ConfigureCpu(const Core::System& system_,
+                          std::shared_ptr<std::vector<ConfigurationShared::Tab*>> group,
+                          const ConfigurationShared::Builder& builder, QWidget* parent = nullptr);
+    ~ConfigureCpu() override;
+
+    void ApplyConfiguration() override;
+    void SetConfiguration() override;
+
+private:
+    void changeEvent(QEvent* event) override;
+    void RetranslateUI();
+
+    void UpdateGroup(int index);
+    void UpdateAvailabilityUi();
+    int FindComboboxIndex(u32 enum_index, u32 value) const;
+    void SetOptionEnabled(QComboBox* combobox, int index, bool enabled,
+                          const QString& disabled_reason);
+    void EnsureCurrentSelectionEnabled(QComboBox* combobox) const;
+
+    void Setup(const ConfigurationShared::Builder& builder);
+
+    std::unique_ptr<Ui::ConfigureCpu> ui;
+
+    const Core::System& system;
+
+    const ConfigurationShared::ComboboxTranslationMap& combobox_translations;
+    std::vector<std::function<void(bool)>> apply_funcs{};
+
+    QLabel* backend_status_label{};
+    QComboBox* accuracy_combobox{};
+    QComboBox* backend_combobox{};
+};

@@ -1,0 +1,8 @@
+<resources>
+    <fraction name="carousel_bordercards_scale">60%</fraction>
+    <fraction name="carousel_bordercards_alpha">60%</fraction>
+    <fraction name="carousel_overlap_factor">60%</fraction>
+    <fraction name="carousel_card_size_factor">95%</fraction>
+    <fraction name="carousel_fling_multiplier">200%</fraction>
+    <fraction name="carousel_midscreenswipe_width_fraction">20%</fraction>
+</resources>

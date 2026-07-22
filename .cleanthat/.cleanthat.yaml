@@ -1,0 +1,25 @@
+syntax_version: "2023-01-09"
+meta:
+  full_clean_on_configuration_change: true
+  labels:
+  - "cleanthat"
+  refs:
+    protected_patterns:
+      - master
+      - deploy-prd
+    excluded_patterns:
+      - deploy-prd
+source_code:
+  excludes:
+  - "regex:.*/generated/.*"
+  - "regex:.*/do_not_format_me/.*"
+  encoding: "UTF-8"
+  line_ending: "GIT"
+engines:
+# https://github.com/diffplug/spotless/pull/568
+- engine: "spotless"
+  skip: false
+  steps:
+  - id: "spotless"
+    parameters:
+      configuration: "repository:/.cleanthat/spotless.yaml"

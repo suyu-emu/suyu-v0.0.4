@@ -1,0 +1,103 @@
+# SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+# SPDX-License-Identifier: GPL-3.0-or-later
+
+set(CMAKE_AUTOMOC ON)
+
+add_library(qt_common STATIC
+    qt_common.h
+    qt_common.cpp
+
+    gamemode.cpp
+    gamemode.h
+
+    config/uisettings.cpp
+    config/uisettings.h
+    config/qt_config.cpp
+    config/qt_config.h
+    config/shared_translation.cpp
+    config/shared_translation.h
+
+    util/path.h util/path.cpp
+    util/game.h util/game.cpp
+    util/meta.h util/meta.cpp
+    util/content.h util/content.cpp
+    util/rom.h util/rom.cpp
+    util/applet.h util/applet.cpp
+    util/compress.h util/compress.cpp
+    util/fs.h util/fs.cpp
+    util/mod.h util/mod.cpp
+    util/vk.h util/vk.cpp
+
+    abstract/frontend.h abstract/frontend.cpp
+    abstract/progress.h abstract/progress.cpp
+
+    game_list/model.h game_list/model.cpp
+    game_list/worker.h game_list/worker.cpp
+    game_list/game_list_p.h
+
+    qt_string_lookup.h
+    qt_compat.h
+
+    discord/discord.h
+    render/context.h
+    render/emu_thread.h render/emu_thread.cpp)
+
+if (UNIX)
+    target_sources(qt_common PRIVATE gui_settings.cpp gui_settings.h)
+endif()
+
+create_target_directory_groups(qt_common)
+
+if (USE_DISCORD_PRESENCE)
+    target_sources(qt_common PRIVATE
+        discord/discord_impl.cpp
+        discord/discord_impl.h
+    )
+    target_link_libraries(qt_common PUBLIC DiscordRPC::discord-rpc httplib::httplib)
+
+    if (YUZU_USE_BUNDLED_OPENSSL)
+        target_link_libraries(qt_common PUBLIC OpenSSL::SSL OpenSSL::Crypto)
+    endif()
+
+    target_compile_definitions(qt_common PUBLIC USE_DISCORD_PRESENCE)
+endif()
+
+# TODO(crueter)
+target_link_libraries(qt_common PRIVATE Qt6::Widgets)
+
+target_compile_definitions(qt_common PUBLIC
+    # Use QStringBuilder for string concatenation to reduce
+    # the overall number of temporary strings created.
+    QT_USE_QSTRINGBUILDER
+
+    # Disable implicit conversions from/to C strings
+    QT_NO_CAST_FROM_ASCII
+    QT_NO_CAST_TO_ASCII
+
+    # Disable implicit type narrowing in signal/slot connect() calls.
+    QT_NO_NARROWING_CONVERSIONS_IN_CONNECT
+
+    # Disable unsafe overloads of QProcess' start() function.
+    QT_NO_PROCESS_COMBINED_ARGUMENT_START
+
+    # Disable implicit QString->QUrl conversions to enforce use of proper resolving functions.
+    QT_NO_URL_CAST_FROM_STRING
+)
+
+target_link_libraries(qt_common PRIVATE core Qt6::Core Qt6::Concurrent SimpleIni::SimpleIni QuaZip::QuaZip)
+target_link_libraries(qt_common PUBLIC frozen::frozen-headers Vulkan::Headers)
+target_link_libraries(qt_common PRIVATE gamemode::headers frontend_common)
+
+if (ENABLE_OPENGL)
+    target_compile_definitions(qt_common PUBLIC HAS_OPENGL)
+endif()
+
+if (UNIX AND NOT APPLE)
+    if (DEFINED Qt6Gui_PRIVATE_INCLUDE_DIRS)
+        target_include_directories(qt_common PRIVATE ${Qt6Gui_PRIVATE_INCLUDE_DIRS})
+    else()
+        target_link_libraries(qt_common PRIVATE Qt6::GuiPrivate)
+    endif()
+endif()
+
+create_target_directory_groups(qt_common)

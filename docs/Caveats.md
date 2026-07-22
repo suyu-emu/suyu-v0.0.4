@@ -1,0 +1,262 @@
+# Caveats
+
+<!-- TOC -->
+- [Arch Linux](#arch-linux)
+- [Gentoo Linux](#gentoo-linux)
+- [macOS](#macos)
+- [OpenIndiana](#openindiana)
+- [OmniOS](#omnios)
+- [HaikuOS](#haikuos)
+- [OpenBSD](#openbsd)
+- [FreeBSD](#freebsd)
+- [NetBSD](#netbsd)
+- [MSYS2](#msys2)
+- [RedoxOS](#redoxos)
+- [Windows](#windows)
+  - [Windows 7, Windows 8 and Windows 8.1](#windows-7-windows-8-and-windows-81)
+  - [Windows Vista and below](#windows-vista-and-below)
+  - [Windows on ARM](#windows-on-arm)
+<!-- /TOC -->
+
+## Arch Linux
+
+Eden is also available as an [AUR package](https://aur.archlinux.org/packages/eden-git). If you are unable to build, either use that or compare your process to the PKGBUILD.
+
+## Gentoo Linux
+
+[`games-emulation/eden`](https://gitweb.gentoo.org/repo/proj/guru.git/tree/games-emulation/eden) is available in the GURU. This repository also contains some additional dependencies, such as mcl, sirit, oaknut, etc.
+
+If you're having issues with building, always consult that ebuild.
+
+## macOS
+
+macOS is largely untested. Expect crashes, significant Vulkan issues, and other fun stuff.
+
+## OpenIndiana
+
+Always consult [the OpenIndiana package list](https://pkg.openindiana.org/hipster/en/index.shtml) to cross-verify availability.
+
+Run the usual update + install of essential toolings: `sudo pkg update && sudo pkg install git cmake`.
+
+- **gcc**: Install either `developer/gcc-14`.
+- **clang**: Version 20 is broken, install `developer/clang-19`.
+
+Qt Widgets appears to be broken. For now, add `-DENABLE_QT=OFF` to your configure command. In the meantime, a Qt Quick frontend is in the works--check back later!
+
+This is needed for some dependencies that call cc directly (tz):
+
+```sh
+echo '#!/bin/sh -e' >cc
+echo 'gcc $@' >>cc
+chmod +x cc
+export PATH="$PATH:$PWD"
+```
+
+Default MESA is a bit outdated, the following environment variables should be set for a smoother experience:
+
+```sh
+export MESA_GL_VERSION_OVERRIDE=4.6
+export MESA_GLSL_VERSION_OVERRIDE=460
+export MESA_EXTENSION_MAX_YEAR=2025
+export MESA_DEBUG=1
+export MESA_VK_VERSION_OVERRIDE=1.3
+# Only if nvidia/intel drm drivers cause crashes, will severely hinder performance
+export LIBGL_ALWAYS_SOFTWARE=1
+```
+
+- Modify the generated ffmpeg.make (in build dir) if using multiple threads (base system `make` doesn't use `-j4`, so change for `gmake`).
+- System OpenSSL generally does not work. Instead, use `-DYUZU_USE_BUNDLED_OPENSSL=ON` to use a bundled static OpenSSL, or build a system dependency from source.
+
+## OmniOS
+
+Install `developer/gcc14` on OmniOS using pkgsrc.
+
+Since so many dependencies are missing on `OmniOS`, you may wish to use `-DCPMUTIL_FORCE_BUNDLED=ON`
+
+For OmniOS you are required to build glslang yourself:
+```sh
+sudo pkg install python-313
+git clone --depth=1 https://github.com/KhronosGroup/glslang.git
+cd glslang
+python3.13 ./update_glslang_sources.py
+cmake -B build -DCMAKE_BUILD_TYPE=Release
+cmake --build build -- -j `nproc`
+cmake --install build
+```
+
+It may be tempting to specify `-t glslang`, but this will cause installation to fail. So don't.
+
+Using `--parallel` on CMake incorrectly passes `dmake ... -jn` instead of `dmake ... -j n`, this is a bug with OmniOS's CMake, and as such it's recommended to not use this option until it's fixed.
+
+You may also need to install `gmake` in order to properly build FFmpeg, this is provided by the `build-essential` package.
+
+If it wasn't obvious already, you require a X11 server to properly run the emulator within OmniOS, [this guide](https://web.archive.org/web/20260424200928/https://geekblood.wordpress.com/2017/10/26/installing-x11-and-a-desktop-environment-on-omnios/) is a great starting point for that, the links to pkgsrc are outdated so follow [this exemplar](https://pkgsrc.smartos.org/install-on-illumos/) as well:
+
+## HaikuOS
+
+It's recommended to do a `pkgman full-sync` before installing. See [HaikuOS: Installing applications](https://www.haiku-os.org/guides/daily-tasks/install-applications/). Sometimes the process may be interrupted by an error like "Interrupted syscall". Simply firing the command again fixes the issue. By default `g++` is included on the default installation.
+
+GPU support is generally lacking/buggy, hence it's recommended to only install `pkgman install mesa_lavapipe`. Performance is acceptable for most homebrew applications and even some retail games.
+
+For reasons unberknownst to any human being, `glslangValidator` will crash upon trying to be executed, the solution to this is to build `glslang` yourself. Apply the patch in `.patch/glslang/0001-haikuos-fix.patch`. The main issue is `ShFinalize()` is deallocating already destroyed memory; the "fix" in question is allowing the program to just leak memory and the OS will take care of the rest. See [this issue](https://web.archive.org/web/20251021183604/https://github.com/haikuports/haikuports/issues/13083).
+
+For this reason this patch is NOT applied to default on all platforms (for obvious reasons) - instead this is a HaikuOS specific patch, apply with `git apply <absolute path to patch>` after cloning SPIRV-Tools then `make -C build` and add the resulting binary (in `build/StandAlone/glslang`) into PATH.
+
+`cubeb_devel` will also not work, either disable cubeb or uninstall it.
+
+Still will not run flawlessly until `mesa-24` is available. Modify CMakeCache.txt with the `.so` of libGL and libGLESv2 by doing the incredibly difficult task of copy pasting them (`cp /boot/system/lib/libGL.so .`)
+
+If you have `quazip1_qt6_devel`, uninstall it. It may call `Core5Compat` on CMake which is wrongly packaged.
+
+## OpenBSD
+
+System boost doesn't have `context` (as of 7.8); so you may need to specify `-DYUZU_USE_CPM=ON -DBoost_FORCE_BUNDLED=ON`.
+
+After configuration, you may need to modify `externals/ffmpeg/CMakeFiles/ffmpeg-build/build.make` to use `-j$(nproc)` instead of just `-j`.
+
+`-lc++-experimental` doesn't exist in OpenBSD but the LLVM driver still tries to link against it, to solve just symlink `ln -s /usr/lib/libc++.a /usr/lib/libc++experimental.a`. Builds are currently not working due to lack of `std::jthread` and such, either compile libc++ manually or wait for ports to catch up.
+
+If clang has errors, try using `g++11`.
+
+## FreeBSD
+
+Eden is not currently available as a port on FreeBSD, though it is in the works. For now, the recommended method of usage is to compile it yourself.
+
+The available OpenSSL port (3.0.17) is out-of-date, and using a bundled static library instead is recommended; to do so, add `-DYUZU_USE_BUNDLED_OPENSSL=ON` to your CMake configure command.
+
+Gamepad/controllers may not work on 15.0, this is due to an outdated SDL not responding well to the new `usbhid(2)` driver. To workaround this simply disable `usbhid(2)` (add the following to `/boot/loader.conf`):
+
+```sh
+hw.usb.usbhid.enable="0"
+```
+
+## NetBSD
+
+2026-02-07: `vulkan-headers` must not be installed, since the version found in `pkgsrc` is older than required. Either wait for binary packages to update or build newer versions from source.
+
+Install `pkgin` if not already `pkg_add pkgin`, see also the general [pkgsrc guide](https://www.netbsd.org/docs/pkgsrc/using.html). For NetBSD 10.1 provide `echo 'PKG_PATH="https://cdn.netbsd.org/pub/pkgsrc/packages/NetBSD/amd64/10.1/All/"' >/etc/pkg_install.conf`. If `pkgin` is taking too much time consider adding the following to `/etc/rc.conf`:
+
+```sh
+ip6addrctl=YES
+ip6addrctl_policy=ipv4_prefer
+```
+
+System provides a default `g++-10` which doesn't support the current C++ codebase; install `clang-19` with `pkgin install clang-19`. Or install `gcc14` (or `gcc15` with current pkgsrc). Provided that, the following CMake commands may work:
+
+- `cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_C_COMPILER=clang -DCMAKE_CXX_COMPILER=clang++ -Bbuild` (Recommended)
+- `cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_C_COMPILER=/usr/pkg/gcc14/bin/gcc -DCMAKE_CXX_COMPILER=/usr/pkg/gcc14/bin/g++ -Bbuild`
+- `cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_C_COMPILER=/usr/pkg/gcc15/bin/gcc -DCMAKE_CXX_COMPILER=/usr/pkg/gcc15/bin/g++ -Bbuild`
+
+Make may error out when generating C++ headers of SPIRV shaders, hence it's recommended to use `gmake` over the default system one.
+
+[parallel/spirv-tools](https://iso.us.netbsd.org/pub/pkgsrc/current/pkgsrc/parallel/spirv-tools/index.html) isn't available in binary form and must be built from source.
+
+glslang is not available on NetBSD, to circumvent this simply build glslang by yourself:
+
+```sh
+pkgin python313
+git clone --depth=1 https://github.com/KhronosGroup/glslang.git
+cd glslang
+python3.13 ./update_glslang_sources.py
+cmake -B build -DCMAKE_BUILD_TYPE=Release
+cmake --build build -- -j`nproc`
+cmake --install build
+```
+
+However, pkgsrc is highly recommended, see [getting pkgsrc](https://iso.us.netbsd.org/pub/pkgsrc/current/pkgsrc/doc/pkgsrc.html#getting). You must get `current` not the `2025Q2` version.
+
+`QtCore` on NetBSD is included, but due to misconfigurations(!) we MUST include one of the standard headers that include `bits/c++config.h`, since source_location (required by `QtCore`) isn't properly configured to intake `bits/c++config.h` (none of the experimental library is). This is a bug with NetBSD packaging and not our fault, but alas.
+
+## DragonFlyBSD
+
+2026-02-07: `vulkan-headers` and `vulkan-utility-libraries` must NOT be uninstalled, since they're too old: `1.3.289`. Either wait for binary packages to update or build newer versions from source.
+
+If `libstdc++.so.6` is not found (`GLIBCXX_3.4.30`) then attempt:
+
+```sh
+rm /usr/local/lib/gcc11/libstdc++.so.6
+ln -s /usr/local/lib/gcc14/libstdc++.so /usr/local/lib/gcc11/libstdc++.so.6
+```
+
+This may have unforeseen consequences of which we don't need to worry about for now.
+
+Default `g++` (and the libstdc++) is too outdated - so install `gcc14` and redirect CMake to the new compiler toolchain  `-DCMAKE_CXX_COMPILER=gcc14 -DCMAKE_C_COMPILER=g++14`.
+
+There is also `llvm18` and use `-DCMAKE_CXX_COMPILER=clang++18 -DCMAKE_C_COMPILER=clang18` (note the `18` suffix at the end). NOTE: It doesn't have an updated libcxx so `<span>` will be missing, either build it manually or use gcc.
+
+If build hangs, use `hammer2 bulkfree`.
+
+## MSYS2
+
+Only the `MINGW64` environment is tested (or `CLANGARM64` on ARM); however, all of the others should work (in theory) sans `MINGW32`.
+
+When packaging an MSYS2 build that is NOT fully static, you will need to copy all dependent DLLs recursively alongside the `windeployqt6`; for example:
+
+```sh
+# MSYS_TOOLCHAIN is typically just mingw64
+# since Windows is case-insensitive, you can set this to $MSYSTEM
+# or, if cross-compiling from Linux, set it to usr/x86_64-w64-mingw32
+export PATH="/${MSYS_TOOLCHAIN}/bin:$PATH"
+
+# grab deps of a dll or exe and place them in the current dir
+deps() {
+    # string parsing is fun
+    objdump -p "$1" | awk '/DLL Name:/ {print $3}' | while read -r dll; do
+        [ -z "$dll" ] && continue
+
+        # bin directory is used for DLLs, so we can do a quick "hack"
+        # and use command to find the path of the DLL
+        dllpath=$(command -v "$dll" 2>/dev/null || true)
+
+        [ -z "$dllpath" ] && continue
+
+        # explicitly exclude system32/syswow64 deps
+        # these aren't needed to be bundled, as all systems already have them
+        case "$dllpath" in
+            *System32* | *SysWOW64*) continue ;;
+        esac
+
+        # avoid copying deps multiple times
+        if [ ! -f "$dll" ]; then
+            echo "$dllpath"
+            cp "$dllpath" "$dll"
+
+            # also grab the dependencies of the dependent DLL; e.g.
+            # double-conversion is a dep of Qt6Core.dll but NOT eden.exe
+            deps "$dllpath"
+        fi
+    done
+}
+
+# NB: must be done in a directory containing eden.exe
+deps eden.exe
+
+# deploy Qt plugins and such
+windeployqt6 --no-compiler-runtime --no-opengl-sw --no-system-dxc-compiler \
+    --no-system-d3d-compiler eden.exe
+
+# grab deps for Qt plugins
+find ./*/ -name "*.dll" | while read -r dll; do deps "$dll"; done
+```
+
+## RedoxOS
+
+The package install may randomly hang at times, in which case it has to be restarted. ALWAYS do a `sudo pkg update` or the chances of it hanging will be close to 90%. If "multiple" installs fail at once, try installing 1 by 1 the packages.
+
+When CMake invokes certain file syscalls - it may sometimes cause crashes or corruptions on the (kernel?) address space - so reboot the system if there is a "hang" in CMake.
+
+## Windows
+
+### Windows 7, Windows 8 and Windows 8.1
+
+DirectX 12 is not available - simply copy and paste a random DLL and name it `d3d12.dll`.
+
+Install [Qt6 compatibility libraries](github.com/ANightly/qt6windows7) specifically Qt 6.9.5.
+
+### Windows Vista and below
+
+No support for Windows Vista (or below) is present at the moment. Check back later.
+
+### Windows on ARM
+
+If you're using Snapdragon X or 8CX, use the [the Vulkan translation layer](https://apps.microsoft.com/detail/9nqpsl29bfff?hl=en-us&gl=USE) only if the stock drivers do not work. And of course always keep your system up-to-date.
