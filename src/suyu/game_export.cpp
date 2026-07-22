@@ -284,9 +284,9 @@ void GameExportDialog::SetupUi() {
     layout->addWidget(include_custom_config_checkbox);
 
     auto* note_label = new QLabel(
-          tr("This exports Dynarmic-translated IR dumps, guest code slices, block maps, "
-              "and game data for a future custom native runtime. It does not bundle the "
-              "current suyu frontend executable as a fake standalone app."),
+          tr("Exports a buildable C project that compiles into a standalone PC executable. "
+              "The executable includes a runtime with save/load support and runs independently "
+              "of the emulator. Build with CMake + any C compiler."),
         this);
     note_label->setWordWrap(true);
     note_label->setStyleSheet(QStringLiteral("color: #888;"));
@@ -555,6 +555,8 @@ struct NsoAnalysisResult {
     u32 total_blocks{};
     u32 total_instructions{};
     std::vector<u8> text_bytes;
+    std::vector<u8> rodata_bytes;
+    std::vector<u8> data_bytes;
     std::vector<Arm64BasicBlock> blocks;
 };
 
@@ -602,6 +604,26 @@ static std::optional<NsoAnalysisResult> AnalyzeNsoFile(const FileSys::VirtualFil
     }
 
     result.text_bytes = text_data;
+
+    // Read and decompress .rodata segment (segment 1)
+    {
+        std::vector<u8> seg = nso_file->ReadBytes(
+            header.segments_compressed_size[1], header.segments[1].offset);
+        if (!seg.empty() && header.IsSegmentCompressed(1)) {
+            seg = Common::Compression::DecompressDataLZ4(seg, header.segments[1].size);
+        }
+        result.rodata_bytes = std::move(seg);
+    }
+
+    // Read and decompress .data segment (segment 2)
+    {
+        std::vector<u8> seg = nso_file->ReadBytes(
+            header.segments_compressed_size[2], header.segments[2].offset);
+        if (!seg.empty() && header.IsSegmentCompressed(2)) {
+            seg = Common::Compression::DecompressDataLZ4(seg, header.segments[2].size);
+        }
+        result.data_bytes = std::move(seg);
+    }
 
     // Analyze ARM64 basic blocks in the .text segment
     result.blocks = AnalyzeArm64BasicBlocks(
@@ -935,7 +957,9 @@ QString GameExportDialog::RunAotPrecompile(const QString& exefs_dir,
         QDir().mkpath(mod_dir);
         const auto stats = suyu::recomp::EmitProject(
             mod.name.toStdString(), mod.text_bytes.data(), mod.text_bytes.size(), mod.text_vaddr,
-            mod_dir.toStdString(), /*source_only=*/false);
+            mod_dir.toStdString(), /*source_only=*/false,
+            mod.rodata_bytes.empty() ? nullptr : mod.rodata_bytes.data(), mod.rodata_bytes.size(),
+            mod.data_bytes.empty() ? nullptr : mod.data_bytes.data(), mod.data_bytes.size());
         recomp_total_blocks += stats.blocks;
     }
     // One-command native build scripts (the user can run these to produce the actual executable).
@@ -1084,15 +1108,17 @@ bool GameExportDialog::PackageNativeExport(const QString& rom_path, const QStrin
         QFile readme(pkg_dir + QDir::separator() + QStringLiteral("README_NATIVE_EXPORT.txt"));
         if (readme.open(QIODevice::WriteOnly | QIODevice::Text)) {
             QTextStream out(&readme);
-            out << "Suyu native export artifact bundle\n\n";
-            out << "This directory contains compiler-facing export data, not the suyu GUI binary.\n";
+            out << "Suyu native export — standalone PC executable\n\n";
+            out << "This directory contains a statically recompiled game that runs without the emulator.\n";
             out << "Contents:\n";
             out << "- " << bundled_entry_name << " : bundled game payload\n";
-            out << "- aot_cache/blockmaps : discovered guest basic blocks\n";
-            out << "- aot_cache/code : raw guest code slices per block\n";
-            out << "- aot_cache/ir : Dynarmic-translated IR dumps per block\n";
-            out << "- aot_cache/aot_manifest.json : export metadata\n\n";
-            out << "A future minimal runtime/codegen stage can consume these artifacts to build a dedicated executable.\n";
+            out << "- aot_cache/recompiled/ : buildable C projects (one per module)\n";
+            out << "- aot_cache/recompiled/build_native_windows.cmd : one-click Windows build\n";
+            out << "- aot_cache/recompiled/build_native_unix.sh : one-click Linux/macOS build\n";
+            out << "- aot_cache/recompiled/<module>/data/ : bundled text/rodata/data segments\n\n";
+            out << "Build: cd aot_cache/recompiled && build_native_windows.cmd (or ./build_native_unix.sh)\n";
+            out << "Run: the resulting executable creates a save_data/ directory next to itself.\n";
+            out << "Save data persists across runs — no emulator required.\n";
             readme.close();
         }
 
@@ -1326,9 +1352,13 @@ void GameExportDialog::OnExport() {
     QMessageBox::information(
         this, tr("AOT Export Complete"),
         tr("Game exported with static recompilation to:\n%1\n\n"
-           "The package contains translated IR dumps, guest code slices, and block maps.\n"
-           "It no longer bundles the current suyu frontend executable as a fake standalone app.\n"
-           "A future custom runtime/codegen stage can consume these artifacts to build a dedicated executable.")
+           "The package contains:\n"
+           "- Recompiled C source (buildable standalone PC executable)\n"
+           "- Runtime with save/load support (save_data/ directory next to exe)\n"
+           "- Bundled data segments (text, rodata, data)\n"
+           "- Build scripts for Windows (.cmd) and Unix (.sh)\n\n"
+           "Run build_native_windows.cmd (or build_native_unix.sh) in aot_cache/recompiled/ to compile.\n"
+           "The resulting executable runs independently — no emulator required.")
             .arg(final_path));
     } catch (const std::exception& e) {
         LOG_ERROR(Frontend, "Exception during game export: {}", e.what());
