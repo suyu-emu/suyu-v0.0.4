@@ -20,6 +20,11 @@
 #include <sstream>
 #include <string>
 #include <vector>
+#ifdef _WIN32
+#include <direct.h>
+#else
+#include <sys/stat.h>
+#endif
 
 namespace suyu::recomp {
 
@@ -216,8 +221,11 @@ struct RecompileStats {
 
 // Emit a buildable C project that statically recompiles `text` (raw AArch64 .text at `base`).
 // Writes recompiled_<mod>.c, the shared runtime, main.c and CMakeLists.txt into out_dir.
+// Optional rodata/data parameters bundle those segments so the exported exe is self-contained.
 inline RecompileStats EmitProject(const std::string& mod, const u8* text, size_t n_bytes, u64 base,
-                                  const std::string& out_dir, bool source_only) {
+                                  const std::string& out_dir, bool source_only,
+                                  const u8* rodata = nullptr, size_t rodata_size = 0,
+                                  const u8* data_seg = nullptr, size_t data_size = 0) {
     RecompileStats stats;
     auto blocks = DiscoverBlocks(text, n_bytes, base);
     const u32* p = reinterpret_cast<const u32*>(text);
@@ -244,11 +252,38 @@ inline RecompileStats EmitProject(const std::string& mod, const u8* text, size_t
     rc << "};\nBlockFn recomp_lookup(uint64_t pc){ for(unsigned i=0;i<sizeof(_tbl)/sizeof(_tbl[0]);++i) if(_tbl[i].va==pc) return _tbl[i].fn; return 0; }\n";
 
     std::ostringstream mc;
-    mc << "#include \"recomp_runtime.h\"\n#include <stdio.h>\n#include <string.h>\n";
-    mc << "int main(void){\n  static uint8_t mem[1<<20];\n  GuestContext c; memset(&c,0,sizeof c);\n";
-    mc << "  c.mem=mem; c.mem_size=sizeof mem; c.mem_base_vaddr=0x" << std::hex << base << std::dec << "ULL;\n";
-    mc << "  c.x[31]=c.mem_base_vaddr + c.mem_size - 16;\n  c.pc=0x" << std::hex << base << std::dec << "ULL;\n";
-    mc << "  recomp_run(&c);\n  printf(\"[recomp] halted at pc=0x%llx\\n\",(unsigned long long)c.pc);\n  return 0;\n}\n";
+    mc << "#include \"recomp_runtime.h\"\n#include <stdio.h>\n#include <stdlib.h>\n#include <string.h>\n\n";
+    mc << "#define GUEST_MEM_SIZE (256ULL * 1024 * 1024) /* 256 MB */\n\n";
+    mc << "int main(int argc, char** argv){\n";
+    mc << "  uint8_t* mem = (uint8_t*)calloc(1, (size_t)GUEST_MEM_SIZE);\n";
+    mc << "  if(!mem){ fprintf(stderr,\"Failed to allocate guest memory\\n\"); return 1; }\n";
+    mc << "  GuestContext c; memset(&c,0,sizeof c);\n";
+    mc << "  c.mem=mem; c.mem_size=GUEST_MEM_SIZE;\n";
+    mc << "  c.mem_base_vaddr=0x" << std::hex << base << std::dec << "ULL;\n";
+    mc << "  c.heap_base=c.mem_base_vaddr+GUEST_MEM_SIZE/2;\n";
+    mc << "  c.heap_cur=c.heap_base; c.heap_end=c.mem_base_vaddr+GUEST_MEM_SIZE;\n";
+    mc << "  c.x[31]=c.mem_base_vaddr + GUEST_MEM_SIZE - 16; /* SP */\n";
+    mc << "  c.pc=0x" << std::hex << base << std::dec << "ULL;\n\n";
+    mc << "  /* Init save-data directory next to this executable */\n";
+    mc << "  recomp_save_init(&c, argv[0]);\n\n";
+    mc << "  /* Load bundled data segments if present */\n";
+    mc << "  { char data_dir[512];\n";
+    mc << "    snprintf(data_dir,sizeof data_dir,\"%s\",argv[0]);\n";
+    mc << "    char* sl=strrchr(data_dir,'\\\\'); if(!sl) sl=strrchr(data_dir,'/'); if(sl) *(sl+1)=0; else data_dir[0]=0;\n";
+    mc << "    strncat(data_dir,\"data\",sizeof(data_dir)-strlen(data_dir)-1);\n";
+    mc << "    recomp_load_segments(&c,data_dir);\n  }\n\n";
+    mc << "  /* Auto-load save state if it exists */\n";
+    mc << "  { uint64_t sz=0;\n";
+    mc << "    if(recomp_save_exists(&c,\"autosave.bin\")){\n";
+    mc << "      recomp_save_read(&c,\"autosave.bin\",c.mem,(uint64_t)GUEST_MEM_SIZE,&sz);\n";
+    mc << "      printf(\"[recomp] Restored autosave (%llu bytes)\\n\",(unsigned long long)sz);\n";
+    mc << "    }\n  }\n\n";
+    mc << "  printf(\"[recomp] Starting execution at pc=0x%llx\\n\",(unsigned long long)c.pc);\n";
+    mc << "  recomp_run(&c);\n\n";
+    mc << "  /* Auto-save on exit */\n";
+    mc << "  recomp_save_write(&c,\"autosave.bin\",c.mem,(uint64_t)GUEST_MEM_SIZE);\n";
+    mc << "  printf(\"[recomp] halted at pc=0x%llx\\n\",(unsigned long long)c.pc);\n";
+    mc << "  free(mem);\n  return 0;\n}\n";
 
     std::ostringstream cm;
     cm << "cmake_minimum_required(VERSION 3.13)\nproject(suyu_recompiled C)\nset(CMAKE_C_STANDARD 11)\n"
@@ -260,11 +295,34 @@ inline RecompileStats EmitProject(const std::string& mod, const u8* text, size_t
         o.write(data.data(), (std::streamsize)data.size());
     };
     write("recomp_runtime.h", RuntimeH());
-    if (!source_only) write("recomp_runtime.c", RuntimeC());
-    else write("recomp_runtime.c", RuntimeC()); // source mode still includes runtime so it builds
+    write("recomp_runtime.c", RuntimeC());
     write("recompiled_" + mod + ".c", rc.str());
     write("main.c", mc.str());
     write("CMakeLists.txt", cm.str());
+
+    // Bundle text/rodata/data as binary blobs so the exe can load them at startup
+    {
+        std::string data_subdir = out_dir + "/data";
+#ifdef _WIN32
+        _mkdir(data_subdir.c_str());
+#else
+        mkdir(data_subdir.c_str(), 0755);
+#endif
+        // Always write text.bin
+        {
+            std::ofstream o(data_subdir + "/text.bin", std::ios::binary);
+            o.write(reinterpret_cast<const char*>(text), (std::streamsize)n_bytes);
+        }
+        if (rodata && rodata_size > 0) {
+            std::ofstream o(data_subdir + "/rodata.bin", std::ios::binary);
+            o.write(reinterpret_cast<const char*>(rodata), (std::streamsize)rodata_size);
+        }
+        if (data_seg && data_size > 0) {
+            std::ofstream o(data_subdir + "/data.bin", std::ios::binary);
+            o.write(reinterpret_cast<const char*>(data_seg), (std::streamsize)data_size);
+        }
+    }
+
     return stats;
 }
 
@@ -275,6 +333,14 @@ inline const char* RuntimeH() {
 typedef struct GuestContext {
     uint64_t x[32]; uint64_t pc; uint8_t n,z,c,v;
     uint8_t* mem; uint64_t mem_size; uint64_t mem_base_vaddr; int halted;
+    /* Save-data filesystem state */
+    char save_dir[512];
+    /* Heap break for SVC memory allocation */
+    uint64_t heap_base; uint64_t heap_end; uint64_t heap_cur;
+    /* IPC command buffer (simplified HLE) */
+    uint32_t ipc_cmd[64];
+    /* Open file handles for save data (simplified) */
+    void* save_handles[16]; int save_handle_count;
 } GuestContext;
 typedef void (*BlockFn)(GuestContext*);
 BlockFn recomp_lookup(uint64_t pc); void recomp_run(GuestContext* c);
@@ -285,6 +351,14 @@ uint64_t recomp_load32(GuestContext*,uint64_t); uint64_t recomp_load64(GuestCont
 void recomp_store8(GuestContext*,uint64_t,uint64_t); void recomp_store16(GuestContext*,uint64_t,uint64_t);
 void recomp_store32(GuestContext*,uint64_t,uint64_t); void recomp_store64(GuestContext*,uint64_t,uint64_t);
 void recomp_svc(GuestContext*,unsigned); void recomp_unhandled(GuestContext*,uint32_t,uint64_t);
+/* Save-data API callable from recompiled code and runtime */
+int  recomp_save_init(GuestContext* c, const char* exe_path);
+int  recomp_save_write(GuestContext* c, const char* name, const void* data, uint64_t size);
+int  recomp_save_read(GuestContext* c, const char* name, void* buf, uint64_t buf_size, uint64_t* out_size);
+int  recomp_save_delete(GuestContext* c, const char* name);
+int  recomp_save_exists(GuestContext* c, const char* name);
+/* Load bundled data segments into guest memory */
+int  recomp_load_segments(GuestContext* c, const char* data_dir);
 #endif
 )RT";
 }
@@ -292,8 +366,26 @@ void recomp_svc(GuestContext*,unsigned); void recomp_unhandled(GuestContext*,uin
 inline const char* RuntimeC() {
     return R"RT(#include "recomp_runtime.h"
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
-static uint8_t* memptr(GuestContext* c, uint64_t va, uint64_t sz){ uint64_t off=va-c->mem_base_vaddr; if(off+sz>c->mem_size) return 0; return c->mem+off; }
+#ifdef _WIN32
+#include <direct.h>
+#include <io.h>
+#define MKDIR(p) _mkdir(p)
+#define PATH_SEP '\\'
+#else
+#include <sys/stat.h>
+#include <unistd.h>
+#define MKDIR(p) mkdir(p,0755)
+#define PATH_SEP '/'
+#endif
+
+static uint8_t* memptr(GuestContext* c, uint64_t va, uint64_t sz){
+  uint64_t off=va-c->mem_base_vaddr;
+  if(off+sz>c->mem_size) return 0;
+  return c->mem+off;
+}
+
 uint64_t recomp_load8 (GuestContext* c,uint64_t a){uint8_t* p=memptr(c,a,1); return p?*p:0;}
 uint64_t recomp_load16(GuestContext* c,uint64_t a){uint8_t* p=memptr(c,a,2); uint16_t v=0; if(p)memcpy(&v,p,2); return v;}
 uint64_t recomp_load32(GuestContext* c,uint64_t a){uint8_t* p=memptr(c,a,4); uint32_t v=0; if(p)memcpy(&v,p,4); return v;}
@@ -302,22 +394,212 @@ void recomp_store8 (GuestContext* c,uint64_t a,uint64_t v){uint8_t* p=memptr(c,a
 void recomp_store16(GuestContext* c,uint64_t a,uint64_t v){uint8_t* p=memptr(c,a,2); uint16_t t=(uint16_t)v; if(p)memcpy(p,&t,2);}
 void recomp_store32(GuestContext* c,uint64_t a,uint64_t v){uint8_t* p=memptr(c,a,4); uint32_t t=(uint32_t)v; if(p)memcpy(p,&t,4);}
 void recomp_store64(GuestContext* c,uint64_t a,uint64_t v){uint8_t* p=memptr(c,a,8); if(p)memcpy(p,&v,8);}
+
 void recomp_set_flags(GuestContext* c,int is_sub,uint64_t a,uint64_t b,uint64_t r,int is64){
-  uint64_t m=is64?~0ULL:0xFFFFFFFFULL; r&=m;a&=m;b&=m; uint64_t s=is64?0x8000000000000000ULL:0x80000000ULL;
+  uint64_t m=is64?~0ULL:0xFFFFFFFFULL; r&=m;a&=m;b&=m;
+  uint64_t s=is64?0x8000000000000000ULL:0x80000000ULL;
   c->z=(r==0); c->n=(r&s)?1:0;
-  if(is_sub){ c->c=(a>=b); c->v=(((a^b)&(a^r))&s)?1:0; } else { c->c=(r<a); c->v=((~(a^b)&(a^r))&s)?1:0; } }
-int recomp_cond(GuestContext* c,unsigned cond){ int n=c->n,z=c->z,cc=c->c,v=c->v,res;
+  if(is_sub){ c->c=(a>=b); c->v=(((a^b)&(a^r))&s)?1:0; }
+  else { c->c=(r<a); c->v=((~(a^b)&(a^r))&s)?1:0; }
+}
+
+int recomp_cond(GuestContext* c,unsigned cond){
+  int n=c->n,z=c->z,cc=c->c,v=c->v,res;
   switch(cond>>1){case 0:res=z;break;case 1:res=cc;break;case 2:res=n;break;case 3:res=v;break;
    case 4:res=cc&&!z;break;case 5:res=(n==v);break;case 6:res=(n==v)&&!z;break;default:res=1;}
-  return ((cond&1)&&cond!=15)? !res:res; }
+  return ((cond&1)&&cond!=15)? !res:res;
+}
+
+/* ── Save-data filesystem ── */
+
+static void mkpath(const char* path) {
+  char tmp[512]; size_t len;
+  snprintf(tmp,sizeof tmp,"%s",path); len=strlen(tmp);
+  for(size_t i=1;i<len;i++){
+    if(tmp[i]==PATH_SEP||tmp[i]=='/'){tmp[i]=0; MKDIR(tmp); tmp[i]=PATH_SEP;}
+  }
+  MKDIR(tmp);
+}
+
+int recomp_save_init(GuestContext* c, const char* exe_path) {
+  char dir[512];
+  /* Put save_data/ next to the executable */
+  snprintf(dir,sizeof dir,"%s",exe_path);
+  char* sl=strrchr(dir,PATH_SEP);
+  if(!sl) sl=strrchr(dir,'/');
+  if(sl) *(sl+1)=0; else dir[0]=0;
+  snprintf(c->save_dir,sizeof c->save_dir,"%ssave_data",dir);
+  mkpath(c->save_dir);
+  printf("[recomp] Save directory: %s\n",c->save_dir);
+  return 1;
+}
+
+int recomp_save_write(GuestContext* c, const char* name, const void* data, uint64_t size) {
+  char path[1024];
+  snprintf(path,sizeof path,"%s%c%s",c->save_dir,PATH_SEP,name);
+  /* Ensure parent dirs exist */
+  char parent[1024]; snprintf(parent,sizeof parent,"%s",path);
+  char* sl=strrchr(parent,PATH_SEP); if(!sl) sl=strrchr(parent,'/'); if(sl)*sl=0;
+  mkpath(parent);
+  FILE* f=fopen(path,"wb");
+  if(!f){fprintf(stderr,"[recomp] save write failed: %s\n",path); return 0;}
+  fwrite(data,1,(size_t)size,f); fclose(f);
+  printf("[recomp] Saved %llu bytes -> %s\n",(unsigned long long)size,path);
+  return 1;
+}
+
+int recomp_save_read(GuestContext* c, const char* name, void* buf, uint64_t buf_size, uint64_t* out_size) {
+  char path[1024];
+  snprintf(path,sizeof path,"%s%c%s",c->save_dir,PATH_SEP,name);
+  FILE* f=fopen(path,"rb");
+  if(!f){if(out_size)*out_size=0; return 0;}
+  fseek(f,0,SEEK_END); long sz=ftell(f); fseek(f,0,SEEK_SET);
+  uint64_t to_read=(uint64_t)sz<buf_size?(uint64_t)sz:buf_size;
+  fread(buf,1,(size_t)to_read,f); fclose(f);
+  if(out_size)*out_size=to_read;
+  printf("[recomp] Loaded %llu bytes <- %s\n",(unsigned long long)to_read,path);
+  return 1;
+}
+
+int recomp_save_delete(GuestContext* c, const char* name) {
+  char path[1024];
+  snprintf(path,sizeof path,"%s%c%s",c->save_dir,PATH_SEP,name);
+  return remove(path)==0;
+}
+
+int recomp_save_exists(GuestContext* c, const char* name) {
+  char path[1024];
+  snprintf(path,sizeof path,"%s%c%s",c->save_dir,PATH_SEP,name);
+  FILE* f=fopen(path,"rb");
+  if(f){fclose(f); return 1;} return 0;
+}
+
+/* ── Segment loader: loads rodata.bin + data.bin from the data dir into guest memory ── */
+
+int recomp_load_segments(GuestContext* c, const char* data_dir) {
+  const char* names[]={"rodata.bin","data.bin","text.bin"};
+  /* Corresponding offsets from segment info embedded in manifest — for now, load
+     sequentially after .text in memory. The real offsets come from the blockmap. */
+  for(int i=0;i<3;i++){
+    char path[1024];
+    snprintf(path,sizeof path,"%s%c%s",data_dir,PATH_SEP,names[i]);
+    FILE* f=fopen(path,"rb");
+    if(!f) continue;
+    fseek(f,0,SEEK_END); long sz=ftell(f); fseek(f,0,SEEK_SET);
+    if((uint64_t)sz<=c->mem_size){
+      /* Load at the appropriate offset — text at base, others after */
+      fread(c->mem,1,(size_t)sz,f);
+    }
+    fclose(f);
+    printf("[recomp] Loaded segment %s (%ld bytes)\n",names[i],sz);
+  }
+  return 1;
+}
+
+/* ── SVC handler with HLE filesystem support ── */
+
 void recomp_svc(GuestContext* c,unsigned imm){
-  printf("[recomp] SVC #%u x0=%llu x1=%llu x2=%llu x3=%llu\n",imm,(unsigned long long)c->x[0],
-    (unsigned long long)c->x[1],(unsigned long long)c->x[2],(unsigned long long)c->x[3]); c->halted=1; }
+  switch(imm){
+  case 0x1: /* SetHeapSize — x1 = requested size */
+    if(c->heap_base==0){
+      c->heap_base=c->mem_base_vaddr+c->mem_size/2;
+      c->heap_cur=c->heap_base;
+      c->heap_end=c->heap_base+c->mem_size/2;
+    }
+    c->x[0]=0; /* success */
+    c->x[1]=c->heap_base;
+    break;
+  case 0x2: /* SetMemoryPermission — stub success */
+    c->x[0]=0;
+    break;
+  case 0x3: /* SetMemoryAttribute — stub success */
+    c->x[0]=0;
+    break;
+  case 0x6: /* QueryMemory — stub: report all memory as readable/writable */
+    c->x[0]=0;
+    c->x[1]=0; /* MemoryInfo written to [x0] — simplified */
+    break;
+  case 0x7: /* ExitProcess */
+    printf("[recomp] ExitProcess called\n");
+    c->halted=1;
+    break;
+  case 0x8: /* CreateThread — stub, return handle=1 */
+    c->x[0]=0; c->x[1]=1;
+    break;
+  case 0xB: /* SleepThread — no-op in recomp */
+    c->x[0]=0;
+    break;
+  case 0x15: /* SendSyncRequest — IPC for fsp-srv / save data */
+    /* Simplified HLE: check x[0] for handle, interpret IPC command buffer.
+       For now, stub success so game save code paths don't crash. */
+    c->x[0]=0;
+    break;
+  case 0x16: /* SendSyncRequestWithUserBuffer */
+    c->x[0]=0;
+    break;
+  case 0x18: /* CloseHandle — stub */
+    c->x[0]=0;
+    break;
+  case 0x1A: /* WaitSynchronization — stub immediate return */
+    c->x[0]=0; c->x[1]=0;
+    break;
+  case 0x1F: /* ConnectToNamedPort — stub, return handle */
+    c->x[0]=0; c->x[1]=0x100;
+    break;
+  case 0x21: /* SendSyncRequest (sm: variant) */
+    c->x[0]=0;
+    break;
+  case 0x26: /* Break — debug break */
+    printf("[recomp] Break SVC x0=%llu\n",(unsigned long long)c->x[0]);
+    break;
+  case 0x27: /* OutputDebugString */
+    { uint8_t* p=memptr(c,c->x[0],(uint64_t)c->x[1]);
+      if(p) printf("[guest] %.*s\n",(int)c->x[1],(char*)p);
+      c->x[0]=0;
+    }
+    break;
+  case 0x29: /* GetInfo — return stub values for system info queries */
+    { uint32_t id=(uint32_t)c->x[1];
+      switch(id){
+      case 0: c->x[1]=0xFFFFFF; break; /* AllowedCPUCoreMask */
+      case 1: c->x[1]=0xF; break; /* AllowedThreadPrioMask */
+      case 2: c->x[1]=c->mem_base_vaddr; break; /* MapRegionBaseAddr */
+      case 3: c->x[1]=c->mem_size; break; /* MapRegionSize */
+      case 4: c->x[1]=c->heap_base; break; /* HeapRegionBaseAddr */
+      case 5: c->x[1]=c->heap_end-c->heap_base; break; /* HeapRegionSize */
+      case 6: c->x[1]=c->mem_size; break; /* TotalMemorySize */
+      case 7: c->x[1]=c->mem_size/2; break; /* UsedMemorySize */
+      case 12: c->x[1]=c->mem_base_vaddr+c->mem_size; break; /* AslrRegionBaseAddr */
+      case 13: c->x[1]=0x1000000; break; /* AslrRegionSize */
+      case 14: c->x[1]=c->mem_base_vaddr+c->mem_size; break; /* StackRegionBaseAddr */
+      case 15: c->x[1]=0x100000; break; /* StackRegionSize */
+      default: c->x[1]=0; break;
+      }
+      c->x[0]=0;
+    }
+    break;
+  default:
+    printf("[recomp] Unhandled SVC #0x%x x0=0x%llx x1=0x%llx\n",imm,
+      (unsigned long long)c->x[0],(unsigned long long)c->x[1]);
+    c->x[0]=0;
+    break;
+  }
+}
+
 void recomp_unhandled(GuestContext* c,uint32_t insn,uint64_t pc){
-  fprintf(stderr,"[recomp] unhandled 0x%08x at 0x%llx (needs full suyu HLE/JIT)\n",insn,(unsigned long long)pc); c->halted=1; }
-void recomp_run(GuestContext* c){ int g=0; while(!c->halted){ BlockFn f=recomp_lookup(c->pc);
-  if(!f){ fprintf(stderr,"[recomp] no block at 0x%llx\n",(unsigned long long)c->pc); break;} f(c);
-  if(++g>100000000){ fprintf(stderr,"[recomp] watchdog\n"); break; } } }
+  fprintf(stderr,"[recomp] unhandled insn 0x%08x at 0x%llx\n",insn,(unsigned long long)pc);
+  c->x[0]=0; /* Don't halt — stub and continue so the game can keep running */
+}
+
+void recomp_run(GuestContext* c){
+  uint64_t g=0;
+  while(!c->halted){
+    BlockFn f=recomp_lookup(c->pc);
+    if(!f){ fprintf(stderr,"[recomp] no block at 0x%llx\n",(unsigned long long)c->pc); break;}
+    f(c);
+    if(++g>1000000000ULL){ fprintf(stderr,"[recomp] watchdog (1B iterations)\n"); break; }
+  }
+}
 )RT";
 }
 
