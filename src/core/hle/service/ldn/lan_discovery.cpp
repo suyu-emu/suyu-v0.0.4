@@ -1,3 +1,5 @@
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
 // SPDX-FileCopyrightText: Copyright 2022 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -33,9 +35,8 @@ void LanStation::OverrideInfo() {
     node_info->is_connected = connected ? 1 : 0;
 }
 
-LANDiscovery::LANDiscovery(Network::RoomNetwork& room_network_)
-    : stations({{{1, this}, {2, this}, {3, this}, {4, this}, {5, this}, {6, this}, {7, this}}}),
-      room_network{room_network_} {}
+LANDiscovery::LANDiscovery()
+    : stations({{{1, this}, {2, this}, {3, this}, {4, this}, {5, this}, {6, this}, {7, this}}}){}
 
 LANDiscovery::~LANDiscovery() {
     if (inited) {
@@ -119,7 +120,7 @@ Result LANDiscovery::Scan(std::span<NetworkInfo> out_networks, s16& out_count,
     std::this_thread::sleep_for(std::chrono::seconds(1));
 
     std::scoped_lock lock{packet_mutex};
-    for (const auto& [_, info] : scan_results) {
+    for (const auto& [key, info] : scan_results) {
         if (out_count >= static_cast<s16>(out_networks.size())) {
             break;
         }
@@ -410,7 +411,7 @@ void LANDiscovery::OnNetworkInfoChanged() {
 
 Network::IPv4Address LANDiscovery::GetLocalIp() const {
     Network::IPv4Address local_ip{0xFF, 0xFF, 0xFF, 0xFF};
-    if (auto room_member = room_network.GetRoomMember().lock()) {
+    if (auto room_member = Network::GetRoomMember().lock()) {
         if (room_member->IsConnected()) {
             local_ip = room_member->GetFakeIpAddress();
         }
@@ -468,7 +469,7 @@ void LANDiscovery::SendBroadcast(Network::LDNPacketType type) {
 }
 
 void LANDiscovery::SendPacket(const Network::LDNPacket& packet) {
-    if (auto room_member = room_network.GetRoomMember().lock()) {
+    if (auto room_member = Network::GetRoomMember().lock()) {
         if (room_member->IsConnected()) {
             room_member->SendLdnPacket(packet);
         }

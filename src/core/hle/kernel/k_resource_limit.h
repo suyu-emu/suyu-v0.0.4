@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2020 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -32,7 +35,7 @@ public:
     ~KResourceLimit() override;
 
     void Initialize();
-    void Finalize() override;
+    void Finalize(KernelCore& kernel) override;
 
     s64 GetLimitValue(LimitableResource which) const;
     s64 GetCurrentValue(LimitableResource which) const;
@@ -41,12 +44,12 @@ public:
 
     Result SetLimitValue(LimitableResource which, s64 value);
 
-    bool Reserve(LimitableResource which, s64 value);
-    bool Reserve(LimitableResource which, s64 value, s64 timeout);
-    void Release(LimitableResource which, s64 value);
-    void Release(LimitableResource which, s64 value, s64 hint);
+    bool Reserve(KernelCore& kernel, LimitableResource which, s64 value);
+    bool Reserve(KernelCore& kernel, LimitableResource which, s64 value, s64 timeout);
+    void Release(KernelCore& kernel, LimitableResource which, s64 value);
+    void Release(KernelCore& kernel, LimitableResource which, s64 value, s64 hint);
 
-    static void PostDestroy(uintptr_t arg) {}
+    static void PostDestroy(KernelCore& kernel, uintptr_t arg) {}
 
 private:
     using ResourceArray = std::array<s64, static_cast<std::size_t>(LimitableResource::Count)>;

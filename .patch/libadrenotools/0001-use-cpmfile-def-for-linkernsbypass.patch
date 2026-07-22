@@ -1,0 +1,26 @@
+From 52bbc5af6523daa22ad62fe4b84bc8d623d11a53 Mon Sep 17 00:00:00 2001
+From: crueter <crueter@eden-emu.dev>
+Date: Fri, 26 Jun 2026 01:09:40 -0400
+Subject: [PATCH] use cpmfile def for linkernsbypass
+
+---
+ CMakeLists.txt | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
+
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index 16c6092..85b242c 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -8,7 +8,8 @@ project(adrenotools LANGUAGES CXX C)
+ 
+ set(GEN_INSTALL_TARGET OFF CACHE BOOL "")
+ 
+-add_subdirectory(lib/linkernsbypass)
++include(CPMUtil)
++AddJsonPackage(linkernsbypass)
+ 
+ set(LIB_SOURCES src/bcenabler.cpp
+                 src/driver.cpp
+-- 
+2.54.0
+

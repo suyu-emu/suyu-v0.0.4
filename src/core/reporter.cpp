@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2019 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -6,7 +9,7 @@
 #include <iomanip>
 
 #include <fmt/chrono.h>
-#include <fmt/format.h>
+#include <fmt/ranges.h>
 #include <nlohmann/json.hpp>
 
 #include "common/fs/file.h"
@@ -17,6 +20,7 @@
 #include "common/settings.h"
 #include "core/arm/arm_interface.h"
 #include "core/core.h"
+#include "core/hle/ipc.h"
 #include "core/hle/kernel/k_page_table.h"
 #include "core/hle/kernel/k_process.h"
 #include "core/hle/result.h"
@@ -27,13 +31,15 @@
 namespace {
 
 std::filesystem::path GetPath(std::string_view type, u64 title_id, std::string_view timestamp) {
-    return Common::FS::GetSuyuPath(Common::FS::SuyuPath::LogDir) / type /
+    return Common::FS::GetEdenPath(Common::FS::EdenPath::LogDir) / type /
            fmt::format("{:016X}_{}.json", title_id, timestamp);
 }
 
 std::string GetTimestamp() {
     const auto time = std::time(nullptr);
-    return fmt::format("{:%FT%H-%M-%S}", *std::localtime(&time));
+    std::ostringstream oss;
+    oss << std::put_time(std::localtime(&time), "%FT%H-%M-%S");
+    return oss.str();
 }
 
 using namespace nlohmann;
@@ -51,7 +57,7 @@ void SaveToFile(const json& json, const std::filesystem::path& filename) {
     file << std::setw(4) << json << std::endl;
 }
 
-json GetSuyuVersionData() {
+json GetYuzuVersionData() {
     return {
         {"scm_rev", std::string(Common::g_scm_rev)},
         {"scm_branch", std::string(Common::g_scm_branch)},
@@ -112,15 +118,14 @@ json GetProcessorStateData(const std::string& architecture, u64 entry_point, u64
 json GetFullDataAuto(const std::string& timestamp, u64 title_id, Core::System& system) {
     json out;
 
-    out["suyu_version"] = GetSuyuVersionData();
+    out["yuzu_version"] = GetYuzuVersionData();
     out["report_common"] = GetReportCommonData(title_id, ResultSuccess, timestamp);
 
     return out;
 }
 
 template <bool read_value, typename DescriptorType>
-json GetHLEBufferDescriptorData(const std::vector<DescriptorType>& buffer,
-                                Core::Memory::Memory& memory) {
+json GetHLEBufferDescriptorData(const boost::container::static_vector<DescriptorType, IPC::MAX_BUFFER_DESCRIPTORS>& buffer, Core::Memory::Memory& memory) {
     auto buffer_out = json::array();
     for (const auto& desc : buffer) {
         auto entry = json{
@@ -180,7 +185,7 @@ void Reporter::SaveCrashReport(u64 title_id, Result result, u64 set_flags, u64 e
     const auto timestamp = GetTimestamp();
     json out;
 
-    out["suyu_version"] = GetSuyuVersionData();
+    out["yuzu_version"] = GetYuzuVersionData();
     out["report_common"] = GetReportCommonData(title_id, result, timestamp);
 
     auto proc_out = GetProcessorStateData(arch, entry_point, sp, pc, pstate, registers, backtrace);
@@ -291,7 +296,7 @@ void Reporter::SavePlayReport(PlayReportType type, u64 title_id,
     const auto timestamp = GetTimestamp();
     json out;
 
-    out["suyu_version"] = GetSuyuVersionData();
+    out["yuzu_version"] = GetYuzuVersionData();
     out["report_common"] = GetReportCommonData(title_id, ResultSuccess, timestamp, user_id);
 
     auto data_out = json::array();
@@ -319,7 +324,7 @@ void Reporter::SaveErrorReport(u64 title_id, Result result,
     const auto timestamp = GetTimestamp();
     json out;
 
-    out["suyu_version"] = GetSuyuVersionData();
+    out["yuzu_version"] = GetYuzuVersionData();
     out["report_common"] = GetReportCommonData(title_id, result, timestamp);
 
     out["error_custom_text"] = {
@@ -332,7 +337,7 @@ void Reporter::SaveErrorReport(u64 title_id, Result result,
 
 void Reporter::SaveFSAccessLog(std::string_view log_message) const {
     const auto access_log_path =
-        Common::FS::GetSuyuPath(Common::FS::SuyuPath::SDMCDir) / "FsAccessLog.txt";
+        Common::FS::GetEdenPath(Common::FS::EdenPath::SDMCDir) / "FsAccessLog.txt";
 
     void(Common::FS::AppendStringToFile(access_log_path, Common::FS::FileType::TextFile,
                                         log_message));
@@ -352,7 +357,7 @@ void Reporter::SaveUserReport() const {
 
 void Reporter::ClearFSAccessLog() const {
     const auto access_log_path =
-        Common::FS::GetSuyuPath(Common::FS::SuyuPath::SDMCDir) / "FsAccessLog.txt";
+        Common::FS::GetEdenPath(Common::FS::EdenPath::SDMCDir) / "FsAccessLog.txt";
 
     Common::FS::IOFile access_log_file{access_log_path, Common::FS::FileAccessMode::Write,
                                        Common::FS::FileType::TextFile};

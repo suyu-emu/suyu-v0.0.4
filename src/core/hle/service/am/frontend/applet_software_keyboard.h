@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2021 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -124,16 +127,16 @@ private:
 
     // Inline Software Keyboard Requests
 
-    void RequestFinalize(const std::vector<u8>& request_data);
-    void RequestSetUserWordInfo(const std::vector<u8>& request_data);
-    void RequestSetCustomizeDic(const std::vector<u8>& request_data);
-    void RequestCalc(const std::vector<u8>& request_data);
+    void RequestFinalize(std::span<const u8> request_data);
+    void RequestSetUserWordInfo(std::span<const u8> request_data);
+    void RequestSetCustomizeDic(std::span<const u8> request_data);
+    void RequestCalc(std::span<const u8> request_data);
     void RequestCalcOld();
     void RequestCalcNew();
-    void RequestSetCustomizedDictionaries(const std::vector<u8>& request_data);
-    void RequestUnsetCustomizedDictionaries(const std::vector<u8>& request_data);
-    void RequestSetChangedStringV2Flag(const std::vector<u8>& request_data);
-    void RequestSetMovedCursorV2Flag(const std::vector<u8>& request_data);
+    void RequestSetCustomizedDictionaries(std::span<const u8> request_data);
+    void RequestUnsetCustomizedDictionaries(std::span<const u8> request_data);
+    void RequestSetChangedStringV2Flag(std::span<const u8> request_data);
+    void RequestSetMovedCursorV2Flag(std::span<const u8> request_data);
 
     // Inline Software Keyboard Replies
 

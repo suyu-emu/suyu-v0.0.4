@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2023 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -21,6 +24,8 @@ enum class Category : u32 {
     Overlay,
     Renderer,
     RendererAdvanced,
+    RendererHacks,
+    RendererExtensions,
     RendererDebug,
     System,
     SystemAudio,
@@ -43,7 +48,6 @@ enum class Category : u32 {
     Multiplayer,
     Services,
     Paths,
-    Linux,
     LibraryApplet,
     MaxEnum,
 };
@@ -158,7 +162,7 @@ public:
     /**
      * @returns A unique identifier for the Setting's internal data type.
      */
-    [[nodiscard]] virtual std::type_index TypeId() const = 0;
+    [[nodiscard]] virtual std::string_view TypeId() const = 0;
 
     /**
      * Returns true if the Setting's internal data type is an enum.

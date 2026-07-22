@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: 2014 Citra Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -47,7 +50,7 @@ bool SurfaceTargetIsLayered(SurfaceTarget target) {
     case SurfaceTarget::TextureCubeArray:
         return true;
     default:
-        LOG_CRITICAL(HW_GPU, "Unimplemented layered surface_target={}", target);
+        LOG_CRITICAL(HW_GPU, "Unimplemented surface_target={}", target);
         ASSERT(false);
         return false;
     }
@@ -66,7 +69,7 @@ bool SurfaceTargetIsArray(SurfaceTarget target) {
     case SurfaceTarget::TextureCubeArray:
         return true;
     default:
-        LOG_CRITICAL(HW_GPU, "Unimplemented array surface_target={}", target);
+        LOG_CRITICAL(HW_GPU, "Unimplemented surface_target={}", target);
         ASSERT(false);
         return false;
     }
@@ -89,7 +92,7 @@ PixelFormat PixelFormatFromDepthFormat(Tegra::DepthFormat format) {
     case Tegra::DepthFormat::X8Z24_UNORM:
         return PixelFormat::X8_D24_UNORM;
     default:
-        UNIMPLEMENTED_MSG("Unimplemented depth format={}", format);
+        UNIMPLEMENTED_MSG("Unimplemented format={}", format);
         return PixelFormat::S8_UINT_D24_UNORM;
     }
 }
@@ -197,7 +200,7 @@ PixelFormat PixelFormatFromRenderTargetFormat(Tegra::RenderTargetFormat format) 
     case Tegra::RenderTargetFormat::R8_UINT:
         return PixelFormat::R8_UINT;
     default:
-        UNIMPLEMENTED_MSG("Unimplemented render target format={}", format);
+        UNIMPLEMENTED_MSG("Unimplemented format={}", format);
         return PixelFormat::A8B8G8R8_UNORM;
     }
 }
@@ -212,7 +215,7 @@ PixelFormat PixelFormatFromGPUPixelFormat(Service::android::PixelFormat format) 
     case Service::android::PixelFormat::Bgra8888:
         return PixelFormat::B8G8R8A8_UNORM;
     default:
-        UNIMPLEMENTED_MSG("Unimplemented android pixel format={}", format);
+        UNIMPLEMENTED_MSG("Unimplemented format={}", format);
         return PixelFormat::A8B8G8R8_UNORM;
     }
 }
@@ -235,6 +238,44 @@ SurfaceType GetFormatType(PixelFormat pixel_format) {
     ASSERT(false);
 
     return SurfaceType::Invalid;
+}
+
+bool HasAlpha(PixelFormat pixel_format) {
+    switch (pixel_format) {
+        case PixelFormat::A8B8G8R8_UNORM:
+        case PixelFormat::A8B8G8R8_SNORM:
+        case PixelFormat::A8B8G8R8_SINT:
+        case PixelFormat::A8B8G8R8_UINT:
+        case PixelFormat::A1R5G5B5_UNORM:
+        case PixelFormat::A2B10G10R10_UNORM:
+        case PixelFormat::A2B10G10R10_UINT:
+        case PixelFormat::A2R10G10B10_UNORM:
+        case PixelFormat::A1B5G5R5_UNORM:
+        case PixelFormat::A5B5G5R1_UNORM:
+        case PixelFormat::R16G16B16A16_FLOAT:
+        case PixelFormat::R16G16B16A16_UNORM:
+        case PixelFormat::R16G16B16A16_SNORM:
+        case PixelFormat::R16G16B16A16_SINT:
+        case PixelFormat::R16G16B16A16_UINT:
+        case PixelFormat::R32G32B32A32_UINT:
+        case PixelFormat::BC1_RGBA_UNORM:
+        case PixelFormat::B8G8R8A8_UNORM:
+        case PixelFormat::R32G32B32A32_FLOAT:
+        case PixelFormat::R32G32B32A32_SINT:
+        case PixelFormat::A8B8G8R8_SRGB:
+        case PixelFormat::B8G8R8A8_SRGB:
+        case PixelFormat::BC1_RGBA_SRGB:
+        case PixelFormat::A4B4G4R4_UNORM:
+        case PixelFormat::BC2_SRGB:
+        case PixelFormat::BC2_UNORM:
+        case PixelFormat::BC3_SRGB:
+        case PixelFormat::BC3_UNORM:
+        case PixelFormat::BC7_SRGB:
+        case PixelFormat::BC7_UNORM:
+            return true;
+        default:
+            return false;
+    }
 }
 
 bool IsPixelFormatASTC(PixelFormat format) {
@@ -295,6 +336,24 @@ bool IsPixelFormatBCn(PixelFormat format) {
     }
 }
 
+bool IsPixelFormatETC2(PixelFormat format) {
+    switch (format) {
+    case PixelFormat::ETC2_RGB_UNORM:
+    case PixelFormat::ETC2_RGBA_UNORM:
+    case PixelFormat::ETC2_RGB_PTA_UNORM:
+    case PixelFormat::ETC2_RGB_SRGB:
+    case PixelFormat::ETC2_RGBA_SRGB:
+    case PixelFormat::ETC2_RGB_PTA_SRGB:
+    case PixelFormat::EAC_R11_UNORM:
+    case PixelFormat::EAC_R11_SNORM:
+    case PixelFormat::EAC_R11G11_UNORM:
+    case PixelFormat::EAC_R11G11_SNORM:
+        return true;
+    default:
+        return false;
+    }
+}
+
 bool IsPixelFormatSRGB(PixelFormat format) {
     switch (format) {
     case PixelFormat::A8B8G8R8_SRGB:
@@ -303,6 +362,9 @@ bool IsPixelFormatSRGB(PixelFormat format) {
     case PixelFormat::BC2_SRGB:
     case PixelFormat::BC3_SRGB:
     case PixelFormat::BC7_SRGB:
+    case PixelFormat::ETC2_RGB_SRGB:
+    case PixelFormat::ETC2_RGBA_SRGB:
+    case PixelFormat::ETC2_RGB_PTA_SRGB:
     case PixelFormat::ASTC_2D_4X4_SRGB:
     case PixelFormat::ASTC_2D_8X8_SRGB:
     case PixelFormat::ASTC_2D_8X5_SRGB:

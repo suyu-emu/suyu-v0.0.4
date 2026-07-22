@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: 2023 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -6,11 +9,13 @@ package org.yuzu.yuzu_emu.fragments
 import android.app.Dialog
 import android.content.DialogInterface
 import android.os.Bundle
+import android.view.View
 import androidx.fragment.app.DialogFragment
 import androidx.fragment.app.activityViewModels
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import org.yuzu.yuzu_emu.R
 import org.yuzu.yuzu_emu.databinding.DialogFolderPropertiesBinding
+import org.yuzu.yuzu_emu.model.DirectoryType
 import org.yuzu.yuzu_emu.model.GameDir
 import org.yuzu.yuzu_emu.model.GamesViewModel
 import org.yuzu.yuzu_emu.utils.NativeConfig
@@ -25,14 +30,18 @@ class GameFolderPropertiesDialogFragment : DialogFragment() {
         val binding = DialogFolderPropertiesBinding.inflate(layoutInflater)
         val gameDir = requireArguments().parcelable<GameDir>(GAME_DIR)!!
 
-        // Restore checkbox state
-        binding.deepScanSwitch.isChecked =
-            savedInstanceState?.getBoolean(DEEP_SCAN) ?: gameDir.deepScan
+        // Hide deepScan for external content, do automatically
+        if (gameDir.type == DirectoryType.EXTERNAL_CONTENT) {
+            binding.deepScanSwitch.visibility = View.GONE
+        } else {
+            // Restore checkbox state for game dirs
+            binding.deepScanSwitch.isChecked =
+                savedInstanceState?.getBoolean(DEEP_SCAN) ?: gameDir.deepScan
 
-        // Ensure that we can get the checkbox state even if the view is destroyed
-        deepScan = binding.deepScanSwitch.isChecked
-        binding.deepScanSwitch.setOnClickListener {
             deepScan = binding.deepScanSwitch.isChecked
+            binding.deepScanSwitch.setOnClickListener {
+                deepScan = binding.deepScanSwitch.isChecked
+            }
         }
 
         return MaterialAlertDialogBuilder(requireContext())
@@ -41,8 +50,10 @@ class GameFolderPropertiesDialogFragment : DialogFragment() {
             .setPositiveButton(android.R.string.ok) { _: DialogInterface, _: Int ->
                 val folderIndex = gamesViewModel.folders.value.indexOf(gameDir)
                 if (folderIndex != -1) {
-                    gamesViewModel.folders.value[folderIndex].deepScan =
-                        binding.deepScanSwitch.isChecked
+                    if (gameDir.type == DirectoryType.GAME) {
+                        gamesViewModel.folders.value[folderIndex].deepScan =
+                            binding.deepScanSwitch.isChecked
+                    }
                     gamesViewModel.updateGameDirs()
                 }
             }

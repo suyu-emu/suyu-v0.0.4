@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2022 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -62,7 +65,7 @@ Result Palma::GetPalmaOperationInfo(const PalmaConnectionHandle& handle,
     }
     operation_type = static_cast<PalmaOperationType>(operation.operation);
     std::memcpy(out_data.data(), operation.data.data(),
-                std::min(out_data.size(), operation.data.size()));
+                (std::min)(out_data.size(), operation.data.size()));
 
     return ResultSuccess;
 }
@@ -74,7 +77,7 @@ Result Palma::PlayPalmaActivity(const PalmaConnectionHandle& handle, u64 palma_a
     operation.operation = PackedPalmaOperationType::PlayActivity;
     operation.result = PalmaResultSuccess;
     operation.data = {};
-    operation_complete_event->Signal();
+    operation_complete_event->Signal(hid_core.kernel);
     return ResultSuccess;
 }
 
@@ -93,7 +96,7 @@ Result Palma::ReadPalmaStep(const PalmaConnectionHandle& handle) {
     operation.operation = PackedPalmaOperationType::ReadStep;
     operation.result = PalmaResultSuccess;
     operation.data = {};
-    operation_complete_event->Signal();
+    operation_complete_event->Signal(hid_core.kernel);
     return ResultSuccess;
 }
 
@@ -122,7 +125,7 @@ Result Palma::ReadPalmaUniqueCode(const PalmaConnectionHandle& handle) {
     operation.operation = PackedPalmaOperationType::ReadUniqueCode;
     operation.result = PalmaResultSuccess;
     operation.data = {};
-    operation_complete_event->Signal();
+    operation_complete_event->Signal(hid_core.kernel);
     return ResultSuccess;
 }
 
@@ -133,7 +136,7 @@ Result Palma::SetPalmaUniqueCodeInvalid(const PalmaConnectionHandle& handle) {
     operation.operation = PackedPalmaOperationType::SetUniqueCodeInvalid;
     operation.result = PalmaResultSuccess;
     operation.data = {};
-    operation_complete_event->Signal();
+    operation_complete_event->Signal(hid_core.kernel);
     return ResultSuccess;
 }
 
@@ -146,7 +149,7 @@ Result Palma::WritePalmaRgbLedPatternEntry(const PalmaConnectionHandle& handle, 
     operation.operation = PackedPalmaOperationType::WriteRgbLedPatternEntry;
     operation.result = PalmaResultSuccess;
     operation.data = {};
-    operation_complete_event->Signal();
+    operation_complete_event->Signal(hid_core.kernel);
     return ResultSuccess;
 }
 
@@ -158,7 +161,7 @@ Result Palma::WritePalmaWaveEntry(const PalmaConnectionHandle& handle, PalmaWave
     operation.operation = PackedPalmaOperationType::WriteWaveEntry;
     operation.result = PalmaResultSuccess;
     operation.data = {};
-    operation_complete_event->Signal();
+    operation_complete_event->Signal(hid_core.kernel);
     return ResultSuccess;
 }
 
@@ -171,7 +174,7 @@ Result Palma::SetPalmaDataBaseIdentificationVersion(const PalmaConnectionHandle&
     operation.operation = PackedPalmaOperationType::ReadDataBaseIdentificationVersion;
     operation.result = PalmaResultSuccess;
     operation.data[0] = {};
-    operation_complete_event->Signal();
+    operation_complete_event->Signal(hid_core.kernel);
     return ResultSuccess;
 }
 
@@ -183,7 +186,7 @@ Result Palma::GetPalmaDataBaseIdentificationVersion(const PalmaConnectionHandle&
     operation.result = PalmaResultSuccess;
     operation.data = {};
     operation.data[0] = static_cast<u8>(database_id_version);
-    operation_complete_event->Signal();
+    operation_complete_event->Signal(hid_core.kernel);
     return ResultSuccess;
 }
 

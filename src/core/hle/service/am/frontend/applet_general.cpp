@@ -1,9 +1,12 @@
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2018 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "common/assert.h"
 #include "common/hex_util.h"
-#include "common/logging/log.h"
+#include "common/logging.h"
 #include "core/core.h"
 #include "core/frontend/applets/general.h"
 #include "core/hle/result.h"
@@ -17,16 +20,16 @@ namespace Service::AM::Frontend {
 
 constexpr Result ERROR_INVALID_PIN{ErrorModule::PCTL, 221};
 
-static void LogCurrentStorage(std::shared_ptr<Applet> applet, std::string_view prefix) {
+static void LogCurrentStorage(Kernel::KernelCore& kernel, std::shared_ptr<Applet> applet, std::string_view prefix) {
     std::shared_ptr<IStorage> storage;
-    while (R_SUCCEEDED(applet->caller_applet_broker->GetInData().Pop(&storage))) {
+    while (R_SUCCEEDED(applet->caller_applet_broker->GetInData().Pop(kernel, &storage))) {
         const auto data = storage->GetData();
         LOG_INFO(Service_AM,
                  "called (STUBBED), during {} received normal data with size={:08X}, data={}",
                  prefix, data.size(), Common::HexToString(data));
     }
 
-    while (R_SUCCEEDED(applet->caller_applet_broker->GetInteractiveInData().Pop(&storage))) {
+    while (R_SUCCEEDED(applet->caller_applet_broker->GetInteractiveInData().Pop(kernel, &storage))) {
         const auto data = storage->GetData();
         LOG_INFO(Service_AM,
                  "called (STUBBED), during {} received interactive data with size={:08X}, data={}",
@@ -216,7 +219,7 @@ void StubApplet::Initialize() {
     LOG_WARNING(Service_AM, "called (STUBBED)");
     FrontendApplet::Initialize();
 
-    LogCurrentStorage(applet.lock(), "Initialize");
+    LogCurrentStorage(system.Kernel(), applet.lock(), "Initialize");
 }
 
 Result StubApplet::GetStatus() const {
@@ -226,7 +229,7 @@ Result StubApplet::GetStatus() const {
 
 void StubApplet::ExecuteInteractive() {
     LOG_WARNING(Service_AM, "called (STUBBED)");
-    LogCurrentStorage(applet.lock(), "ExecuteInteractive");
+    LogCurrentStorage(system.Kernel(), applet.lock(), "ExecuteInteractive");
 
     PushOutData(std::make_shared<IStorage>(system, std::vector<u8>(0x1000)));
     PushInteractiveOutData(std::make_shared<IStorage>(system, std::vector<u8>(0x1000)));
@@ -235,7 +238,7 @@ void StubApplet::ExecuteInteractive() {
 
 void StubApplet::Execute() {
     LOG_WARNING(Service_AM, "called (STUBBED)");
-    LogCurrentStorage(applet.lock(), "Execute");
+    LogCurrentStorage(system.Kernel(), applet.lock(), "Execute");
 
     PushOutData(std::make_shared<IStorage>(system, std::vector<u8>(0x1000)));
     PushInteractiveOutData(std::make_shared<IStorage>(system, std::vector<u8>(0x1000)));

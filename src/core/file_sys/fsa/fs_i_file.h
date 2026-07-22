@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2024 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -93,7 +96,7 @@ protected:
         R_TRY(this->DoGetSize(std::addressof(file_size)));
         R_UNLESS(offset <= file_size, ResultOutOfRange);
 
-        *out = static_cast<size_t>(std::min(file_size - offset, static_cast<s64>(size)));
+        *out = static_cast<size_t>((std::min)(file_size - offset, static_cast<s64>(size)));
         R_SUCCEED();
     }
 

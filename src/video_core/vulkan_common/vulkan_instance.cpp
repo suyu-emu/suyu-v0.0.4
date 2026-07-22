@@ -1,6 +1,10 @@
-// SPDX-FileCopyrightText: Copyright 2020 suyu Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
+// SPDX-FileCopyrightText: Copyright 2020 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
+#include <cstddef>
 #include <future>
 #include <optional>
 #include <span>
@@ -8,8 +12,9 @@
 
 #include "common/common_types.h"
 #include "common/dynamic_library.h"
-#include "common/logging/log.h"
-#include "common/polyfill_ranges.h"
+#include "common/logging.h"
+#include <ranges>
+#include <vulkan/vulkan_core.h>
 #include "core/frontend/emu_window.h"
 #include "video_core/vulkan_common/vulkan_instance.h"
 #include "video_core/vulkan_common/vulkan_wrapper.h"
@@ -17,18 +22,12 @@
 namespace Vulkan {
 namespace {
 
-[[nodiscard]] bool AreExtensionsSupported(const vk::InstanceDispatch& dld,
-                                          std::span<const char* const> extensions) {
-    const std::optional properties = vk::EnumerateInstanceExtensionProperties(dld);
-    if (!properties) {
-        LOG_ERROR(Render_Vulkan, "Failed to query extension properties");
-        return false;
-    }
+[[nodiscard]] bool AreExtensionsSupported(const vk::InstanceDispatch& dld, std::vector<VkExtensionProperties> const& properties, std::span<const char* const> extensions) {
     for (const char* extension : extensions) {
-        const auto it = std::ranges::find_if(*properties, [extension](const auto& prop) {
+        const auto it = std::ranges::find_if(properties, [extension](const auto& prop) {
             return std::strcmp(extension, prop.extensionName) == 0;
         });
-        if (it == properties->end()) {
+        if (it == properties.end()) {
             LOG_ERROR(Render_Vulkan, "Required instance extension {} is not available", extension);
             return false;
         }
@@ -37,8 +36,8 @@ namespace {
 }
 
 [[nodiscard]] std::vector<const char*> RequiredExtensions(
-    const vk::InstanceDispatch& dld, Core::Frontend::WindowSystemType window_type,
-    bool enable_validation) {
+    const vk::InstanceDispatch& dld, std::vector<VkExtensionProperties> const& properties,
+    Core::Frontend::WindowSystemType window_type, bool enable_validation) {
     std::vector<const char*> extensions;
     extensions.reserve(6);
     switch (window_type) {
@@ -56,6 +55,10 @@ namespace {
     case Core::Frontend::WindowSystemType::Android:
         extensions.push_back(VK_KHR_ANDROID_SURFACE_EXTENSION_NAME);
         break;
+#elif defined(__HAIKU__)
+    case Core::Frontend::WindowSystemType::Xcb:
+        extensions.push_back(VK_KHR_XCB_SURFACE_EXTENSION_NAME);
+        break;
 #else
     case Core::Frontend::WindowSystemType::X11:
         extensions.push_back(VK_KHR_XLIB_SURFACE_EXTENSION_NAME);
@@ -71,15 +74,14 @@ namespace {
     if (window_type != Core::Frontend::WindowSystemType::Headless) {
         extensions.push_back(VK_KHR_SURFACE_EXTENSION_NAME);
     }
+    // Probe optional extensions against the same snapshot the caller verifies against, so the
+    // check here and the verification in CreateInstance can never disagree (see TOCTOU note below).
 #ifdef __APPLE__
-    if (AreExtensionsSupported(dld, std::array{VK_KHR_PORTABILITY_ENUMERATION_EXTENSION_NAME})) {
+    if (AreExtensionsSupported(dld, properties, std::array{VK_KHR_PORTABILITY_ENUMERATION_EXTENSION_NAME}))
         extensions.push_back(VK_KHR_PORTABILITY_ENUMERATION_EXTENSION_NAME);
-    }
 #endif
-    if (enable_validation &&
-        AreExtensionsSupported(dld, std::array{VK_EXT_DEBUG_UTILS_EXTENSION_NAME})) {
+    if (enable_validation && AreExtensionsSupported(dld, properties, std::array{VK_EXT_DEBUG_UTILS_EXTENSION_NAME}))
         extensions.push_back(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
-    }
     return extensions;
 }
 
@@ -126,11 +128,20 @@ vk::Instance CreateInstance(const Common::DynamicLibrary& library, vk::InstanceD
         LOG_ERROR(Render_Vulkan, "Failed to load Vulkan function pointers");
         throw vk::Exception(VK_ERROR_INITIALIZATION_FAILED);
     }
-    const std::vector<const char*> extensions =
-        RequiredExtensions(dld, window_type, enable_validation);
-    if (!AreExtensionsSupported(dld, extensions)) {
+    // Enumerate instance extensions exactly once. RequiredExtensions() used to enumerate a second
+    // time internally; if the driver returned a different set between the two calls (a real TOCTOU
+    // seen on some AMD iGPU drivers), an extension added to the list could be missing from the
+    // verification snapshot, throwing EXTENSION_NOT_PRESENT on an otherwise valid launch. Sharing
+    // one snapshot for both the optional-extension probe and the final check removes that window.
+    auto const properties = vk::EnumerateInstanceExtensionProperties(dld);
+    if (!properties) {
+        LOG_ERROR(Render_Vulkan, "Failed to query instance extension properties");
         throw vk::Exception(VK_ERROR_EXTENSION_NOT_PRESENT);
     }
+    std::vector<const char*> const extensions =
+        RequiredExtensions(dld, *properties, window_type, enable_validation);
+    if (!AreExtensionsSupported(dld, *properties, extensions))
+        throw vk::Exception(VK_ERROR_EXTENSION_NOT_PRESENT);
     std::vector<const char*> layers = Layers(enable_validation);
     RemoveUnavailableLayers(dld, layers);
 

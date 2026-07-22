@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2022 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -5,7 +8,7 @@
 
 #include "audio_core/renderer/mix/mix_context.h"
 #include "audio_core/renderer/splitter/splitter_context.h"
-#include "common/polyfill_ranges.h"
+#include <ranges>
 
 namespace AudioCore::Renderer {
 
@@ -126,7 +129,7 @@ bool MixContext::TSortInfo(const SplitterContext& splitter_context) {
     }
 
     auto sorted_results{node_states.GetSortedResuls()};
-    const auto result_size{std::min(count, static_cast<s32>(sorted_results.second))};
+    const auto result_size{(std::min)(count, static_cast<s32>(sorted_results.second))};
     for (s32 i = 0; i < result_size; i++) {
         sorted_mix_infos[i] = &mix_infos[sorted_results.first[i]];
     }

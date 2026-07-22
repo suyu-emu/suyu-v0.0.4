@@ -1,6 +1,7 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
+#include <filesystem>
 #include "data_manager.h"
 #include "common/assert.h"
 #include "common/fs/path_util.h"
@@ -12,11 +13,12 @@ namespace fs = std::filesystem;
 
 const fs::path GetDataDir(DataDir dir, const std::string &user_id)
 {
-    const fs::path nand_dir = Common::FS::GetSuyuPath(Common::FS::SuyuPath::NANDDir);
+    const fs::path nand_dir = Common::FS::GetEdenPath(Common::FS::EdenPath::NANDDir);
+    const fs::path save_dir = Common::FS::GetEdenPath(Common::FS::EdenPath::SaveDir);
 
     switch (dir) {
     case DataDir::Saves:
-        return (nand_dir / "user" / "save" / "0000000000000000" / user_id).string();
+        return (save_dir / "user" / "save" / "0000000000000000" / user_id).string();
     case DataDir::UserNand:
         return (nand_dir / "user" / "Contents" / "registered").string();
     case DataDir::SysNand:
@@ -24,9 +26,9 @@ const fs::path GetDataDir(DataDir dir, const std::string &user_id)
         // that contains profile data and other stuff
         return (nand_dir / "system" / "Contents" / "registered").string();
     case DataDir::Mods:
-        return Common::FS::GetSuyuPathString(Common::FS::SuyuPath::LoadDir);
+        return Common::FS::GetEdenPathString(Common::FS::EdenPath::LoadDir);
     case DataDir::Shaders:
-        return Common::FS::GetSuyuPathString(Common::FS::SuyuPath::ShaderDir);
+        return Common::FS::GetEdenPathString(Common::FS::EdenPath::ShaderDir);
     default:
         UNIMPLEMENTED();
     }
@@ -36,29 +38,28 @@ const fs::path GetDataDir(DataDir dir, const std::string &user_id)
 
 const std::string GetDataDirString(DataDir dir, const std::string &user_id)
 {
-    return GetDataDir(dir, user_id).string();
+    auto dirString = GetDataDir(dir, user_id).string();
+    std::filesystem::create_directories(dirString);
+    return dirString;
 }
 
 u64 ClearDir(DataDir dir, const std::string &user_id)
 {
     fs::path data_dir = GetDataDir(dir, user_id);
-    u64 result = fs::remove_all(data_dir);
-
+    std::error_code ec;
+    u64 result = fs::remove_all(data_dir, ec);
     // mkpath at the end just so it actually exists
-    fs::create_directories(data_dir);
+    fs::create_directories(data_dir, ec);
     return result;
 }
 
-const std::string ReadableBytesSize(u64 size)
-{
-    static constexpr std::array units{"B", "KiB", "MiB", "GiB", "TiB", "PiB"};
-    if (size == 0) {
+std::string ReadableBytesSize(u64 size) noexcept {
+    std::array<std::string_view, 6> const units{"B", "KB", "MB", "GB", "TB", "PB"};
+    u64 const base = 1000;
+    if (size == 0)
         return "0 B";
-    }
-
-    const int digit_groups = (std::min) (static_cast<int>(std::log10(size) / std::log10(1024)),
-                                         static_cast<int>(units.size()));
-    return fmt::format("{:.1f} {}", size / std::pow(1024, digit_groups), units[digit_groups]);
+    auto const digit_groups = std::min<u64>(u64(std::log10(size) / std::log10(base)), u64(units.size()));
+    return fmt::format("{:.1f} {}", size / std::pow(base, digit_groups), units[digit_groups]);
 }
 
 u64 DataDirSize(DataDir dir)

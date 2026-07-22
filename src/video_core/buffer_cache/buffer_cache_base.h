@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2022 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
@@ -5,19 +8,22 @@
 
 #include <algorithm>
 #include <array>
+#include <bit>
 #include <functional>
 #include <memory>
 #include <mutex>
 #include <numeric>
 #include <span>
-#include <unordered_map>
 #include <vector>
+
+#include <ankerl/unordered_dense.h>
+#include <boost/container/static_vector.hpp>
+#include <boost/container/small_vector.hpp>
 
 #include "common/common_types.h"
 #include "common/div_ceil.h"
 #include "common/literals.h"
 #include "common/lru_cache.h"
-#include "common/microprofile.h"
 #include "common/range_sets.h"
 #include "common/scope_exit.h"
 #include "common/settings.h"
@@ -26,7 +32,7 @@
 #include "video_core/control/channel_state_cache.h"
 #include "video_core/delayed_destruction_ring.h"
 #include "video_core/dirty_flags.h"
-#include "video_core/engines/draw_manager.h"
+#include "video_core/engines/maxwell_3d.h"
 #include "video_core/engines/kepler_compute.h"
 #include "video_core/engines/maxwell_3d.h"
 #include "video_core/memory_manager.h"
@@ -34,10 +40,6 @@
 #include "video_core/texture_cache/types.h"
 
 namespace VideoCommon {
-
-MICROPROFILE_DECLARE(GPU_PrepareBuffers);
-MICROPROFILE_DECLARE(GPU_BindUploadBuffers);
-MICROPROFILE_DECLARE(GPU_DownloadMemory);
 
 using BufferId = Common::SlotId;
 
@@ -55,6 +57,8 @@ constexpr u32 NUM_COMPUTE_UNIFORM_BUFFERS = 8;
 constexpr u32 NUM_STORAGE_BUFFERS = 16;
 constexpr u32 NUM_TEXTURE_BUFFERS = 32;
 constexpr u32 NUM_STAGES = 5;
+
+static_assert(NUM_GRAPHICS_UNIFORM_BUFFERS <= 32, "fast bitmask must fit u32");
 
 using UniformBufferSizes = std::array<std::array<u32, NUM_GRAPHICS_UNIFORM_BUFFERS>, NUM_STAGES>;
 using ComputeUniformBufferSizes = std::array<u32, NUM_COMPUTE_UNIFORM_BUFFERS>;
@@ -93,10 +97,10 @@ static constexpr Binding NULL_BINDING{
 
 template <typename Buffer>
 struct HostBindings {
-    boost::container::small_vector<Buffer*, NUM_VERTEX_BUFFERS> buffers;
-    boost::container::small_vector<u64, NUM_VERTEX_BUFFERS> offsets;
-    boost::container::small_vector<u64, NUM_VERTEX_BUFFERS> sizes;
-    boost::container::small_vector<u64, NUM_VERTEX_BUFFERS> strides;
+    boost::container::static_vector<Buffer*, NUM_VERTEX_BUFFERS> buffers;
+    boost::container::static_vector<u64, NUM_VERTEX_BUFFERS> offsets;
+    boost::container::static_vector<u64, NUM_VERTEX_BUFFERS> sizes;
+    boost::container::static_vector<u64, NUM_VERTEX_BUFFERS> strides;
     u32 min_index{NUM_VERTEX_BUFFERS};
     u32 max_index{0};
 };
@@ -132,6 +136,9 @@ public:
     u32 enabled_compute_storage_buffers = 0;
     u32 written_compute_storage_buffers = 0;
 
+    u32 total_graphics_storage_buffers = 0;
+    u32 total_compute_storage_buffers = 0;
+
     std::array<u32, NUM_STAGES> enabled_texture_buffers{};
     std::array<u32, NUM_STAGES> written_texture_buffers{};
     std::array<u32, NUM_STAGES> image_texture_buffers{};
@@ -139,8 +146,8 @@ public:
     u32 written_compute_texture_buffers = 0;
     u32 image_compute_texture_buffers = 0;
 
-    std::array<u32, 16> uniform_cache_hits{};
-    std::array<u32, 16> uniform_cache_shots{};
+    std::array<u32, NUM_GRAPHICS_UNIFORM_BUFFERS> uniform_cache_hits{};
+    std::array<u32, NUM_GRAPHICS_UNIFORM_BUFFERS> uniform_cache_shots{};
 
     u32 uniform_buffer_skip_cache_size = DEFAULT_SKIP_CACHE_SIZE;
 
@@ -156,7 +163,11 @@ template <class P>
 class BufferCache : public VideoCommon::ChannelSetupCaches<BufferCacheChannelInfo> {
     // Page size for caching purposes.
     // This is unrelated to the CPU page size and it can be changed as it seems optimal.
+#ifdef YUZU_LEGACY
+    static constexpr u32 CACHING_PAGEBITS = 12;
+#else
     static constexpr u32 CACHING_PAGEBITS = 16;
+#endif
     static constexpr u64 CACHING_PAGESIZE = u64{1} << CACHING_PAGEBITS;
 
     static constexpr bool IS_OPENGL = P::IS_OPENGL;
@@ -170,9 +181,14 @@ class BufferCache : public VideoCommon::ChannelSetupCaches<BufferCacheChannelInf
     static constexpr bool SEPARATE_IMAGE_BUFFERS_BINDINGS = P::SEPARATE_IMAGE_BUFFER_BINDINGS;
     static constexpr bool USE_MEMORY_MAPS_FOR_UPLOADS = P::USE_MEMORY_MAPS_FOR_UPLOADS;
 
+#ifdef YUZU_LEGACY
+    static constexpr s64 TARGET_THRESHOLD = 3_GiB;
+#else
+    static constexpr s64 TARGET_THRESHOLD = 4_GiB;
+#endif
+
     static constexpr s64 DEFAULT_EXPECTED_MEMORY = 512_MiB;
     static constexpr s64 DEFAULT_CRITICAL_MEMORY = 1_GiB;
-    static constexpr s64 TARGET_THRESHOLD = 4_GiB;
 
     // Debug Flags.
 
@@ -232,7 +248,7 @@ public:
 
     void UnbindGraphicsStorageBuffers(size_t stage);
 
-    void BindGraphicsStorageBuffer(size_t stage, size_t ssbo_index, u32 cbuf_index, u32 cbuf_offset,
+    bool BindGraphicsStorageBuffer(size_t stage, size_t ssbo_index, u32 cbuf_index, u32 cbuf_offset,
                                    bool is_written);
 
     void UnbindGraphicsTextureBuffers(size_t stage);
@@ -289,7 +305,7 @@ public:
     [[nodiscard]] bool IsRegionCpuModified(DAddr addr, size_t size);
 
     void SetDrawIndirect(
-        const Tegra::Engines::DrawManager::IndirectParams* current_draw_indirect_) {
+        const Tegra::Engines::Maxwell3D::DrawManager::IndirectParams* current_draw_indirect_) {
         current_draw_indirect = current_draw_indirect_;
     }
 
@@ -307,6 +323,7 @@ public:
 
     std::recursive_mutex mutex;
     Runtime& runtime;
+    bool any_buffer_uploaded = false;
 
 private:
     template <typename Func>
@@ -359,6 +376,8 @@ private:
 
     void BindHostTransformFeedbackBuffers();
 
+    void BindHostVertexBuffer(u32 index, Buffer& buffer, u32 offset, u32 size, u32 stride);
+
     void BindHostComputeUniformBuffers();
 
     void BindHostComputeStorageBuffers();
@@ -396,6 +415,8 @@ private:
     void MarkWrittenBuffer(BufferId buffer_id, DAddr device_addr, u32 size);
 
     [[nodiscard]] BufferId FindBuffer(DAddr device_addr, u32 size);
+
+    void WaitForGpuFenceIfNeeded(Buffer& buffer);
 
     [[nodiscard]] OverlapResult ResolveOverlaps(DAddr device_addr, u32 wanted_size);
 
@@ -440,6 +461,12 @@ private:
 
     [[nodiscard]] bool HasFastUniformBufferBound(size_t stage, u32 binding_index) const noexcept;
 
+    [[nodiscard]] Binding& VertexBufferSlot(u32 index);
+
+    [[nodiscard]] const Binding& VertexBufferSlot(u32 index) const;
+
+    void UpdateVertexBufferSlot(u32 index, const Binding& binding);
+
     void ClearDownload(DAddr base_addr, u64 size);
 
     void InlineMemoryImplementation(DAddr dest_address, size_t copy_size,
@@ -448,11 +475,22 @@ private:
     Tegra::MaxwellDeviceMemoryManager& device_memory;
 
     Common::SlotVector<Buffer> slot_buffers;
-    DelayedDestructionRing<Buffer, 8> delayed_destruction_ring;
+#ifdef YUZU_LEGACY
+    static constexpr size_t TICKS_TO_DESTROY = 6;
+#else
+    static constexpr size_t TICKS_TO_DESTROY = 8;
+#endif
+    DelayedDestructionRing<Buffer, TICKS_TO_DESTROY> delayed_destruction_ring;
 
-    const Tegra::Engines::DrawManager::IndirectParams* current_draw_indirect{};
+    const Tegra::Engines::Maxwell3D::DrawManager::IndirectParams* current_draw_indirect{};
 
     u32 last_index_count = 0;
+
+    u32 enabled_vertex_buffers_mask = 0;
+    u64 vertex_buffers_serial = 0;
+    std::array<Binding, 32> v_buffer{};
+
+    boost::container::small_vector<BufferCopy, 4> upload_copies;
 
     MemoryTracker memory_tracker;
     Common::RangeSet<DAddr> uncommitted_gpu_modified_ranges;
@@ -480,6 +518,9 @@ private:
     u64 minimum_memory = 0;
     u64 critical_memory = 0;
     BufferId inline_buffer_id;
+#ifdef YUZU_LEGACY
+    bool immediately_free = false;
+#endif
 
     std::array<BufferId, ((1ULL << 34) >> CACHING_PAGEBITS)> page_table;
     Common::ScratchBuffer<u8> tmp_buffer;

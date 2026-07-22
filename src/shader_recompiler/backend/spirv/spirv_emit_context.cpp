@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2021 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -8,7 +11,7 @@
 
 #include <boost/container/static_vector.hpp>
 
-#include <fmt/format.h>
+#include <fmt/ranges.h>
 
 #include "common/common_types.h"
 #include "common/div_ceil.h"
@@ -27,7 +30,7 @@ enum class Operation {
 
 Id ImageType(EmitContext& ctx, const TextureDescriptor& desc) {
     const spv::ImageFormat format{spv::ImageFormat::Unknown};
-    const Id type{ctx.F32[1]};
+    const Id type{desc.is_integer ? ctx.U32[1] : ctx.F32[1]};
     const bool depth{desc.is_depth};
     const bool ms{desc.is_multisample};
     switch (desc.type) {
@@ -175,6 +178,9 @@ void DefineGenericOutput(EmitContext& ctx, size_t index, std::optional<u32> invo
             ctx.Decorate(id, spv::Decoration::XfbBuffer, xfb_varying->buffer);
             ctx.Decorate(id, spv::Decoration::XfbStride, xfb_varying->stride);
             ctx.Decorate(id, spv::Decoration::Offset, xfb_varying->offset);
+            if (ctx.stage == Stage::Geometry && xfb_varying->stream != 0) {
+                ctx.Decorate(id, spv::Decoration::Stream, xfb_varying->stream);
+            }
         }
         if (num_components < 4 || element > 0) {
             const std::string_view subswizzle{swizzle.substr(element, num_components)};
@@ -1120,7 +1126,7 @@ void EmitContext::DefineConstantBuffers(const Info& info, u32& binding) {
     }
     IR::Type types{info.used_constant_buffer_types | info.used_indirect_cbuf_types};
     if (True(types & IR::Type::U8)) {
-        if (profile.support_int8) {
+        if (profile.support_int8 && profile.support_uniform_and_storage_buffer_8bit) {
             DefineConstBuffers(*this, info, &UniformDefinitions::U8, binding, U8, 'u', sizeof(u8));
             DefineConstBuffers(*this, info, &UniformDefinitions::S8, binding, S8, 's', sizeof(s8));
         } else {
@@ -1128,7 +1134,7 @@ void EmitContext::DefineConstantBuffers(const Info& info, u32& binding) {
         }
     }
     if (True(types & IR::Type::U16)) {
-        if (profile.support_int16) {
+        if (profile.support_int16 && profile.support_uniform_and_storage_buffer_16bit) {
             DefineConstBuffers(*this, info, &UniformDefinitions::U16, binding, U16, 'u',
                                sizeof(u16));
             DefineConstBuffers(*this, info, &UniformDefinitions::S16, binding, S16, 's',
@@ -1190,10 +1196,18 @@ void EmitContext::DefineConstantBufferIndirectFunctions(const Info& info) {
     IR::Type types{info.used_indirect_cbuf_types};
     bool supports_aliasing = profile.support_descriptor_aliasing;
     if (supports_aliasing && True(types & IR::Type::U8)) {
-        load_const_func_u8 = make_accessor(U8, &UniformDefinitions::U8);
+        if (profile.support_int8 && profile.support_uniform_and_storage_buffer_8bit) {
+            load_const_func_u8 = make_accessor(U8, &UniformDefinitions::U8);
+        } else {
+            types |= IR::Type::U32;
+        }
     }
     if (supports_aliasing && True(types & IR::Type::U16)) {
-        load_const_func_u16 = make_accessor(U16, &UniformDefinitions::U16);
+        if (profile.support_int16 && profile.support_uniform_and_storage_buffer_16bit) {
+            load_const_func_u16 = make_accessor(U16, &UniformDefinitions::U16);
+        } else {
+            types |= IR::Type::U32;
+        }
     }
     if (supports_aliasing && True(types & IR::Type::F32)) {
         load_const_func_f32 = make_accessor(F32[1], &UniformDefinitions::F32);
@@ -1217,13 +1231,15 @@ void EmitContext::DefineStorageBuffers(const Info& info, u32& binding) {
 
     const IR::Type used_types{profile.support_descriptor_aliasing ? info.used_storage_buffer_types
                                                                   : IR::Type::U32};
-    if (profile.support_int8 && True(used_types & IR::Type::U8)) {
+    if (profile.support_int8 && profile.support_uniform_and_storage_buffer_8bit &&
+        True(used_types & IR::Type::U8)) {
         DefineSsbos(*this, storage_types.U8, &StorageDefinitions::U8, info, binding, U8,
                     sizeof(u8));
         DefineSsbos(*this, storage_types.S8, &StorageDefinitions::S8, info, binding, S8,
                     sizeof(u8));
     }
-    if (profile.support_int16 && True(used_types & IR::Type::U16)) {
+    if (profile.support_int16 && profile.support_uniform_and_storage_buffer_16bit &&
+        True(used_types & IR::Type::U16)) {
         DefineSsbos(*this, storage_types.U16, &StorageDefinitions::U16, info, binding, U16,
                     sizeof(u16));
         DefineSsbos(*this, storage_types.S16, &StorageDefinitions::S16, info, binding, S16,
@@ -1328,9 +1344,6 @@ void EmitContext::DefineTextureBuffers(const Info& info, u32& binding) {
 void EmitContext::DefineImageBuffers(const Info& info, u32& binding) {
     image_buffers.reserve(info.image_buffer_descriptors.size());
     for (const ImageBufferDescriptor& desc : info.image_buffer_descriptors) {
-        if (desc.count != 1) {
-            throw NotImplementedException("Array of image buffers");
-        }
         const spv::ImageFormat format{GetImageFormat(desc.format)};
         const Id sampled_type{desc.is_integer ? U32[1] : F32[1]};
         const Id image_type{
@@ -1343,6 +1356,7 @@ void EmitContext::DefineImageBuffers(const Info& info, u32& binding) {
         image_buffers.push_back({
             .id = id,
             .image_type = image_type,
+            .pointer_type = pointer_type,
             .count = desc.count,
             .is_integer = desc.is_integer,
         });
@@ -1371,6 +1385,7 @@ void EmitContext::DefineTextures(const Info& info, u32& binding, u32& scaling_in
             .image_type = image_type,
             .count = desc.count,
             .is_multisample = desc.is_multisample,
+            .is_integer = desc.is_integer,
         });
         if (profile.supported_spirv >= 0x00010400) {
             interfaces.push_back(id);
@@ -1386,9 +1401,6 @@ void EmitContext::DefineTextures(const Info& info, u32& binding, u32& scaling_in
 void EmitContext::DefineImages(const Info& info, u32& binding, u32& scaling_index) {
     images.reserve(info.image_descriptors.size());
     for (const ImageDescriptor& desc : info.image_descriptors) {
-        if (desc.count != 1) {
-            throw NotImplementedException("Array of images");
-        }
         const Id sampled_type{desc.is_integer ? U32[1] : F32[1]};
         const Id image_type{ImageType(*this, desc, sampled_type)};
         const Id pointer_type{TypePointer(spv::StorageClass::UniformConstant, image_type)};
@@ -1399,6 +1411,7 @@ void EmitContext::DefineImages(const Info& info, u32& binding, u32& scaling_inde
         images.push_back({
             .id = id,
             .image_type = image_type,
+            .pointer_type = pointer_type,
             .count = desc.count,
             .is_integer = desc.is_integer,
         });
@@ -1429,24 +1442,37 @@ void EmitContext::DefineInputs(const IR::Program& program) {
     }
     if (info.uses_sample_id) {
         sample_id = DefineInput(*this, U32[1], false, spv::BuiltIn::SampleId);
+        if (stage == Stage::Fragment) {
+            Decorate(sample_id, spv::Decoration::Flat);
+        }
     }
     if (info.uses_is_helper_invocation) {
         is_helper_invocation = DefineInput(*this, U1, false, spv::BuiltIn::HelperInvocation);
     }
-    if (info.uses_subgroup_mask) {
+    if (info.uses_subgroup_mask && profile.SupportsSubgroupStage(stage)) {
         subgroup_mask_eq = DefineInput(*this, U32[4], false, spv::BuiltIn::SubgroupEqMaskKHR);
         subgroup_mask_lt = DefineInput(*this, U32[4], false, spv::BuiltIn::SubgroupLtMaskKHR);
         subgroup_mask_le = DefineInput(*this, U32[4], false, spv::BuiltIn::SubgroupLeMaskKHR);
         subgroup_mask_gt = DefineInput(*this, U32[4], false, spv::BuiltIn::SubgroupGtMaskKHR);
         subgroup_mask_ge = DefineInput(*this, U32[4], false, spv::BuiltIn::SubgroupGeMaskKHR);
+        if (stage == Stage::Fragment) {
+            Decorate(subgroup_mask_eq, spv::Decoration::Flat);
+            Decorate(subgroup_mask_lt, spv::Decoration::Flat);
+            Decorate(subgroup_mask_le, spv::Decoration::Flat);
+            Decorate(subgroup_mask_gt, spv::Decoration::Flat);
+            Decorate(subgroup_mask_ge, spv::Decoration::Flat);
+        }
     }
-    if (info.uses_fswzadd || info.uses_subgroup_invocation_id || info.uses_subgroup_shuffles ||
-        (profile.warp_size_potentially_larger_than_guest &&
-         (info.uses_subgroup_vote || info.uses_subgroup_mask))) {
+    if ((info.uses_fswzadd || info.uses_subgroup_invocation_id || info.uses_subgroup_shuffles ||
+         (profile.warp_size_potentially_larger_than_guest &&
+          (info.uses_subgroup_vote || info.uses_subgroup_mask))) &&
+        profile.SupportsSubgroupStage(stage)) {
         AddCapability(spv::Capability::GroupNonUniform);
         subgroup_local_invocation_id =
             DefineInput(*this, U32[1], false, spv::BuiltIn::SubgroupLocalInvocationId);
-        Decorate(subgroup_local_invocation_id, spv::Decoration::Flat);
+        if (stage == Stage::Fragment) {
+            Decorate(subgroup_local_invocation_id, spv::Decoration::Flat);
+        }
     }
     if (info.uses_fswzadd) {
         const Id f32_one{Const(1.0f)};
@@ -1458,6 +1484,9 @@ void EmitContext::DefineInputs(const IR::Program& program) {
     }
     if (loads[IR::Attribute::PrimitiveId]) {
         primitive_id = DefineInput(*this, U32[1], false, spv::BuiltIn::PrimitiveId);
+        if (stage == Stage::Fragment) {
+            Decorate(primitive_id, spv::Decoration::Flat);
+        }
     }
     if (loads[IR::Attribute::Layer]) {
         AddCapability(spv::Capability::Geometry);
@@ -1549,17 +1578,21 @@ void EmitContext::DefineInputs(const IR::Program& program) {
         if (stage != Stage::Fragment) {
             continue;
         }
-        switch (info.interpolation[index]) {
-        case Interpolation::Smooth:
-            // Default
-            // Decorate(id, spv::Decoration::Smooth);
-            break;
-        case Interpolation::NoPerspective:
-            Decorate(id, spv::Decoration::NoPerspective);
-            break;
-        case Interpolation::Flat:
+        const bool is_integer = input_type == AttributeType::SignedInt ||
+                                input_type == AttributeType::UnsignedInt;
+        if (is_integer) {
             Decorate(id, spv::Decoration::Flat);
-            break;
+        } else {
+            switch (info.interpolation[index]) {
+            case Interpolation::Smooth:
+                break;
+            case Interpolation::NoPerspective:
+                Decorate(id, spv::Decoration::NoPerspective);
+                break;
+            case Interpolation::Flat:
+                Decorate(id, spv::Decoration::Flat);
+                break;
+            }
         }
     }
     if (stage == Stage::TessellationEval) {
@@ -1593,7 +1626,7 @@ void EmitContext::DefineOutputs(const IR::Program& program) {
             throw NotImplementedException("Storing ClipDistance in fragment stage");
         }
         if (profile.max_user_clip_distances > 0) {
-            const u32 used{std::min(profile.max_user_clip_distances, 8u)};
+            const u32 used{(std::min)(profile.max_user_clip_distances, 8u)};
             const std::array<Id, 8> zero{f32_zero_value, f32_zero_value, f32_zero_value,
                                          f32_zero_value, f32_zero_value, f32_zero_value,
                                          f32_zero_value, f32_zero_value};
@@ -1652,12 +1685,22 @@ void EmitContext::DefineOutputs(const IR::Program& program) {
         break;
     case Stage::Fragment:
         for (u32 index = 0; index < 8; ++index) {
-            if (!info.stores_frag_color[index] && !profile.need_declared_frag_colors) {
+            const bool need_dual_source = runtime_info.dual_source_blend && index <= 1;
+            if (!need_dual_source && !info.stores_frag_color[index] &&
+                !profile.need_declared_frag_colors) {
                 continue;
             }
-            frag_color[index] = DefineOutput(*this, F32[4], std::nullopt);
-            Decorate(frag_color[index], spv::Decoration::Location, index);
-            Name(frag_color[index], fmt::format("frag_color{}", index));
+            const Id type{GetAttributeType(*this, runtime_info.color_output_types[index])};
+            frag_color[index] = DefineOutput(*this, type, std::nullopt);
+            // Correct mapping for dual-source blending
+            if (runtime_info.dual_source_blend && index <= 1) {
+                Decorate(frag_color[index], spv::Decoration::Location, 0u);
+                Decorate(frag_color[index], spv::Decoration::Index, index);
+                Name(frag_color[index], index == 0 ? "frag_color0" : "frag_color0_secondary");
+            } else {
+                Decorate(frag_color[index], spv::Decoration::Location, index);
+                Name(frag_color[index], fmt::format("frag_color{}", index));
+            }
         }
         if (info.stores_frag_depth) {
             frag_depth = DefineOutput(*this, F32[1], std::nullopt);

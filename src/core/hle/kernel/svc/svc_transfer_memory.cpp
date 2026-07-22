@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2023 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -43,8 +46,7 @@ Result CreateTransferMemory(Core::System& system, Handle* out, u64 address, u64 
     auto& handle_table = process.GetHandleTable();
 
     // Reserve a new transfer memory from the process resource limit.
-    KScopedResourceReservation trmem_reservation(std::addressof(process),
-                                                 LimitableResource::TransferMemoryCountMax);
+    KScopedResourceReservation trmem_reservation(system.Kernel(), std::addressof(process), LimitableResource::TransferMemoryCountMax);
     R_UNLESS(trmem_reservation.Succeeded(), ResultLimitReached);
 
     // Create the transfer memory.
@@ -53,14 +55,14 @@ Result CreateTransferMemory(Core::System& system, Handle* out, u64 address, u64 
 
     // Ensure the only reference is in the handle table when we're done.
     SCOPE_EXIT {
-        trmem->Close();
+        trmem->Close(system.Kernel());
     };
 
     // Ensure that the region is in range.
     R_UNLESS(process.GetPageTable().Contains(address, size), ResultInvalidCurrentMemory);
 
     // Initialize the transfer memory.
-    R_TRY(trmem->Initialize(address, size, map_perm));
+    R_TRY(trmem->Initialize(system.Kernel(), address, size, map_perm));
 
     // Commit the reservation.
     trmem_reservation.Commit();
@@ -69,7 +71,7 @@ Result CreateTransferMemory(Core::System& system, Handle* out, u64 address, u64 
     KTransferMemory::Register(kernel, trmem);
 
     // Add the transfer memory to the handle table.
-    R_RETURN(handle_table.Add(out, trmem));
+    R_RETURN(handle_table.Add(system.Kernel(), out, trmem));
 }
 
 Result MapTransferMemory(Core::System& system, Handle trmem_handle, uint64_t address, uint64_t size,
@@ -86,7 +88,7 @@ Result MapTransferMemory(Core::System& system, Handle trmem_handle, uint64_t add
     // Get the transfer memory.
     KScopedAutoObject trmem = GetCurrentProcess(system.Kernel())
                                   .GetHandleTable()
-                                  .GetObject<KTransferMemory>(trmem_handle);
+                                  .GetObject<KTransferMemory>(system.Kernel(), trmem_handle);
     R_UNLESS(trmem.IsNotNull(), ResultInvalidHandle);
 
     // Verify that the mapping is in range.
@@ -96,7 +98,7 @@ Result MapTransferMemory(Core::System& system, Handle trmem_handle, uint64_t add
              ResultInvalidMemoryRegion);
 
     // Map the transfer memory.
-    R_TRY(trmem->Map(address, size, map_perm));
+    R_TRY(trmem->Map(system.Kernel(), address, size, map_perm));
 
     // We succeeded.
     R_SUCCEED();
@@ -113,7 +115,7 @@ Result UnmapTransferMemory(Core::System& system, Handle trmem_handle, uint64_t a
     // Get the transfer memory.
     KScopedAutoObject trmem = GetCurrentProcess(system.Kernel())
                                   .GetHandleTable()
-                                  .GetObject<KTransferMemory>(trmem_handle);
+                                  .GetObject<KTransferMemory>(system.Kernel(), trmem_handle);
     R_UNLESS(trmem.IsNotNull(), ResultInvalidHandle);
 
     // Verify that the mapping is in range.
@@ -123,7 +125,7 @@ Result UnmapTransferMemory(Core::System& system, Handle trmem_handle, uint64_t a
              ResultInvalidMemoryRegion);
 
     // Unmap the transfer memory.
-    R_TRY(trmem->Unmap(address, size));
+    R_TRY(trmem->Unmap(system.Kernel(), address, size));
 
     R_SUCCEED();
 }

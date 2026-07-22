@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2023 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
@@ -7,7 +10,7 @@
 #include <mutex>
 #include <optional>
 #include <span>
-#include <unordered_map>
+#include <ankerl/unordered_dense.h>
 #include <utility>
 
 #include "common/assert.h"
@@ -157,7 +160,7 @@ protected:
         }
     }
 
-    using ContentCache = std::unordered_map<u64, std::unordered_map<u32, QueryLocation>>;
+    using ContentCache = ankerl::unordered_dense::map<u64, ankerl::unordered_dense::map<u32, QueryLocation>>;
 
     void InvalidateQuery(QueryLocation location);
     bool IsQueryDirty(QueryLocation location);
@@ -165,7 +168,7 @@ protected:
     void RequestGuestHostSync();
     void UnregisterPending();
 
-    std::unordered_map<u64, std::unordered_map<u32, QueryLocation>> cached_queries;
+    ankerl::unordered_dense::map<u64, ankerl::unordered_dense::map<u32, QueryLocation>> cached_queries;
     std::mutex cache_mutex;
 
     struct QueryCacheBaseImpl;

@@ -1,9 +1,14 @@
-# SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+# SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 # SPDX-License-Identifier: GPL-3.0-or-later
+
+set(CMAKE_AUTOMOC ON)
 
 add_library(qt_common STATIC
     qt_common.h
     qt_common.cpp
+
+    gamemode.cpp
+    gamemode.h
 
     config/uisettings.cpp
     config/uisettings.h
@@ -19,16 +24,23 @@ add_library(qt_common STATIC
     util/rom.h util/rom.cpp
     util/applet.h util/applet.cpp
     util/compress.h util/compress.cpp
+    util/fs.h util/fs.cpp
+    util/mod.h util/mod.cpp
+    util/vk.h util/vk.cpp
 
     abstract/frontend.h abstract/frontend.cpp
-    abstract/qt_progress_dialog.h abstract/qt_progress_dialog.cpp
+    abstract/progress.h abstract/progress.cpp
+
+    game_list/model.h game_list/model.cpp
+    game_list/worker.h game_list/worker.cpp
+    game_list/game_list_p.h
 
     qt_string_lookup.h
     qt_compat.h
 
     discord/discord.h
-    util/fs.h util/fs.cpp
-)
+    render/context.h
+    render/emu_thread.h render/emu_thread.cpp)
 
 if (UNIX)
     target_sources(qt_common PRIVATE gui_settings.cpp gui_settings.h)
@@ -42,17 +54,16 @@ if (USE_DISCORD_PRESENCE)
         discord/discord_impl.h
     )
     target_link_libraries(qt_common PUBLIC DiscordRPC::discord-rpc httplib::httplib)
+
     if (YUZU_USE_BUNDLED_OPENSSL)
-        target_link_libraries(qt_common PUBLIC OpenSSL::SSL)
-        target_compile_definitions(qt_common PRIVATE CPPHTTPLIB_OPENSSL_SUPPORT)
+        target_link_libraries(qt_common PUBLIC OpenSSL::SSL OpenSSL::Crypto)
     endif()
+
     target_compile_definitions(qt_common PUBLIC USE_DISCORD_PRESENCE)
 endif()
 
 # TODO(crueter)
-if (ENABLE_QT)
-    target_link_libraries(qt_common PRIVATE Qt6::Widgets)
-endif()
+target_link_libraries(qt_common PRIVATE Qt6::Widgets)
 
 target_compile_definitions(qt_common PUBLIC
     # Use QStringBuilder for string concatenation to reduce
@@ -73,15 +84,11 @@ target_compile_definitions(qt_common PUBLIC
     QT_NO_URL_CAST_FROM_STRING
 )
 
-add_subdirectory(externals)
-
-# pass targets
-find_package(frozen)
-
 target_link_libraries(qt_common PRIVATE core Qt6::Core Qt6::Concurrent SimpleIni::SimpleIni QuaZip::QuaZip)
-target_link_libraries(qt_common PUBLIC frozen::frozen-headers)
+target_link_libraries(qt_common PUBLIC frozen::frozen-headers Vulkan::Headers)
+target_link_libraries(qt_common PRIVATE gamemode::headers frontend_common)
 
-if (NOT APPLE AND ENABLE_OPENGL)
+if (ENABLE_OPENGL)
     target_compile_definitions(qt_common PUBLIC HAS_OPENGL)
 endif()
 
@@ -92,3 +99,5 @@ if (UNIX AND NOT APPLE)
         target_link_libraries(qt_common PRIVATE Qt6::GuiPrivate)
     endif()
 endif()
+
+create_target_directory_groups(qt_common)

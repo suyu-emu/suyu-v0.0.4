@@ -1,9 +1,12 @@
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2018 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
 #include <memory>
 
-#include "common/logging/log.h"
+#include "common/logging.h"
 #include "core/hle/service/cmif_serialization.h"
 #include "core/hle/service/erpt/erpt.h"
 #include "core/hle/service/server_manager.h"
@@ -22,7 +25,7 @@ public:
             {2, nullptr, "SetInitialLaunchSettingsCompletionTime"},
             {3, nullptr, "ClearInitialLaunchSettingsCompletionTime"},
             {4, nullptr, "UpdatePowerOnTime"},
-            {5, nullptr, "UpdateAwakeTime"},
+            {5, D<&ErrorReportContext::UpdateAwakeTime>, "UpdateAwakeTime"},
             {6, nullptr, "SubmitMultipleCategoryContext"},
             {7, nullptr, "UpdateApplicationLaunchTime"},
             {8, nullptr, "ClearApplicationLaunchTime"},
@@ -72,6 +75,14 @@ private:
             Service_SET,
             "(STUBBED) called, report_type={:#x}, unknown={:#x}, create_report_option_flag={:#x}",
             report_type, unknown, create_report_option_flag);
+        R_SUCCEED();
+    }
+
+    Result UpdateAwakeTime(InBuffer<BufferAttr_HipcMapAlias> data_a,
+                           InBuffer<BufferAttr_HipcMapAlias> data_b, u32 flag_a, u32 flag_b) {
+        LOG_WARNING(Service_SET,
+                    "(STUBBED) called, data_a_size={}, data_b_size={}, flag_a={}, flag_b={}",
+                    data_a.size(), data_b.size(), flag_a, flag_b);
         R_SUCCEED();
     }
 };

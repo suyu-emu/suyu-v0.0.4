@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2021 yuzu Emulator Project
 // SPDX-FileCopyrightText: Copyright 2010 The Android Open Source Project
 // SPDX-License-Identifier: GPL-3.0-or-later
@@ -5,7 +8,7 @@
 // https://cs.android.com/android/platform/superproject/+/android-5.1.1_r38:frameworks/native/libs/gui/ConsumerBase.cpp
 
 #include "common/assert.h"
-#include "common/logging/log.h"
+#include "common/logging.h"
 #include "core/hle/service/nvnflinger/buffer_item.h"
 #include "core/hle/service/nvnflinger/buffer_queue_consumer.h"
 #include "core/hle/service/nvnflinger/buffer_queue_core.h"

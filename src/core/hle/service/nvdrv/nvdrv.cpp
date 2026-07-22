@@ -4,7 +4,7 @@
 
 #include <utility>
 
-#include <fmt/format.h>
+#include <fmt/ranges.h>
 #include "core/core.h"
 #include "core/hle/kernel/k_event.h"
 #include "core/hle/service/ipc_helpers.h"

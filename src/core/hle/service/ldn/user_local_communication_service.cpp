@@ -1,3 +1,5 @@
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
 // SPDX-FileCopyrightText: Copyright 2024 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
@@ -22,45 +24,39 @@ namespace Service::LDN {
 IUserLocalCommunicationService::IUserLocalCommunicationService(Core::System& system_)
     : ServiceFramework{system_, "IUserLocalCommunicationService"},
       service_context{system, "IUserLocalCommunicationService"},
-      room_network{system_.GetRoomNetwork()}, lan_discovery{room_network} {
+      lan_discovery{} {
     // clang-format off
         static const FunctionInfo functions[] = {
-            {0, C<&IUserLocalCommunicationService::GetState>, "GetState"},
-            {1, C<&IUserLocalCommunicationService::GetNetworkInfo>, "GetNetworkInfo"},
-            {2, C<&IUserLocalCommunicationService::GetIpv4Address>, "GetIpv4Address"},
-            {3, C<&IUserLocalCommunicationService::GetDisconnectReason>, "GetDisconnectReason"},
-            {4, C<&IUserLocalCommunicationService::GetSecurityParameter>, "GetSecurityParameter"},
-            {5, C<&IUserLocalCommunicationService::GetNetworkConfig>, "GetNetworkConfig"},
-            {100, C<&IUserLocalCommunicationService::AttachStateChangeEvent>, "AttachStateChangeEvent"},
-            {101, C<&IUserLocalCommunicationService::GetNetworkInfoLatestUpdate>, "GetNetworkInfoLatestUpdate"},
-            {102, C<&IUserLocalCommunicationService::Scan>, "Scan"},
-            {103, C<&IUserLocalCommunicationService::ScanPrivate>, "ScanPrivate"},
-            {104, C<&IUserLocalCommunicationService::SetWirelessControllerRestriction>, "SetWirelessControllerRestriction"},
-            {200, C<&IUserLocalCommunicationService::OpenAccessPoint>, "OpenAccessPoint"},
-            {201, C<&IUserLocalCommunicationService::CloseAccessPoint>, "CloseAccessPoint"},
-            {202, C<&IUserLocalCommunicationService::CreateNetwork>, "CreateNetwork"},
-            {203, C<&IUserLocalCommunicationService::CreateNetworkPrivate>, "CreateNetworkPrivate"},
-            {204, C<&IUserLocalCommunicationService::DestroyNetwork>, "DestroyNetwork"},
+            {0, D<&IUserLocalCommunicationService::GetState>, "GetState"},
+            {1, D<&IUserLocalCommunicationService::GetNetworkInfo>, "GetNetworkInfo"},
+            {2, D<&IUserLocalCommunicationService::GetIpv4Address>, "GetIpv4Address"},
+            {3, D<&IUserLocalCommunicationService::GetDisconnectReason>, "GetDisconnectReason"},
+            {4, D<&IUserLocalCommunicationService::GetSecurityParameter>, "GetSecurityParameter"},
+            {5, D<&IUserLocalCommunicationService::GetNetworkConfig>, "GetNetworkConfig"},
+            {100, D<&IUserLocalCommunicationService::AttachStateChangeEvent>, "AttachStateChangeEvent"},
+            {101, D<&IUserLocalCommunicationService::GetNetworkInfoLatestUpdate>, "GetNetworkInfoLatestUpdate"},
+            {102, D<&IUserLocalCommunicationService::Scan>, "Scan"},
+            {103, D<&IUserLocalCommunicationService::ScanPrivate>, "ScanPrivate"},
+            {104, D<&IUserLocalCommunicationService::SetWirelessControllerRestriction>, "SetWirelessControllerRestriction"},
+            { 106, D<&IUserLocalCommunicationService::SetProtocol>, "SetProtocol" },
+            {200, D<&IUserLocalCommunicationService::OpenAccessPoint>, "OpenAccessPoint"},
+            {201, D<&IUserLocalCommunicationService::CloseAccessPoint>, "CloseAccessPoint"},
+            {202, D<&IUserLocalCommunicationService::CreateNetwork>, "CreateNetwork"},
+            {203, D<&IUserLocalCommunicationService::CreateNetworkPrivate>, "CreateNetworkPrivate"},
+            {204, D<&IUserLocalCommunicationService::DestroyNetwork>, "DestroyNetwork"},
             {205, nullptr, "Reject"},
-            {206, C<&IUserLocalCommunicationService::SetAdvertiseData>, "SetAdvertiseData"},
-            {207, C<&IUserLocalCommunicationService::SetStationAcceptPolicy>, "SetStationAcceptPolicy"},
-            {208, C<&IUserLocalCommunicationService::AddAcceptFilterEntry>, "AddAcceptFilterEntry"},
+            {206, D<&IUserLocalCommunicationService::SetAdvertiseData>, "SetAdvertiseData"},
+            {207, D<&IUserLocalCommunicationService::SetStationAcceptPolicy>, "SetStationAcceptPolicy"},
+            {208, D<&IUserLocalCommunicationService::AddAcceptFilterEntry>, "AddAcceptFilterEntry"},
             {209, nullptr, "ClearAcceptFilter"},
-            {300, C<&IUserLocalCommunicationService::OpenStation>, "OpenStation"},
-            {301, C<&IUserLocalCommunicationService::CloseStation>, "CloseStation"},
-            {302, C<&IUserLocalCommunicationService::Connect>, "Connect"},
+            {300, D<&IUserLocalCommunicationService::OpenStation>, "OpenStation"},
+            {301, D<&IUserLocalCommunicationService::CloseStation>, "CloseStation"},
+            {302, D<&IUserLocalCommunicationService::Connect>, "Connect"},
             {303, nullptr, "ConnectPrivate"},
-            {304, C<&IUserLocalCommunicationService::Disconnect>, "Disconnect"},
-            {400, C<&IUserLocalCommunicationService::Initialize>, "Initialize"},
-            {401, C<&IUserLocalCommunicationService::Finalize>, "Finalize"},
-            {402, C<&IUserLocalCommunicationService::Initialize2>, "Initialize2"}, // 7.0.0+
-            {500, nullptr, "EnableActionFrame"}, // 18.0.0+
-            {501, nullptr, "DisableActionFrame"}, // 18.0.0+
-            {502, nullptr, "SendActionFrame"}, // 18.0.0+
-            {503, nullptr, "RecvActionFrame"}, // 18.0.0+
-            {505, nullptr, "SetHomeChannel"}, // 18.0.0+
-            {600, nullptr, "SetTxPower"}, // 18.0.0+
-            {601, nullptr, "ResetTxPower"} // 18.0.0+
+            {304, D<&IUserLocalCommunicationService::Disconnect>, "Disconnect"},
+            {400, D<&IUserLocalCommunicationService::Initialize>, "Initialize"},
+            {401, D<&IUserLocalCommunicationService::Finalize>, "Finalize"},
+            {402, D<&IUserLocalCommunicationService::Initialize2>, "Initialize2"},
         };
     // clang-format on
 
@@ -72,7 +68,7 @@ IUserLocalCommunicationService::IUserLocalCommunicationService(Core::System& sys
 
 IUserLocalCommunicationService::~IUserLocalCommunicationService() {
     if (is_initialized) {
-        if (auto room_member = room_network.GetRoomMember().lock()) {
+        if (auto room_member = Network::GetRoomMember().lock()) {
             room_member->Unbind(ldn_packet_received);
         }
     }
@@ -110,7 +106,7 @@ Result IUserLocalCommunicationService::GetIpv4Address(Out<Ipv4Address> out_curre
     *out_subnet_mask = {Network::TranslateIPv4(network_interface->subnet_mask)};
 
     // When we're connected to a room, spoof the hosts IP address
-    if (auto room_member = room_network.GetRoomMember().lock()) {
+    if (auto room_member = Network::GetRoomMember().lock()) {
         if (room_member->IsConnected()) {
             *out_current_address = room_member->GetFakeIpAddress();
         }
@@ -191,6 +187,11 @@ Result IUserLocalCommunicationService::ScanPrivate(
 
     R_UNLESS(out_network_info.empty(), ResultBadInput);
     R_RETURN(lan_discovery.Scan(out_network_info, *network_count, scan_filter));
+}
+
+Result IUserLocalCommunicationService::SetProtocol(u32 protocol) {
+    LOG_WARNING(Service_LDN, "(STUBBED) called, protocol={}", protocol);
+    R_SUCCEED();
 }
 
 Result IUserLocalCommunicationService::SetWirelessControllerRestriction(
@@ -287,7 +288,7 @@ Result IUserLocalCommunicationService::Initialize(ClientProcessId aruid) {
     const auto network_interface = Network::GetSelectedNetworkInterface();
     R_UNLESS(network_interface, ResultAirplaneModeEnabled);
 
-    if (auto room_member = room_network.GetRoomMember().lock()) {
+    if (auto room_member = Network::GetRoomMember().lock()) {
         ldn_packet_received = room_member->BindOnLdnPacketReceived(
             [this](const Network::LDNPacket& packet) { OnLDNPacketReceived(packet); });
     } else {
@@ -302,7 +303,7 @@ Result IUserLocalCommunicationService::Initialize(ClientProcessId aruid) {
 
 Result IUserLocalCommunicationService::Finalize() {
     LOG_INFO(Service_LDN, "called");
-    if (auto room_member = room_network.GetRoomMember().lock()) {
+    if (auto room_member = Network::GetRoomMember().lock()) {
         room_member->Unbind(ldn_packet_received);
     }
 
@@ -321,7 +322,7 @@ void IUserLocalCommunicationService::OnLDNPacketReceived(const Network::LDNPacke
 }
 
 void IUserLocalCommunicationService::OnEventFired() {
-    state_change_event->Signal();
+    state_change_event->Signal(system.Kernel());
 }
 
 } // namespace Service::LDN

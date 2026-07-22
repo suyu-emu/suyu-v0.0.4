@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2023 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -33,18 +36,18 @@ Result ConnectToNamedPort(Core::System& system, Handle* out, u64 user_name) {
 
     // Reserve a handle for the port.
     // NOTE: Nintendo really does write directly to the output handle here.
-    R_TRY(handle_table.Reserve(out));
+    R_TRY(handle_table.Reserve(system.Kernel(), out));
     ON_RESULT_FAILURE {
-        handle_table.Unreserve(*out);
+        handle_table.Unreserve(system.Kernel(), *out);
     };
 
     // Create a session.
     KClientSession* session;
-    R_TRY(port->CreateSession(std::addressof(session)));
+    R_TRY(port->CreateSession(system.Kernel(), std::addressof(session)));
 
     // Register the session in the table, close the extra reference.
-    handle_table.Register(*out, session);
-    session->Close();
+    handle_table.Register(system.Kernel(), *out, session);
+    session->Close(system.Kernel());
 
     // We succeeded.
     R_SUCCEED();
@@ -65,27 +68,27 @@ Result CreatePort(Core::System& system, Handle* out_server, Handle* out_client,
     R_UNLESS(port != nullptr, ResultOutOfResource);
 
     // Initialize the port.
-    port->Initialize(max_sessions, is_light, name);
+    port->Initialize(system.Kernel(), max_sessions, is_light, name);
 
     // Ensure that we clean up the port (and its only references are handle table) on function end.
     SCOPE_EXIT {
-        port->GetServerPort().Close();
-        port->GetClientPort().Close();
+        port->GetServerPort().Close(system.Kernel());
+        port->GetClientPort().Close(system.Kernel());
     };
 
     // Register the port.
     KPort::Register(kernel, port);
 
     // Add the client to the handle table.
-    R_TRY(handle_table.Add(out_client, std::addressof(port->GetClientPort())));
+    R_TRY(handle_table.Add(system.Kernel(), out_client, std::addressof(port->GetClientPort())));
 
     // Ensure that we maintain a clean handle state on exit.
     ON_RESULT_FAILURE {
-        handle_table.Remove(*out_client);
+        handle_table.Remove(system.Kernel(), *out_client);
     };
 
     // Add the server to the handle table.
-    R_RETURN(handle_table.Add(out_server, std::addressof(port->GetServerPort())));
+    R_RETURN(handle_table.Add(system.Kernel(), out_server, std::addressof(port->GetServerPort())));
 }
 
 Result ConnectToPort(Core::System& system, Handle* out, Handle port) {
@@ -93,36 +96,33 @@ Result ConnectToPort(Core::System& system, Handle* out, Handle port) {
     auto& handle_table = GetCurrentProcess(system.Kernel()).GetHandleTable();
 
     // Get the client port.
-    KScopedAutoObject client_port = handle_table.GetObject<KClientPort>(port);
+    KScopedAutoObject client_port = handle_table.GetObject<KClientPort>(system.Kernel(), port);
     R_UNLESS(client_port.IsNotNull(), ResultInvalidHandle);
 
     // Reserve a handle for the port.
     // NOTE: Nintendo really does write directly to the output handle here.
-    R_TRY(handle_table.Reserve(out));
+    R_TRY(handle_table.Reserve(system.Kernel(), out));
     ON_RESULT_FAILURE {
-        handle_table.Unreserve(*out);
+        handle_table.Unreserve(system.Kernel(), *out);
     };
 
     // Create the session.
     KAutoObject* session;
-    if (client_port->IsLight()) {
-        R_TRY(client_port->CreateLightSession(
-            reinterpret_cast<KLightClientSession**>(std::addressof(session))));
+    if (client_port->IsLight(system.Kernel())) {
+        R_TRY(client_port->CreateLightSession(system.Kernel(), reinterpret_cast<KLightClientSession**>(std::addressof(session))));
     } else {
-        R_TRY(client_port->CreateSession(
-            reinterpret_cast<KClientSession**>(std::addressof(session))));
+        R_TRY(client_port->CreateSession(system.Kernel(), reinterpret_cast<KClientSession**>(std::addressof(session))));
     }
 
     // Register the session.
-    handle_table.Register(*out, session);
-    session->Close();
+    handle_table.Register(system.Kernel(), *out, session);
+    session->Close(system.Kernel());
 
     // We succeeded.
     R_SUCCEED();
 }
 
-Result ManageNamedPort(Core::System& system, Handle* out_server_handle, uint64_t user_name,
-                       int32_t max_sessions) {
+Result ManageNamedPort(Core::System& system, Handle* out_server_handle, uint64_t user_name, int32_t max_sessions) {
     // Copy the provided name from user memory to kernel memory.
     auto string_name =
         GetCurrentMemory(system.Kernel()).ReadCString(user_name, KObjectName::NameLengthMax);
@@ -144,21 +144,21 @@ Result ManageNamedPort(Core::System& system, Handle* out_server_handle, uint64_t
         R_UNLESS(port != nullptr, ResultOutOfResource);
 
         // Initialize the new port.
-        port->Initialize(max_sessions, false, 0);
+        port->Initialize(system.Kernel(), max_sessions, false, 0);
 
         // Register the port.
         KPort::Register(system.Kernel(), port);
 
         // Ensure that our only reference to the port is in the handle table when we're done.
         SCOPE_EXIT {
-            port->GetClientPort().Close();
-            port->GetServerPort().Close();
+            port->GetClientPort().Close(system.Kernel());
+            port->GetServerPort().Close(system.Kernel());
         };
 
         // Register the handle in the table.
-        R_TRY(handle_table.Add(out_server_handle, std::addressof(port->GetServerPort())));
+        R_TRY(handle_table.Add(system.Kernel(), out_server_handle, std::addressof(port->GetServerPort())));
         ON_RESULT_FAILURE {
-            handle_table.Remove(*out_server_handle);
+            handle_table.Remove(system.Kernel(), *out_server_handle);
         };
 
         // Create a new object name.

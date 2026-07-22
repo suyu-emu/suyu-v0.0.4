@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 // SPDX-FileCopyrightText: 2016 Citra Emulator Project
@@ -14,6 +14,7 @@
 #include <QString>
 #include <QStringList>
 #include <QVector>
+#include <qdir.h>
 #include "common/common_types.h"
 #include "common/settings.h"
 #include "common/settings_enums.h"
@@ -97,7 +98,6 @@ struct Values {
 
     Setting<bool> single_window_mode{linkage, true, "singleWindowMode", Category::Ui};
     Setting<bool> fullscreen{linkage, false, "fullscreen", Category::Ui};
-    Setting<bool> display_titlebar{linkage, true, "displayTitleBars", Category::Ui};
     Setting<bool> show_filter_bar{linkage, true, "showFilterBar", Category::Ui};
     Setting<bool> show_status_bar{linkage, true, "showStatusBar", Category::Ui};
 
@@ -141,6 +141,20 @@ struct Values {
                                       true};
 
     Setting<bool> check_for_updates{linkage, true, "check_for_updates", Category::UiGeneral};
+
+    // Linux/MinGW may support (requires libdl support)
+    SwitchableSetting<bool> enable_gamemode{linkage,
+#ifndef _MSC_VER
+                                            true,
+#else
+                                            false,
+#endif
+                                            "enable_gamemode", Category::UiGeneral};
+#ifdef __unix__
+    SwitchableSetting<bool> gui_force_x11{linkage, false, "gui_force_x11", Category::UiGeneral};
+    Setting<bool> gui_hide_backend_warning{linkage, false, "gui_hide_backend_warning",
+                                           Category::UiGeneral};
+#endif
 
     // Discord RPC
     Setting<bool> enable_discord_presence{linkage, false, "enable_discord_presence", Category::Ui};
@@ -193,17 +207,21 @@ struct Values {
 
     // Game List
     Setting<bool> show_add_ons{linkage, true, "show_add_ons", Category::UiGameList};
-    Setting<u32> game_icon_size{linkage, 64, "game_icon_size", Category::UiGameList};
-    Setting<u32> folder_icon_size{linkage, 48, "folder_icon_size", Category::UiGameList};
+    Setting<u32, true> game_icon_size{linkage, 64, 0, 512, "game_icon_size", Category::UiGameList};
+    Setting<u32, true> folder_icon_size{linkage, 48, 8, 512, "folder_icon_size", Category::UiGameList};
     Setting<u8> row_1_text_id{linkage, 3, "row_1_text_id", Category::UiGameList};
     Setting<u8> row_2_text_id{linkage, 2, "row_2_text_id", Category::UiGameList};
+    Setting<Settings::GameListMode> game_list_mode{linkage, Settings::GameListMode::TreeView, "game_list_mode", Category::UiGameList};
+    Setting<bool> show_game_name{linkage, true, "show_game_name", Category::UiGameList};
+
     std::atomic_bool is_game_list_reload_pending{false};
     Setting<bool> cache_game_list{linkage, true, "cache_game_list", Category::UiGameList};
     Setting<bool> favorites_expanded{linkage, true, "favorites_expanded", Category::UiGameList};
     QVector<u64> favorited_ids;
+    QMap<u64, QDir> ryujinx_link_paths;
 
-    // Compatibility List
-    Setting<bool> show_compat{linkage, true, "show_compat", Category::UiGameList};
+    // perf overlay
+    Setting<bool> show_perf_overlay{linkage, false, "show_perf_overlay", Category::UiGameList};
 
     // Size & File Types Column
     Setting<bool> show_size{linkage, true, "show_size", Category::UiGameList};
@@ -227,44 +245,8 @@ u32 CalculateWidth(u32 height, Settings::AspectRatio ratio);
 void SaveWindowState();
 void RestoreWindowState(std::unique_ptr<QtConfig>& qtConfig);
 
-// This shouldn't have anything except static initializers (no functions). So
-// QKeySequence(...).toString() is NOT ALLOWED HERE.
-// This must be in alphabetical order according to action name as it must have the same order as
-// UISetting::values.shortcuts, which is alphabetically ordered.
-// clang-format off
-const std::array<Shortcut, 30> default_hotkeys{{
-    {QStringLiteral(QT_TRANSLATE_NOOP("Hotkeys", "Audio Mute/Unmute")).toStdString(),        QStringLiteral(QT_TRANSLATE_NOOP("Hotkeys", "Main Window")).toStdString(), {std::string("Ctrl+M"),  std::string("Home+Dpad_Right"), Qt::WindowShortcut, false}},
-    {QStringLiteral(QT_TRANSLATE_NOOP("Hotkeys", "Audio Volume Down")).toStdString(),        QStringLiteral(QT_TRANSLATE_NOOP("Hotkeys", "Main Window")).toStdString(), {std::string("-"),       std::string("Home+Dpad_Down"), Qt::ApplicationShortcut, true}},
-    {QStringLiteral(QT_TRANSLATE_NOOP("Hotkeys", "Audio Volume Up")).toStdString(),          QStringLiteral(QT_TRANSLATE_NOOP("Hotkeys", "Main Window")).toStdString(), {std::string("="),       std::string("Home+Dpad_Up"), Qt::ApplicationShortcut, true}},
-    {QStringLiteral(QT_TRANSLATE_NOOP("Hotkeys", "Capture Screenshot")).toStdString(),       QStringLiteral(QT_TRANSLATE_NOOP("Hotkeys", "Main Window")).toStdString(), {std::string("Ctrl+P"),  std::string("Screenshot"), Qt::WidgetWithChildrenShortcut, false}},
-    {QStringLiteral(QT_TRANSLATE_NOOP("Hotkeys", "Change Adapting Filter")).toStdString(),   QStringLiteral(QT_TRANSLATE_NOOP("Hotkeys", "Main Window")).toStdString(), {std::string("F8"),      std::string("Home+L"), Qt::ApplicationShortcut, false}},
-    {QStringLiteral(QT_TRANSLATE_NOOP("Hotkeys", "Change Docked Mode")).toStdString(),       QStringLiteral(QT_TRANSLATE_NOOP("Hotkeys", "Main Window")).toStdString(), {std::string("F10"),     std::string("Home+X"), Qt::ApplicationShortcut, false}},
-    {QStringLiteral(QT_TRANSLATE_NOOP("Hotkeys", "Change GPU Accuracy")).toStdString(),      QStringLiteral(QT_TRANSLATE_NOOP("Hotkeys", "Main Window")).toStdString(), {std::string("F9"),      std::string("Home+R"), Qt::ApplicationShortcut, false}},
-    {QStringLiteral(QT_TRANSLATE_NOOP("Hotkeys", "Configure")).toStdString(),                QStringLiteral(QT_TRANSLATE_NOOP("Hotkeys", "Main Window")).toStdString(), {std::string("Ctrl+,"),  std::string(""), Qt::WidgetWithChildrenShortcut, false}},
-    {QStringLiteral(QT_TRANSLATE_NOOP("Hotkeys", "Configure Current Game")).toStdString(),   QStringLiteral(QT_TRANSLATE_NOOP("Hotkeys", "Main Window")).toStdString(), {std::string("Ctrl+."),  std::string(""), Qt::WidgetWithChildrenShortcut, false}},
-    {QStringLiteral(QT_TRANSLATE_NOOP("Hotkeys", "Continue/Pause Emulation")).toStdString(), QStringLiteral(QT_TRANSLATE_NOOP("Hotkeys", "Main Window")).toStdString(), {std::string("F4"),      std::string("Home+Plus"), Qt::WindowShortcut, false}},
-    {QStringLiteral(QT_TRANSLATE_NOOP("Hotkeys", "Exit Fullscreen")).toStdString(),          QStringLiteral(QT_TRANSLATE_NOOP("Hotkeys", "Main Window")).toStdString(), {std::string("Esc"),     std::string(""), Qt::WindowShortcut, false}},
-    {QStringLiteral(QT_TRANSLATE_NOOP("Hotkeys", "Exit Eden")).toStdString(),                QStringLiteral(QT_TRANSLATE_NOOP("Hotkeys", "Main Window")).toStdString(), {std::string("Ctrl+Q"),  std::string("Home+Minus"), Qt::WindowShortcut, false}},
-    {QStringLiteral(QT_TRANSLATE_NOOP("Hotkeys", "Fullscreen")).toStdString(),               QStringLiteral(QT_TRANSLATE_NOOP("Hotkeys", "Main Window")).toStdString(), {std::string("F11"),     std::string("Home+B"), Qt::WindowShortcut, false}},
-    {QStringLiteral(QT_TRANSLATE_NOOP("Hotkeys", "Load File")).toStdString(),                QStringLiteral(QT_TRANSLATE_NOOP("Hotkeys", "Main Window")).toStdString(), {std::string("Ctrl+O"),  std::string(""), Qt::WidgetWithChildrenShortcut, false}},
-    {QStringLiteral(QT_TRANSLATE_NOOP("Hotkeys", "Load/Remove Amiibo")).toStdString(),       QStringLiteral(QT_TRANSLATE_NOOP("Hotkeys", "Main Window")).toStdString(), {std::string("F2"),      std::string("Home+A"), Qt::WidgetWithChildrenShortcut, false}},
-    {QStringLiteral(QT_TRANSLATE_NOOP("Hotkeys", "Multiplayer Browse Public Game Lobby")).toStdString(), QStringLiteral(QT_TRANSLATE_NOOP("Hotkeys", "Main Window")).toStdString(), {std::string("Ctrl+B"),  std::string(""), Qt::ApplicationShortcut, false}},
-    {QStringLiteral(QT_TRANSLATE_NOOP("Hotkeys", "Multiplayer Create Room")).toStdString(),  QStringLiteral(QT_TRANSLATE_NOOP("Hotkeys", "Main Window")).toStdString(), {std::string("Ctrl+N"),  std::string(""), Qt::ApplicationShortcut, false}},
-    {QStringLiteral(QT_TRANSLATE_NOOP("Hotkeys", "Multiplayer Direct Connect to Room")).toStdString(), QStringLiteral(QT_TRANSLATE_NOOP("Hotkeys", "Main Window")).toStdString(), {std::string("Ctrl+C"),  std::string(""), Qt::ApplicationShortcut, false}},
-    {QStringLiteral(QT_TRANSLATE_NOOP("Hotkeys", "Multiplayer Leave Room")).toStdString(),   QStringLiteral(QT_TRANSLATE_NOOP("Hotkeys", "Main Window")).toStdString(), {std::string("Ctrl+L"),  std::string(""), Qt::ApplicationShortcut, false}},
-    {QStringLiteral(QT_TRANSLATE_NOOP("Hotkeys", "Multiplayer Show Current Room")).toStdString(), QStringLiteral(QT_TRANSLATE_NOOP("Hotkeys", "Main Window")).toStdString(), {std::string("Ctrl+R"),  std::string(""), Qt::ApplicationShortcut, false}},
-    {QStringLiteral(QT_TRANSLATE_NOOP("Hotkeys", "Restart Emulation")).toStdString(),        QStringLiteral(QT_TRANSLATE_NOOP("Hotkeys", "Main Window")).toStdString(), {std::string("F6"),      std::string("R+Plus+Minus"), Qt::WindowShortcut, false}},
-    {QStringLiteral(QT_TRANSLATE_NOOP("Hotkeys", "Stop Emulation")).toStdString(),           QStringLiteral(QT_TRANSLATE_NOOP("Hotkeys", "Main Window")).toStdString(), {std::string("F5"),      std::string("L+Plus+Minus"), Qt::WindowShortcut, false}},
-    {QStringLiteral(QT_TRANSLATE_NOOP("Hotkeys", "TAS Record")).toStdString(),               QStringLiteral(QT_TRANSLATE_NOOP("Hotkeys", "Main Window")).toStdString(), {std::string("Ctrl+F7"), std::string(""), Qt::ApplicationShortcut, false}},
-    {QStringLiteral(QT_TRANSLATE_NOOP("Hotkeys", "TAS Reset")).toStdString(),                QStringLiteral(QT_TRANSLATE_NOOP("Hotkeys", "Main Window")).toStdString(), {std::string("Ctrl+F6"), std::string(""), Qt::ApplicationShortcut, false}},
-    {QStringLiteral(QT_TRANSLATE_NOOP("Hotkeys", "TAS Start/Stop")).toStdString(),           QStringLiteral(QT_TRANSLATE_NOOP("Hotkeys", "Main Window")).toStdString(), {std::string("Ctrl+F5"), std::string(""), Qt::ApplicationShortcut, false}},
-    {QStringLiteral(QT_TRANSLATE_NOOP("Hotkeys", "Toggle Filter Bar")).toStdString(),        QStringLiteral(QT_TRANSLATE_NOOP("Hotkeys", "Main Window")).toStdString(), {std::string("Ctrl+F"),  std::string(""), Qt::WindowShortcut, false}},
-    {QStringLiteral(QT_TRANSLATE_NOOP("Hotkeys", "Toggle Framerate Limit")).toStdString(),   QStringLiteral(QT_TRANSLATE_NOOP("Hotkeys", "Main Window")).toStdString(), {std::string("Ctrl+U"),  std::string("Home+Y"), Qt::ApplicationShortcut, false}},
-    {QStringLiteral(QT_TRANSLATE_NOOP("Hotkeys", "Toggle Mouse Panning")).toStdString(),     QStringLiteral(QT_TRANSLATE_NOOP("Hotkeys", "Main Window")).toStdString(), {std::string("Ctrl+F9"), std::string(""), Qt::ApplicationShortcut, false}},
-    {QStringLiteral(QT_TRANSLATE_NOOP("Hotkeys", "Toggle Renderdoc Capture")).toStdString(), QStringLiteral(QT_TRANSLATE_NOOP("Hotkeys", "Main Window")).toStdString(), {std::string(""),        std::string(""), Qt::ApplicationShortcut, false}},
-    {QStringLiteral(QT_TRANSLATE_NOOP("Hotkeys", "Toggle Status Bar")).toStdString(),        QStringLiteral(QT_TRANSLATE_NOOP("Hotkeys", "Main Window")).toStdString(), {std::string("Ctrl+S"),  std::string(""), Qt::WindowShortcut, false}},
-}};
-// clang-format on
+// sync with uisettings.cpp
+extern const std::array<Shortcut, 33> default_hotkeys;
 
 } // namespace UISettings
 
@@ -280,7 +262,6 @@ Q_DECLARE_METATYPE(Settings::ResolutionSetup);
 Q_DECLARE_METATYPE(Settings::ScalingFilter);
 Q_DECLARE_METATYPE(Settings::AntiAliasing);
 Q_DECLARE_METATYPE(Settings::RendererBackend);
-Q_DECLARE_METATYPE(Settings::ShaderBackend);
 Q_DECLARE_METATYPE(Settings::AstcRecompression);
 Q_DECLARE_METATYPE(Settings::AstcDecodeMode);
 Q_DECLARE_METATYPE(Settings::SpirvOptimizeMode);

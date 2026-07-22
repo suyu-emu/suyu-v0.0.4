@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+# SPDX-License-Identifier: GPL-3.0-or-later
+
 # SPDX-FileCopyrightText: 2018 yuzu Emulator Project
 # SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -53,7 +56,6 @@ add_library(audio_core STATIC
     out/audio_out.h
     out/audio_out_system.cpp
     out/audio_out_system.h
-    precompiled_headers.h
     renderer/audio_device.cpp
     renderer/audio_device.h
     renderer/audio_renderer.h
@@ -220,50 +222,36 @@ if (MSVC)
     )
 else()
     target_compile_options(audio_core PRIVATE
-        -Werror=conversion
-
-        -Wno-sign-conversion
-    )
+        $<$<COMPILE_LANGUAGE:C,CXX>:-Werror=conversion>
+        $<$<COMPILE_LANGUAGE:C,CXX>:-Wno-sign-conversion>)
 endif()
 
+target_include_directories(audio_core PRIVATE ${OPUS_INCLUDE_DIRS})
 target_link_libraries(audio_core PUBLIC common core Opus::opus)
-if (ARCHITECTURE_x86_64 OR ARCHITECTURE_arm64)
-    target_link_libraries(audio_core PRIVATE dynarmic::dynarmic)
-endif()
 
 if (ENABLE_CUBEB)
     target_sources(audio_core PRIVATE
         sink/cubeb_sink.cpp
-        sink/cubeb_sink.h
-    )
+        sink/cubeb_sink.h)
 
     target_link_libraries(audio_core PRIVATE cubeb::cubeb)
-    target_compile_definitions(audio_core PRIVATE -DHAVE_CUBEB=1)
+    target_compile_definitions(audio_core PRIVATE HAVE_CUBEB=1)
 endif()
 
-if (ENABLE_SDL2)
-    target_sources(audio_core PRIVATE
-        sink/sdl2_sink.cpp
-        sink/sdl2_sink.h
-    )
-
-    target_link_libraries(audio_core PRIVATE SDL2::SDL2)
-    target_compile_definitions(audio_core PRIVATE HAVE_SDL2)
-endif()
-
-if (ANDROID)
+if(ANDROID)
     target_sources(audio_core PRIVATE
         sink/oboe_sink.cpp
-        sink/oboe_sink.h
-    )
+        sink/oboe_sink.h)
 
-    # FIXME: this port seems broken, it cannot be imported with find_package(oboe REQUIRED)
-    target_link_libraries(audio_core PRIVATE "${VCPKG_INSTALLED_DIR}/${VCPKG_TARGET_TRIPLET}/lib/liboboe.a")
-    target_compile_definitions(audio_core PRIVATE HAVE_OBOE)
-endif()
+    target_link_libraries(audio_core PRIVATE oboe)
+    target_compile_definitions(audio_core PUBLIC HAVE_OBOE)
+else()
+    target_sources(audio_core PRIVATE
+        sink/sdl3_sink.cpp
+        sink/sdl3_sink.h)
 
-if (SUYU_USE_PRECOMPILED_HEADERS)
-    target_precompile_headers(audio_core PRIVATE precompiled_headers.h)
+    target_link_libraries(audio_core PRIVATE SDL3::SDL3)
+    target_compile_definitions(audio_core PRIVATE HAVE_SDL3)
 endif()
 
 create_target_directory_groups(audio_core)

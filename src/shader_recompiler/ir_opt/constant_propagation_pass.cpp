@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2021 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -5,8 +8,8 @@
 #include <functional>
 #include <tuple>
 #include <type_traits>
-
-#include "common/bit_cast.h"
+#include <bit>
+#include <numeric>
 #include "shader_recompiler/environment.h"
 #include "shader_recompiler/exception.h"
 #include "shader_recompiler/frontend/ir/ir_emitter.h"
@@ -533,7 +536,7 @@ template <IR::Opcode op, typename Dest, typename Source>
 void FoldBitCast(IR::Inst& inst, IR::Opcode reverse) {
     const IR::Value value{inst.Arg(0)};
     if (value.IsImmediate()) {
-        inst.ReplaceUsesWith(IR::Value{Common::BitCast<Dest>(Arg<Source>(value))});
+        inst.ReplaceUsesWith(IR::Value{std::bit_cast<Dest>(Arg<Source>(value))});
         return;
     }
     IR::Inst* const arg_inst{value.InstRecursive()};
@@ -671,7 +674,7 @@ void FoldFSwizzleAdd(IR::Block& block, IR::Inst& inst) {
         if (!value_2.IsImmediate() || !value_3.IsImmediate()) {
             return;
         }
-        if (Common::BitCast<u32>(value_2.F32()) != value_3.U32()) {
+        if (std::bit_cast<u32>(value_2.F32()) != value_3.U32()) {
             return;
         }
     }
@@ -818,7 +821,7 @@ bool FindGradient3DDerivatives(std::array<IR::Value, 3>& results, IR::Value coor
 void ConvertDerivatives(std::array<IR::Value, 3>& results, IR::IREmitter& ir) {
     for (size_t i = 0; i < 3; i++) {
         if (results[i].Type() == IR::Type::U32) {
-            results[i] = results[i].IsImmediate() ? ir.Imm32(Common::BitCast<f32>(results[i].U32()))
+            results[i] = results[i].IsImmediate() ? ir.Imm32(std::bit_cast<f32>(results[i].U32()))
                                                   : ir.BitCast<IR::F32>(IR::U32(results[i]));
         }
     }
@@ -905,7 +908,7 @@ void FoldConstBuffer(Environment& env, IR::Block& block, IR::Inst& inst) {
 }
 
 void FoldDriverConstBuffer(Environment& env, IR::Block& block, IR::Inst& inst, u32 which_bank,
-                           u32 offset_start = 0, u32 offset_end = std::numeric_limits<u16>::max()) {
+                           u32 offset_start = 0, u32 offset_end = (std::numeric_limits<u16>::max)()) {
     const IR::Value bank{inst.Arg(0)};
     const IR::Value offset{inst.Arg(1)};
     if (!bank.IsImmediate() || !offset.IsImmediate()) {
@@ -924,7 +927,7 @@ void FoldDriverConstBuffer(Environment& env, IR::Block& block, IR::Inst& inst, u
         inst.ReplaceUsesWith(IR::Value{env.ReadCbufValue(bank_value, offset_value)});
     } else {
         inst.ReplaceUsesWith(
-            IR::Value{Common::BitCast<f32>(env.ReadCbufValue(bank_value, offset_value))});
+            IR::Value{std::bit_cast<f32>(env.ReadCbufValue(bank_value, offset_value))});
     }
 }
 

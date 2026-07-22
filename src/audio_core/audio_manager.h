@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2022 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -66,13 +69,6 @@ public:
     void SetEvent(Event::Type type, bool signalled);
 
 private:
-    /**
-     * Main thread, waiting on a manager signal and calling the registered function.
-     */
-    void ThreadFunc();
-
-    /// Is the main thread running?
-    std::atomic<bool> running{};
     /// Unused
     bool needs_update{};
     /// Events to be set and signalled

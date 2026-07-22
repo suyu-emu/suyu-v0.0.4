@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 // SPDX-FileCopyrightText: 2023 yuzu Emulator Project
@@ -10,6 +10,7 @@ import android.view.LayoutInflater
 import android.view.ViewGroup
 import org.yuzu.yuzu_emu.databinding.ListItemAddonBinding
 import org.yuzu.yuzu_emu.model.Patch
+import org.yuzu.yuzu_emu.model.PatchType
 import org.yuzu.yuzu_emu.model.AddonViewModel
 import org.yuzu.yuzu_emu.viewholder.AbstractViewHolder
 
@@ -31,14 +32,29 @@ class AddonAdapter(val addonViewModel: AddonViewModel) :
             binding.addonSwitch.isChecked = model.enabled
 
             binding.addonSwitch.setOnCheckedChangeListener { _, checked ->
-                model.enabled = checked
+                if (PatchType.from(model.type) == PatchType.Update && checked) {
+                    addonViewModel.enableOnlyThisUpdate(model)
+                    notifyDataSetChanged()
+                } else {
+                    model.enabled = checked
+                }
             }
 
-            val deleteAction = {
-                addonViewModel.setAddonToDelete(model)
+            val canDelete = model.isRemovable
+            binding.deleteCard.isEnabled = canDelete
+            binding.buttonDelete.isEnabled = canDelete
+            binding.deleteCard.alpha = if (canDelete) 1f else 0.38f
+
+            if (canDelete) {
+                val deleteAction = {
+                    addonViewModel.setAddonToDelete(model)
+                }
+                binding.deleteCard.setOnClickListener { deleteAction() }
+                binding.buttonDelete.setOnClickListener { deleteAction() }
+            } else {
+                binding.deleteCard.setOnClickListener(null)
+                binding.buttonDelete.setOnClickListener(null)
             }
-            binding.deleteCard.setOnClickListener { deleteAction() }
-            binding.buttonDelete.setOnClickListener { deleteAction() }
         }
     }
 }

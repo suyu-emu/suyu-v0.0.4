@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 /* This file is part of the dynarmic project.
  * Copyright (c) 2022 MerryMage
  * SPDX-License-Identifier: 0BSD
@@ -22,9 +25,9 @@ void EmitX64::EmitSHA256Hash(EmitContext& ctx, IR::Inst* inst) {
     // y =  h   g   f   e
     // w = wk3 wk2 wk1 wk0
 
-    const Xbyak::Xmm x = ctx.reg_alloc.UseScratchXmm(args[0]);
-    const Xbyak::Xmm y = ctx.reg_alloc.UseScratchXmm(args[1]);
-    const Xbyak::Xmm w = ctx.reg_alloc.UseXmm(args[2]);
+    const Xbyak::Xmm x = ctx.reg_alloc.UseScratchXmm(code, args[0]);
+    const Xbyak::Xmm y = ctx.reg_alloc.UseScratchXmm(code, args[1]);
+    const Xbyak::Xmm w = ctx.reg_alloc.UseXmm(code, args[2]);
 
     // x64 expects:
     //         3   2   1   0
@@ -45,7 +48,7 @@ void EmitX64::EmitSHA256Hash(EmitContext& ctx, IR::Inst* inst) {
 
     code.shufps(y, x, part1 ? 0b10111011 : 0b00010001);
 
-    ctx.reg_alloc.DefineValue(inst, y);
+    ctx.reg_alloc.DefineValue(code, inst, y);
 }
 
 void EmitX64::EmitSHA256MessageSchedule0(EmitContext& ctx, IR::Inst* inst) {
@@ -53,12 +56,12 @@ void EmitX64::EmitSHA256MessageSchedule0(EmitContext& ctx, IR::Inst* inst) {
 
     ASSERT(code.HasHostFeature(HostFeature::SHA));
 
-    const Xbyak::Xmm x = ctx.reg_alloc.UseScratchXmm(args[0]);
-    const Xbyak::Xmm y = ctx.reg_alloc.UseXmm(args[1]);
+    const Xbyak::Xmm x = ctx.reg_alloc.UseScratchXmm(code, args[0]);
+    const Xbyak::Xmm y = ctx.reg_alloc.UseXmm(code, args[1]);
 
     code.sha256msg1(x, y);
 
-    ctx.reg_alloc.DefineValue(inst, x);
+    ctx.reg_alloc.DefineValue(code, inst, x);
 }
 
 void EmitX64::EmitSHA256MessageSchedule1(EmitContext& ctx, IR::Inst* inst) {
@@ -66,16 +69,16 @@ void EmitX64::EmitSHA256MessageSchedule1(EmitContext& ctx, IR::Inst* inst) {
 
     ASSERT(code.HasHostFeature(HostFeature::SHA));
 
-    const Xbyak::Xmm x = ctx.reg_alloc.UseScratchXmm(args[0]);
-    const Xbyak::Xmm y = ctx.reg_alloc.UseXmm(args[1]);
-    const Xbyak::Xmm z = ctx.reg_alloc.UseXmm(args[2]);
+    const Xbyak::Xmm x = ctx.reg_alloc.UseScratchXmm(code, args[0]);
+    const Xbyak::Xmm y = ctx.reg_alloc.UseXmm(code, args[1]);
+    const Xbyak::Xmm z = ctx.reg_alloc.UseXmm(code, args[2]);
 
     code.movaps(xmm0, z);
     code.palignr(xmm0, y, 4);
     code.paddd(x, xmm0);
     code.sha256msg2(x, z);
 
-    ctx.reg_alloc.DefineValue(inst, x);
+    ctx.reg_alloc.DefineValue(code, inst, x);
 }
 
 }  // namespace Dynarmic::Backend::X64

@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2023 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -9,6 +12,7 @@
 #include "core/hle/kernel/svc.h"
 #include "core/hle/kernel/svc_results.h"
 #include "core/hle/kernel/svc_types.h"
+
 namespace Kernel::Svc {
 namespace {
 
@@ -39,7 +43,7 @@ constexpr bool IsValidArbitrationType(Svc::ArbitrationType type) {
 // Wait for an address (via Address Arbiter)
 Result WaitForAddress(Core::System& system, u64 address, ArbitrationType arb_type, s32 value,
                       s64 timeout_ns) {
-    LOG_TRACE(Kernel_SVC, "called, address=0x{:X}, arb_type=0x{:X}, value=0x{:X}, timeout_ns={}",
+    LOG_TRACE(Kernel_SVC, "called, address={:#X}, arb_type=0x{:X}, value=0x{:X}, timeout_ns={}",
               address, arb_type, value, timeout_ns);
 
     // Validate input.
@@ -54,10 +58,10 @@ Result WaitForAddress(Core::System& system, u64 address, ArbitrationType arb_typ
         if (offset_tick > 0) {
             timeout = system.Kernel().HardwareTimer().GetTick() + offset_tick + 2;
             if (timeout <= 0) {
-                timeout = std::numeric_limits<s64>::max();
+                timeout = (std::numeric_limits<s64>::max)();
             }
         } else {
-            timeout = std::numeric_limits<s64>::max();
+            timeout = (std::numeric_limits<s64>::max)();
         }
     } else {
         timeout = timeout_ns;
@@ -70,7 +74,7 @@ Result WaitForAddress(Core::System& system, u64 address, ArbitrationType arb_typ
 // Signals to an address (via Address Arbiter)
 Result SignalToAddress(Core::System& system, u64 address, SignalType signal_type, s32 value,
                        s32 count) {
-    LOG_TRACE(Kernel_SVC, "called, address=0x{:X}, signal_type=0x{:X}, value=0x{:X}, count=0x{:X}",
+    LOG_TRACE(Kernel_SVC, "called, address={:#X}, signal_type=0x{:X}, value=0x{:X}, count=0x{:X}",
               address, signal_type, value, count);
 
     // Validate input.

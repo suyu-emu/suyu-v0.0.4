@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2024 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -18,7 +21,7 @@ IAppletCommonFunctions::IAppletCommonFunctions(Core::System& system_,
         {20, nullptr, "PushToAppletBoundChannel"},
         {21, nullptr, "TryPopFromAppletBoundChannel"},
         {40, nullptr, "GetDisplayLogicalResolution"},
-        {42, nullptr, "SetDisplayMagnification"},
+        {42, D<&IAppletCommonFunctions::SetDisplayMagnification>, "SetDisplayMagnification"},
         {50, D<&IAppletCommonFunctions::SetHomeButtonDoubleClickEnabled>, "SetHomeButtonDoubleClickEnabled"},
         {51, D<&IAppletCommonFunctions::GetHomeButtonDoubleClickEnabled>, "GetHomeButtonDoubleClickEnabled"},
         {52, nullptr, "IsHomeButtonShortPressedBlocked"},
@@ -32,7 +35,10 @@ IAppletCommonFunctions::IAppletCommonFunctions(Core::System& system_,
         {91, nullptr, "OpenNamedChannelAsChild"},
         {100, nullptr, "SetApplicationCoreUsageMode"},
         {300, D<&IAppletCommonFunctions::GetCurrentApplicationId>, "GetCurrentApplicationId"},
-        {350, D<&IAppletCommonFunctions::Unknown350>, "Unknown350"}, // 20.0.0+
+        {310, nullptr, "IsSystemAppletHomeMenu"}, //19.0.0+
+        {320, D<&IAppletCommonFunctions::SetGpuTimeSliceBoost>, "SetGpuTimeSliceBoost"}, //19.0.0+
+        {321, nullptr, "SetGpuTimeSliceBoostDueToApplication"}, //19.0.0+
+        {350, D<&IAppletCommonFunctions::Unknown350>, "Unknown350"} //20.0.0+
     };
     // clang-format on
 
@@ -55,6 +61,14 @@ Result IAppletCommonFunctions::GetHomeButtonDoubleClickEnabled(
     R_SUCCEED();
 }
 
+Result IAppletCommonFunctions::SetDisplayMagnification(f32 x, f32 y, f32 width, f32 height) {
+    LOG_DEBUG(Service_AM, "(STUBBED) called, x={}, y={}, width={}, height={}", x, y, width,
+                height);
+    std::scoped_lock lk{applet->lock};
+    applet->display_magnification = Common::Rectangle<f32>{x, y, x + width, y + height};
+    R_SUCCEED();
+}
+
 Result IAppletCommonFunctions::SetCpuBoostRequestPriority(s32 priority) {
     LOG_WARNING(Service_AM, "(STUBBED) called");
     std::scoped_lock lk{applet->lock};
@@ -65,6 +79,11 @@ Result IAppletCommonFunctions::SetCpuBoostRequestPriority(s32 priority) {
 Result IAppletCommonFunctions::GetCurrentApplicationId(Out<u64> out_application_id) {
     LOG_WARNING(Service_AM, "(STUBBED) called");
     *out_application_id = system.GetApplicationProcessProgramID() & ~0xFFFULL;
+    R_SUCCEED();
+}
+
+Result IAppletCommonFunctions::SetGpuTimeSliceBoost(s64 time_span) {
+    LOG_WARNING(Service_AM, "(STUBBED) called, time_span={}", time_span);
     R_SUCCEED();
 }
 

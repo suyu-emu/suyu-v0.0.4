@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2018 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -22,13 +25,9 @@ namespace Loader {
  */
 class AppLoader_DeconstructedRomDirectory final : public AppLoader {
 public:
-    explicit AppLoader_DeconstructedRomDirectory(FileSys::VirtualFile main_file,
-                                                 bool override_update_ = false);
-
+    explicit AppLoader_DeconstructedRomDirectory(FileSys::VirtualFile main_file, bool override_update_ = false);
     // Overload to accept exefs directory. Must contain 'main' and 'main.npdm'
-    explicit AppLoader_DeconstructedRomDirectory(FileSys::VirtualDir directory,
-                                                 bool override_update_ = false,
-                                                 bool is_hbl_ = false);
+    explicit AppLoader_DeconstructedRomDirectory(FileSys::VirtualDir directory, bool override_update_ = false);
 
     /**
      * Identifies whether or not the given file is a deconstructed ROM directory.
@@ -63,7 +62,6 @@ private:
     std::string name;
     u64 title_id{};
     bool override_update;
-    bool is_hbl;
 
     Modules modules;
 };

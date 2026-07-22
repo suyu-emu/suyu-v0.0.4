@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2021 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -16,7 +19,7 @@ Block::Block(ObjectPool<Inst>& inst_pool_) : inst_pool{&inst_pool_} {}
 Block::~Block() = default;
 
 void Block::AppendNewInst(Opcode op, std::initializer_list<Value> args) {
-    PrependNewInst(end(), op, args);
+    PrependNewInst(instructions.end(), op, args);
 }
 
 Block::iterator Block::PrependNewInst(iterator insertion_point, const Inst& base_inst) {

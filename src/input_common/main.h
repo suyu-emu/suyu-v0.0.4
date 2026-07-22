@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: 2017 Citra Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -5,7 +8,7 @@
 
 #include <memory>
 #include <string>
-#include <unordered_map>
+#include <ankerl/unordered_dense.h>
 #include <vector>
 
 namespace Common {
@@ -53,9 +56,9 @@ enum class InputType { None, Button, Stick, Motion, Touch };
  * Given a ParamPackage for a Device returned from `GetInputDevices`, attempt to get the default
  * mapping for the device.
  */
-using AnalogMapping = std::unordered_map<Settings::NativeAnalog::Values, Common::ParamPackage>;
-using ButtonMapping = std::unordered_map<Settings::NativeButton::Values, Common::ParamPackage>;
-using MotionMapping = std::unordered_map<Settings::NativeMotion::Values, Common::ParamPackage>;
+using AnalogMapping = ankerl::unordered_dense::map<Settings::NativeAnalog::Values, Common::ParamPackage>;
+using ButtonMapping = ankerl::unordered_dense::map<Settings::NativeButton::Values, Common::ParamPackage>;
+using MotionMapping = ankerl::unordered_dense::map<Settings::NativeMotion::Values, Common::ParamPackage>;
 
 class InputSubsystem {
 public:

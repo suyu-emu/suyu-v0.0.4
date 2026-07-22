@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2023 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -88,8 +91,8 @@ constexpr inline s32 GetKeyTypeValue(u8 key_index, u8 key_generation) {
 }
 
 class NcaReader {
-    SUYU_NON_COPYABLE(NcaReader);
-    SUYU_NON_MOVEABLE(NcaReader);
+    YUZU_NON_COPYABLE(NcaReader);
+    YUZU_NON_MOVEABLE(NcaReader);
 
 public:
     NcaReader();
@@ -154,8 +157,8 @@ private:
 };
 
 class NcaFsHeaderReader {
-    SUYU_NON_COPYABLE(NcaFsHeaderReader);
-    SUYU_NON_MOVEABLE(NcaFsHeaderReader);
+    YUZU_NON_COPYABLE(NcaFsHeaderReader);
+    YUZU_NON_MOVEABLE(NcaFsHeaderReader);
 
 public:
     NcaFsHeaderReader() : m_fs_index(-1) {
@@ -207,8 +210,8 @@ private:
 };
 
 class NcaFileSystemDriver {
-    SUYU_NON_COPYABLE(NcaFileSystemDriver);
-    SUYU_NON_MOVEABLE(NcaFileSystemDriver);
+    YUZU_NON_COPYABLE(NcaFileSystemDriver);
+    YUZU_NON_MOVEABLE(NcaFileSystemDriver);
 
 public:
     struct StorageContext {
@@ -328,6 +331,10 @@ private:
                                   s64 offset, const NcaAesCtrUpperIv& upper_iv,
                                   const NcaPatchInfo& patch_info,
                                   const NcaMetaDataHashDataInfo& meta_data_hash_data_info);
+
+
+    Result CreateSha3Storage(VirtualFile* out, VirtualFile base_storage,
+                             const NcaFsHeader::HashData::HierarchicalSha256Data& hash_data);
 
     Result CreateSha256Storage(VirtualFile* out, VirtualFile base_storage,
                                const NcaFsHeader::HashData::HierarchicalSha256Data& sha256_data);

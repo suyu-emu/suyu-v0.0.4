@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2023 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -141,7 +144,7 @@ bool ArmNce::HandleFailedGuestFault(GuestContext* guest_ctx, void* raw_info, voi
 bool ArmNce::HandleGuestAlignmentFault(GuestContext* guest_ctx, void* raw_info, void* raw_context) {
     auto& host_ctx = static_cast<ucontext_t*>(raw_context)->uc_mcontext;
     auto* fpctx = GetFloatingPointState(host_ctx);
-    auto& memory = guest_ctx->system->ApplicationMemory();
+    auto& memory = guest_ctx->parent->m_running_thread->GetOwnerProcess()->GetMemory();
 
     // Match and execute an instruction.
     auto next_pc = MatchAndExecuteOneInstruction(memory, &host_ctx, fpctx);
@@ -160,8 +163,9 @@ bool ArmNce::HandleGuestAccessFault(GuestContext* guest_ctx, void* raw_info, voi
     // Try to handle an invalid access.
     // TODO: handle accesses which split a page?
     const Common::ProcessAddress addr =
-        (reinterpret_cast<u64>(info->si_addr) & ~Memory::SUYU_PAGEMASK);
-    if (guest_ctx->system->ApplicationMemory().InvalidateNCE(addr, Memory::SUYU_PAGESIZE)) {
+        (reinterpret_cast<u64>(info->si_addr) & ~Memory::YUZU_PAGEMASK);
+    auto& memory = guest_ctx->parent->m_running_thread->GetOwnerProcess()->GetMemory();
+    if (memory.InvalidateNCE(addr, Memory::YUZU_PAGESIZE)) {
         // We handled the access successfully and are returning to guest code.
         return true;
     }
@@ -185,6 +189,9 @@ void ArmNce::LockThread(Kernel::KThread* thread) {
 
 void ArmNce::UnlockThread(Kernel::KThread* thread) {
     auto* thread_params = &thread->GetNativeExecutionParameters();
+    m_guest_ctx.tpidr_el0 = thread_params->tpidr_el0;
+    m_guest_ctx.tpidrro_el0 = thread_params->tpidrro_el0;
+    thread_params->native_context = nullptr;
     UnlockThreadParameters(thread_params);
 }
 
@@ -196,16 +203,23 @@ HaltReason ArmNce::RunThread(Kernel::KThread* thread) {
         return hr;
     }
 
-    // Get the thread context.
+    // Pre-fetch thread context data to improve cache locality
     auto* thread_params = &thread->GetNativeExecutionParameters();
     auto* process = thread->GetOwnerProcess();
 
-    // Assign current members.
+    // Move non-critical operations outside the locked section
+    const u64 tpidr_el0_cache = m_guest_ctx.tpidr_el0;
+    const u64 tpidrro_el0_cache = m_guest_ctx.tpidrro_el0;
+
+    // Critical section begins - minimize operations here
     m_running_thread = thread;
     m_guest_ctx.parent = this;
     thread_params->native_context = &m_guest_ctx;
-    thread_params->tpidr_el0 = m_guest_ctx.tpidr_el0;
-    thread_params->tpidrro_el0 = m_guest_ctx.tpidrro_el0;
+    thread_params->tpidr_el0 = tpidr_el0_cache;
+    thread_params->tpidrro_el0 = tpidrro_el0_cache;
+
+    // Memory barrier to ensure visibility of changes
+    std::atomic_thread_fence(std::memory_order_release);
     thread_params->is_running = true;
 
     // TODO: finding and creating the post handler needs to be locked
@@ -214,15 +228,22 @@ HaltReason ArmNce::RunThread(Kernel::KThread* thread) {
     if (auto it = post_handlers.find(m_guest_ctx.pc); it != post_handlers.end()) {
         hr = ReturnToRunCodeByTrampoline(thread_params, &m_guest_ctx, it->second);
     } else {
-        hr = ReturnToRunCodeByExceptionLevelChange(m_thread_id, thread_params);
+        hr = ReturnToRunCodeByExceptionLevelChange(m_thread_id, thread_params);  // Android: Use "process handle SIGUSR2 -n true -p true -s false" (and SIGURG) in LLDB when debugging
     }
 
-    // Unload members.
-    // The thread does not change, so we can persist the old reference.
-    m_running_thread = nullptr;
-    m_guest_ctx.tpidr_el0 = thread_params->tpidr_el0;
-    thread_params->native_context = nullptr;
+    // Critical section for thread cleanup
+    std::atomic_thread_fence(std::memory_order_acquire);
+
+    // Cache values before releasing thread
+    const u64 final_tpidr_el0 = thread_params->tpidr_el0;
+
+    // Minimize critical section
     thread_params->is_running = false;
+    thread_params->native_context = nullptr;
+    m_running_thread = nullptr;
+
+    // Non-critical updates can happen after releasing the thread
+    m_guest_ctx.tpidr_el0 = final_tpidr_el0;
 
     // Return the halt reason.
     return hr;
@@ -351,9 +372,11 @@ void ArmNce::SignalInterrupt(Kernel::KThread* thread) {
     // Add break loop condition.
     m_guest_ctx.esr_el1.fetch_or(static_cast<u64>(HaltReason::BreakLoop));
 
-    // Lock the thread context.
     auto* params = &thread->GetNativeExecutionParameters();
     LockThreadParameters(params);
+
+    // Ensure visibility of is_running after lock acquire
+    std::atomic_thread_fence(std::memory_order_acquire);
 
     if (params->is_running) {
         // We should signal to the running thread.
@@ -365,12 +388,15 @@ void ArmNce::SignalInterrupt(Kernel::KThread* thread) {
     }
 }
 
-void ArmNce::ClearInstructionCache() {
-    // TODO: This is not possible to implement correctly on Linux because
-    // we do not have any access to ic iallu.
+[[maybe_unused]] const std::size_t CACHE_PAGE_SIZE = 4096;
 
-    // Require accesses to complete.
-    std::atomic_thread_fence(std::memory_order_seq_cst);
+void ArmNce::ClearInstructionCache() {
+#ifdef __aarch64__
+    // Ensure all previous memory operations complete
+    asm volatile("dsb ish\n"
+                 "dsb ish\n"
+                 "isb" ::: "memory");
+#endif
 }
 
 void ArmNce::InvalidateCacheRange(u64 addr, std::size_t size) {

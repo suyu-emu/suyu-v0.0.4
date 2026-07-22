@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2021 yuzu Emulator Project
 // SPDX-FileCopyrightText: Copyright 2012 The Android Open Source Project
 // SPDX-License-Identifier: GPL-3.0-or-later
@@ -15,10 +18,8 @@ namespace Service::android {
 
 class Fence {
 public:
-    constexpr Fence() = default;
-
     static constexpr Fence NoFence() {
-        Fence fence;
+        Fence fence{};
         fence.fences[0].id = -1;
         fence.fences[1].id = -1;
         fence.fences[2].id = -1;
@@ -26,7 +27,6 @@ public:
         return fence;
     }
 
-public:
     u32 num_fences{};
     std::array<Service::Nvidia::NvFence, 4> fences{};
 };

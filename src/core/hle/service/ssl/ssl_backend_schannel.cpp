@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2023 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -34,7 +37,7 @@ static void OneTimeInit() {
         SCH_USE_STRONG_CRYPTO |        // don't allow insecure protocols
         SCH_CRED_NO_SERVERNAME_CHECK | // don't validate server names
         SCH_CRED_NO_DEFAULT_CREDS;     // don't automatically present a client certificate
-    // ^ I'm assuming that nobody would want to connect Suyu to a
+    // ^ I'm assuming that nobody would want to connect Yuzu to a
     // service that requires some OS-provided corporate client
     // certificate, and presenting one to some arbitrary server
     // might be a privacy concern?  Who knows, though.
@@ -84,6 +87,12 @@ public:
     Result SetHostName(const std::string& hostname_in) override {
         hostname = hostname_in;
         return ResultSuccess;
+    }
+
+    void SetVerifyOption(u32 option) override {
+        skip_cert_verification = (option == 0);
+        LOG_WARNING(Service_SSL, "option={} skip_verification={}", option,
+                    skip_cert_verification);
     }
 
     Result DoHandshake() override {
@@ -172,10 +181,15 @@ public:
     }
 
     Result CallInitializeSecurityContext() {
-        const unsigned long req = ISC_REQ_ALLOCATE_MEMORY | ISC_REQ_CONFIDENTIALITY |
-                                  ISC_REQ_INTEGRITY | ISC_REQ_REPLAY_DETECT |
-                                  ISC_REQ_SEQUENCE_DETECT | ISC_REQ_STREAM |
-                                  ISC_REQ_USE_SUPPLIED_CREDS;
+        unsigned long req = ISC_REQ_ALLOCATE_MEMORY | ISC_REQ_CONFIDENTIALITY |
+                            ISC_REQ_INTEGRITY | ISC_REQ_REPLAY_DETECT |
+                            ISC_REQ_SEQUENCE_DETECT | ISC_REQ_STREAM |
+                            ISC_REQ_USE_SUPPLIED_CREDS;
+
+        if (skip_cert_verification) {
+            req |= ISC_REQ_MANUAL_CRED_VALIDATION;
+        }
+
         unsigned long attr;
         // https://learn.microsoft.com/en-us/windows/win32/secauthn/initializesecuritycontext--schannel
         std::array<SecBuffer, 2> input_buffers{{
@@ -309,7 +323,7 @@ public:
         }
         while (1) {
             if (!cleartext_read_buf.empty()) {
-                *out_size = std::min(cleartext_read_buf.size(), data.size());
+                *out_size = (std::min)(cleartext_read_buf.size(), data.size());
                 std::memcpy(data.data(), cleartext_read_buf.data(), *out_size);
                 cleartext_read_buf.erase(cleartext_read_buf.begin(),
                                          cleartext_read_buf.begin() + *out_size);
@@ -533,6 +547,7 @@ public:
     std::vector<u8> cleartext_write_buf;
 
     bool got_read_eof = false;
+    bool skip_cert_verification = false;
     size_t read_buf_fill_size = 0;
 };
 

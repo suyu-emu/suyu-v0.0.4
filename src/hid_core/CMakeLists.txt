@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+# SPDX-License-Identifier: GPL-3.0-or-later
+
 # SPDX-FileCopyrightText: 2018 yuzu Emulator Project
 # SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -134,7 +137,6 @@ add_library(hid_core STATIC
     hid_result.h
     hid_types.h
     hid_util.h
-    precompiled_headers.h
     resource_manager.cpp
     resource_manager.h
 )
@@ -149,18 +151,11 @@ if (MSVC)
     )
 else()
     target_compile_options(hid_core PRIVATE
-        -Werror=conversion
-
-        -Wno-sign-conversion
-        -Wno-cast-function-type
-
-        $<$<CXX_COMPILER_ID:Clang>:-fsized-deallocation>
-    )
+        $<$<COMPILE_LANGUAGE:C,CXX>:-Werror=conversion>
+        $<$<COMPILE_LANGUAGE:C,CXX>:-Wno-sign-conversion>
+        $<$<COMPILE_LANGUAGE:C,CXX>:-Wno-cast-function-type>
+        $<$<CXX_COMPILER_ID:Clang>:-fsized-deallocation>)
 endif()
 
 create_target_directory_groups(hid_core)
 target_link_libraries(hid_core PUBLIC core)
-
-if (SUYU_USE_PRECOMPILED_HEADERS)
-    target_precompile_headers(hid_core PRIVATE precompiled_headers.h)
-endif()

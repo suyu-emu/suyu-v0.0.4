@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 /* This file is part of the dynarmic project.
@@ -24,9 +24,9 @@
 #include <array>
 #include <cstring>
 
-#include "dynarmic/common/assert.h"
-#include <mcl/bit/bit_field.hpp>
-#include <xbyak/xbyak.h>
+#include "common/assert.h"
+#include "dynarmic/mcl/bit.hpp"
+#include "dynarmic/backend/x64/xbyak.h"
 
 #include "dynarmic/backend/x64/a32_jitstate.h"
 #include "dynarmic/backend/x64/abi.h"
@@ -87,18 +87,24 @@ public:
         // Waste a page to store the size
         size += DYNARMIC_PAGE_SIZE;
 
-#    if defined(MAP_ANONYMOUS)
-        int mode = MAP_PRIVATE | MAP_ANONYMOUS;
-#    elif defined(MAP_ANON)
-        int mode = MAP_PRIVATE | MAP_ANON;
-#    else
-#        error "not supported"
-#    endif
-#    ifdef MAP_JIT
+        int mode = MAP_PRIVATE;
+#if defined(MAP_ANONYMOUS)
+        mode |= MAP_ANONYMOUS;
+#elif defined(MAP_ANON)
+        mode |= MAP_ANON;
+#else
+#   error "not supported"
+#endif
+#ifdef MAP_JIT
         mode |= MAP_JIT;
-#    endif
-
-        void* p = mmap(nullptr, size, PROT_READ | PROT_WRITE, mode, -1, 0);
+#endif
+        int prot = PROT_READ | PROT_WRITE;
+#ifdef PROT_MPROTECT
+        // https://man.netbsd.org/mprotect.2 specifies that an mprotect() that is LESS
+        // restrictive than the original mapping MUST fail
+        prot |= PROT_MPROTECT(PROT_READ) | PROT_MPROTECT(PROT_WRITE) | PROT_MPROTECT(PROT_EXEC);
+#endif
+        void* p = mmap(nullptr, size, prot, mode, -1, 0);
         if (p == MAP_FAILED) {
             using Xbyak::Error;
             XBYAK_THROW(Xbyak::ERR_CANT_ALLOC);
@@ -188,6 +194,8 @@ HostFeature GetHostFeatures() {
         features |= HostFeature::LZCNT;
     if (cpu_info.has(Cpu::tGFNI))
         features |= HostFeature::GFNI;
+    if (cpu_info.has(Cpu::tWAITPKG))
+        features |= HostFeature::WAITPKG;
 
     if (cpu_info.has(Cpu::tBMI2)) {
         // BMI2 instructions such as pdep and pext have been very slow up until Zen 3.
@@ -364,7 +372,7 @@ void BlockOfCode::GenRunCode(std::function<void(BlockOfCode&)> rcp) {
 
     cmp(dword[ABI_JIT_PTR + jsi.offsetof_halt_reason], 0);
     jne(return_to_caller_mxcsr_already_exited, T_NEAR);
-    lock(); or_(dword[ABI_JIT_PTR + jsi.offsetof_halt_reason], static_cast<u32>(HaltReason::Step));
+    lock(); or_(dword[ABI_JIT_PTR + jsi.offsetof_halt_reason], u32(HaltReason::Step));
 
     SwitchMxcsrOnEntry();
     jmp(ABI_PARAM2);

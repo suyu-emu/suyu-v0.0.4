@@ -8,6 +8,7 @@
 
     <com.google.android.material.appbar.AppBarLayout
         android:id="@+id/appbar_installables"
+        style="@style/Widget.Eden.TransparentTopAppBarLayout"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:fitsSystemWindows="true"
@@ -15,10 +16,11 @@
 
         <com.google.android.material.appbar.MaterialToolbar
             android:id="@+id/toolbar_installables"
+            style="@style/Widget.Eden.TransparentTopToolbar"
             android:layout_width="match_parent"
             android:layout_height="?attr/actionBarSize"
             android:touchscreenBlocksFocus="false"
-            app:title="@string/manage_suyu_data"
+            app:title="@string/manage_yuzu_data"
             app:navigationIcon="@drawable/ic_back" />
 
     </com.google.android.material.appbar.AppBarLayout>

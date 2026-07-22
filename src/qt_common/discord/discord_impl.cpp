@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 // SPDX-FileCopyrightText: 2018 Citra Emulator Project
@@ -9,7 +9,7 @@
 
 #include <QEventLoop>
 #include <boost/algorithm/string/replace.hpp>
-#include <httplib.h>
+#include "common/httplib.h"
 
 #include <discord_rpc.h>
 #include <fmt/format.h>
@@ -69,11 +69,13 @@ std::string DiscordImpl::GetGameString(const std::string& title) {
     return icon_name;
 }
 
+static constexpr char DEFAULT_DISCORD_TEXT[] = "Eden is an emulator for the Nintendo Switch";
+static constexpr char DEFAULT_DISCORD_IMAGE[] =
+    "https://git.eden-emu.dev/eden-emu/eden/raw/branch/master/dist/qt_themes/default/icons/256x256/"
+    "eden.png";
+
 void DiscordImpl::UpdateGameStatus(bool use_default) {
-    const std::string default_text = "Eden is an emulator for the Nintendo Switch";
-    const std::string default_image = "https://git.eden-emu.dev/eden-emu/eden/raw/branch/master/"
-                                      "dist/qt_themes/default/icons/256x256/eden.png";
-    const std::string url = use_default ? default_image : game_url;
+    const std::string url = use_default ? std::string{DEFAULT_DISCORD_IMAGE} : game_url;
     s64 start_time = std::chrono::duration_cast<std::chrono::seconds>(
                          std::chrono::system_clock::now().time_since_epoch())
                          .count();
@@ -81,19 +83,16 @@ void DiscordImpl::UpdateGameStatus(bool use_default) {
 
     presence.largeImageKey = url.c_str();
     presence.largeImageText = game_title.c_str();
-    presence.smallImageKey = default_image.c_str();
-    presence.smallImageText = default_text.c_str();
+    presence.smallImageKey = DEFAULT_DISCORD_IMAGE;
+    presence.smallImageText = DEFAULT_DISCORD_TEXT;
     presence.state = game_title.c_str();
+    presence.status_display_type = DiscordStatusDisplayType_State;
     presence.details = "Currently in game";
     presence.startTimestamp = start_time;
     Discord_UpdatePresence(&presence);
 }
 
 void DiscordImpl::Update() {
-    const std::string default_text = "Eden is an emulator for the Nintendo Switch";
-    const std::string default_image = "https://git.eden-emu.dev/eden-emu/eden/raw/branch/master/"
-                                      "dist/qt_themes/default/icons/256x256/eden.png";
-
     if (system.IsPoweredOn()) {
         system.GetAppLoader().ReadTitle(game_title);
 
@@ -126,10 +125,10 @@ void DiscordImpl::Update() {
     s64 start_time = std::chrono::duration_cast<std::chrono::seconds>(
                          std::chrono::system_clock::now().time_since_epoch())
                          .count();
-
     DiscordRichPresence presence{};
-    presence.largeImageKey = default_image.c_str();
-    presence.largeImageText = default_text.c_str();
+    presence.largeImageKey = DEFAULT_DISCORD_IMAGE;
+    presence.largeImageText = DEFAULT_DISCORD_TEXT;
+    presence.status_display_type = DiscordStatusDisplayType_Name;
     presence.details = "Currently not in game";
     presence.startTimestamp = start_time;
     Discord_UpdatePresence(&presence);

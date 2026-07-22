@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 // SPDX-FileCopyrightText: 2023 yuzu Emulator Project
@@ -16,11 +16,16 @@ import java.io.FileOutputStream
 import java.security.KeyStore
 import javax.net.ssl.TrustManagerFactory
 import javax.net.ssl.X509TrustManager
+import android.content.res.Configuration
+import android.os.LocaleList
+import org.yuzu.yuzu_emu.features.settings.model.IntSetting
 import org.yuzu.yuzu_emu.utils.DirectoryInitialization
 import org.yuzu.yuzu_emu.utils.DocumentsTree
 import org.yuzu.yuzu_emu.utils.GpuDriverHelper
 import org.yuzu.yuzu_emu.utils.Log
 import org.yuzu.yuzu_emu.utils.PowerStateUpdater
+import org.yuzu.yuzu_emu.utils.ControllerNavigationGlobalHook
+import java.util.Locale
 
 fun Context.getPublicFilesDir(): File = getExternalFilesDir(null) ?: filesDir
 
@@ -57,12 +62,18 @@ class YuzuApplication : Application() {
         application = this
         documentsTree = DocumentsTree()
         DirectoryInitialization.start()
+
+        // Initialize Freedreno config BEFORE loading native library
+        // This ensures GPU driver environment variables are set before adrenotools initializes
+        GpuDriverHelper.initializeFreedrenoConfigEarly()
+
         NativeLibrary.playTimeManagerInit()
         GpuDriverHelper.initializeDriverParameters()
         NativeInput.reloadInputDevices()
         NativeLibrary.logDeviceInfo()
         PowerStateUpdater.start()
         Log.logDeviceInfo()
+        ControllerNavigationGlobalHook.install(this)
 
         createNotificationChannels()
     }
@@ -73,5 +84,38 @@ class YuzuApplication : Application() {
 
         val appContext: Context
             get() = application.applicationContext
+
+        private val LANGUAGE_CODES = arrayOf(
+            "system", "en", "es", "fr", "de", "it", "pt", "pt-BR", "ru", "ja", "ko",
+            "zh-CN", "zh-TW", "pl", "cs", "nb", "hu", "uk", "vi", "id", "ar", "ckb", "fa", "he", "sr"
+        )
+
+        fun applyLanguage(context: Context): Context {
+            val languageIndex = IntSetting.APP_LANGUAGE.getInt()
+            val langCode = if (languageIndex in LANGUAGE_CODES.indices) {
+                LANGUAGE_CODES[languageIndex]
+            } else {
+                "system"
+            }
+
+            if (langCode == "system") {
+                return context
+            }
+
+            val locale = when {
+                langCode.contains("-") -> {
+                    val parts = langCode.split("-")
+                    Locale.Builder().setLanguage(parts[0]).setRegion(parts[1]).build()
+                }
+                else -> Locale.Builder().setLanguage(langCode).build()
+            }
+
+            Locale.setDefault(locale)
+
+            val config = Configuration(context.resources.configuration)
+            config.setLocales(LocaleList(locale))
+
+            return context.createConfigurationContext(config)
+        }
     }
 }

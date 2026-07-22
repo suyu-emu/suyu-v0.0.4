@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2018 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -20,8 +23,9 @@
 #include "video_core/engines/engine_interface.h"
 #include "video_core/engines/engine_upload.h"
 #include "video_core/gpu.h"
-#include "video_core/macro/macro.h"
+#include "video_core/macro.h"
 #include "video_core/textures/texture.h"
+#include "video_core/engines/maxwell_3d.h"
 
 namespace Core {
 class System;
@@ -37,8 +41,6 @@ class RasterizerInterface;
 
 namespace Tegra::Engines {
 
-class DrawManager;
-
 /**
  * This Engine is known as GF100_3D. Documentation can be found in:
  * https://github.com/NVIDIA/open-gpu-doc/blob/master/classes/3d/clb197.h
@@ -53,7 +55,7 @@ class DrawManager;
 
 class Maxwell3D final : public EngineInterface {
 public:
-    explicit Maxwell3D(Core::System& system, MemoryManager& memory_manager);
+    explicit Maxwell3D(MemoryManager& memory_manager);
     ~Maxwell3D();
 
     /// Binds a rasterizer to this engine.
@@ -540,7 +542,7 @@ public:
             }
             GPUVAddr StorageLimitAddress() const {
                 return (GPUVAddr{storage_limit_address_high} << 32) |
-                       GPUVAddr{storage_limit_address_low};
+                        GPUVAddr{storage_limit_address_low};
             }
         };
 
@@ -816,7 +818,7 @@ public:
 
             u32 Map(std::size_t index) const {
                 const std::array<u32, NumRenderTargets> maps{target0, target1, target2, target3,
-                                                             target4, target5, target6, target7};
+                                                                target4, target5, target6, target7};
                 ASSERT(index < maps.size());
                 return maps[index];
             }
@@ -1180,11 +1182,11 @@ public:
             }
 
             f32 GetX() const {
-                return std::max(0.0f, translate_x - std::fabs(scale_x));
+                return (std::max)(0.0f, translate_x - std::fabs(scale_x));
             }
 
             f32 GetY() const {
-                return std::max(0.0f, translate_y - std::fabs(scale_y));
+                return (std::max)(0.0f, translate_y - std::fabs(scale_y));
             }
 
             f32 GetWidth() const {
@@ -1828,7 +1830,7 @@ public:
 
             bool AnyEnabled() const {
                 return output0_enable || output1_enable || output2_enable || output3_enable ||
-                       output4_enable || output5_enable || output6_enable || output7_enable;
+                        output4_enable || output5_enable || output6_enable || output7_enable;
             }
         };
 
@@ -1867,7 +1869,7 @@ public:
 
                 bool AnyEnabled() const {
                     return plane0 || plane1 || plane2 || plane3 || plane4 || plane5 || plane6 ||
-                           plane7;
+                            plane7;
                 }
             };
 
@@ -2213,7 +2215,7 @@ public:
             u32 first;
             u32 count;
 
-            unsigned FormatSizeInBytes() const {
+            size_t FormatSizeInBytes() const {
                 switch (format) {
                 case IndexFormat::UnsignedByte:
                     return 1;
@@ -2222,7 +2224,7 @@ public:
                 case IndexFormat::UnsignedInt:
                     return 4;
                 }
-                ASSERT(false);
+                UNREACHABLE();
                 return 1;
             }
 
@@ -2255,7 +2257,7 @@ public:
             /// Returns whether the vertex array specified by index is supposed to be
             /// accessed per instance or not.
             bool IsInstancingEnabled(std::size_t index) const {
-                return is_instanced[index];
+                return bool(is_instanced[index]); //FUCK YOU MSVC
             }
         };
 
@@ -3020,8 +3022,7 @@ public:
                 u32 bindless_texture_const_buffer_slot;                                ///< 0x2608
                 u32 trap_handler;                                                      ///< 0x260C
                 INSERT_PADDING_BYTES_NOINIT(0x1F0);
-                std::array<std::array<StreamOutLayout, 32>, NumTransformFeedbackBuffers>
-                    stream_out_layout;                                                 ///< 0x2800
+                std::array<std::array<StreamOutLayout, 32>, NumTransformFeedbackBuffers> stream_out_layout;                                                 ///< 0x2800
                 INSERT_PADDING_BYTES_NOINIT(0x93C);
                 ShaderPerformance shader_performance;                                  ///< 0x333C
                 INSERT_PADDING_BYTES_NOINIT(0x18);
@@ -3031,6 +3032,63 @@ public:
         };
     };
     // clang-format on
+
+    struct DrawManager {
+        enum class DrawMode : u32 { General = 0, Instance, InlineIndex };
+        struct State {
+            Maxwell3D::Regs::PrimitiveTopology topology{};
+            DrawMode draw_mode{};
+            bool draw_indexed{};
+            u32 base_index{};
+            Maxwell3D::Regs::VertexBuffer vertex_buffer;
+            Maxwell3D::Regs::IndexBuffer index_buffer;
+            u32 base_instance{};
+            u32 instance_count{};
+            std::vector<u8> inline_index_draw_indexes;
+        };
+        struct DrawTextureState {
+            f32 dst_x0;
+            f32 dst_y0;
+            f32 dst_x1;
+            f32 dst_y1;
+            f32 src_x0;
+            f32 src_y0;
+            f32 src_x1;
+            f32 src_y1;
+            u32 src_sampler;
+            u32 src_texture;
+        };
+        struct IndirectParams {
+            bool is_byte_count;
+            bool is_indexed;
+            bool include_count;
+            GPUVAddr count_start_address;
+            GPUVAddr indirect_start_address;
+            size_t buffer_size;
+            size_t max_draw_counts;
+            size_t stride;
+        };
+        void ProcessMethodCall(Maxwell3D& maxwell3d, u32 method, u32 argument);
+        void Clear(Maxwell3D& maxwell3d, u32 layer_count);
+        void DrawDeferred(Maxwell3D& maxwell3d);
+        void DrawArray(Maxwell3D& maxwell3d, Maxwell3D::Regs::PrimitiveTopology topology, u32 vertex_first, u32 vertex_count, u32 base_instance, u32 num_instances);
+        void DrawArrayInstanced(Maxwell3D& maxwell3d, Maxwell3D::Regs::PrimitiveTopology topology, u32 vertex_first, u32 vertex_count, bool subsequent);
+        void DrawIndex(Maxwell3D& maxwell3d, Maxwell3D::Regs::PrimitiveTopology topology, u32 index_first, u32 index_count, u32 base_index, u32 base_instance, u32 num_instances);
+        void DrawArrayIndirect(Maxwell3D& maxwell3d, Maxwell3D::Regs::PrimitiveTopology topology);
+        void DrawIndexedIndirect(Maxwell3D& maxwell3d, Maxwell3D::Regs::PrimitiveTopology topology, u32 index_first, u32 index_count);
+        void SetInlineIndexBuffer(Maxwell3D& maxwell3d, u32 index);
+        void SetInlineIndexBuffer(Maxwell3D& maxwell3d, u32 method, const u32* base_start, u32 amount);
+        void DrawBegin(Maxwell3D& maxwell3d);
+        void DrawEnd(Maxwell3D& maxwell3d, u32 instance_count = 1, bool force_draw = false);
+        void DrawIndexSmall(Maxwell3D& maxwell3d, u32 argument);
+        void DrawTexture(Maxwell3D& maxwell3d);
+        void UpdateTopology(Maxwell3D& maxwell3d);
+        void ProcessDraw(Maxwell3D& maxwell3d, bool draw_indexed, u32 instance_count);
+        void ProcessDrawIndirect(Maxwell3D& maxwell3d);
+        State draw_state{};
+        DrawTextureState draw_texture_state{};
+        IndirectParams indirect_state{};
+    };
 
     Regs regs{};
 
@@ -3053,7 +3111,7 @@ public:
 
     void SetHLEReplacementAttributeType(u32 bank, u32 offset, HLEReplacementAttributeType name);
 
-    std::unordered_map<u64, HLEReplacementAttributeType> replace_table;
+    ankerl::unordered_dense::map<u64, HLEReplacementAttributeType> replace_table;
 
     static_assert(sizeof(Regs) == Regs::NUM_REGS * sizeof(u32), "Maxwell3D Regs has wrong size");
     static_assert(std::is_trivially_copyable_v<Regs>, "Maxwell3D Regs must be trivially copyable");
@@ -3072,11 +3130,10 @@ public:
     u32 GetRegisterValue(u32 method) const;
 
     /// Write the value to the register identified by method.
-    void CallMethod(u32 method, u32 method_argument, bool is_last_call) override;
+    void CallMethod(Core::System& system, u32 method, u32 method_argument, bool is_last_call) override;
 
     /// Write multiple values to the register identified by method.
-    void CallMultiMethod(u32 method, const u32* base_start, u32 amount,
-                         u32 methods_pending) override;
+    void CallMultiMethod(Core::System& system, u32 method, const u32* base_start, u32 amount, u32 methods_pending) override;
 
     bool ShouldExecute() const {
         return execute_on;
@@ -3091,19 +3148,25 @@ public:
     }
 
     struct DirtyState {
-        using Flags = std::bitset<std::numeric_limits<u8>::max()>;
+        using Flags = std::bitset<(std::numeric_limits<u8>::max)() + 1>;
         using Table = std::array<u8, Regs::NUM_REGS>;
-        using Tables = std::array<Table, 2>;
+        using Tables = std::array<std::array<u8, Regs::NUM_REGS>, 2>;
 
         Flags flags;
         Tables tables{};
     } dirty;
 
-    std::unique_ptr<DrawManager> draw_manager;
-    friend class DrawManager;
+    DrawManager draw_manager;
 
     GPUVAddr GetMacroAddress(size_t index) const {
-        return macro_addresses[index];
+        size_t base = 0;
+        for (const auto& [addr, count] : macro_segments) {
+            if (index < base + count) {
+                return addr + (index - base) * sizeof(u32);
+            }
+            base += count;
+        }
+        return 0;
     }
 
     void RefreshParameters() {
@@ -3131,16 +3194,18 @@ public:
     void ProcessCBData(u32 value);
     void ProcessCBMultiData(const u32* start_base, u32 amount);
 
+    void ProcessInlineIndexMultiData(u32 method, const u32* start_base, u32 amount);
+
 private:
     void InitializeRegisterDefaults();
 
-    void ProcessMacro(u32 method, const u32* base_start, u32 amount, bool is_last_call);
+    void ProcessMacro(Core::System& system, u32 method, const u32* base_start, u32 amount, bool is_last_call);
 
     u32 ProcessShadowRam(u32 method, u32 argument);
 
     void ProcessDirtyRegisters(u32 method, u32 argument);
 
-    void ConsumeSinkImpl() override;
+    void ConsumeSinkImpl(Core::System& system) override;
 
     void ProcessMethodCall(u32 method, u32 argument, u32 nonshadow_argument, bool is_last_call);
 
@@ -3156,7 +3221,7 @@ private:
      * @param method Method to call
      * @param parameters Arguments to the method call
      */
-    void CallMacroMethod(u32 method, const std::vector<u32>& parameters);
+    void CallMacroMethod(Core::System& system, u32 method, const std::vector<u32>& parameters);
 
     /// Handles writes to the macro uploading register.
     void ProcessMacroUpload(u32 data);
@@ -3171,7 +3236,7 @@ private:
     void ProcessQueryGet();
 
     /// Writes the query result accordingly.
-    void StampQueryResult(u64 payload, bool long_query);
+    void StampQueryResult(Core::System& system, u64 payload, bool long_query);
 
     /// Handles conditional rendering.
     void ProcessQueryCondition();
@@ -3186,7 +3251,6 @@ private:
 
     bool IsMethodExecutable(u32 method);
 
-    Core::System& system;
     MemoryManager& memory_manager;
 
     VideoCore::RasterizerInterface* rasterizer = nullptr;
@@ -3200,14 +3264,13 @@ private:
     std::vector<u32> macro_params;
 
     /// Interpreter for the macro codes uploaded to the GPU.
-    std::unique_ptr<MacroEngine> macro_engine;
+    MacroEngine macro_engine;
 
     Upload::State upload_state;
 
     bool execute_on{true};
 
     std::vector<std::pair<GPUVAddr, size_t>> macro_segments;
-    std::vector<GPUVAddr> macro_addresses;
     bool current_macro_dirty{};
 };
 

@@ -1,3 +1,9 @@
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-2.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2023 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -26,7 +32,7 @@ void IntegrityVerificationStorage::Initialize(VirtualFile hs, VirtualFile ds, s6
     ASSERT(m_verification_block_size == 1ll << m_verification_block_order);
 
     // Set upper layer block sizes.
-    upper_layer_verif_block_size = std::max(upper_layer_verif_block_size, HashSize);
+    upper_layer_verif_block_size = (std::max)(upper_layer_verif_block_size, HashSize);
     m_upper_layer_verification_block_size = upper_layer_verif_block_size;
     m_upper_layer_verification_block_order = ILog2(static_cast<u32>(upper_layer_verif_block_size));
     ASSERT(m_upper_layer_verification_block_size == 1ll << m_upper_layer_verification_block_order);

@@ -11,8 +11,6 @@
 #include <dynarmic/frontend/A64/decoder/a64.h>
 #include <dynarmic/frontend/imm.h>
 
-#include "common/common_types.h"
-
 #pragma GCC diagnostic pop
 
 namespace Core {

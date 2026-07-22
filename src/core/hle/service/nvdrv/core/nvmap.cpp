@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: 2022 yuzu Emulator Project
 // SPDX-FileCopyrightText: 2022 Skyline Team and Contributors
 // SPDX-License-Identifier: GPL-3.0-or-later
@@ -6,15 +9,15 @@
 
 #include "common/alignment.h"
 #include "common/assert.h"
-#include "common/logging/log.h"
+#include "common/logging.h"
 #include "core/hle/service/nvdrv/core/container.h"
 #include "core/hle/service/nvdrv/core/heap_mapper.h"
 #include "core/hle/service/nvdrv/core/nvmap.h"
 #include "core/memory.h"
 #include "video_core/host1x/host1x.h"
 
-using Core::Memory::SUYU_PAGESIZE;
-constexpr size_t BIG_PAGE_SIZE = SUYU_PAGESIZE * 16;
+using Core::Memory::YUZU_PAGESIZE;
+constexpr size_t BIG_PAGE_SIZE = YUZU_PAGESIZE * 16;
 
 namespace Service::Nvidia::NvCore {
 NvMap::Handle::Handle(u64 size_, Id id_)
@@ -32,7 +35,7 @@ NvResult NvMap::Handle::Alloc(Flags pFlags, u32 pAlign, u8 pKind, u64 pAddress,
 
     flags = pFlags;
     kind = pKind;
-    align = pAlign < SUYU_PAGESIZE ? SUYU_PAGESIZE : pAlign;
+    align = pAlign < YUZU_PAGESIZE ? YUZU_PAGESIZE : pAlign;
     session_id = pSessionId;
 
     // This flag is only applicable for handles with an address passed
@@ -43,7 +46,7 @@ NvResult NvMap::Handle::Alloc(Flags pFlags, u32 pAlign, u8 pKind, u64 pAddress,
                      "Mapping nvmap handles without a CPU side address is unimplemented!");
     }
 
-    size = Common::AlignUp(size, SUYU_PAGESIZE);
+    size = Common::AlignUp(size, YUZU_PAGESIZE);
     aligned_size = Common::AlignUp(size, align);
     address = pAddress;
     allocated = true;
@@ -86,7 +89,7 @@ void NvMap::UnmapHandle(Handle& handle_description) {
 
     // Free and unmap the handle from Host1x GMMU
     if (handle_description.pin_virt_address) {
-        host1x.GMMU().Unmap(static_cast<GPUVAddr>(handle_description.pin_virt_address),
+        host1x.gmmu_manager.Unmap(static_cast<GPUVAddr>(handle_description.pin_virt_address),
                             handle_description.aligned_size);
         host1x.Allocator().Free(handle_description.pin_virt_address,
                                 static_cast<u32>(handle_description.aligned_size));
@@ -166,12 +169,8 @@ DAddr NvMap::PinHandle(NvMap::Handle::Id handle, bool low_area_pin) {
     std::scoped_lock lock(handle_description->mutex);
     const auto map_low_area = [&] {
         if (handle_description->pin_virt_address == 0) {
-            auto& gmmu_allocator = host1x.Allocator();
-            auto& gmmu = host1x.GMMU();
-            u32 address =
-                gmmu_allocator.Allocate(static_cast<u32>(handle_description->aligned_size));
-            gmmu.Map(static_cast<GPUVAddr>(address), handle_description->d_address,
-                     handle_description->aligned_size);
+            u32 address = host1x.Allocator().Allocate(u32(handle_description->aligned_size));
+            host1x.gmmu_manager.Map(GPUVAddr(address), handle_description->d_address, handle_description->aligned_size);
             handle_description->pin_virt_address = address;
         }
     };

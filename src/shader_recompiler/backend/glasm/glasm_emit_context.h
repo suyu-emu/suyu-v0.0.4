@@ -7,7 +7,7 @@
 #include <utility>
 #include <vector>
 
-#include <fmt/format.h>
+#include <fmt/ranges.h>
 
 #include "shader_recompiler/backend/glasm/reg_alloc.h"
 #include "shader_recompiler/stage.h"

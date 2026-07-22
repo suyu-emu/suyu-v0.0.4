@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2019 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -30,7 +33,7 @@ void State::ProcessExec(const bool is_linear_) {
 }
 
 void State::ProcessData(const u32 data, const bool is_last_call) {
-    const u32 sub_copy_size = std::min(4U, copy_size - write_offset);
+    const u32 sub_copy_size = (std::min)(4U, copy_size - write_offset);
     std::memcpy(&inner_buffer[write_offset], &data, sub_copy_size);
     write_offset += sub_copy_size;
     if (!is_last_call) {
@@ -58,7 +61,7 @@ void State::ProcessData(std::span<const u8> read_buffer) {
         u32 x_elements = regs.line_length_in;
         u32 x_offset = regs.dest.x;
         const u32 bpp_shift = Common::FoldRight(
-            4U, [](u32 x, u32 y) { return std::min(x, static_cast<u32>(std::countr_zero(y))); },
+            4U, [](u32 x, u32 y) { return (std::min)(x, static_cast<u32>(std::countr_zero(y))); },
             width, x_elements, x_offset, static_cast<u32>(address));
         width >>= bpp_shift;
         x_elements >>= bpp_shift;

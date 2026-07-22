@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2018 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -17,6 +20,8 @@ class IAudioOutManager final : public ServiceFramework<IAudioOutManager> {
 public:
     explicit IAudioOutManager(Core::System& system_);
     ~IAudioOutManager() override;
+
+    Result SetAllAudioOutVolume(f32 volume);
 
 private:
     Result ListAudioOuts(OutArray<AudioDeviceName, BufferAttr_HipcMapAlias> out_audio_outs,
@@ -38,7 +43,7 @@ private:
         AudioCore::AudioOut::AudioOutParameter parameter,
         InCopyHandle<Kernel::KProcess> process_handle, ClientAppletResourceUserId aruid);
 
-    std::unique_ptr<AudioCore::AudioOut::Manager> impl;
+    std::optional<AudioCore::AudioOut::Manager> impl;
 };
 
 } // namespace Service::Audio

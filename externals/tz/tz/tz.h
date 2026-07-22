@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: 2023 yuzu Emulator Project
 // SPDX-FileCopyrightText: 1996 Arthur David Olson
 // SPDX-License-Identifier: BSD-2-Clause
@@ -26,10 +29,10 @@ constexpr size_t TZ_MAX_CHARS = 50;
 constexpr size_t MY_TZNAME_MAX = 255;
 constexpr size_t TZNAME_MAXIMUM = 255;
 constexpr size_t TZ_MAX_LEAPS = 50;
-constexpr s64 TIME_T_MAX = std::numeric_limits<s64>::max();
-constexpr s64 TIME_T_MIN = std::numeric_limits<s64>::min();
+constexpr s64 TIME_T_MAX = (std::numeric_limits<s64>::max)();
+constexpr s64 TIME_T_MIN = (std::numeric_limits<s64>::min)();
 constexpr size_t CHARS_EXTRA = 3;
-constexpr size_t MAX_ZONE_CHARS = std::max(TZ_MAX_CHARS + CHARS_EXTRA, sizeof("UTC"));
+constexpr size_t MAX_ZONE_CHARS = (std::max)(TZ_MAX_CHARS + CHARS_EXTRA, sizeof("UTC"));
 constexpr size_t MAX_TZNAME_CHARS = 2 * (MY_TZNAME_MAX + 1);
 
 struct ttinfo {
@@ -51,7 +54,7 @@ struct Rule {
     std::array<s64, TZ_MAX_TIMES> ats;
     std::array<u8, TZ_MAX_TIMES> types;
     std::array<ttinfo, TZ_MAX_TYPES> ttis;
-    std::array<char, std::max(MAX_ZONE_CHARS, MAX_TZNAME_CHARS)> chars;
+    std::array<char, (std::max)(MAX_ZONE_CHARS, MAX_TZNAME_CHARS)> chars;
     s32 defaulttype;
     std::array <u8, 0x12C4> padding1;
 };

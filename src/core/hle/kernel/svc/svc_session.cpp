@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2023 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -23,7 +26,7 @@ Result CreateSession(Core::System& system, Handle* out_server, Handle* out_clien
 
     // Reserve a new session from the process resource limit.
     // TODO: Dynamic resource limits
-    KScopedResourceReservation session_reservation(std::addressof(process),
+    KScopedResourceReservation session_reservation(system.Kernel(), std::addressof(process),
                                                    LimitableResource::SessionCountMax);
     if (session_reservation.Succeeded()) {
         session = T::Create(system.Kernel());
@@ -62,7 +65,7 @@ Result CreateSession(Core::System& system, Handle* out_server, Handle* out_clien
     R_UNLESS(session != nullptr, ResultOutOfResource);
 
     // Initialize the session.
-    session->Initialize(nullptr, name);
+    session->Initialize(system.Kernel(), nullptr, name);
 
     // Commit the session reservation.
     session_reservation.Commit();
@@ -70,23 +73,23 @@ Result CreateSession(Core::System& system, Handle* out_server, Handle* out_clien
     // Ensure that we clean up the session (and its only references are handle table) on function
     // end.
     SCOPE_EXIT {
-        session->GetClientSession().Close();
-        session->GetServerSession().Close();
+        session->GetClientSession().Close(system.Kernel());
+        session->GetServerSession().Close(system.Kernel());
     };
 
     // Register the session.
     T::Register(system.Kernel(), session);
 
     // Add the server session to the handle table.
-    R_TRY(handle_table.Add(out_server, std::addressof(session->GetServerSession())));
+    R_TRY(handle_table.Add(system.Kernel(), out_server, std::addressof(session->GetServerSession())));
 
     // Ensure that we maintain a clean handle state on exit.
     ON_RESULT_FAILURE {
-        handle_table.Remove(*out_server);
+        handle_table.Remove(system.Kernel(), *out_server);
     };
 
     // Add the client session to the handle table.
-    R_RETURN(handle_table.Add(out_client, std::addressof(session->GetClientSession())));
+    R_RETURN(handle_table.Add(system.Kernel(), out_client, std::addressof(session->GetClientSession())));
 }
 
 } // namespace
@@ -105,29 +108,29 @@ Result AcceptSession(Core::System& system, Handle* out, Handle port_handle) {
     auto& handle_table = GetCurrentProcess(system.Kernel()).GetHandleTable();
 
     // Get the server port.
-    KScopedAutoObject port = handle_table.GetObject<KServerPort>(port_handle);
+    KScopedAutoObject port = handle_table.GetObject<KServerPort>(system.Kernel(), port_handle);
     R_UNLESS(port.IsNotNull(), ResultInvalidHandle);
 
     // Reserve an entry for the new session.
-    R_TRY(handle_table.Reserve(out));
+    R_TRY(handle_table.Reserve(system.Kernel(), out));
     ON_RESULT_FAILURE {
-        handle_table.Unreserve(*out);
+        handle_table.Unreserve(system.Kernel(), *out);
     };
 
     // Accept the session.
     KAutoObject* session;
-    if (port->IsLight()) {
-        session = port->AcceptLightSession();
+    if (port->IsLight(system.Kernel())) {
+        session = port->AcceptLightSession(system.Kernel());
     } else {
-        session = port->AcceptSession();
+        session = port->AcceptSession(system.Kernel());
     }
 
     // Ensure we accepted successfully.
     R_UNLESS(session != nullptr, ResultNotFound);
 
     // Register the session.
-    handle_table.Register(*out, session);
-    session->Close();
+    handle_table.Register(system.Kernel(), *out, session);
+    session->Close(system.Kernel());
 
     R_SUCCEED();
 }

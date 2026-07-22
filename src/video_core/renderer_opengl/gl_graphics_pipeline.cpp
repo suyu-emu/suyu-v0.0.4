@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2021 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -5,9 +8,9 @@
 #include <array>
 #include <string>
 #include <vector>
-
-#include "common/logging/log.h"
-#include "common/settings.h" // for enum class Settings::ShaderBackend
+#include <bit>
+#include <numeric>
+#include "common/settings.h"
 #include "common/thread_worker.h"
 #include "shader_recompiler/shader_info.h"
 #include "video_core/renderer_opengl/gl_graphics_pipeline.h"
@@ -129,7 +132,7 @@ bool Passes(const std::array<Shader::Info, 5>& stage_infos, u32 enabled_mask) {
     return true;
 }
 
-using ConfigureFuncPtr = void (*)(GraphicsPipeline*, bool);
+using ConfigureFuncPtr = bool (*)(GraphicsPipeline*, bool);
 
 template <typename Spec, typename... Specs>
 ConfigureFuncPtr FindSpec(const std::array<Shader::Info, 5>& stage_infos, u32 enabled_mask) {
@@ -221,8 +224,8 @@ GraphicsPipeline::GraphicsPipeline(const Device& device, TextureCache& texture_c
     ASSERT(num_textures <= MAX_TEXTURES);
     ASSERT(num_images <= MAX_IMAGES);
 
-    const auto backend = device.GetShaderBackend();
-    const bool assembly_shaders{backend == Settings::ShaderBackend::Glasm};
+    const auto backend = ::Settings::values.renderer_backend.GetValue();
+    const bool assembly_shaders = backend == Settings::RendererBackend::OpenGL_GLASM;
     use_storage_buffers =
         !assembly_shaders || num_storage_buffers <= device.GetMaxGLASMStorageBufferBlocks();
     writes_global_memory &= !use_storage_buffers;
@@ -235,57 +238,33 @@ GraphicsPipeline::GraphicsPipeline(const Device& device, TextureCache& texture_c
     auto func{[this, sources_ = std::move(sources), sources_spirv_ = std::move(sources_spirv),
                shader_notify, backend, in_parallel,
                force_context_flush](ShaderContext::Context*) mutable {
-        const auto signal_failure = [this, force_context_flush, in_parallel] {
-            if (force_context_flush || in_parallel) {
-                std::scoped_lock lock{built_mutex};
-                build_failed = true;
-                built_condvar.notify_one();
-            } else {
-                build_failed = true;
-                is_built = true;
+        for (size_t stage = 0; stage < 5; ++stage) {
+            switch (backend) {
+            case Settings::RendererBackend::OpenGL_GLSL:
+                if (!sources_[stage].empty())
+                    source_programs[stage] = CreateProgram(sources_[stage], Stage(stage));
+                break;
+            case Settings::RendererBackend::OpenGL_GLASM:
+                if (!sources_[stage].empty())
+                    assembly_programs[stage] = CompileProgram(sources_[stage], AssemblyStage(stage));
+                break;
+            case Settings::RendererBackend::OpenGL_SPIRV:
+                if (!sources_spirv_[stage].empty())
+                    source_programs[stage] = CreateProgram(sources_spirv_[stage], Stage(stage));
+                break;
+            default:
+                break;
             }
-        };
-
-        try {
-            for (size_t stage = 0; stage < 5; ++stage) {
-                switch (backend) {
-                case Settings::ShaderBackend::Glsl:
-                    if (!sources_[stage].empty()) {
-                        source_programs[stage] = CreateProgram(sources_[stage], Stage(stage));
-                    }
-                    break;
-                case Settings::ShaderBackend::Glasm:
-                    if (!sources_[stage].empty()) {
-                        assembly_programs[stage] =
-                            CompileProgram(sources_[stage], AssemblyStage(stage));
-                    }
-                    break;
-                case Settings::ShaderBackend::SpirV:
-                    if (!sources_spirv_[stage].empty()) {
-                        source_programs[stage] =
-                            CreateProgram(sources_spirv_[stage], Stage(stage));
-                    }
-                    break;
-                }
-            }
-            if (force_context_flush || in_parallel) {
-                std::scoped_lock lock{built_mutex};
-                built_fence.Create();
-                // Flush this context to ensure compilation commands and fence are in the GPU pipe.
-                glFlush();
-                built_condvar.notify_one();
-            } else {
-                is_built = true;
-            }
-        } catch (const std::exception& e) {
-            LOG_ERROR(Render_OpenGL, "OpenGL graphics pipeline build failed: {}", e.what());
-            signal_failure();
-        } catch (...) {
-            LOG_ERROR(Render_OpenGL,
-                      "OpenGL graphics pipeline build failed with an unknown exception");
-            signal_failure();
         }
-
+        if (force_context_flush || in_parallel) {
+            std::scoped_lock lock{built_mutex};
+            built_fence.Create();
+            // Flush this context to ensure compilation commands and fence are in the GPU pipe.
+            glFlush();
+            built_condvar.notify_one();
+        } else {
+            is_built = true;
+        }
         if (shader_notify) {
             shader_notify->MarkShaderComplete();
         }
@@ -298,13 +277,13 @@ GraphicsPipeline::GraphicsPipeline(const Device& device, TextureCache& texture_c
 }
 
 template <typename Spec>
-void GraphicsPipeline::ConfigureImpl(bool is_indexed) {
+bool GraphicsPipeline::ConfigureImpl(bool is_indexed) {
     std::array<VideoCommon::ImageViewInOut, MAX_TEXTURES + MAX_IMAGES> views;
     std::array<VideoCommon::SamplerId, MAX_TEXTURES> samplers;
     size_t views_index{};
     size_t samplers_index{};
 
-    texture_cache.SynchronizeGraphicsDescriptors();
+    texture_cache.SynchronizeDescriptors(false);
 
     buffer_cache.SetUniformBuffersState(enabled_uniform_buffer_masks, &uniform_buffer_sizes);
     buffer_cache.runtime.SetBaseUniformBindings(base_uniform_bindings);
@@ -375,7 +354,7 @@ void GraphicsPipeline::ConfigureImpl(bool is_indexed) {
                 const auto handle{read_handle(desc, index)};
                 views[views_index++] = {handle.first};
 
-                VideoCommon::SamplerId sampler{texture_cache.GetGraphicsSamplerId(handle.second)};
+                VideoCommon::SamplerId sampler{texture_cache.GetSamplerId(handle.second, false)};
                 samplers[samplers_index++] = sampler;
             }
         }
@@ -400,7 +379,7 @@ void GraphicsPipeline::ConfigureImpl(bool is_indexed) {
     if constexpr (Spec::enabled_stages[4]) {
         config_stage(4);
     }
-    texture_cache.FillGraphicsImageViews<Spec::has_images>(std::span(views.data(), views_index));
+    texture_cache.FillImageViews(std::span(views.data(), views_index), false, Spec::has_images);
 
     texture_cache.UpdateRenderTargets(false);
     state_tracker.BindFramebuffer(texture_cache.GetFramebuffer()->Handle());
@@ -461,9 +440,6 @@ void GraphicsPipeline::ConfigureImpl(bool is_indexed) {
 
     if (!IsBuilt()) {
         WaitForBuild();
-        if (build_failed) {
-            return;
-        }
     }
     const bool use_assembly{assembly_programs[0].handle != 0};
     if (use_assembly) {
@@ -534,8 +510,8 @@ void GraphicsPipeline::ConfigureImpl(bool is_indexed) {
             }
         }
         if (info.uses_rescaling_uniform) {
-            const f32 float_texture_scaling_mask{Common::BitCast<f32>(texture_scaling_mask)};
-            const f32 float_image_scaling_mask{Common::BitCast<f32>(image_scaling_mask)};
+            const f32 float_texture_scaling_mask{std::bit_cast<f32>(texture_scaling_mask)};
+            const f32 float_image_scaling_mask{std::bit_cast<f32>(image_scaling_mask)};
             const bool is_rescaling{texture_cache.IsRescaling()};
             const f32 config_down_factor{Settings::values.resolution_info.down_factor};
             const f32 down_factor{is_rescaling ? config_down_factor : 1.0f};
@@ -582,6 +558,12 @@ void GraphicsPipeline::ConfigureImpl(bool is_indexed) {
     if (image_binding != 0) {
         glBindImageTextures(0, image_binding, images.data());
     }
+    if (buffer_cache.any_buffer_uploaded) {
+        buffer_cache.runtime.PostCopyBarrier();
+        buffer_cache.any_buffer_uploaded = false;
+    }
+
+    return true;
 }
 
 void GraphicsPipeline::ConfigureTransformFeedbackImpl() const {
@@ -641,24 +623,15 @@ void GraphicsPipeline::GenerateTransformFeedbackState() {
 }
 
 void GraphicsPipeline::WaitForBuild() {
-    if (build_failed) {
-        return;
-    }
     if (built_fence.handle == 0) {
         std::unique_lock lock{built_mutex};
-        built_condvar.wait(lock, [this] { return built_fence.handle != 0 || build_failed; });
-    }
-    if (build_failed) {
-        return;
+        built_condvar.wait(lock, [this] { return built_fence.handle != 0; });
     }
     ASSERT(glClientWaitSync(built_fence.handle, 0, GL_TIMEOUT_IGNORED) != GL_WAIT_FAILED);
     is_built = true;
 }
 
 bool GraphicsPipeline::IsBuilt() noexcept {
-    if (build_failed) {
-        return true;
-    }
     if (is_built) {
         return true;
     }

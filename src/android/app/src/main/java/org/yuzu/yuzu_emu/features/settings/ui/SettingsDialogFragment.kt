@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 // SPDX-FileCopyrightText: 2023 yuzu Emulator Project
@@ -14,6 +14,9 @@ import android.text.TextWatcher
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.view.MotionEvent
+import android.os.Handler
+import android.os.Looper
 import androidx.appcompat.app.AlertDialog
 import androidx.core.view.isVisible
 import androidx.fragment.app.DialogFragment
@@ -26,6 +29,7 @@ import org.yuzu.yuzu_emu.databinding.DialogSliderBinding
 import org.yuzu.yuzu_emu.databinding.DialogSpinboxBinding
 import org.yuzu.yuzu_emu.features.input.NativeInput
 import org.yuzu.yuzu_emu.features.input.model.AnalogDirection
+import org.yuzu.yuzu_emu.features.settings.model.IntSetting
 import org.yuzu.yuzu_emu.features.settings.model.view.AnalogInputSetting
 import org.yuzu.yuzu_emu.features.settings.model.view.ButtonInputSetting
 import org.yuzu.yuzu_emu.features.settings.model.view.IntSingleChoiceSetting
@@ -65,7 +69,9 @@ class SettingsDialogFragment : DialogFragment(), DialogInterface.OnClickListener
                 MaterialAlertDialogBuilder(requireContext())
                     .setMessage(R.string.reset_setting_confirmation)
                     .setPositiveButton(android.R.string.ok) { _: DialogInterface, _: Int ->
-                        when (val item = settingsViewModel.clickedItem) {
+                        val item = settingsViewModel.clickedItem ?: return@setPositiveButton
+                        clearDialogState()
+                        when (item) {
                             is AnalogInputSetting -> {
                                 val stickParam = NativeInput.getStickParam(
                                     item.playerIndex,
@@ -104,12 +110,17 @@ class SettingsDialogFragment : DialogFragment(), DialogInterface.OnClickListener
                             }
 
                             else -> {
-                                settingsViewModel.clickedItem!!.setting.reset()
+                                item.setting.reset()
                                 settingsViewModel.setAdapterItemChanged(position)
                             }
                         }
                     }
-                    .setNegativeButton(android.R.string.cancel, null)
+                    .setNegativeButton(android.R.string.cancel) { _: DialogInterface, _: Int ->
+                        clearDialogState()
+                    }
+                    .setOnCancelListener {
+                        clearDialogState()
+                    }
                     .create()
             }
 
@@ -183,19 +194,53 @@ class SettingsDialogFragment : DialogFragment(), DialogInterface.OnClickListener
                     updateButtonState(isValid)
                 }
 
-                spinboxBinding.buttonDecrement.setOnClickListener {
-                    val current = spinboxBinding.editValue.text.toString().toIntOrNull() ?: currentValue
-                    val newValue = current - 1
-                    spinboxBinding.editValue.setText(newValue.toString())
-                    updateValidity(newValue)
+                fun attachRepeat(button: View, delta: Int) {
+                    val handler = Handler(Looper.getMainLooper())
+                    var runnable: Runnable? = null
+                    val initialDelay = 400L
+                    val minDelay = 40L
+                    val accelerationFactor = 0.75f
+
+                    button.setOnTouchListener { v, event ->
+                        when (event.action) {
+                            MotionEvent.ACTION_DOWN -> {
+                                val current = spinboxBinding.editValue.text.toString().toIntOrNull() ?: currentValue
+                                val newValue = (current + delta)
+                                spinboxBinding.editValue.setText(newValue.toString())
+                                updateValidity(newValue)
+
+                                var delay = initialDelay
+                                runnable = object : Runnable {
+                                    override fun run() {
+                                        val curr = spinboxBinding.editValue.text.toString().toIntOrNull() ?: currentValue
+                                        val next = curr + delta
+                                        spinboxBinding.editValue.setText(next.toString())
+                                        updateValidity(next)
+                                        // accelerate
+                                        delay = (delay * accelerationFactor).toLong().coerceAtLeast(minDelay)
+                                        handler.postDelayed(this, delay)
+                                    }
+                                }
+                                handler.postDelayed(runnable!!, initialDelay)
+                                true
+                            }
+
+                            MotionEvent.ACTION_UP, MotionEvent.ACTION_CANCEL -> {
+                                if (runnable != null) {
+                                    handler.removeCallbacks(runnable!!)
+                                    runnable = null
+                                }
+                                v.performClick()
+                                true
+                            }
+
+                            else -> false
+                        }
+                    }
                 }
 
-                spinboxBinding.buttonIncrement.setOnClickListener {
-                    val current = spinboxBinding.editValue.text.toString().toIntOrNull() ?: currentValue
-                    val newValue = current + 1
-                    spinboxBinding.editValue.setText(newValue.toString())
-                    updateValidity(newValue)
-                }
+                attachRepeat(spinboxBinding.buttonDecrement, -1)
+                attachRepeat(spinboxBinding.buttonIncrement, 1)
 
                 spinboxBinding.editValue.addTextChangedListener(object : TextWatcher {
                     override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
@@ -336,6 +381,16 @@ class SettingsDialogFragment : DialogFragment(), DialogInterface.OnClickListener
                         .show()
                 }
                 scSetting.setSelectedValue(value)
+
+                if (scSetting.setting.key == IntSetting.RENDERER_SCALING_FILTER.key) {
+                    settingsViewModel.setShouldReloadSettingsList(true)
+                }
+
+                if (scSetting.setting.key == "app_language") {
+                    settingsViewModel.setShouldRecreateForLanguageChange(true)
+                    // recreate page apply language change instantly
+                    requireActivity().recreate()
+                }
             }
 
             is StringSingleChoiceSetting -> {
@@ -375,9 +430,13 @@ class SettingsDialogFragment : DialogFragment(), DialogInterface.OnClickListener
 
     private fun closeDialog() {
         settingsViewModel.setAdapterItemChanged(position)
+        clearDialogState()
+        dismiss()
+    }
+
+    private fun clearDialogState() {
         settingsViewModel.clickedItem = null
         settingsViewModel.setSliderProgress(-1f)
-        dismiss()
     }
 
     private fun getValueForSingleChoiceSelection(item: SingleChoiceSetting, which: Int): Int {

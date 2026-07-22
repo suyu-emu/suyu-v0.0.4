@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 /* This file is part of the dynarmic project.
  * Copyright (c) 2016 MerryMage
  * SPDX-License-Identifier: 0BSD
@@ -13,12 +16,12 @@
 #include <type_traits>
 #include <vector>
 
-#include <mcl/bitsizeof.hpp>
 #include <ankerl/unordered_dense.h>
-#include <xbyak/xbyak.h>
-#include <xbyak/xbyak_util.h>
+#include <boost/container/stable_vector.hpp>
 #include <boost/container/small_vector.hpp>
 
+#include "dynarmic/backend/x64/xbyak.h"
+#include "dynarmic/mcl/bit.hpp"
 #include "dynarmic/backend/exception_handler.h"
 #include "dynarmic/backend/x64/reg_alloc.h"
 #include "dynarmic/common/fp/fpcr.h"
@@ -50,27 +53,22 @@ using VectorArray = std::array<T, A64FullVectorWidth::value / mcl::bitsizeof<T>>
 template<typename T>
 using HalfVectorArray = std::array<T, A64FullVectorWidth::value / mcl::bitsizeof<T> / 2>;
 
+using SharedLabel = Xbyak::Label*;
 struct EmitContext {
-    EmitContext(RegAlloc& reg_alloc, IR::Block& block);
+    EmitContext(RegAlloc& reg_alloc, IR::Block& block, boost::container::stable_vector<Xbyak::Label>& shared_labels);
     virtual ~EmitContext();
-
-    void EraseInstruction(IR::Inst* inst);
-
     virtual FP::FPCR FPCR(bool fpcr_controlled = true) const = 0;
-
     virtual bool HasOptimization(OptimizationFlag flag) const = 0;
 
-    RegAlloc& reg_alloc;
-    IR::Block& block;
+    [[nodiscard]] inline Xbyak::Label* GenSharedLabel() noexcept {
+        return &shared_labels.emplace_back();
+    }
 
     std::vector<std::function<void()>> deferred_emits;
+    RegAlloc& reg_alloc;
+    IR::Block& block;
+    boost::container::stable_vector<Xbyak::Label>& shared_labels;
 };
-
-using SharedLabel = std::shared_ptr<Xbyak::Label>;
-
-inline SharedLabel GenSharedLabel() {
-    return std::make_shared<Xbyak::Label>();
-}
 
 class EmitX64 {
 public:
@@ -92,7 +90,7 @@ public:
     /// Invalidates a selection of basic blocks.
     void InvalidateBasicBlocks(const ankerl::unordered_dense::set<IR::LocationDescriptor>& locations);
 
-protected:
+//protected:
     // Microinstruction emitters
 #define OPCODE(name, type, ...) void Emit##name(EmitContext& ctx, IR::Inst* inst);
 #define A32OPC(...)
@@ -110,19 +108,10 @@ protected:
     BlockDescriptor RegisterBlock(const IR::LocationDescriptor& location_descriptor, CodePtr entrypoint, size_t size);
     void PushRSBHelper(Xbyak::Reg64 loc_desc_reg, Xbyak::Reg64 index_reg, IR::LocationDescriptor target);
 
+#ifndef NDEBUG
     void EmitVerboseDebuggingOutput(RegAlloc& reg_alloc);
-
-    // Terminal instruction emitters
-    void EmitTerminal(IR::Terminal terminal, IR::LocationDescriptor initial_location, bool is_single_step);
-    virtual void EmitTerminalImpl(IR::Term::Interpret terminal, IR::LocationDescriptor initial_location, bool is_single_step) = 0;
-    virtual void EmitTerminalImpl(IR::Term::ReturnToDispatch terminal, IR::LocationDescriptor initial_location, bool is_single_step) = 0;
-    virtual void EmitTerminalImpl(IR::Term::LinkBlock terminal, IR::LocationDescriptor initial_location, bool is_single_step) = 0;
-    virtual void EmitTerminalImpl(IR::Term::LinkBlockFast terminal, IR::LocationDescriptor initial_location, bool is_single_step) = 0;
-    virtual void EmitTerminalImpl(IR::Term::PopRSBHint terminal, IR::LocationDescriptor initial_location, bool is_single_step) = 0;
-    virtual void EmitTerminalImpl(IR::Term::FastDispatchHint terminal, IR::LocationDescriptor initial_location, bool is_single_step) = 0;
-    virtual void EmitTerminalImpl(IR::Term::If terminal, IR::LocationDescriptor initial_location, bool is_single_step) = 0;
-    virtual void EmitTerminalImpl(IR::Term::CheckBit terminal, IR::LocationDescriptor initial_location, bool is_single_step) = 0;
-    virtual void EmitTerminalImpl(IR::Term::CheckHalt terminal, IR::LocationDescriptor initial_location, bool is_single_step) = 0;
+#endif
+    virtual void EmitTerminal(IR::Terminal terminal, IR::LocationDescriptor initial_location, bool is_single_step) noexcept = 0;
 
     // Patching
     struct PatchInformation {

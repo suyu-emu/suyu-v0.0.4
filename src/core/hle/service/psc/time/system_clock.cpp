@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2023 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -8,11 +11,12 @@
 
 namespace Service::PSC::Time {
 
-SystemClock::SystemClock(Core::System& system_, SystemClockCore& clock_core, bool can_write_clock,
-                         bool can_write_uninitialized_clock)
-    : ServiceFramework{system_, "ISystemClock"}, m_system{system}, m_clock_core{clock_core},
-      m_can_write_clock{can_write_clock}, m_can_write_uninitialized_clock{
-                                              can_write_uninitialized_clock} {
+SystemClock::SystemClock(Core::System& system_, SystemClockCore& clock_core, bool can_write_clock, bool can_write_uninitialized_clock)
+    : ServiceFramework{system_, "ISystemClock"}
+    , m_clock_core{clock_core}
+    , m_can_write_clock{can_write_clock}
+    , m_can_write_uninitialized_clock{can_write_uninitialized_clock}
+{
     // clang-format off
     static const FunctionInfo functions[] = {
         {0, D<&SystemClock::GetCurrentTime>, "GetCurrentTime"},
@@ -72,7 +76,7 @@ Result SystemClock::GetOperationEventReadableHandle(
     LOG_DEBUG(Service_Time, "called.");
 
     if (!m_operation_event) {
-        m_operation_event = std::make_unique<OperationEvent>(m_system);
+        m_operation_event = std::make_unique<OperationEvent>(system);
         R_UNLESS(m_operation_event != nullptr, ResultFailed);
 
         m_clock_core.LinkOperationEvent(*m_operation_event);

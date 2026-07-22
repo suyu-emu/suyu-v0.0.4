@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 /* This file is part of the dynarmic project.
@@ -7,7 +7,6 @@
  */
 
 #include <string>
-
 #include <fmt/format.h>
 
 #ifdef DYNARMIC_USE_LLVM
@@ -15,9 +14,8 @@
 #    include <llvm-c/Target.h>
 #endif
 
-#include "dynarmic/common/assert.h"
-#include <bit>
-#include "dynarmic/common/common_types.h"
+#include "common/assert.h"
+#include "common/common_types.h"
 
 #include "dynarmic/common/llvm_disassemble.h"
 

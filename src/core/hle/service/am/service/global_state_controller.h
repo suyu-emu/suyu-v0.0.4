@@ -18,7 +18,6 @@ public:
     ~IGlobalStateController() override;
 
 private:
-    Result StartSleepSequence(u8 a);
     Result StartShutdownSequence();
     Result StartRebootSequence();
     Result LoadAndApplyIdlePolicySettings();

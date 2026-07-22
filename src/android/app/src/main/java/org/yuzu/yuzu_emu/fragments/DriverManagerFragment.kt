@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 package org.yuzu.yuzu_emu.fragments
@@ -19,6 +19,7 @@ import androidx.navigation.fragment.navArgs
 import androidx.preference.PreferenceManager
 import androidx.recyclerview.widget.GridLayoutManager
 import com.google.android.material.transition.MaterialSharedAxis
+import org.yuzu.yuzu_emu.HomeNavigationDirections
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -27,7 +28,7 @@ import org.yuzu.yuzu_emu.adapters.DriverAdapter
 import org.yuzu.yuzu_emu.databinding.FragmentDriverManagerBinding
 import org.yuzu.yuzu_emu.features.settings.model.Settings
 import org.yuzu.yuzu_emu.features.settings.model.StringSetting
-import org.yuzu.yuzu_emu.model.Driver.Companion.toDriver
+import org.yuzu.yuzu_emu.features.settings.ui.SettingsSubscreen
 import org.yuzu.yuzu_emu.model.DriverViewModel
 import org.yuzu.yuzu_emu.model.HomeViewModel
 import org.yuzu.yuzu_emu.utils.FileUtil
@@ -91,6 +92,12 @@ class DriverManagerFragment : Fragment() {
             }
         }
 
+        driverViewModel.shouldShowDriverShaderDialog.collect(viewLifecycleOwner) { shouldShow ->
+            if (shouldShow) {
+                showDriverShaderWipeDialog()
+            }
+        }
+
         if (!driverViewModel.isInteractionAllowed.value) {
             DriversLoadingDialogFragment().show(
                 childFragmentManager,
@@ -99,7 +106,7 @@ class DriverManagerFragment : Fragment() {
         }
 
         binding.toolbarDrivers.setNavigationOnClickListener {
-            binding.root.findNavController().popBackStack()
+            requireActivity().onBackPressedDispatcher.onBackPressed()
         }
 
         binding.buttonInstall.setOnClickListener {
@@ -107,9 +114,11 @@ class DriverManagerFragment : Fragment() {
         }
 
         binding.buttonFetch.setOnClickListener {
-            binding.root.findNavController().navigate(
-                R.id.action_driverManagerFragment_to_driverFetcherFragment
+            val action = HomeNavigationDirections.actionGlobalSettingsSubscreenActivity(
+                SettingsSubscreen.DRIVER_FETCHER,
+                null
             )
+            binding.root.findNavController().navigate(action)
         }
 
         binding.listDrivers.apply {
@@ -130,6 +139,17 @@ class DriverManagerFragment : Fragment() {
     override fun onDestroy() {
         super.onDestroy()
         driverViewModel.onCloseDriverManager(args.game)
+    }
+
+    override fun onResume() {
+        super.onResume()
+        refreshDriverList()
+    }
+
+    private fun refreshDriverList() {
+        driverViewModel.reloadDriverData()
+        (binding.listDrivers.adapter as? DriverAdapter)
+            ?.replaceList(driverViewModel.driverList.value)
     }
 
     private fun setInsets() =
@@ -195,19 +215,23 @@ class DriverManagerFragment : Fragment() {
 
                 val driverData = GpuDriverHelper.getMetadataFromZip(driverFile)
                 val driverInList =
-                    driverViewModel.driverData.firstOrNull { it.second == driverData }
+                    driverViewModel.driverData.firstOrNull {
+                        it.first == driverPath || it.second == driverData
+                    }
                 if (driverInList != null) {
                     return@newInstance getString(R.string.driver_already_installed)
                 } else {
                     driverViewModel.onDriverAdded(Pair(driverPath, driverData))
                     withContext(Dispatchers.Main) {
                         if (_binding != null) {
+                            refreshDriverList()
                             val adapter = binding.listDrivers.adapter as DriverAdapter
-                            adapter.addItem(driverData.toDriver())
-                            adapter.selectItem(adapter.currentList.indices.last)
+                            val selectedPosition = adapter.currentList
+                                .indexOfFirst { it.selected }
+                                .let { if (it == -1) 0 else it }
                             driverViewModel.showClearButton(!StringSetting.DRIVER_PATH.global)
                             binding.listDrivers
-                                .smoothScrollToPosition(adapter.currentList.indices.last)
+                                .smoothScrollToPosition(selectedPosition)
                         }
                     }
                 }
@@ -235,5 +259,19 @@ class DriverManagerFragment : Fragment() {
                 }
             ).show(requireActivity().supportFragmentManager, MessageDialogFragment.TAG)
         }
+    }
+
+    private fun showDriverShaderWipeDialog() {
+        com.google.android.material.dialog.MaterialAlertDialogBuilder(requireContext())
+            .setTitle(R.string.driver_shader_wipe_dialog_title)
+            .setMessage(R.string.driver_shader_wipe_dialog_message)
+            .setPositiveButton(android.R.string.ok) { _, _ ->
+                driverViewModel.onDriverShaderDialogDismissed(dontShowAgain = false)
+            }
+            .setNegativeButton(R.string.dont_show_again) { _, _ ->
+                driverViewModel.onDriverShaderDialogDismissed(dontShowAgain = true)
+            }
+            .setCancelable(false)
+            .show()
     }
 }

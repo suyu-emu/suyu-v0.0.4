@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 package org.yuzu.yuzu_emu.ui
@@ -13,6 +13,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.view.inputmethod.InputMethodManager
 import android.widget.PopupMenu
+import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
@@ -27,10 +28,14 @@ import androidx.recyclerview.widget.RecyclerView
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
+import org.yuzu.yuzu_emu.HomeNavigationDirections
+import org.yuzu.yuzu_emu.NativeLibrary
 import org.yuzu.yuzu_emu.R
 import org.yuzu.yuzu_emu.YuzuApplication
 import org.yuzu.yuzu_emu.adapters.GameAdapter
 import org.yuzu.yuzu_emu.databinding.FragmentGamesBinding
+import org.yuzu.yuzu_emu.features.settings.model.BooleanSetting
+import org.yuzu.yuzu_emu.model.AppletInfo
 import org.yuzu.yuzu_emu.model.Game
 import org.yuzu.yuzu_emu.model.GamesViewModel
 import org.yuzu.yuzu_emu.model.HomeViewModel
@@ -53,6 +58,7 @@ class GamesFragment : Fragment() {
     private var originalHeaderLeftMargin: Int? = null
 
     private var lastViewType: Int = GameAdapter.VIEW_TYPE_GRID
+    private var fallbackBottomInset: Int = 0
 
     companion object {
         private const val SEARCH_TEXT = "SearchText"
@@ -172,8 +178,14 @@ class GamesFragment : Fragment() {
 
         setupTopView()
 
+        updateButtonsVisibility()
+
         binding.addDirectory.setOnClickListener {
             getGamesDirectory.launch(Intent(Intent.ACTION_OPEN_DOCUMENT_TREE).data)
+        }
+
+        binding.launchQlaunch?.setOnClickListener {
+            launchQLaunch()
         }
 
         setInsets()
@@ -184,6 +196,10 @@ class GamesFragment : Fragment() {
             val isLandscape = resources.configuration.orientation == Configuration.ORIENTATION_LANDSCAPE
             val currentViewType = getCurrentViewType()
             val savedViewType = if (isLandscape || currentViewType != GameAdapter.VIEW_TYPE_CAROUSEL) currentViewType else GameAdapter.VIEW_TYPE_GRID
+
+            //This prevents Grid/List views from reusing scaled or otherwise modified ViewHolders left over from the carousel.
+            adapter = null
+            recycledViewPool.clear()
 
             gameAdapter.setViewType(savedViewType)
             currentFilter = preferences.getInt(PREF_SORT_TYPE, View.NO_ID)
@@ -208,12 +224,12 @@ class GamesFragment : Fragment() {
                 else -> throw IllegalArgumentException("Invalid view type: $savedViewType")
             }
             if (savedViewType == GameAdapter.VIEW_TYPE_CAROUSEL) {
-                doOnNextLayout {
-                    (this as? CarouselRecyclerView)?.setCarouselMode(true, gameAdapter)
-                    adapter = gameAdapter
+                (binding.gridGames as? View)?.let { it -> ViewCompat.requestApplyInsets(it)}
+                doOnNextLayout { //Carousel: important to avoid overlap issues
+                    (this as? CarouselRecyclerView)?.notifyLaidOut(fallbackBottomInset)
                 }
             } else {
-                (this as? CarouselRecyclerView)?.setCarouselMode(false)
+                (this as? CarouselRecyclerView)?.setupCarousel(false)
             }
             adapter = gameAdapter
             lastViewType = savedViewType
@@ -237,9 +253,8 @@ class GamesFragment : Fragment() {
     override fun onResume() {
         super.onResume()
         if (getCurrentViewType() == GameAdapter.VIEW_TYPE_CAROUSEL) {
-            (binding.gridGames as? CarouselRecyclerView)?.restoreScrollState(
-                gamesViewModel.lastScrollPosition
-            )
+            (binding.gridGames as? CarouselRecyclerView)?.setupCarousel(true)
+            (binding.gridGames as? CarouselRecyclerView)?.restoreScrollState(gamesViewModel.lastScrollPosition)
         }
     }
 
@@ -441,6 +456,47 @@ class GamesFragment : Fragment() {
         }
     }
 
+    private fun launchQLaunch() {
+        try {
+            val appletPath = NativeLibrary.getAppletLaunchPath(AppletInfo.QLaunch.entryId)
+            if (appletPath.isEmpty()) {
+                Toast.makeText(
+                    requireContext(),
+                    R.string.applets_error_applet,
+                    Toast.LENGTH_SHORT
+                ).show()
+                return
+            }
+
+            NativeLibrary.setCurrentAppletId(AppletInfo.QLaunch.appletId)
+
+            val qlaunchGame = Game(
+                title = getString(R.string.qlaunch_applet),
+                path = appletPath
+            )
+
+            val action = HomeNavigationDirections.actionGlobalEmulationActivity(qlaunchGame)
+            findNavController().navigate(action)
+        } catch (e: Exception) {
+            Toast.makeText(
+                requireContext(),
+                "Failed to launch QLaunch: ${e.message}",
+                Toast.LENGTH_SHORT
+            ).show()
+        }
+    }
+
+    private fun updateButtonsVisibility() {
+        val showQLaunch = BooleanSetting.ENABLE_QLAUNCH_BUTTON.getBoolean()
+        val showFolder = BooleanSetting.ENABLE_FOLDER_BUTTON.getBoolean()
+        val isFirmwareAvailable = NativeLibrary.isFirmwareAvailable()
+
+        val shouldShowQLaunch = showQLaunch && isFirmwareAvailable
+        binding.launchQlaunch.visibility = if (shouldShowQLaunch) View.VISIBLE else View.GONE
+
+        binding.addDirectory.visibility = if (showFolder) View.VISIBLE else View.GONE
+    }
+
     private fun setInsets() =
         ViewCompat.setOnApplyWindowInsetsListener(
             binding.root
@@ -494,6 +550,18 @@ class GamesFragment : Fragment() {
             mlpFab.rightMargin = rightInset + fabPadding
             binding.addDirectory.layoutParams = mlpFab
 
+            binding.launchQlaunch?.let { qlaunchButton ->
+                val mlpQLaunch = qlaunchButton.layoutParams as ViewGroup.MarginLayoutParams
+                mlpQLaunch.leftMargin = leftInset + fabPadding
+                mlpQLaunch.bottomMargin = barInsets.bottom + fabPadding
+                qlaunchButton.layoutParams = mlpQLaunch
+            }
+
+            val navInsets = windowInsets.getInsets(WindowInsetsCompat.Type.navigationBars())
+            val gestureInsets = windowInsets.getInsets(WindowInsetsCompat.Type.systemGestures())
+            val bottomInset = maxOf(navInsets.bottom, gestureInsets.bottom, cutoutInsets.bottom)
+            fallbackBottomInset = bottomInset
+            (binding.gridGames as? CarouselRecyclerView)?.notifyInsetsReady(bottomInset)
             windowInsets
         }
 }

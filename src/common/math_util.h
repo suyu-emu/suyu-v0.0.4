@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: 2013 Dolphin Emulator Project
 // SPDX-FileCopyrightText: 2014 Citra Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
@@ -9,8 +12,6 @@
 #include <type_traits>
 
 namespace Common {
-
-constexpr float PI = 3.1415926535f;
 
 template <class T>
 struct Rectangle {
@@ -85,10 +86,10 @@ struct Rectangle {
     }
 
     [[nodiscard]] constexpr bool Intersect(const Rectangle<T>& with, Rectangle<T>* result) const {
-        result->left = std::max(left, with.left);
-        result->top = std::max(top, with.top);
-        result->right = std::min(right, with.right);
-        result->bottom = std::min(bottom, with.bottom);
+        result->left = (std::max)(left, with.left);
+        result->top = (std::max)(top, with.top);
+        result->right = (std::min)(right, with.right);
+        result->bottom = (std::min)(bottom, with.bottom);
         return !result->IsEmpty();
     }
 };

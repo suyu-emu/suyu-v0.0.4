@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2023 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -5,12 +8,9 @@
 
 namespace Service::JIT {
 
-Result CodeMemory::Initialize(Kernel::KProcess& process, Kernel::KCodeMemory& code_memory,
-                              size_t size, Kernel::Svc::MemoryPermission perm,
-                              std::mt19937_64& generate_random) {
+Result CodeMemory::Initialize(Kernel::KernelCore& kernel, Kernel::KProcess& process, Kernel::KCodeMemory& code_memory, size_t size, Kernel::Svc::MemoryPermission perm, std::mt19937_64& generate_random) {
     auto& page_table = process.GetPageTable();
-    const u64 alias_code_start =
-        GetInteger(page_table.GetAliasCodeRegionStart()) / Kernel::PageSize;
+    const u64 alias_code_start = GetInteger(page_table.GetAliasCodeRegionStart()) / Kernel::PageSize;
     const u64 alias_code_size = page_table.GetAliasCodeRegionSize() / Kernel::PageSize;
 
     // NOTE: This will retry indefinitely until mapping the code memory succeeds.
@@ -20,7 +20,7 @@ Result CodeMemory::Initialize(Kernel::KProcess& process, Kernel::KCodeMemory& co
             (alias_code_start + (generate_random() % alias_code_size)) * Kernel::PageSize;
 
         // Try to map the address
-        R_TRY_CATCH(code_memory.MapToOwner(mapped_address, size, perm)) {
+        R_TRY_CATCH(code_memory.MapToOwner(kernel, mapped_address, size, perm)) {
             R_CATCH(Kernel::ResultInvalidMemoryRegion) {
                 // If we could not map here, retry.
                 continue;
@@ -35,17 +35,17 @@ Result CodeMemory::Initialize(Kernel::KProcess& process, Kernel::KCodeMemory& co
         m_perm = perm;
 
         // Open a new reference to the code memory.
-        m_code_memory->Open();
+        m_code_memory->Open(kernel);
 
         // We succeeded.
         R_SUCCEED();
     }
 }
 
-void CodeMemory::Finalize() {
+void CodeMemory::Finalize(Kernel::KernelCore& kernel) {
     if (m_code_memory) {
-        R_ASSERT(m_code_memory->UnmapFromOwner(m_address, m_size));
-        m_code_memory->Close();
+        R_ASSERT(m_code_memory->UnmapFromOwner(kernel, m_address, m_size));
+        m_code_memory->Close(kernel);
     }
 
     m_code_memory = nullptr;

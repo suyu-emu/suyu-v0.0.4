@@ -1,7 +1,10 @@
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
 // SPDX-FileCopyrightText: Copyright 2021 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
-#include "common/logging/log.h"
+#include "common/logging.h"
+#include "common/assert.h"
 #include "input_common/input_engine.h"
 
 namespace InputCommon {
@@ -249,7 +252,7 @@ void InputEngine::ResetButtonState() {
 void InputEngine::ResetAnalogState() {
     for (const auto& controller : controller_list) {
         for (const auto& axis : controller.second.axes) {
-            SetAxis(controller.first, axis.first, 0.0);
+            SetAxis(controller.first, axis.first, 0.0f);
         }
     }
 }
@@ -461,8 +464,9 @@ const std::string& InputEngine::GetEngineName() const {
 
 int InputEngine::SetCallback(InputIdentifier input_identifier) {
     std::scoped_lock lock{mutex_callback};
+    ++last_callback_key;
     callback_list.insert_or_assign(last_callback_key, std::move(input_identifier));
-    return last_callback_key++;
+    return last_callback_key;
 }
 
 void InputEngine::SetMappingCallback(MappingCallback callback) {
@@ -472,12 +476,9 @@ void InputEngine::SetMappingCallback(MappingCallback callback) {
 
 void InputEngine::DeleteCallback(int key) {
     std::scoped_lock lock{mutex_callback};
-    const auto& iterator = callback_list.find(key);
-    if (iterator == callback_list.end()) {
-        LOG_ERROR(Input, "Tried to delete non-existent callback {}", key);
-        return;
-    }
-    callback_list.erase(iterator);
+    auto const it = callback_list.find(key);
+    ASSERT_MSG(it != callback_list.end(), "Tried to delete non-existent callback {}", key);
+    callback_list.erase(it);
 }
 
 } // namespace InputCommon

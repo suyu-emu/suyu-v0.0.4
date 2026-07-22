@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2024 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -12,13 +15,13 @@
 #include "core/hle/service/am/window_system.h"
 #include "core/hle/service/cmif_serialization.h"
 #include "core/loader/loader.h"
+#include "core/launch_timestamp_cache.h"
 
 namespace Service::AM {
 
 namespace {
 
-Result CreateGuestApplication(SharedPointer<IApplicationAccessor>* out_application_accessor,
-                              Core::System& system, WindowSystem& window_system, u64 program_id) {
+Result CreateGuestApplication(SharedPointer<IApplicationAccessor>* out_application_accessor, Core::System& system, WindowSystem& window_system, u64 program_id) {
     FileSys::VirtualFile nca_raw{};
 
     // Get the program NCA from storage.
@@ -31,8 +34,7 @@ Result CreateGuestApplication(SharedPointer<IApplicationAccessor>* out_applicati
     std::vector<u8> control;
     std::unique_ptr<Loader::AppLoader> loader;
     Loader::ResultStatus result;
-    auto process =
-        CreateApplicationProcess(control, loader, result, system, nca_raw, program_id, 0);
+    auto process = CreateApplicationProcess(control, loader, result, system, nca_raw, program_id, 0);
     R_UNLESS(process != nullptr, ResultUnknown);
 
     const auto applet = std::make_shared<Applet>(system, std::move(process), true);
@@ -43,8 +45,7 @@ Result CreateGuestApplication(SharedPointer<IApplicationAccessor>* out_applicati
 
     window_system.TrackApplet(applet, true);
 
-    *out_application_accessor =
-        std::make_shared<IApplicationAccessor>(system, applet, window_system);
+    *out_application_accessor = std::make_shared<IApplicationAccessor>(system, applet, window_system);
     R_SUCCEED();
 }
 
@@ -56,7 +57,7 @@ IApplicationCreator::IApplicationCreator(Core::System& system_, WindowSystem& wi
     static const FunctionInfo functions[] = {
         {0, D<&IApplicationCreator::CreateApplication>, "CreateApplication"},
         {1, nullptr, "PopLaunchRequestedApplication"},
-        {10, nullptr, "CreateSystemApplication"},
+        {10, D<&IApplicationCreator::CreateSystemApplication>, "CreateSystemApplication"},
         {100, nullptr, "PopFloatingApplicationForDevelopment"},
     };
     // clang-format on
@@ -69,8 +70,37 @@ IApplicationCreator::~IApplicationCreator() = default;
 Result IApplicationCreator::CreateApplication(
     Out<SharedPointer<IApplicationAccessor>> out_application_accessor, u64 application_id) {
     LOG_INFO(Service_NS, "called, application_id={:016X}", application_id);
+    Core::LaunchTimestampCache::SaveLaunchTimestamp(application_id);
     R_RETURN(
         CreateGuestApplication(out_application_accessor, system, m_window_system, application_id));
+}
+
+Result IApplicationCreator::CreateSystemApplication(
+    Out<SharedPointer<IApplicationAccessor>> out_application_accessor, u64 application_id) {
+
+    FileSys::VirtualFile nca_raw{};
+
+    auto& storage = system.GetContentProviderUnion();
+    nca_raw = storage.GetEntryRaw(application_id, FileSys::ContentRecordType::Program);
+
+    R_UNLESS(nca_raw != nullptr, ResultUnknown);
+
+    std::vector<u8> control;
+    std::unique_ptr<Loader::AppLoader> loader;
+    auto process = CreateProcess(system, application_id, 1, 22);
+    R_UNLESS(process != nullptr, ResultUnknown);
+
+    const auto applet = std::make_shared<Applet>(system, std::move(process), true);
+    applet->program_id = application_id;
+    applet->applet_id = AppletId::Starter;
+    applet->type = AppletType::LibraryApplet;
+    applet->library_applet_mode = LibraryAppletMode::AllForeground;
+
+    m_window_system.TrackApplet(applet, true);
+
+    *out_application_accessor = std::make_shared<IApplicationAccessor>(system, applet, m_window_system);
+    Core::LaunchTimestampCache::SaveLaunchTimestamp(application_id);
+    R_SUCCEED();
 }
 
 } // namespace Service::AM

@@ -1,10 +1,18 @@
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: 2019 Dolphin Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
 #include <string>
+
+#ifndef _WIN32
+#include <cstring>
+#endif
+
 #include <utility>
 
-#include <fmt/format.h>
+#include <fmt/ranges.h>
 
 #include "common/dynamic_library.h"
 

@@ -1,5 +1,10 @@
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2021 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
+
+#include <random>
 
 #include "common/literals.h"
 #include "common/random.h"
@@ -47,6 +52,8 @@ u32 GetMemorySizeForInit() {
         return Smc::MemorySize_6GB;
     case Settings::MemoryLayout::Memory_8Gb:
         return Smc::MemorySize_8GB;
+    case Settings::MemoryLayout::Memory_10Gb:
+        return Smc::MemorySize_10GB;
     case Settings::MemoryLayout::Memory_12Gb:
         return Smc::MemorySize_12GB;
     }
@@ -61,6 +68,8 @@ Smc::MemoryArrangement GetMemoryArrangeForInit() {
         return Smc::MemoryArrangement_6GB;
     case Settings::MemoryLayout::Memory_8Gb:
         return Smc::MemoryArrangement_8GB;
+    case Settings::MemoryLayout::Memory_10Gb:
+        return Smc::MemoryArrangement_10GB;
     case Settings::MemoryLayout::Memory_12Gb:
         return Smc::MemoryArrangement_12GB;
     }
@@ -82,6 +91,8 @@ size_t KSystemControl::Init::GetIntendedMemorySize() {
         return 6_GiB;
     case Smc::MemorySize_8GB:
         return 8_GiB;
+    case Smc::MemorySize_10GB:
+        return 10_GiB;
     case Smc::MemorySize_12GB:
         return 12_GiB;
     }
@@ -119,6 +130,8 @@ std::size_t KSystemControl::Init::GetApplicationPoolSize() {
         case Smc::MemoryArrangement_8GB:
             // Real kernel sets this to 4916_MiB. We are not debugging applets.
             return 6547_MiB;
+        case Smc::MemoryArrangement_10GB:
+            return 8178_MiB;
         case Smc::MemoryArrangement_12GB:
             return 9809_MiB;
         }
@@ -146,6 +159,8 @@ size_t KSystemControl::Init::GetAppletPoolSize() {
         case Smc::MemoryArrangement_8GB:
             //! Real kernel sets this to 2193_MiB. We are not debugging applets.
             return 562_MiB;
+        case Smc::MemoryArrangement_10GB:
+            return 562_MiB;
         case Smc::MemoryArrangement_12GB:
             return 562_MiB;
         }
@@ -171,13 +186,13 @@ namespace {
 template <typename F>
 u64 GenerateUniformRange(u64 min, u64 max, F f) {
     // Handle the case where the difference is too large to represent.
-    if (max == std::numeric_limits<u64>::max() && min == std::numeric_limits<u64>::min()) {
+    if (max == (std::numeric_limits<u64>::max)() && min == (std::numeric_limits<u64>::min)()) {
         return f();
     }
 
     // Iterate until we get a value in range.
     const u64 range_size = ((max + 1) - min);
-    const u64 effective_max = (std::numeric_limits<u64>::max() / range_size) * range_size;
+    const u64 effective_max = ((std::numeric_limits<u64>::max)() / range_size) * range_size;
     while (true) {
         if (const u64 rnd = f(); rnd < effective_max) {
             return min + (rnd % range_size);
@@ -187,12 +202,8 @@ u64 GenerateUniformRange(u64 min, u64 max, F f) {
 
 } // Anonymous namespace
 
-u64 KSystemControl::GenerateRandomU64() {
-    return Common::Random::Random64();
-}
-
 u64 KSystemControl::GenerateRandomRange(u64 min, u64 max) {
-    return GenerateUniformRange(min, max, GenerateRandomU64);
+    return GenerateUniformRange(min, max, Common::Random::GetMT19937());
 }
 
 size_t KSystemControl::CalculateRequiredSecureMemorySize(size_t size, u32 pool) {

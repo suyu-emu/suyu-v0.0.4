@@ -1,8 +1,11 @@
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2021 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
-#include <fmt/format.h>
-
+#include <fmt/ranges.h>
+#include <bit>
 #include "shader_recompiler/backend/glasm/reg_alloc.h"
 #include "shader_recompiler/exception.h"
 #include "shader_recompiler/frontend/ir/value.h"
@@ -75,7 +78,7 @@ Value RegAlloc::MakeImm(const IR::Value& value) {
         break;
     case IR::Type::F32:
         ret.type = Type::U32;
-        ret.imm_u32 = Common::BitCast<u32>(value.F32());
+        ret.imm_u32 = std::bit_cast<u32>(value.F32());
         break;
     case IR::Type::U64:
         ret.type = Type::U64;
@@ -83,7 +86,7 @@ Value RegAlloc::MakeImm(const IR::Value& value) {
         break;
     case IR::Type::F64:
         ret.type = Type::U64;
-        ret.imm_u64 = Common::BitCast<u64>(value.F64());
+        ret.imm_u64 = std::bit_cast<u64>(value.F64());
         break;
     default:
         throw NotImplementedException("Immediate type {}", value.Type());
@@ -123,7 +126,7 @@ Id RegAlloc::Alloc(bool is_long) {
             if (use[reg]) {
                 continue;
             }
-            num_regs = std::max(num_regs, reg + 1);
+            num_regs = (std::max)(num_regs, reg + 1);
             use[reg] = true;
             Id ret{};
             ret.is_valid.Assign(1);

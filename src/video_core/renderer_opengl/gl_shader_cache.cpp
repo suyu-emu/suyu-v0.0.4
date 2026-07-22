@@ -1,6 +1,7 @@
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2018 yuzu Emulator Project
-// SPDX-FileCopyrightText: Copyright 2024 suyu Emulator Project
-// SPDX-FileCopyrightText: Copyright 2024 Torzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
 #include <atomic>
@@ -14,7 +15,7 @@
 #include "common/assert.h"
 #include "common/fs/fs.h"
 #include "common/fs/path_util.h"
-#include "common/logging/log.h"
+#include "common/logging.h"
 #include "common/settings.h"
 #include "common/thread_worker.h"
 #include "shader_recompiler/backend/glasm/emit_glasm.h"
@@ -24,7 +25,7 @@
 #include "shader_recompiler/frontend/maxwell/control_flow.h"
 #include "shader_recompiler/frontend/maxwell/translate_program.h"
 #include "shader_recompiler/profile.h"
-#include "video_core/engines/draw_manager.h"
+#include "video_core/engines/maxwell_3d.h"
 #include "video_core/engines/kepler_compute.h"
 #include "video_core/engines/maxwell_3d.h"
 #include "video_core/memory_manager.h"
@@ -53,7 +54,7 @@ using VideoCommon::LoadPipelines;
 using VideoCommon::SerializePipeline;
 using Context = ShaderContext::Context;
 
-constexpr u32 CACHE_VERSION = 10;
+constexpr u32 CACHE_VERSION = 15;
 
 template <typename Container>
 auto MakeSpan(Container& container) {
@@ -237,19 +238,38 @@ ShaderCache::ShaderCache(Tegra::MaxwellDeviceMemoryManager& device_memory_,
           .ignore_nan_fp_comparisons = true,
           .gl_max_compute_smem_size = device.GetMaxComputeSharedMemorySize(),
           .min_ssbo_alignment = device.GetShaderStorageBufferAlignment(),
-          .max_user_clip_distances = 8,
+          // Use the host limit, but never more than the guest can produce. Maxwell exposes 8 clip
+          // distances and the SPIR-V output array is sized for at most 8, so clamping here keeps a
+          // host that reports a different count from under- or over-running that array.
+          .max_user_clip_distances =
+              std::min<u32>(device.GetMaxUserClipDistances(), Maxwell::Regs::NumClipDistances),
       },
       host_info{
-          .support_float64 = true,
-          .support_float16 = false,
-          .support_int64 = device.HasShaderInt64(),
-          .needs_demote_reorder = device.IsAmd(),
-          .support_snorm_render_buffer = false,
-          .support_viewport_index_layer = device.HasVertexViewportLayer(),
-          .min_ssbo_alignment = static_cast<u32>(device.GetShaderStorageBufferAlignment()),
-          .support_geometry_shader_passthrough = device.HasGeometryShaderPassthrough(),
-          .support_conditional_barrier = device.SupportsConditionalBarriers(),
+        .min_ssbo_alignment = static_cast<u32>(device.GetShaderStorageBufferAlignment()),
+        .max_per_stage_descriptor_sampled_images =
+            Shader::HostTranslateInfo::DEFAULT_DESCRIPTOR_LIMIT,
+        .max_per_stage_resources = Shader::HostTranslateInfo::DEFAULT_DESCRIPTOR_LIMIT,
+        .max_descriptor_set_samplers = Shader::HostTranslateInfo::DEFAULT_DESCRIPTOR_LIMIT,
+        .max_descriptor_set_uniform_buffers = Shader::HostTranslateInfo::DEFAULT_DESCRIPTOR_LIMIT,
+        .max_descriptor_set_uniform_buffers_dynamic =
+            Shader::HostTranslateInfo::DEFAULT_DESCRIPTOR_LIMIT,
+        .max_descriptor_set_storage_buffers = Shader::HostTranslateInfo::DEFAULT_DESCRIPTOR_LIMIT,
+        .max_descriptor_set_storage_buffers_dynamic =
+            Shader::HostTranslateInfo::DEFAULT_DESCRIPTOR_LIMIT,
+        .max_descriptor_set_sampled_images = Shader::HostTranslateInfo::DEFAULT_DESCRIPTOR_LIMIT,
+        .max_descriptor_set_storage_images = Shader::HostTranslateInfo::DEFAULT_DESCRIPTOR_LIMIT,
+        .max_descriptor_set_input_attachements =
+            Shader::HostTranslateInfo::DEFAULT_DESCRIPTOR_LIMIT,
+        .support_float64 = true,
+        .support_float16 = false,
+        .support_int64 = device.HasShaderInt64(),
+        .needs_demote_reorder = device.IsAmd(),
+        .support_snorm_render_buffer = false,
+        .support_viewport_index_layer = device.HasVertexViewportLayer(),
+        .support_geometry_shader_passthrough = device.HasGeometryShaderPassthrough(),
+        .support_conditional_barrier = device.SupportsConditionalBarriers(),
       } {
+    host_info.ApplyDescriptorLimitPolicy();
     if (use_asynchronous_shaders) {
         workers = CreateWorkers();
     }
@@ -262,7 +282,7 @@ void ShaderCache::LoadDiskResources(u64 title_id, std::stop_token stop_loading,
     if (title_id == 0) {
         return;
     }
-    const auto shader_dir{Common::FS::GetSuyuPath(Common::FS::SuyuPath::ShaderDir)};
+    const auto shader_dir{Common::FS::GetEdenPath(Common::FS::EdenPath::ShaderDir)};
     const auto base_dir{shader_dir / fmt::format("{:016x}", title_id)};
     if (!Common::FS::CreateDir(shader_dir) || !Common::FS::CreateDir(base_dir)) {
         LOG_ERROR(Common_Filesystem, "Failed to create shader cache directories");
@@ -356,7 +376,7 @@ GraphicsPipeline* ShaderCache::CurrentGraphicsPipeline() {
     const auto& regs{maxwell3d->regs};
     graphics_key.raw = 0;
     graphics_key.early_z.Assign(regs.mandated_early_z != 0 ? 1 : 0);
-    graphics_key.gs_input_topology.Assign(maxwell3d->draw_manager->GetDrawState().topology);
+    graphics_key.gs_input_topology.Assign(maxwell3d->draw_manager.draw_state.topology);
     graphics_key.tessellation_primitive.Assign(regs.tessellation.params.domain_type.Value());
     graphics_key.tessellation_spacing.Assign(regs.tessellation.params.spacing.Value());
     graphics_key.tessellation_clockwise.Assign(
@@ -387,24 +407,16 @@ GraphicsPipeline* ShaderCache::CurrentGraphicsPipelineSlowPath() {
 }
 
 GraphicsPipeline* ShaderCache::BuiltPipeline(GraphicsPipeline* pipeline) const noexcept {
-    if (pipeline->BuildFailed()) {
-        return nullptr;
-    }
     if (pipeline->IsBuilt()) {
         return pipeline;
     }
     if (!use_asynchronous_shaders) {
         return pipeline;
     }
-    // If something is using depth, we can assume that games are not rendering anything which
-    // will be used one time.
-    if (maxwell3d->regs.zeta_enable) {
-        return nullptr;
-    }
     // If games are using a small index count, we can assume these are full screen quads.
     // Usually these shaders are only used once for building textures so we can assume they
     // can't be built async
-    const auto& draw_state = maxwell3d->draw_manager->GetDrawState();
+    const auto& draw_state = maxwell3d->draw_manager.draw_state;
     if (draw_state.index_buffer.count <= 6 || draw_state.vertex_buffer.count <= 6) {
         return pipeline;
     }
@@ -467,8 +479,8 @@ std::unique_ptr<GraphicsPipeline> ShaderCache::CreateGraphicsPipeline(
     Shader::IR::Program* layer_source_program{};
 
     for (size_t index = 0; index < Maxwell::MaxShaderProgram; ++index) {
-        const bool is_emulated_stage = layer_source_program != nullptr &&
-                                       index == static_cast<u32>(Maxwell::ShaderType::Geometry);
+        const bool is_emulated_stage = layer_source_program != nullptr
+            && index == u32(Maxwell::ShaderType::Geometry);
         if (key.unique_hashes[index] == 0 && is_emulated_stage) {
             auto topology = MaxwellToOutputTopology(key.gs_input_topology);
             programs[index] = GenerateGeometryPassthrough(pools.inst, pools.block, host_info,
@@ -481,10 +493,10 @@ std::unique_ptr<GraphicsPipeline> ShaderCache::CreateGraphicsPipeline(
         Shader::Environment& env{*envs[env_index]};
         ++env_index;
 
-        const u32 cfg_offset{static_cast<u32>(env.StartAddress() + sizeof(Shader::ProgramHeader))};
+        const u32 cfg_offset = u32(env.StartAddress() + sizeof(Shader::ProgramHeader));
         Shader::Maxwell::Flow::CFG cfg(env, pools.flow_block, cfg_offset, index == 0);
 
-        if (Settings::values.dump_shaders) {
+        if (Settings::values.dump_guest_shaders) {
             env.Dump(hash, key.unique_hashes[index]);
         }
 
@@ -492,14 +504,12 @@ std::unique_ptr<GraphicsPipeline> ShaderCache::CreateGraphicsPipeline(
             // Normal path
             programs[index] = TranslateProgram(pools.inst, pools.block, env, cfg, host_info);
 
-            total_storage_buffers +=
-                Shader::NumDescriptors(programs[index].info.storage_buffers_descriptors);
+            total_storage_buffers += Shader::NumDescriptors(programs[index].info.storage_buffers_descriptors);
         } else {
             // VertexB path when VertexA is present.
             auto& program_va{programs[0]};
             auto program_vb{TranslateProgram(pools.inst, pools.block, env, cfg, host_info)};
-            total_storage_buffers +=
-                Shader::NumDescriptors(program_vb.info.storage_buffers_descriptors);
+            total_storage_buffers += Shader::NumDescriptors(program_vb.info.storage_buffers_descriptors);
             programs[index] = MergeDualVertexPrograms(program_va, program_vb, env);
         }
 
@@ -507,8 +517,8 @@ std::unique_ptr<GraphicsPipeline> ShaderCache::CreateGraphicsPipeline(
             layer_source_program = &programs[index];
         }
     }
-    const u32 glasm_storage_buffer_limit{device.GetMaxGLASMStorageBufferBlocks()};
-    const bool glasm_use_storage_buffers{total_storage_buffers <= glasm_storage_buffer_limit};
+    const u32 glasm_storage_buffer_limit = device.GetMaxGLASMStorageBufferBlocks();
+    const bool glasm_use_storage_buffers = total_storage_buffers <= glasm_storage_buffer_limit;
 
     std::array<const Shader::Info*, Maxwell::MaxShaderStage> infos{};
 
@@ -516,7 +526,7 @@ std::unique_ptr<GraphicsPipeline> ShaderCache::CreateGraphicsPipeline(
     std::array<std::vector<u32>, 5> sources_spirv;
     Shader::Backend::Bindings binding;
     Shader::IR::Program* previous_program{};
-    const bool use_glasm{device.UseAssemblyShaders()};
+    const bool use_glasm = device.UseAssemblyShaders();
     const size_t first_index = uses_vertex_a && uses_vertex_b ? 1 : 0;
     for (size_t index = first_index; index < Maxwell::MaxShaderProgram; ++index) {
         const bool is_emulated_stage = layer_source_program != nullptr &&
@@ -530,22 +540,21 @@ std::unique_ptr<GraphicsPipeline> ShaderCache::CreateGraphicsPipeline(
         const size_t stage_index{index - 1};
         infos[stage_index] = &program.info;
 
-        const auto runtime_info{
-            MakeRuntimeInfo(key, program, previous_program, glasm_use_storage_buffers, use_glasm)};
-        switch (device.GetShaderBackend()) {
-        case Settings::ShaderBackend::Glsl:
+        const auto runtime_info = MakeRuntimeInfo(key, program, previous_program, glasm_use_storage_buffers, use_glasm);
+        switch (::Settings::values.renderer_backend.GetValue()) {
+        case Settings::RendererBackend::OpenGL_GLSL:
             ConvertLegacyToGeneric(program, runtime_info);
             sources[stage_index] = EmitGLSL(profile, runtime_info, program, binding);
             break;
-        case Settings::ShaderBackend::Glasm:
+        case Settings::RendererBackend::OpenGL_GLASM:
             sources[stage_index] = EmitGLASM(profile, runtime_info, program, binding);
             break;
-        case Settings::ShaderBackend::SpirV:
+        case Settings::RendererBackend::OpenGL_SPIRV:
             ConvertLegacyToGeneric(program, runtime_info);
-            sources_spirv[stage_index] =
-                EmitSPIRV(profile, runtime_info, program, binding,
-                          Settings::values.optimize_spirv_output.GetValue());
+            sources_spirv[stage_index] = EmitSPIRV(profile, runtime_info, program, binding);
             break;
+        default:
+            UNREACHABLE();
         }
         previous_program = &program;
     }
@@ -584,7 +593,7 @@ std::unique_ptr<ComputePipeline> ShaderCache::CreateComputePipeline(
 
     Shader::Maxwell::Flow::CFG cfg{env, pools.flow_block, env.StartAddress()};
 
-    if (Settings::values.dump_shaders) {
+    if (Settings::values.dump_guest_shaders) {
         env.Dump(hash, key.unique_hash);
     }
 
@@ -595,27 +604,27 @@ std::unique_ptr<ComputePipeline> ShaderCache::CreateComputePipeline(
 
     std::string code{};
     std::vector<u32> code_spirv;
-    switch (device.GetShaderBackend()) {
-    case Settings::ShaderBackend::Glsl:
+    switch (::Settings::values.renderer_backend.GetValue()) {
+    case Settings::RendererBackend::OpenGL_GLSL:
         code = EmitGLSL(profile, program);
         break;
-    case Settings::ShaderBackend::Glasm:
+    case Settings::RendererBackend::OpenGL_GLASM:
         code = EmitGLASM(profile, info, program);
         break;
-    case Settings::ShaderBackend::SpirV:
-        code_spirv = EmitSPIRV(profile, program, Settings::values.optimize_spirv_output.GetValue());
+    case Settings::RendererBackend::OpenGL_SPIRV:
+        code_spirv = EmitSPIRV(profile, program);
         break;
+    default:
+        UNREACHABLE();
     }
-
-    return std::make_unique<ComputePipeline>(device, texture_cache, buffer_cache, program_manager,
-                                             program.info, code, code_spirv, force_context_flush);
+    return std::make_unique<ComputePipeline>(device, texture_cache, buffer_cache, program_manager, program.info, code, code_spirv, force_context_flush);
 } catch (Shader::Exception& exception) {
     LOG_ERROR(Render_OpenGL, "{}", exception.what());
     return nullptr;
 }
 
 std::unique_ptr<ShaderWorker> ShaderCache::CreateWorkers() const {
-    return std::make_unique<ShaderWorker>(std::max(std::thread::hardware_concurrency(), 2U) - 1,
+    return std::make_unique<ShaderWorker>((std::max)(std::thread::hardware_concurrency(), 2U) - 1,
                                           "GlShaderBuilder",
                                           [this] { return Context{emu_window}; });
 }

@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2021 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -9,14 +12,19 @@
 namespace Shader::Maxwell {
 namespace {
 enum class Type : u64 {
-    _1D,
-    BUFFER_1D,
-    ARRAY_1D,
-    _2D,
-    ARRAY_2D,
-    _3D,
+    _1D = 0,
+    _1D_BUFFER = 1,
+    _1D_ARRAY = 2,
+    _2D = 3,
+    _2D_ARRAY = 4,
+    _3D = 5,
+    _UNK6 = 6,
+    _UNK7 = 7,
 };
 
+/// For any would be newcomer to here: Yes - GPU dissasembly says S64 should
+/// be after F16x2FTZRN. However if you do plan to revert this, you MUST test
+/// ToTK beforehand. As the game will break with the subtle change
 enum class Size : u64 {
     U32,
     S32,
@@ -50,33 +58,40 @@ TextureType GetType(Type type) {
     switch (type) {
     case Type::_1D:
         return TextureType::Color1D;
-    case Type::BUFFER_1D:
+    case Type::_1D_BUFFER:
         return TextureType::Buffer;
-    case Type::ARRAY_1D:
+    case Type::_1D_ARRAY:
         return TextureType::ColorArray1D;
     case Type::_2D:
         return TextureType::Color2D;
-    case Type::ARRAY_2D:
+    case Type::_2D_ARRAY:
         return TextureType::ColorArray2D;
     case Type::_3D:
         return TextureType::Color3D;
+    default:
+        throw NotImplementedException("Invalid type {}", type);
     }
-    throw NotImplementedException("Invalid type {}", type);
 }
 
 IR::Value MakeCoords(TranslatorVisitor& v, IR::Reg reg, Type type) {
+    const auto array{[&](int index) {
+        return v.ir.BitFieldExtract(v.X(reg + index), v.ir.Imm32(0), v.ir.Imm32(16));
+    }};
     switch (type) {
     case Type::_1D:
-    case Type::BUFFER_1D:
+    case Type::_1D_BUFFER:
         return v.X(reg);
+    case Type::_1D_ARRAY:
+        return v.ir.CompositeConstruct(v.X(reg), array(1));
     case Type::_2D:
         return v.ir.CompositeConstruct(v.X(reg), v.X(reg + 1));
+    case Type::_2D_ARRAY:
+        return v.ir.CompositeConstruct(v.X(reg), v.X(reg + 1), array(2));
     case Type::_3D:
         return v.ir.CompositeConstruct(v.X(reg), v.X(reg + 1), v.X(reg + 2));
     default:
-        break;
+        throw NotImplementedException("Invalid type {}", type);
     }
-    throw NotImplementedException("Invalid type {}", type);
 }
 
 IR::Value ApplyAtomicOp(IR::IREmitter& ir, const IR::U32& handle, const IR::Value& coords,
@@ -130,7 +145,7 @@ bool IsSizeInt32(Size size) {
 }
 
 void ImageAtomOp(TranslatorVisitor& v, IR::Reg dest_reg, IR::Reg operand_reg, IR::Reg coord_reg,
-                 IR::Reg bindless_reg, AtomicOp op, Clamp clamp, Size size, Type type,
+                 std::optional<IR::Reg> bindless_reg, AtomicOp op, Clamp clamp, Size size, Type type,
                  u64 bound_offset, bool is_bindless, bool write_result) {
     if (clamp != Clamp::IGN) {
         throw NotImplementedException("Clamp {}", clamp);
@@ -143,8 +158,7 @@ void ImageAtomOp(TranslatorVisitor& v, IR::Reg dest_reg, IR::Reg operand_reg, IR
     const TextureType tex_type{GetType(type)};
     const IR::Value coords{MakeCoords(v, coord_reg, type)};
 
-    const IR::U32 handle{is_bindless != 0 ? v.X(bindless_reg)
-                                          : v.ir.Imm32(static_cast<u32>(bound_offset * 4))};
+    const IR::U32 handle = is_bindless ? v.X(*bindless_reg) : v.ir.Imm32(u32(bound_offset * 4));
     IR::TextureInstInfo info{};
     info.type.Assign(tex_type);
     info.image_format.Assign(format);
@@ -170,7 +184,7 @@ void TranslatorVisitor::SUATOM(u64 insn) {
         BitField<0, 8, IR::Reg> dest_reg;
         BitField<8, 8, IR::Reg> coord_reg;
         BitField<20, 8, IR::Reg> operand_reg;
-        BitField<36, 13, u64> bound_offset;    // !is_bindless
+        BitField<36, 13, u64> bound_offset; // !is_bindless
         BitField<39, 8, IR::Reg> bindless_reg; // is_bindless
     } const suatom{insn};
 
@@ -184,13 +198,13 @@ void TranslatorVisitor::SURED(u64 insn) {
     union {
         u64 raw;
         BitField<51, 1, u64> is_bound;
-        BitField<21, 3, AtomicOp> op;
-        BitField<33, 3, Type> type;
-        BitField<20, 3, Size> size;
-        BitField<49, 2, Clamp> clamp;
-        BitField<0, 8, IR::Reg> operand_reg;
-        BitField<8, 8, IR::Reg> coord_reg;
-        BitField<36, 13, u64> bound_offset;    // is_bound
+        BitField<24, 3, AtomicOp> op; //OK - 24 (SURedOp)
+        BitField<33, 3, Type> type; //OK? - 33 (Dim)
+        BitField<20, 3, Size> size; //?
+        BitField<49, 2, Clamp> clamp; //OK - 49 (Clamp4)
+        BitField<0, 8, IR::Reg> operand_reg; //RA?
+        BitField<8, 8, IR::Reg> coord_reg; //RB?
+        BitField<36, 13, u64> bound_offset; //OK 33 (TidB)
         BitField<39, 8, IR::Reg> bindless_reg; // !is_bound
     } const sured{insn};
     ImageAtomOp(*this, IR::Reg::RZ, sured.operand_reg, sured.coord_reg, sured.bindless_reg,

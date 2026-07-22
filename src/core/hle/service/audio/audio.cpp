@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2018 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -18,17 +21,14 @@ namespace Service::Audio {
 void LoopProcess(Core::System& system) {
     auto server_manager = std::make_unique<ServerManager>(system);
 
-    server_manager->RegisterNamedService("audctl", std::make_shared<IAudioController>(system));
     server_manager->RegisterNamedService("audin:u", std::make_shared<IAudioInManager>(system));
     server_manager->RegisterNamedService("audout:u", std::make_shared<IAudioOutManager>(system));
-    server_manager->RegisterNamedService(
-        "audrec:a", std::make_shared<IFinalOutputRecorderManagerForApplet>(system));
-    server_manager->RegisterNamedService("audrec:u",
-                                         std::make_shared<IFinalOutputRecorderManager>(system));
-    server_manager->RegisterNamedService("audren:u",
-                                         std::make_shared<IAudioRendererManager>(system));
-    server_manager->RegisterNamedService("hwopus",
-                                         std::make_shared<IHardwareOpusDecoderManager>(system));
+    // Depends on audout:u and audin:u on ctor!
+    server_manager->RegisterNamedService("audctl", std::make_shared<IAudioController>(system));
+    server_manager->RegisterNamedService("audrec:a", std::make_shared<IFinalOutputRecorderManagerForApplet>(system));
+    server_manager->RegisterNamedService("audrec:u", std::make_shared<IFinalOutputRecorderManager>(system));
+    server_manager->RegisterNamedService("audren:u", std::make_shared<IAudioRendererManager>(system));
+    server_manager->RegisterNamedService("hwopus", std::make_shared<IHardwareOpusDecoderManager>(system));
     ServerManager::RunServer(std::move(server_manager));
 }
 

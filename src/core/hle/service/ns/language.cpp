@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2019 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -22,6 +25,8 @@ constexpr ApplicationLanguagePriorityList priority_list_american_english = {{
     ApplicationLanguage::SimplifiedChinese,
     ApplicationLanguage::TraditionalChinese,
     ApplicationLanguage::Korean,
+    ApplicationLanguage::Polish,
+    ApplicationLanguage::Thai,
 }};
 
 constexpr ApplicationLanguagePriorityList priority_list_british_english = {{
@@ -40,6 +45,8 @@ constexpr ApplicationLanguagePriorityList priority_list_british_english = {{
     ApplicationLanguage::SimplifiedChinese,
     ApplicationLanguage::TraditionalChinese,
     ApplicationLanguage::Korean,
+    ApplicationLanguage::Polish,
+    ApplicationLanguage::Thai,
 }};
 
 constexpr ApplicationLanguagePriorityList priority_list_japanese = {{
@@ -58,6 +65,8 @@ constexpr ApplicationLanguagePriorityList priority_list_japanese = {{
     ApplicationLanguage::SimplifiedChinese,
     ApplicationLanguage::TraditionalChinese,
     ApplicationLanguage::Korean,
+    ApplicationLanguage::Polish,
+    ApplicationLanguage::Thai,
 }};
 
 constexpr ApplicationLanguagePriorityList priority_list_french = {{
@@ -76,6 +85,8 @@ constexpr ApplicationLanguagePriorityList priority_list_french = {{
     ApplicationLanguage::SimplifiedChinese,
     ApplicationLanguage::TraditionalChinese,
     ApplicationLanguage::Korean,
+    ApplicationLanguage::Polish,
+    ApplicationLanguage::Thai,
 }};
 
 constexpr ApplicationLanguagePriorityList priority_list_german = {{
@@ -94,6 +105,8 @@ constexpr ApplicationLanguagePriorityList priority_list_german = {{
     ApplicationLanguage::SimplifiedChinese,
     ApplicationLanguage::TraditionalChinese,
     ApplicationLanguage::Korean,
+    ApplicationLanguage::Polish,
+    ApplicationLanguage::Thai,
 }};
 
 constexpr ApplicationLanguagePriorityList priority_list_latin_american_spanish = {{
@@ -112,6 +125,8 @@ constexpr ApplicationLanguagePriorityList priority_list_latin_american_spanish =
     ApplicationLanguage::SimplifiedChinese,
     ApplicationLanguage::TraditionalChinese,
     ApplicationLanguage::Korean,
+    ApplicationLanguage::Polish,
+    ApplicationLanguage::Thai,
 }};
 
 constexpr ApplicationLanguagePriorityList priority_list_spanish = {{
@@ -130,6 +145,8 @@ constexpr ApplicationLanguagePriorityList priority_list_spanish = {{
     ApplicationLanguage::SimplifiedChinese,
     ApplicationLanguage::TraditionalChinese,
     ApplicationLanguage::Korean,
+    ApplicationLanguage::Polish,
+    ApplicationLanguage::Thai,
 }};
 
 constexpr ApplicationLanguagePriorityList priority_list_italian = {{
@@ -148,6 +165,8 @@ constexpr ApplicationLanguagePriorityList priority_list_italian = {{
     ApplicationLanguage::SimplifiedChinese,
     ApplicationLanguage::TraditionalChinese,
     ApplicationLanguage::Korean,
+    ApplicationLanguage::Polish,
+    ApplicationLanguage::Thai,
 }};
 
 constexpr ApplicationLanguagePriorityList priority_list_dutch = {{
@@ -166,6 +185,8 @@ constexpr ApplicationLanguagePriorityList priority_list_dutch = {{
     ApplicationLanguage::SimplifiedChinese,
     ApplicationLanguage::TraditionalChinese,
     ApplicationLanguage::Korean,
+    ApplicationLanguage::Polish,
+    ApplicationLanguage::Thai,
 }};
 
 constexpr ApplicationLanguagePriorityList priority_list_canadian_french = {{
@@ -184,6 +205,8 @@ constexpr ApplicationLanguagePriorityList priority_list_canadian_french = {{
     ApplicationLanguage::SimplifiedChinese,
     ApplicationLanguage::TraditionalChinese,
     ApplicationLanguage::Korean,
+    ApplicationLanguage::Polish,
+    ApplicationLanguage::Thai,
 }};
 
 constexpr ApplicationLanguagePriorityList priority_list_portuguese = {{
@@ -202,6 +225,8 @@ constexpr ApplicationLanguagePriorityList priority_list_portuguese = {{
     ApplicationLanguage::SimplifiedChinese,
     ApplicationLanguage::TraditionalChinese,
     ApplicationLanguage::Korean,
+    ApplicationLanguage::Polish,
+    ApplicationLanguage::Thai,
 }};
 
 constexpr ApplicationLanguagePriorityList priority_list_russian = {{
@@ -220,6 +245,8 @@ constexpr ApplicationLanguagePriorityList priority_list_russian = {{
     ApplicationLanguage::SimplifiedChinese,
     ApplicationLanguage::TraditionalChinese,
     ApplicationLanguage::Korean,
+    ApplicationLanguage::Polish,
+    ApplicationLanguage::Thai,
 }};
 
 constexpr ApplicationLanguagePriorityList priority_list_korean = {{
@@ -238,6 +265,8 @@ constexpr ApplicationLanguagePriorityList priority_list_korean = {{
     ApplicationLanguage::Japanese,
     ApplicationLanguage::SimplifiedChinese,
     ApplicationLanguage::TraditionalChinese,
+    ApplicationLanguage::Polish,
+    ApplicationLanguage::Thai,
 }};
 
 constexpr ApplicationLanguagePriorityList priority_list_traditional_chinese = {{
@@ -256,6 +285,8 @@ constexpr ApplicationLanguagePriorityList priority_list_traditional_chinese = {{
     ApplicationLanguage::Portuguese,
     ApplicationLanguage::Russian,
     ApplicationLanguage::Korean,
+    ApplicationLanguage::Polish,
+    ApplicationLanguage::Thai,
 }};
 
 constexpr ApplicationLanguagePriorityList priority_list_simplified_chinese = {{
@@ -274,12 +305,51 @@ constexpr ApplicationLanguagePriorityList priority_list_simplified_chinese = {{
     ApplicationLanguage::Portuguese,
     ApplicationLanguage::Russian,
     ApplicationLanguage::Korean,
+    ApplicationLanguage::Polish,
+    ApplicationLanguage::Thai,
 }};
 
 constexpr ApplicationLanguagePriorityList priority_list_brazilian_portuguese = {{
     ApplicationLanguage::BrazilianPortuguese,
     ApplicationLanguage::Portuguese,
     ApplicationLanguage::LatinAmericanSpanish,
+    ApplicationLanguage::AmericanEnglish,
+    ApplicationLanguage::BritishEnglish,
+    ApplicationLanguage::Japanese,
+    ApplicationLanguage::French,
+    ApplicationLanguage::German,
+    ApplicationLanguage::Spanish,
+    ApplicationLanguage::Italian,
+    ApplicationLanguage::Dutch,
+    ApplicationLanguage::CanadianFrench,
+    ApplicationLanguage::Russian,
+    ApplicationLanguage::Korean,
+    ApplicationLanguage::SimplifiedChinese,
+    ApplicationLanguage::TraditionalChinese,
+    ApplicationLanguage::Polish,
+    ApplicationLanguage::Thai,
+}};
+
+constexpr ApplicationLanguagePriorityList priority_list_thai = {{
+    ApplicationLanguage::Thai,
+    ApplicationLanguage::AmericanEnglish,
+    ApplicationLanguage::BritishEnglish,
+    ApplicationLanguage::Japanese,
+    ApplicationLanguage::French,
+    ApplicationLanguage::German,
+    ApplicationLanguage::Spanish,
+    ApplicationLanguage::Italian,
+    ApplicationLanguage::Dutch,
+    ApplicationLanguage::CanadianFrench,
+    ApplicationLanguage::Russian,
+    ApplicationLanguage::Korean,
+    ApplicationLanguage::SimplifiedChinese,
+    ApplicationLanguage::TraditionalChinese,
+    ApplicationLanguage::Polish,
+}};
+
+constexpr ApplicationLanguagePriorityList priority_list_polish = {{
+    ApplicationLanguage::Polish,
     ApplicationLanguage::AmericanEnglish,
     ApplicationLanguage::BritishEnglish,
     ApplicationLanguage::Japanese,
@@ -330,6 +400,10 @@ const ApplicationLanguagePriorityList* GetApplicationLanguagePriorityList(
         return &priority_list_simplified_chinese;
     case ApplicationLanguage::BrazilianPortuguese:
         return &priority_list_brazilian_portuguese;
+    case ApplicationLanguage::Polish:
+        return &priority_list_polish;
+    case ApplicationLanguage::Thai:
+        return &priority_list_thai;
     default:
         return nullptr;
     }
@@ -372,6 +446,10 @@ std::optional<ApplicationLanguage> ConvertToApplicationLanguage(
         return ApplicationLanguage::SimplifiedChinese;
     case Set::LanguageCode::PT_BR:
         return ApplicationLanguage::BrazilianPortuguese;
+    case Set::LanguageCode::TH:
+        return ApplicationLanguage::Thai;
+    case Set::LanguageCode::PL:
+        return ApplicationLanguage::Polish;
     default:
         return std::nullopt;
     }
@@ -411,6 +489,10 @@ std::optional<Set::LanguageCode> ConvertToLanguageCode(const ApplicationLanguage
         return Set::LanguageCode::ZH_HANS;
     case ApplicationLanguage::BrazilianPortuguese:
         return Set::LanguageCode::PT_BR;
+    case ApplicationLanguage::Thai:
+        return Set::LanguageCode::TH;
+    case ApplicationLanguage::Polish:
+        return Set::LanguageCode::PL;
     default:
         return std::nullopt;
     }

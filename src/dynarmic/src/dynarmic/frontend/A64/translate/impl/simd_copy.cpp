@@ -1,16 +1,19 @@
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 /* This file is part of the dynarmic project.
  * Copyright (c) 2018 MerryMage
  * SPDX-License-Identifier: 0BSD
  */
 
-#include <mcl/bit/bit_count.hpp>
+#include "dynarmic/mcl/bit.hpp"
 
 #include "dynarmic/frontend/A64/translate/impl/impl.h"
 
 namespace Dynarmic::A64 {
 
 bool TranslatorVisitor::DUP_elt_1(Imm<5> imm5, Vec Vn, Vec Vd) {
-    const size_t size = mcl::bit::lowest_set_bit(imm5.ZeroExtend());
+    const size_t size = std::countr_zero(imm5.ZeroExtend());
     if (size > 3) {
         return ReservedValue();
     }
@@ -27,7 +30,7 @@ bool TranslatorVisitor::DUP_elt_1(Imm<5> imm5, Vec Vn, Vec Vd) {
 }
 
 bool TranslatorVisitor::DUP_elt_2(bool Q, Imm<5> imm5, Vec Vn, Vec Vd) {
-    const size_t size = mcl::bit::lowest_set_bit(imm5.ZeroExtend());
+    const size_t size = std::countr_zero(imm5.ZeroExtend());
     if (size > 3) {
         return ReservedValue();
     }
@@ -48,7 +51,7 @@ bool TranslatorVisitor::DUP_elt_2(bool Q, Imm<5> imm5, Vec Vn, Vec Vd) {
 }
 
 bool TranslatorVisitor::DUP_gen(bool Q, Imm<5> imm5, Reg Rn, Vec Vd) {
-    const size_t size = mcl::bit::lowest_set_bit(imm5.ZeroExtend());
+    const size_t size = std::countr_zero(imm5.ZeroExtend());
     if (size > 3) {
         return ReservedValue();
     }
@@ -70,7 +73,7 @@ bool TranslatorVisitor::DUP_gen(bool Q, Imm<5> imm5, Reg Rn, Vec Vd) {
 }
 
 bool TranslatorVisitor::SMOV(bool Q, Imm<5> imm5, Vec Vn, Reg Rd) {
-    const size_t size = mcl::bit::lowest_set_bit(imm5.ZeroExtend());
+    const size_t size = std::countr_zero(imm5.ZeroExtend());
     if (size == 2 && !Q) {
         return UnallocatedEncoding();
     }
@@ -93,7 +96,7 @@ bool TranslatorVisitor::SMOV(bool Q, Imm<5> imm5, Vec Vn, Reg Rd) {
 }
 
 bool TranslatorVisitor::UMOV(bool Q, Imm<5> imm5, Vec Vn, Reg Rd) {
-    const size_t size = mcl::bit::lowest_set_bit(imm5.ZeroExtend());
+    const size_t size = std::countr_zero(imm5.ZeroExtend());
     if (size < 3 && Q) {
         return UnallocatedEncoding();
     }
@@ -120,7 +123,7 @@ bool TranslatorVisitor::UMOV(bool Q, Imm<5> imm5, Vec Vn, Reg Rd) {
 }
 
 bool TranslatorVisitor::INS_gen(Imm<5> imm5, Reg Rn, Vec Vd) {
-    const size_t size = mcl::bit::lowest_set_bit(imm5.ZeroExtend());
+    const size_t size = std::countr_zero(imm5.ZeroExtend());
     if (size > 3) {
         return ReservedValue();
     }
@@ -137,7 +140,7 @@ bool TranslatorVisitor::INS_gen(Imm<5> imm5, Reg Rn, Vec Vd) {
 }
 
 bool TranslatorVisitor::INS_elt(Imm<5> imm5, Imm<4> imm4, Vec Vn, Vec Vd) {
-    const size_t size = mcl::bit::lowest_set_bit(imm5.ZeroExtend());
+    const size_t size = std::countr_zero(imm5.ZeroExtend());
     if (size > 3) {
         return ReservedValue();
     }

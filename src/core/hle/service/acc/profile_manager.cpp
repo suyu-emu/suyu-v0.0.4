@@ -1,17 +1,25 @@
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2018 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
+#include <algorithm>
 #include <cstring>
-#include <random>
+#include <filesystem>
 
-#include <fmt/format.h>
+#include <boost/algorithm/string/case_conv.hpp>
+#include <boost/algorithm/string/find.hpp>
+#include <fmt/ranges.h>
 
 #include "common/fs/file.h"
 #include "common/fs/fs.h"
+#include "common/fs/fs_types.h"
 #include "common/fs/path_util.h"
-#include "common/polyfill_ranges.h"
+#include "common/fs/symlink.h"
 #include "common/settings.h"
 #include "common/string_util.h"
+#include "core/file_sys/savedata_factory.h"
 #include "core/hle/service/acc/profile_manager.h"
 
 namespace Service::Account {
@@ -32,6 +40,7 @@ struct ProfileDataRaw {
     INSERT_PADDING_BYTES(0x10);
     std::array<UserRaw, MAX_USERS> users{};
 };
+
 static_assert(sizeof(ProfileDataRaw) == 0x650, "ProfileDataRaw has incorrect size.");
 
 // TODO(ogniK): Get actual error codes
@@ -46,7 +55,7 @@ ProfileManager::ProfileManager() {
 
     // Create an user if none are present
     if (user_count == 0) {
-        CreateNewUser(UUID::MakeRandom(), "suyu");
+        CreateNewUser(UUID::MakeRandom(), "Eden");
         WriteUserSaveFile();
     }
 
@@ -79,16 +88,21 @@ bool ProfileManager::RemoveProfileAtIndex(std::size_t index) {
     if (index >= MAX_USERS || index >= user_count) {
         return false;
     }
-    if (index < user_count - 1) {
-        std::rotate(profiles.begin() + index, profiles.begin() + index + 1, profiles.end());
-    }
-    profiles.back() = {};
-    user_count--;
 
-    // Persist the removal immediately; without this the deleted profile reappears
-    // on next boot since only ParseUserSaveFile()'s in-memory state was updated.
+    profiles[index] = ProfileInfo{};
+    std::stable_partition(profiles.begin(), profiles.end(),
+                          [](const ProfileInfo& profile) { return profile.user_uuid.IsValid(); });
+
+    is_save_needed = true;
     WriteUserSaveFile();
+
     return true;
+}
+
+void ProfileManager::RemoveAllProfiles()
+{
+    user_count = 0;
+    profiles = {};
 }
 
 /// Helper function to register a user to the system
@@ -260,8 +274,9 @@ void ProfileManager::CloseUser(UUID uuid) {
 /// Gets all valid user ids on the system
 UserIDArray ProfileManager::GetAllUsers() const {
     UserIDArray output{};
-    std::ranges::transform(profiles, output.begin(),
-                           [](const ProfileInfo& p) { return p.user_uuid; });
+    std::ranges::transform(profiles, output.begin(), [](const ProfileInfo& p) {
+        return p.user_uuid;
+    });
     return output;
 }
 
@@ -343,13 +358,7 @@ bool ProfileManager::RemoveUser(UUID uuid) {
         return false;
     }
 
-    profiles[*index] = ProfileInfo{};
-    std::stable_partition(profiles.begin(), profiles.end(),
-                          [](const ProfileInfo& profile) { return profile.user_uuid.IsValid(); });
-
-    is_save_needed = true;
-
-    return true;
+    return RemoveProfileAtIndex(*index);
 }
 
 bool ProfileManager::SetProfileBase(UUID uuid, const ProfileBase& profile_new) {
@@ -364,6 +373,7 @@ bool ProfileManager::SetProfileBase(UUID uuid, const ProfileBase& profile_new) {
     profile.creation_time = profile_new.timestamp;
 
     is_save_needed = true;
+    WriteUserSaveFile();
 
     return true;
 }
@@ -374,27 +384,31 @@ bool ProfileManager::SetProfileBaseAndData(Common::UUID uuid, const ProfileBase&
     if (index.has_value() && SetProfileBase(uuid, profile_new)) {
         profiles[*index].data = data_new;
         is_save_needed = true;
+        WriteUserSaveFile();
         return true;
+    } else {
+        LOG_ERROR(Service_ACC, "Failed to set profile base and data for user with UUID: {}",
+                  uuid.RawString());
     }
-
     return false;
 }
 
 void ProfileManager::ParseUserSaveFile() {
-    const auto save_path(FS::GetSuyuPath(FS::SuyuPath::NANDDir) / ACC_SAVE_AVATORS_BASE_PATH /
+    const auto save_path(FS::GetEdenPath(FS::EdenPath::NANDDir) / ACC_SAVE_AVATORS_BASE_PATH /
                          "profiles.dat");
+
     const FS::IOFile save(save_path, FS::FileAccessMode::Read, FS::FileType::BinaryFile);
 
     if (!save.IsOpen()) {
         LOG_WARNING(Service_ACC, "Failed to load profile data from save data... Generating new "
-                                 "user 'suyu' with random UUID.");
+                                 "user 'Eden' with random UUID.");
         return;
     }
 
     ProfileDataRaw data;
     if (!save.ReadObject(data)) {
         LOG_WARNING(Service_ACC, "profiles.dat is smaller than expected... Generating new user "
-                                 "'suyu' with random UUID.");
+                                 "'Eden' with random UUID.");
         return;
     }
 
@@ -433,13 +447,21 @@ void ProfileManager::WriteUserSaveFile() {
         };
     }
 
-    const auto raw_path(FS::GetSuyuPath(FS::SuyuPath::NANDDir) / "system/save/8000000000000010");
+    const auto raw_path(FS::GetEdenPath(FS::EdenPath::NANDDir) / "system/save/8000000000000010");
     if (FS::IsFile(raw_path) && !FS::RemoveFile(raw_path)) {
         return;
     }
 
-    const auto save_path(FS::GetSuyuPath(FS::SuyuPath::NANDDir) / ACC_SAVE_AVATORS_BASE_PATH /
+    const auto save_path(FS::GetEdenPath(FS::EdenPath::NANDDir) / ACC_SAVE_AVATORS_BASE_PATH /
                          "profiles.dat");
+
+    if (FS::IsFile(save_path) && !FS::RemoveFile(save_path)) {
+        LOG_WARNING(Service_ACC, "Could not remove existing profiles.dat");
+        return;
+    } else {
+        LOG_INFO(Service_ACC, "Writing profiles.dat to {}",
+                 Common::FS::PathToUTF8String(save_path));
+    }
 
     if (!FS::CreateParentDirs(save_path)) {
         LOG_WARNING(Service_ACC, "Failed to create full path of profiles.dat. Create the directory "
@@ -458,5 +480,155 @@ void ProfileManager::WriteUserSaveFile() {
 
     is_save_needed = false;
 }
+
+void ProfileManager::ResetUserSaveFile()
+{
+    RemoveAllProfiles();
+    ParseUserSaveFile();
+}
+
+std::vector<UUID> ProfileManager::FindExistingProfileUUIDs()
+{
+    std::vector<UUID> uuids;
+    for (const ProfileInfo& p : profiles) {
+        auto uuid = p.user_uuid;
+        if (!uuid.IsInvalid()) {
+            uuids.emplace_back(uuid);
+        }
+    }
+
+    return uuids;
+}
+
+std::vector<std::string> ProfileManager::FindExistingProfileStrings()
+{
+    std::vector<UUID> uuids = FindExistingProfileUUIDs();
+    std::vector<std::string> uuid_strings;
+
+    for (const UUID &uuid : uuids) {
+        auto user_id = uuid.AsU128();
+        uuid_strings.emplace_back(fmt::format("{:016X}{:016X}", user_id[1], user_id[0]));
+    }
+
+    return uuid_strings;
+}
+
+std::vector<std::string> ProfileManager::FindGoodProfiles()
+{
+    namespace fs = std::filesystem;
+
+    std::vector<std::string> good_uuids;
+
+    const auto path = Common::FS::GetEdenPath(Common::FS::EdenPath::NANDDir)
+                      / "user/save/0000000000000000";
+
+    // some exceptions, e.g. the "system" profile
+    static constexpr const std::array<const char* const, 1> EXCEPTION_UUIDS
+        = {"00000000000000000000000000000000"};
+
+    for (const char *const uuid : EXCEPTION_UUIDS) {
+        if (fs::exists(path / uuid))
+            good_uuids.emplace_back(uuid);
+    }
+
+    auto existing = FindExistingProfileStrings();
+    good_uuids.insert(good_uuids.end(), existing.begin(), existing.end());
+
+    return good_uuids;
+}
+
+std::vector<std::string> ProfileManager::FindOrphanedProfiles()
+{
+    std::vector<std::string> good_uuids = FindGoodProfiles();
+
+    namespace fs = std::filesystem;
+
+    // TODO: fetch save_id programmatically
+    const auto path = Common::FS::GetEdenPath(Common::FS::EdenPath::NANDDir)
+                      / "user/save/0000000000000000";
+
+    std::vector<std::string> orphaned_profiles;
+
+    Common::FS::IterateDirEntries(
+        path,
+        [&good_uuids, &orphaned_profiles](const std::filesystem::directory_entry& entry) -> bool {
+            const std::string uuid = entry.path().stem().string();
+
+            bool override = false;
+
+            // first off, we should always clear empty profiles
+            // 99% of the time these are useless. If not, they are recreated anyways...
+            const auto is_empty = [&entry, &override]() -> bool {
+                try {
+                    for (const auto& file : fs::recursive_directory_iterator(entry.path())) {
+                        // TODO: .yuzu_save_size is a weird file that gets created by certain games
+                        // I have no idea what its purpose is, but TEMPORARY SOLUTION: just mark the profile as valid if
+                        // this file exists (???) e.g. for SSBU
+                        // In short: if .yuzu_save_size is the ONLY file in a profile it's probably fine to keep
+                        if (file.path().filename().string() == FileSys::GetSaveDataSizeFileName())
+                            override = true;
+
+                        // if there are any regular files (NOT directories) there, do NOT delete it :p
+                        // Also: check for symlinks
+                        if (file.is_regular_file() || Common::FS::IsSymlink(file.path()))
+                            return false;
+                    }
+                } catch (const fs::filesystem_error& e) {
+                    // if we get an error--no worries, just pretend it's not empty
+                    return true;
+                }
+
+                return true;
+            }();
+
+            if (is_empty) {
+                fs::remove_all(entry);
+                return true;
+            }
+
+            // edge-case: some filesystems forcefully change filenames to lowercase
+            // so we can just ignore any differences
+            // looking at you microsoft... ;)
+            std::string upper_uuid = uuid;
+            boost::to_upper(upper_uuid);
+
+            // if profiles.dat contains the UUID--all good
+            // if not--it's an orphaned profile and should be resolved by the user
+            if (!override
+                && std::find(good_uuids.begin(), good_uuids.end(), upper_uuid) == good_uuids.end()) {
+                orphaned_profiles.emplace_back(uuid);
+            }
+            return true;
+        },
+        Common::FS::DirEntryFilter::Directory);
+
+    return orphaned_profiles;
+}
+
+void ProfileManager::SetUserPosition(u64 position, Common::UUID uuid) {
+    auto idxOpt = GetUserIndex(uuid);
+    if (!idxOpt)
+        return;
+
+    size_t oldIdx = *idxOpt;
+    if (position >= user_count || position == oldIdx)
+        return;
+
+    ProfileInfo moving = profiles[oldIdx];
+
+    if (position < oldIdx) {
+        for (size_t i = oldIdx; i > position; --i)
+            profiles[i] = profiles[i - 1];
+    } else {
+        for (size_t i = oldIdx; i < position; ++i)
+            profiles[i] = profiles[i + 1];
+    }
+
+    profiles[position] = std::move(moving);
+
+    is_save_needed = true;
+    WriteUserSaveFile();
+}
+
 
 }; // namespace Service::Account

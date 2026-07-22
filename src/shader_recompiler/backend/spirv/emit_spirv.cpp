@@ -1,6 +1,7 @@
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2021 yuzu Emulator Project
-// SPDX-FileCopyrightText: Copyright 2024 suyu Emulator Project
-// SPDX-FileCopyrightText: Copyright 2024 Torzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
 #include <span>
@@ -8,7 +9,6 @@
 #include <type_traits>
 #include <utility>
 #include <vector>
-#include <spirv-tools/optimizer.hpp>
 
 #include "common/settings.h"
 #include "shader_recompiler/backend/spirv/emit_spirv.h"
@@ -403,6 +403,9 @@ void SetupCapabilities(const Profile& profile, const Info& info, EmitContext& ct
     if (info.uses_sampled_1d) {
         ctx.AddCapability(spv::Capability::Sampled1D);
     }
+    if (info.uses_image_1d) {
+        ctx.AddCapability(spv::Capability::Image1D);
+    }
     if (info.uses_sparse_residency) {
         ctx.AddCapability(spv::Capability::SparseResidency);
     }
@@ -432,7 +435,7 @@ void SetupCapabilities(const Profile& profile, const Info& info, EmitContext& ct
     }
     if ((info.uses_subgroup_vote || info.uses_subgroup_invocation_id ||
          info.uses_subgroup_shuffles) &&
-        profile.support_vote) {
+        profile.support_vote && profile.SupportsSubgroupStage(ctx.stage)) {
         ctx.AddCapability(spv::Capability::GroupNonUniformBallot);
         ctx.AddCapability(spv::Capability::GroupNonUniformShuffle);
         if (!profile.warp_size_potentially_larger_than_guest) {
@@ -462,29 +465,44 @@ void SetupCapabilities(const Profile& profile, const Info& info, EmitContext& ct
     ctx.AddCapability(spv::Capability::ImageGatherExtended);
     ctx.AddCapability(spv::Capability::ImageQuery);
     ctx.AddCapability(spv::Capability::SampledBuffer);
+    // TODO: this usage needs to be tracked properly
+    if (ctx.profile.support_sampled_image_array_nonuniform_indexing) {
+        if (ctx.profile.supported_spirv < 0x00010400)
+            ctx.AddExtension("SPV_EXT_descriptor_indexing");
+        ctx.AddCapability(spv::Capability::ShaderNonUniform);
+        ctx.AddCapability(spv::Capability::SampledImageArrayNonUniformIndexing);
+    }
 }
 
 void PatchPhiNodes(IR::Program& program, EmitContext& ctx) {
-    auto inst{program.blocks.front()->begin()};
-    size_t block_index{0};
-    ctx.PatchDeferredPhi([&](size_t phi_arg) {
-        if (phi_arg == 0) {
-            ++inst;
-            if (inst == program.blocks[block_index]->end() ||
-                inst->GetOpcode() != IR::Opcode::Phi) {
-                do {
-                    ++block_index;
-                    inst = program.blocks[block_index]->begin();
-                } while (inst->GetOpcode() != IR::Opcode::Phi);
+            // Flatten all leading PHIs from each block into a vector
+            std::vector<IR::Inst*> phi_instructions;
+            for (IR::Block* block : program.blocks) {
+                for (auto it = block->begin(); it != block->end(); ++it) {
+                    if (it->GetOpcode() != IR::Opcode::Phi)
+                        break;
+                    phi_instructions.push_back(&*it);
+                }
             }
+
+            if (phi_instructions.empty()) {
+                return; // nothing to patch
+            }
+
+            // Start "before" first PHI; advance on phi_arg == 0
+            size_t phi_index = static_cast<size_t>(-1);
+
+            ctx.PatchDeferredPhi([&](size_t phi_arg, Id parent) -> std::pair<Id, Id> {
+                if (phi_arg == 0) {
+                    ++phi_index;
+                }
+                IR::Inst* phi = phi_instructions[phi_index];
+                return { ctx.Def(phi->Arg(phi_arg)), parent };
+            });
         }
-        return ctx.Def(inst->Arg(phi_arg));
-    });
-}
 } // Anonymous namespace
 
-std::vector<u32> EmitSPIRV(const Profile& profile, const RuntimeInfo& runtime_info,
-                           IR::Program& program, Bindings& bindings, bool optimize) {
+std::vector<u32> EmitSPIRV(const Profile& profile, const RuntimeInfo& runtime_info, IR::Program& program, Bindings& bindings) {
     EmitContext ctx{profile, runtime_info, program, bindings};
     const Id main{DefineMain(ctx, program)};
     DefineEntryPoint(program, ctx, main);
@@ -496,28 +514,7 @@ std::vector<u32> EmitSPIRV(const Profile& profile, const RuntimeInfo& runtime_in
     SetupCapabilities(profile, program.info, ctx);
     SetupTransformFeedbackCapabilities(ctx, main);
     PatchPhiNodes(program, ctx);
-
-    if (!optimize) {
-        return ctx.Assemble();
-    } else {
-        std::vector<u32> spirv = ctx.Assemble();
-
-        spvtools::Optimizer spv_opt(SPV_ENV_VULKAN_1_3);
-        spv_opt.SetMessageConsumer([](spv_message_level_t, const char*, const spv_position_t&,
-                                      const char* m) { LOG_ERROR(HW_GPU, "spirv-opt: {}", m); });
-        spv_opt.RegisterPerformancePasses();
-
-        spvtools::OptimizerOptions opt_options;
-        opt_options.set_run_validator(false);
-
-        std::vector<u32> result;
-        if (!spv_opt.Run(spirv.data(), spirv.size(), &result, opt_options)) {
-            LOG_ERROR(HW_GPU,
-                      "Failed to optimize SPIRV shader output, continuing without optimization");
-            result = std::move(spirv);
-        }
-        return result;
-    }
+    return ctx.Assemble();
 }
 
 Id EmitPhi(EmitContext& ctx, IR::Inst* inst) {

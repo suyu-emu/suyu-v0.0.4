@@ -1,12 +1,12 @@
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2018 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
-#include <limits>
-
 #include "common/assert.h"
-#include "common/logging/log.h"
+#include "common/logging.h"
 #include "core/core.h"
-#include "core/hle/kernel/k_process.h"
 #include "core/hle/kernel/k_client_port.h"
 #include "core/hle/kernel/k_port.h"
 #include "core/hle/kernel/k_scoped_resource_reservation.h"
@@ -37,8 +37,7 @@ void Controller::CloneCurrentObject(HLERequestContext& ctx) {
     // once this is a proper process
 
     // Reserve a new session from the process resource limit.
-    Kernel::KScopedResourceReservation session_reservation(
-        Kernel::GetCurrentProcessPointer(kernel), Kernel::LimitableResource::SessionCountMax);
+    Kernel::KScopedResourceReservation session_reservation(system.Kernel(), Kernel::GetCurrentProcessPointer(kernel), Kernel::LimitableResource::SessionCountMax);
     ASSERT(session_reservation.Succeeded());
 
     // Create the session.
@@ -46,7 +45,7 @@ void Controller::CloneCurrentObject(HLERequestContext& ctx) {
     ASSERT(session != nullptr);
 
     // Initialize the session.
-    session->Initialize(nullptr, 0);
+    session->Initialize(kernel, nullptr, 0);
 
     // Commit the session reservation.
     session_reservation.Commit();
@@ -61,7 +60,7 @@ void Controller::CloneCurrentObject(HLERequestContext& ctx) {
     // We succeeded.
     IPC::ResponseBuilder rb{ctx, 2, 0, 1, IPC::ResponseBuilder::Flags::AlwaysMoveHandles};
     rb.Push(ResultSuccess);
-    rb.PushMoveObjects(session->GetClientSession());
+    rb.PushMoveObjects(ctx, session->GetClientSession());
 }
 
 void Controller::CloneCurrentObjectEx(HLERequestContext& ctx) {
@@ -78,7 +77,7 @@ void Controller::QueryPointerBufferSize(HLERequestContext& ctx) {
 
     u32 buffer_size = process->GetPointerBufferSize();
     if (buffer_size > (std::numeric_limits<u16>::max)()) {
-        LOG_WARNING(Service, "Pointer buffer size {:#x} exceeds u16 max, clamping", buffer_size);
+        LOG_WARNING(Service, "Pointer buffer size exceeds u16 max, clamping");
         buffer_size = (std::numeric_limits<u16>::max)();
     }
 
@@ -88,25 +87,28 @@ void Controller::QueryPointerBufferSize(HLERequestContext& ctx) {
 }
 
 void Controller::SetPointerBufferSize(HLERequestContext& ctx) {
-    IPC::RequestParser rp{ctx};
-    u32 requested_size = rp.PopRaw<u32>();
-
-    if (requested_size > (std::numeric_limits<u16>::max)()) {
-        LOG_WARNING(Service, "Requested pointer buffer size {:#x} exceeds u16 max, clamping",
-                    requested_size);
-        requested_size = (std::numeric_limits<u16>::max)();
-    }
+    LOG_DEBUG(Service, "called");
 
     auto* process = Kernel::GetCurrentProcessPointer(kernel);
     ASSERT(process != nullptr);
+
+    IPC::RequestParser rp{ctx};
+
+    u32 requested_size = rp.PopRaw<u32>();
+
+    if (requested_size > (std::numeric_limits<u16>::max)()) {
+        LOG_WARNING(Service, "Requested pointer buffer size too large, clamping to 0xFFFF");
+        requested_size = (std::numeric_limits<u16>::max)();
+    }
+
     process->SetPointerBufferSize(requested_size);
 
-    LOG_INFO(Service, "Pointer buffer size set to {:#x} bytes for process {}", requested_size,
-             process->GetProcessId());
+    LOG_INFO(Service, "Pointer buffer size dynamically updated to {:#x} bytes by process", requested_size);
 
     IPC::ResponseBuilder rb{ctx, 2};
     rb.Push(ResultSuccess);
 }
+
 
 // https://switchbrew.org/wiki/IPC_Marshalling
 Controller::Controller(Core::System& system_) : ServiceFramework{system_, "IpcController"} {
@@ -116,7 +118,7 @@ Controller::Controller(Core::System& system_) : ServiceFramework{system_, "IpcCo
         {2, &Controller::CloneCurrentObject, "CloneCurrentObject"},
         {3, &Controller::QueryPointerBufferSize, "QueryPointerBufferSize"},
         {4, &Controller::CloneCurrentObjectEx, "CloneCurrentObjectEx"},
-        {5, &Controller::SetPointerBufferSize, "SetPointerBufferSize"},
+        {5, &Controller::SetPointerBufferSize, "SetPointerBufferSize"}, //TODO: where does this come from
     };
     RegisterHandlers(functions);
 }

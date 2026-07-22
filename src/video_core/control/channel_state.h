@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: 2022 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
@@ -6,6 +9,13 @@
 #include <memory>
 
 #include "common/common_types.h"
+#include "video_core/engines/fermi_2d.h"
+#include "video_core/engines/kepler_memory.h"
+#include "video_core/engines/kepler_compute.h"
+#include "video_core/engines/maxwell_3d.h"
+#include "video_core/engines/maxwell_dma.h"
+#include "video_core/engines/nv01_timer.h"
+#include "video_core/dma_pusher.h"
 
 namespace Core {
 class System;
@@ -18,50 +28,40 @@ class RasterizerInterface;
 namespace Tegra {
 
 class GPU;
-
-namespace Engines {
-class Puller;
-class Fermi2D;
-class Maxwell3D;
-class MaxwellDMA;
-class KeplerCompute;
-class KeplerMemory;
-} // namespace Engines
-
 class MemoryManager;
-class DmaPusher;
 
 namespace Control {
 
 struct ChannelState {
     explicit ChannelState(s32 bind_id);
-    ChannelState(const ChannelState& state) = delete;
-    ChannelState& operator=(const ChannelState&) = delete;
-    ChannelState(ChannelState&& other) noexcept = default;
-    ChannelState& operator=(ChannelState&& other) noexcept = default;
 
-    void Init(Core::System& system, GPU& gpu, u64 program_id);
+    void Init(Core::System& system, u64 program_id);
 
     void BindRasterizer(VideoCore::RasterizerInterface* rasterizer);
 
+    struct Payload {
+        explicit Payload(Core::System& system, MemoryManager& memory_manager, ChannelState& channel_state);
+
+        /// 3D engine
+        Engines::Maxwell3D maxwell_3d;
+        /// 2D engine
+        Engines::Fermi2D fermi_2d;
+        /// Compute engine
+        Engines::KeplerCompute kepler_compute;
+        /// DMA engine
+        Engines::MaxwellDMA maxwell_dma;
+        /// Inline memory engine
+        Engines::KeplerMemory kepler_memory;
+        /// NV01 Timer
+        Engines::Nv01Timer nv01_timer;
+        DmaPusher dma_pusher;
+    };
+    std::optional<Payload> payload;
+    MemoryManager* memory_manager = nullptr;
+
     s32 bind_id = -1;
     u64 program_id = 0;
-    /// 3D engine
-    std::unique_ptr<Engines::Maxwell3D> maxwell_3d;
-    /// 2D engine
-    std::unique_ptr<Engines::Fermi2D> fermi_2d;
-    /// Compute engine
-    std::unique_ptr<Engines::KeplerCompute> kepler_compute;
-    /// DMA engine
-    std::unique_ptr<Engines::MaxwellDMA> maxwell_dma;
-    /// Inline memory engine
-    std::unique_ptr<Engines::KeplerMemory> kepler_memory;
-
-    std::shared_ptr<MemoryManager> memory_manager;
-
-    std::unique_ptr<DmaPusher> dma_pusher;
-
-    bool initialized{};
+    bool initialized = false;
 };
 
 } // namespace Control

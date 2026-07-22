@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 /* This file is part of the dynarmic project.
@@ -16,26 +16,22 @@
 
 namespace Dynarmic::A64 {
 
-IR::Block Translate(LocationDescriptor descriptor, MemoryReadCodeFuncType memory_read_code, TranslationOptions options) {
+void Translate(IR::Block& block, LocationDescriptor descriptor, MemoryReadCodeFuncType memory_read_code, TranslationOptions options) {
     const bool single_step = descriptor.SingleStepping();
-
-    IR::Block block{descriptor};
     TranslatorVisitor visitor{block, descriptor, std::move(options)};
 
     bool should_continue = true;
     do {
         const u64 pc = visitor.ir.current_location->PC();
-
         if (const auto instruction = memory_read_code(pc)) {
-            if (auto decoder = Decode<TranslatorVisitor>(*instruction)) {
-                should_continue = decoder->get().call(visitor, *instruction);
+            if (auto decoder = Decode<TranslatorVisitor, bool>(visitor, *instruction)) {
+                should_continue = *decoder;
             } else {
-                should_continue = visitor.InterpretThisInstruction();
+                should_continue = visitor.RaiseException(Exception::UnallocatedEncoding);
             }
         } else {
             should_continue = visitor.RaiseException(Exception::NoExecuteFault);
         }
-
         visitor.ir.current_location = visitor.ir.current_location->AdvancePC(4);
         block.CycleCount()++;
     } while (should_continue && !single_step);
@@ -43,29 +39,20 @@ IR::Block Translate(LocationDescriptor descriptor, MemoryReadCodeFuncType memory
     if (single_step && should_continue) {
         visitor.ir.SetTerm(IR::Term::LinkBlock{*visitor.ir.current_location});
     }
-
     ASSERT(block.HasTerminal() && "Terminal has not been set");
-
     block.SetEndLocation(*visitor.ir.current_location);
-
-    return block;
 }
 
 bool TranslateSingleInstruction(IR::Block& block, LocationDescriptor descriptor, u32 instruction) {
     TranslatorVisitor visitor{block, descriptor, {}};
 
-    bool should_continue = true;
-    if (auto decoder = Decode<TranslatorVisitor>(instruction)) {
-        should_continue = decoder->get().call(visitor, instruction);
-    } else {
-        should_continue = visitor.InterpretThisInstruction();
-    }
+    bool should_continue = false;
+    if (auto const decoder = Decode<TranslatorVisitor, bool>(visitor, instruction))
+        should_continue = *decoder;
 
     visitor.ir.current_location = visitor.ir.current_location->AdvancePC(4);
     block.CycleCount()++;
-
     block.SetEndLocation(*visitor.ir.current_location);
-
     return should_continue;
 }
 

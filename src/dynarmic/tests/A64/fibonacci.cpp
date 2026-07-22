@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 /* This file is part of the dynarmic project.
@@ -8,10 +8,10 @@
 
 #include <array>
 #include <exception>
-#include <unordered_map>
+#include <ankerl/unordered_dense.h>
 
 #include <catch2/catch_test_macros.hpp>
-#include "dynarmic/common/common_types.h"
+#include "common/common_types.h"
 #include <oaknut/oaknut.hpp>
 
 #include "dynarmic/interface/A64/a64.h"
@@ -23,7 +23,7 @@ namespace {
 class MyEnvironment final : public A64::UserCallbacks {
 public:
     u64 ticks_left = 0;
-    std::unordered_map<u64, u8> memory{};
+    ankerl::unordered_dense::map<u64, u8> memory{};
 
     u8 MemoryRead8(u64 vaddr) override {
         return memory[vaddr];
@@ -67,11 +67,6 @@ public:
     void MemoryWrite128(u64 vaddr, std::array<u64, 2> value) override {
         MemoryWrite64(vaddr, value[0]);
         MemoryWrite64(vaddr + 8, value[1]);
-    }
-
-    void InterpreterFallback(u64, size_t) override {
-        // This is never called in practice.
-        std::terminate();
     }
 
     void CallSVC(u32) override {

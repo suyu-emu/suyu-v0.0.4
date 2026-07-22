@@ -1,10 +1,13 @@
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2023 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 #include <array>
 
 #include "common/common_types.h"
-#include "common/logging/log.h"
+#include "common/logging.h"
 #include "common/settings.h"
 #include "core/hle/kernel/k_shared_memory.h"
 #include "core/hle/kernel/k_transfer_memory.h"
@@ -140,8 +143,8 @@ IHidServer::IHidServer(Core::System& system_, std::shared_ptr<ResourceManager> r
         {308, nullptr, "SetSevenSixAxisSensorFusionStrength"},
         {309, nullptr, "GetSevenSixAxisSensorFusionStrength"},
         {310, C<&IHidServer::ResetSevenSixAxisSensorTimestamp>, "ResetSevenSixAxisSensorTimestamp"},
-        {320, nullptr, "EnableNpadImu"},
-        {321, nullptr, "DisableNpadImu"},
+        {320, nullptr, "EnableNpadImu"}, //21.0.0+
+        {321, nullptr, "DisableNpadImu"}, //21.0.0+
         {400, C<&IHidServer::IsUsbFullKeyControllerEnabled>, "IsUsbFullKeyControllerEnabled"},
         {401, nullptr, "EnableUsbFullKeyController"},
         {402, nullptr, "IsUsbFullKeyControllerConnected"},
@@ -230,6 +233,12 @@ IHidServer::IHidServer(Core::System& system_, std::shared_ptr<ResourceManager> r
         {3009, nullptr, "GetFullKeyKeyboardMap"},
         {3010, nullptr, "SetFullKeyKeyboardMap"},
         {3011, nullptr, "ResetFullKeyKeyboardMap"},
+        {3012, nullptr, "GetDebugPadGenericPadMap"}, //21.0.0+
+        {3013, nullptr, "SetDebugPadGenericPadMap"}, //21.0.0+
+        {3014, nullptr, "GetDebugPadKeyboardMap"}, //21.0.0+
+        {3015, nullptr, "SetDebugPadKeyboardMap"}, //21.0.0+
+        {3150, nullptr, "SetMouseLibraryVersion"}, //21.0.0+
+        // What? -- {12010, nullptr, "SetButtonConfigLeft"},
     };
     // clang-format on
 
@@ -242,7 +251,7 @@ Result IHidServer::CreateAppletResource(OutInterface<IAppletResource> out_applet
                                         ClientAppletResourceUserId aruid) {
     const auto result = GetResourceManager()->CreateAppletResource(aruid.pid);
 
-    LOG_DEBUG(Service_HID, "called, applet_resource_user_id={}, result=0x{:X}", aruid.pid,
+    LOG_DEBUG(Service_HID, "called, applet_resource_user_id={}, result={:#X}", aruid.pid,
               result.raw);
 
     *out_applet_resource = std::make_shared<IAppletResource>(system, resource_manager, aruid.pid);
@@ -627,10 +636,12 @@ Result IHidServer::ActivateGesture(u32 basic_gesture_id, ClientAppletResourceUse
     R_RETURN(GetResourceManager()->GetGesture()->Activate(aruid.pid, basic_gesture_id));
 }
 
-Result IHidServer::SetGestureOutputRanges(u16 gesture_output_range, ClientProcessId pid) {
-    LOG_WARNING(Service_HID, "(STUBBED) called, gesture_output_range={}, process_id={}",
-                gesture_output_range, pid.pid);
-
+Result IHidServer::SetGestureOutputRanges(u32 param1, u32 param2, u32 param3, u32 param4) {
+    // https://switchbrew.org/wiki/HID_services , Undocumented. 92 [18.0.0+] SetGestureOutputRanges
+    LOG_WARNING(
+        Service_HID,
+        "(STUBBED) called, param1={}, param2={}, param3={}, param4={}",
+        param1, param2, param3, param4);
     R_SUCCEED();
 }
 
@@ -639,8 +650,7 @@ Result IHidServer::SetSupportedNpadStyleSet(Core::HID::NpadStyleSet supported_st
     LOG_DEBUG(Service_HID, "called, supported_style_set={}, applet_resource_user_id={}",
               supported_style_set, aruid.pid);
 
-    R_TRY(
-        GetResourceManager()->GetNpad()->SetSupportedNpadStyleSet(aruid.pid, supported_style_set));
+    R_TRY(GetResourceManager()->GetNpad()->SetSupportedNpadStyleSet(system.Kernel(), aruid.pid, supported_style_set));
 
     Core::HID::NpadStyleTag style_tag{supported_style_set};
     const auto revision = GetResourceManager()->GetNpad()->GetRevision(aruid.pid);
@@ -656,7 +666,7 @@ Result IHidServer::GetSupportedNpadStyleSet(Out<Core::HID::NpadStyleSet> out_sup
                                             ClientAppletResourceUserId aruid) {
     LOG_DEBUG(Service_HID, "called, applet_resource_user_id={}", aruid.pid);
 
-    R_RETURN(GetResourceManager()->GetNpad()->GetSupportedNpadStyleSet(aruid.pid,
+    R_RETURN(GetResourceManager()->GetNpad()->GetSupportedNpadStyleSet(system.Kernel(), aruid.pid,
                                                                        *out_supported_style_set));
 }
 
@@ -666,7 +676,7 @@ Result IHidServer::SetSupportedNpadIdType(
     LOG_DEBUG(Service_HID, "called, applet_resource_user_id={}", aruid.pid);
 
     R_RETURN(
-        GetResourceManager()->GetNpad()->SetSupportedNpadIdType(aruid.pid, supported_npad_list));
+        GetResourceManager()->GetNpad()->SetSupportedNpadIdType(system.Kernel(), aruid.pid, supported_npad_list));
 }
 
 Result IHidServer::ActivateNpad(ClientAppletResourceUserId aruid) {
@@ -691,14 +701,13 @@ Result IHidServer::AcquireNpadStyleSetUpdateEventHandle(
     LOG_DEBUG(Service_HID, "called, npad_id={}, applet_resource_user_id={}, unknown={}", npad_id,
               aruid.pid, unknown);
 
-    R_RETURN(GetResourceManager()->GetNpad()->AcquireNpadStyleSetUpdateEventHandle(
-        aruid.pid, out_event, npad_id));
+    R_RETURN(GetResourceManager()->GetNpad()->AcquireNpadStyleSetUpdateEventHandle(system.Kernel(), aruid.pid, out_event, npad_id));
 }
 
 Result IHidServer::DisconnectNpad(Core::HID::NpadIdType npad_id, ClientAppletResourceUserId aruid) {
     LOG_DEBUG(Service_HID, "called, npad_id={}, applet_resource_user_id={}", npad_id, aruid.pid);
 
-    R_RETURN(GetResourceManager()->GetNpad()->DisconnectNpad(aruid.pid, npad_id));
+    R_RETURN(GetResourceManager()->GetNpad()->DisconnectNpad(system.Kernel(), aruid.pid, npad_id));
 }
 
 Result IHidServer::GetPlayerLedPattern(Out<Core::HID::LedPattern> out_led_pattern,
@@ -768,7 +777,7 @@ Result IHidServer::SetNpadJoyAssignmentModeSingleByDefault(Core::HID::NpadIdType
     LOG_INFO(Service_HID, "called, npad_id={}, applet_resource_user_id={}", npad_id, aruid.pid);
 
     Core::HID::NpadIdType new_npad_id{};
-    GetResourceManager()->GetNpad()->SetNpadMode(
+    GetResourceManager()->GetNpad()->SetNpadMode(system.Kernel(),
         aruid.pid, new_npad_id, npad_id, NpadJoyDeviceType::Left, NpadJoyAssignmentMode::Single);
     R_SUCCEED();
 }
@@ -780,7 +789,7 @@ Result IHidServer::SetNpadJoyAssignmentModeSingle(Core::HID::NpadIdType npad_id,
              npad_id, aruid.pid, npad_joy_device_type);
 
     Core::HID::NpadIdType new_npad_id{};
-    GetResourceManager()->GetNpad()->SetNpadMode(
+    GetResourceManager()->GetNpad()->SetNpadMode(system.Kernel(),
         aruid.pid, new_npad_id, npad_id, npad_joy_device_type, NpadJoyAssignmentMode::Single);
     R_SUCCEED();
 }
@@ -790,7 +799,7 @@ Result IHidServer::SetNpadJoyAssignmentModeDual(Core::HID::NpadIdType npad_id,
     LOG_DEBUG(Service_HID, "called, npad_id={}, applet_resource_user_id={}", npad_id, aruid.pid);
 
     Core::HID::NpadIdType new_npad_id{};
-    GetResourceManager()->GetNpad()->SetNpadMode(aruid.pid, new_npad_id, npad_id, {},
+    GetResourceManager()->GetNpad()->SetNpadMode(system.Kernel(), aruid.pid, new_npad_id, npad_id, {},
                                                  NpadJoyAssignmentMode::Dual);
     R_SUCCEED();
 }
@@ -802,7 +811,7 @@ Result IHidServer::MergeSingleJoyAsDualJoy(Core::HID::NpadIdType npad_id_1,
               npad_id_1, npad_id_2, aruid.pid);
 
     R_RETURN(
-        GetResourceManager()->GetNpad()->MergeSingleJoyAsDualJoy(aruid.pid, npad_id_1, npad_id_2));
+        GetResourceManager()->GetNpad()->MergeSingleJoyAsDualJoy(system.Kernel(), aruid.pid, npad_id_1, npad_id_2));
 }
 
 Result IHidServer::StartLrAssignmentMode(ClientAppletResourceUserId aruid) {
@@ -829,67 +838,40 @@ Result IHidServer::SetNpadHandheldActivationMode(ClientAppletResourceUserId arui
         ASSERT_MSG(false, "Activation mode should be always None, Single or Dual");
         R_SUCCEED();
     }
-
-    R_RETURN(
-        GetResourceManager()->GetNpad()->SetNpadHandheldActivationMode(aruid.pid, activation_mode));
+    R_RETURN(GetResourceManager()->GetNpad()->SetNpadHandheldActivationMode(system.Kernel(), aruid.pid, activation_mode));
 }
 
 Result IHidServer::GetNpadHandheldActivationMode(
     Out<NpadHandheldActivationMode> out_activation_mode, ClientAppletResourceUserId aruid) {
     LOG_DEBUG(Service_HID, "called, applet_resource_user_id={}", aruid.pid);
-
-    R_RETURN(GetResourceManager()->GetNpad()->GetNpadHandheldActivationMode(aruid.pid,
-                                                                            *out_activation_mode));
+    R_RETURN(GetResourceManager()->GetNpad()->GetNpadHandheldActivationMode(system.Kernel(), aruid.pid, *out_activation_mode));
 }
 
-Result IHidServer::SwapNpadAssignment(Core::HID::NpadIdType npad_id_1,
-                                      Core::HID::NpadIdType npad_id_2,
-                                      ClientAppletResourceUserId aruid) {
-    LOG_DEBUG(Service_HID, "called, npad_id_1={}, npad_id_2={}, applet_resource_user_id={}",
-              npad_id_1, npad_id_2, aruid.pid);
-
-    R_RETURN(GetResourceManager()->GetNpad()->SwapNpadAssignment(aruid.pid, npad_id_1, npad_id_2))
+Result IHidServer::SwapNpadAssignment(Core::HID::NpadIdType npad_id_1, Core::HID::NpadIdType npad_id_2, ClientAppletResourceUserId aruid) {
+    LOG_DEBUG(Service_HID, "called, npad_id_1={}, npad_id_2={}, applet_resource_user_id={}", npad_id_1, npad_id_2, aruid.pid);
+    R_RETURN(GetResourceManager()->GetNpad()->SwapNpadAssignment(system.Kernel(), aruid.pid, npad_id_1, npad_id_2))
 }
 
-Result IHidServer::IsUnintendedHomeButtonInputProtectionEnabled(Out<bool> out_is_enabled,
-                                                                Core::HID::NpadIdType npad_id,
-                                                                ClientAppletResourceUserId aruid) {
+Result IHidServer::IsUnintendedHomeButtonInputProtectionEnabled(Out<bool> out_is_enabled, Core::HID::NpadIdType npad_id, ClientAppletResourceUserId aruid) {
     LOG_INFO(Service_HID, "called, npad_id={}, applet_resource_user_id={}", npad_id, aruid.pid);
-
     R_UNLESS(IsNpadIdValid(npad_id), ResultInvalidNpadId);
-    R_RETURN(GetResourceManager()->GetNpad()->IsUnintendedHomeButtonInputProtectionEnabled(
-        *out_is_enabled, aruid.pid, npad_id));
+    R_RETURN(GetResourceManager()->GetNpad()->IsUnintendedHomeButtonInputProtectionEnabled(*out_is_enabled, aruid.pid, npad_id));
 }
 
-Result IHidServer::EnableUnintendedHomeButtonInputProtection(bool is_enabled,
-                                                             Core::HID::NpadIdType npad_id,
-                                                             ClientAppletResourceUserId aruid) {
-    LOG_DEBUG(Service_HID, "called, is_enabled={}, npad_id={}, applet_resource_user_id={}",
-              is_enabled, npad_id, aruid.pid);
-
+Result IHidServer::EnableUnintendedHomeButtonInputProtection(bool is_enabled, Core::HID::NpadIdType npad_id, ClientAppletResourceUserId aruid) {
+    LOG_DEBUG(Service_HID, "called, is_enabled={}, npad_id={}, applet_resource_user_id={}",is_enabled, npad_id, aruid.pid);
     R_UNLESS(IsNpadIdValid(npad_id), ResultInvalidNpadId);
-    R_RETURN(GetResourceManager()->GetNpad()->EnableUnintendedHomeButtonInputProtection(
-        aruid.pid, npad_id, is_enabled));
+    R_RETURN(GetResourceManager()->GetNpad()->EnableUnintendedHomeButtonInputProtection(aruid.pid, npad_id, is_enabled));
 }
 
-Result IHidServer::SetNpadJoyAssignmentModeSingleWithDestination(
-    Out<bool> out_is_reassigned, Out<Core::HID::NpadIdType> out_new_npad_id,
-    Core::HID::NpadIdType npad_id, ClientAppletResourceUserId aruid,
-    NpadJoyDeviceType npad_joy_device_type) {
-    LOG_INFO(Service_HID, "called, npad_id={}, applet_resource_user_id={}, npad_joy_device_type={}",
-             npad_id, aruid.pid, npad_joy_device_type);
-
-    *out_is_reassigned = GetResourceManager()->GetNpad()->SetNpadMode(
-        aruid.pid, *out_new_npad_id, npad_id, npad_joy_device_type, NpadJoyAssignmentMode::Single);
-
+Result IHidServer::SetNpadJoyAssignmentModeSingleWithDestination(Out<bool> out_is_reassigned, Out<Core::HID::NpadIdType> out_new_npad_id, Core::HID::NpadIdType npad_id, ClientAppletResourceUserId aruid, NpadJoyDeviceType npad_joy_device_type) {
+    LOG_INFO(Service_HID, "called, npad_id={}, applet_resource_user_id={}, npad_joy_device_type={}", npad_id, aruid.pid, npad_joy_device_type);
+    *out_is_reassigned = GetResourceManager()->GetNpad()->SetNpadMode(system.Kernel(), aruid.pid, *out_new_npad_id, npad_id, npad_joy_device_type, NpadJoyAssignmentMode::Single);
     R_SUCCEED();
 }
 
-Result IHidServer::SetNpadAnalogStickUseCenterClamp(bool use_center_clamp,
-                                                    ClientAppletResourceUserId aruid) {
-    LOG_INFO(Service_HID, "called, use_center_clamp={}, applet_resource_user_id={}",
-             use_center_clamp, aruid.pid);
-
+Result IHidServer::SetNpadAnalogStickUseCenterClamp(bool use_center_clamp, ClientAppletResourceUserId aruid) {
+    LOG_INFO(Service_HID, "called, use_center_clamp={}, applet_resource_user_id={}", use_center_clamp, aruid.pid);
     GetResourceManager()->GetNpad()->SetNpadAnalogStickUseCenterClamp(aruid.pid, use_center_clamp);
     R_SUCCEED();
 }

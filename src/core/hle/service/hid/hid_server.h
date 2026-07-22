@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2023 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
@@ -105,7 +108,7 @@ private:
     Result ResetIsSixAxisSensorDeviceNewlyAssigned(Core::HID::SixAxisSensorHandle sixaxis_handle,
                                                    ClientAppletResourceUserId aruid);
     Result ActivateGesture(u32 basic_gesture_id, ClientAppletResourceUserId aruid);
-    Result SetGestureOutputRanges(u16 gesture_output_range, ClientProcessId pid);
+    Result SetGestureOutputRanges(u32 param1, u32 param2, u32 param3, u32 param4);
     Result SetSupportedNpadStyleSet(Core::HID::NpadStyleSet supported_style_set,
                                     ClientAppletResourceUserId aruid);
     Result GetSupportedNpadStyleSet(Out<Core::HID::NpadStyleSet> out_supported_style_set,

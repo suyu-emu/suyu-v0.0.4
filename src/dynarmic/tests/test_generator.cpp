@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 /* This file is part of the dynarmic project.
@@ -16,14 +16,13 @@
 #include <tuple>
 #include <vector>
 
-#include <mcl/bit/swap.hpp>
-#include <mcl/macro/architecture.hpp>
-#include "dynarmic/common/common_types.h"
+#include "dynarmic/mcl/bit.hpp"
+#include "common/common_types.h"
 
 #include "./A32/testenv.h"
 #include "./A64/testenv.h"
-#include "./fuzz_util.h"
-#include "./rand_int.h"
+#include "dynarmic/tests/fuzz_util.h"
+#include "dynarmic/tests/rand_int.h"
 #include "dynarmic/common/fp/fpcr.h"
 #include "dynarmic/common/fp/fpsr.h"
 #include "dynarmic/common/llvm_disassemble.h"
@@ -50,11 +49,7 @@ namespace {
 using namespace Dynarmic;
 
 bool ShouldTestInst(IR::Block& block) {
-    if (auto terminal = block.GetTerminal(); boost::get<IR::Term::Interpret>(&terminal)) {
-        return false;
-    }
-
-    for (const auto& ir_inst : block) {
+    for (const auto& ir_inst : block.instructions) {
         switch (ir_inst.GetOpcode()) {
         // A32
         case IR::Opcode::A32GetFpscr:

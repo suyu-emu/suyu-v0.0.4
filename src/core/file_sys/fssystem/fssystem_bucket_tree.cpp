@@ -1,10 +1,12 @@
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2023 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "core/file_sys/errors.h"
 #include "core/file_sys/fssystem/fssystem_bucket_tree.h"
 #include "core/file_sys/fssystem/fssystem_bucket_tree_utils.h"
-#include "core/file_sys/fssystem/fssystem_pooled_buffer.h"
 
 namespace FileSys {
 
@@ -233,6 +235,7 @@ Result BucketTree::Initialize(VirtualFile node_storage, VirtualFile entry_storag
 void BucketTree::Initialize(size_t node_size, s64 end_offset) {
     ASSERT(NodeSizeMin <= node_size && node_size <= NodeSizeMax);
     ASSERT(Common::IsPowerOfTwo(node_size));
+
     ASSERT(end_offset > 0);
     ASSERT(!this->IsInitialized());
 
@@ -267,7 +270,7 @@ Result BucketTree::Find(Visitor* visitor, s64 virtual_address) {
     R_UNLESS(virtual_address >= 0, ResultInvalidOffset);
     R_UNLESS(!this->IsEmpty(), ResultOutOfRange);
 
-    BucketTree::Offsets offsets;
+    BucketTree::Offsets offsets{};
     R_TRY(this->GetOffsets(std::addressof(offsets)));
 
     R_TRY(visitor->Initialize(this, offsets));
@@ -461,16 +464,8 @@ Result BucketTree::Visitor::Find(s64 virtual_address) {
 }
 
 Result BucketTree::Visitor::FindEntrySet(s32* out_index, s64 virtual_address, s32 node_index) {
-    const auto node_size = m_tree->m_node_size;
-
-    PooledBuffer pool(node_size, 1);
-    if (node_size <= pool.GetSize()) {
-        R_RETURN(
-            this->FindEntrySetWithBuffer(out_index, virtual_address, node_index, pool.GetBuffer()));
-    } else {
-        pool.Deallocate();
-        R_RETURN(this->FindEntrySetWithoutBuffer(out_index, virtual_address, node_index));
-    }
+    std::vector<char> pool(m_tree->m_node_size);
+    R_RETURN(FindEntrySetWithBuffer(out_index, virtual_address, node_index, pool.data()));
 }
 
 Result BucketTree::Visitor::FindEntrySetWithBuffer(s32* out_index, s64 virtual_address,
@@ -521,15 +516,8 @@ Result BucketTree::Visitor::FindEntrySetWithoutBuffer(s32* out_index, s64 virtua
 }
 
 Result BucketTree::Visitor::FindEntry(s64 virtual_address, s32 entry_set_index) {
-    const auto entry_set_size = m_tree->m_node_size;
-
-    PooledBuffer pool(entry_set_size, 1);
-    if (entry_set_size <= pool.GetSize()) {
-        R_RETURN(this->FindEntryWithBuffer(virtual_address, entry_set_index, pool.GetBuffer()));
-    } else {
-        pool.Deallocate();
-        R_RETURN(this->FindEntryWithoutBuffer(virtual_address, entry_set_index));
-    }
+    std::vector<char> pool(m_tree->m_node_size);
+    R_RETURN(FindEntryWithBuffer(virtual_address, entry_set_index, pool.data()));
 }
 
 Result BucketTree::Visitor::FindEntryWithBuffer(s64 virtual_address, s32 entry_set_index,

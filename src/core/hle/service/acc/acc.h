@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2018 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -30,17 +33,22 @@ public:
         void InitializeApplicationInfoRestricted(HLERequestContext& ctx);
         void GetBaasAccountManagerForApplication(HLERequestContext& ctx);
         void IsUserRegistrationRequestPermitted(HLERequestContext& ctx);
+        void TrySelectUserWithoutInteractionDeprecated(HLERequestContext& ctx);
         void TrySelectUserWithoutInteraction(HLERequestContext& ctx);
         void IsUserAccountSwitchLocked(HLERequestContext& ctx);
         void InitializeApplicationInfoV2(HLERequestContext& ctx);
         void BeginUserRegistration(HLERequestContext& ctx);
         void CompleteUserRegistration(HLERequestContext& ctx);
+        void DeleteUser(HLERequestContext& ctx);
+        void SetUserPosition(HLERequestContext& ctx);
         void GetProfileEditor(HLERequestContext& ctx);
+        void GetBaasAccountAdministrator(HLERequestContext &ctx);
         void ListQualifiedUsers(HLERequestContext& ctx);
         void ListOpenContextStoredUsers(HLERequestContext& ctx);
         void StoreSaveDataThumbnailApplication(HLERequestContext& ctx);
         void GetBaasAccountManagerForSystemService(HLERequestContext& ctx);
         void StoreSaveDataThumbnailSystem(HLERequestContext& ctx);
+        void GetPinCodeLength(HLERequestContext& ctx);
 
     private:
         Result InitializeApplicationInfoBase();

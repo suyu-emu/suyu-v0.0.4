@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 /* This file is part of the dynarmic project.
@@ -6,8 +6,7 @@
  * SPDX-License-Identifier: 0BSD
  */
 
-#include <mcl/bit/bit_count.hpp>
-#include <mcl/bit/bit_field.hpp>
+#include "dynarmic/mcl/bit.hpp"
 
 #include "dynarmic/frontend/A32/translate/impl/a32_translate_impl.h"
 
@@ -800,7 +799,7 @@ static bool LDMHelper(A32::IREmitter& ir, bool W, Reg n, RegList list, IR::U32 s
 
 // LDM <Rn>{!}, <reg_list>
 bool TranslatorVisitor::arm_LDM(Cond cond, bool W, Reg n, RegList list) {
-    if (n == Reg::PC || mcl::bit::count_ones(list) < 1) {
+    if (n == Reg::PC || std::popcount(list) < 1) {
         return UnpredictableInstruction();
     }
     if (W && mcl::bit::get_bit(static_cast<size_t>(n), list)) {
@@ -812,13 +811,13 @@ bool TranslatorVisitor::arm_LDM(Cond cond, bool W, Reg n, RegList list) {
     }
 
     const auto start_address = ir.GetRegister(n);
-    const auto writeback_address = ir.Add(start_address, ir.Imm32(u32(mcl::bit::count_ones(list) * 4)));
+    const auto writeback_address = ir.Add(start_address, ir.Imm32(u32(std::popcount(list) * 4)));
     return LDMHelper(ir, W, n, list, start_address, writeback_address);
 }
 
 // LDMDA <Rn>{!}, <reg_list>
 bool TranslatorVisitor::arm_LDMDA(Cond cond, bool W, Reg n, RegList list) {
-    if (n == Reg::PC || mcl::bit::count_ones(list) < 1) {
+    if (n == Reg::PC || std::popcount(list) < 1) {
         return UnpredictableInstruction();
     }
     if (W && mcl::bit::get_bit(static_cast<size_t>(n), list)) {
@@ -829,14 +828,14 @@ bool TranslatorVisitor::arm_LDMDA(Cond cond, bool W, Reg n, RegList list) {
         return true;
     }
 
-    const auto start_address = ir.Sub(ir.GetRegister(n), ir.Imm32(u32(4 * mcl::bit::count_ones(list) - 4)));
+    const auto start_address = ir.Sub(ir.GetRegister(n), ir.Imm32(u32(4 * std::popcount(list) - 4)));
     const auto writeback_address = ir.Sub(start_address, ir.Imm32(4));
     return LDMHelper(ir, W, n, list, start_address, writeback_address);
 }
 
 // LDMDB <Rn>{!}, <reg_list>
 bool TranslatorVisitor::arm_LDMDB(Cond cond, bool W, Reg n, RegList list) {
-    if (n == Reg::PC || mcl::bit::count_ones(list) < 1) {
+    if (n == Reg::PC || std::popcount(list) < 1) {
         return UnpredictableInstruction();
     }
     if (W && mcl::bit::get_bit(static_cast<size_t>(n), list)) {
@@ -847,14 +846,14 @@ bool TranslatorVisitor::arm_LDMDB(Cond cond, bool W, Reg n, RegList list) {
         return true;
     }
 
-    const auto start_address = ir.Sub(ir.GetRegister(n), ir.Imm32(u32(4 * mcl::bit::count_ones(list))));
+    const auto start_address = ir.Sub(ir.GetRegister(n), ir.Imm32(u32(4 * std::popcount(list))));
     const auto writeback_address = start_address;
     return LDMHelper(ir, W, n, list, start_address, writeback_address);
 }
 
 // LDMIB <Rn>{!}, <reg_list>
 bool TranslatorVisitor::arm_LDMIB(Cond cond, bool W, Reg n, RegList list) {
-    if (n == Reg::PC || mcl::bit::count_ones(list) < 1) {
+    if (n == Reg::PC || std::popcount(list) < 1) {
         return UnpredictableInstruction();
     }
     if (W && mcl::bit::get_bit(static_cast<size_t>(n), list)) {
@@ -866,16 +865,16 @@ bool TranslatorVisitor::arm_LDMIB(Cond cond, bool W, Reg n, RegList list) {
     }
 
     const auto start_address = ir.Add(ir.GetRegister(n), ir.Imm32(4));
-    const auto writeback_address = ir.Add(ir.GetRegister(n), ir.Imm32(u32(4 * mcl::bit::count_ones(list))));
+    const auto writeback_address = ir.Add(ir.GetRegister(n), ir.Imm32(u32(4 * std::popcount(list))));
     return LDMHelper(ir, W, n, list, start_address, writeback_address);
 }
 
 bool TranslatorVisitor::arm_LDM_usr() {
-    return InterpretThisInstruction();
+    UNREACHABLE();
 }
 
 bool TranslatorVisitor::arm_LDM_eret() {
-    return InterpretThisInstruction();
+    UNREACHABLE();
 }
 
 static bool STMHelper(A32::IREmitter& ir, bool W, Reg n, RegList list, IR::U32 start_address, IR::U32 writeback_address) {
@@ -897,7 +896,7 @@ static bool STMHelper(A32::IREmitter& ir, bool W, Reg n, RegList list, IR::U32 s
 
 // STM <Rn>{!}, <reg_list>
 bool TranslatorVisitor::arm_STM(Cond cond, bool W, Reg n, RegList list) {
-    if (n == Reg::PC || mcl::bit::count_ones(list) < 1) {
+    if (n == Reg::PC || std::popcount(list) < 1) {
         return UnpredictableInstruction();
     }
 
@@ -906,13 +905,13 @@ bool TranslatorVisitor::arm_STM(Cond cond, bool W, Reg n, RegList list) {
     }
 
     const auto start_address = ir.GetRegister(n);
-    const auto writeback_address = ir.Add(start_address, ir.Imm32(u32(mcl::bit::count_ones(list) * 4)));
+    const auto writeback_address = ir.Add(start_address, ir.Imm32(u32(std::popcount(list) * 4)));
     return STMHelper(ir, W, n, list, start_address, writeback_address);
 }
 
 // STMDA <Rn>{!}, <reg_list>
 bool TranslatorVisitor::arm_STMDA(Cond cond, bool W, Reg n, RegList list) {
-    if (n == Reg::PC || mcl::bit::count_ones(list) < 1) {
+    if (n == Reg::PC || std::popcount(list) < 1) {
         return UnpredictableInstruction();
     }
 
@@ -920,14 +919,14 @@ bool TranslatorVisitor::arm_STMDA(Cond cond, bool W, Reg n, RegList list) {
         return true;
     }
 
-    const auto start_address = ir.Sub(ir.GetRegister(n), ir.Imm32(u32(4 * mcl::bit::count_ones(list) - 4)));
+    const auto start_address = ir.Sub(ir.GetRegister(n), ir.Imm32(u32(4 * std::popcount(list) - 4)));
     const auto writeback_address = ir.Sub(start_address, ir.Imm32(4));
     return STMHelper(ir, W, n, list, start_address, writeback_address);
 }
 
 // STMDB <Rn>{!}, <reg_list>
 bool TranslatorVisitor::arm_STMDB(Cond cond, bool W, Reg n, RegList list) {
-    if (n == Reg::PC || mcl::bit::count_ones(list) < 1) {
+    if (n == Reg::PC || std::popcount(list) < 1) {
         return UnpredictableInstruction();
     }
 
@@ -935,14 +934,14 @@ bool TranslatorVisitor::arm_STMDB(Cond cond, bool W, Reg n, RegList list) {
         return true;
     }
 
-    const auto start_address = ir.Sub(ir.GetRegister(n), ir.Imm32(u32(4 * mcl::bit::count_ones(list))));
+    const auto start_address = ir.Sub(ir.GetRegister(n), ir.Imm32(u32(4 * std::popcount(list))));
     const auto writeback_address = start_address;
     return STMHelper(ir, W, n, list, start_address, writeback_address);
 }
 
 // STMIB <Rn>{!}, <reg_list>
 bool TranslatorVisitor::arm_STMIB(Cond cond, bool W, Reg n, RegList list) {
-    if (n == Reg::PC || mcl::bit::count_ones(list) < 1) {
+    if (n == Reg::PC || std::popcount(list) < 1) {
         return UnpredictableInstruction();
     }
 
@@ -951,12 +950,12 @@ bool TranslatorVisitor::arm_STMIB(Cond cond, bool W, Reg n, RegList list) {
     }
 
     const auto start_address = ir.Add(ir.GetRegister(n), ir.Imm32(4));
-    const auto writeback_address = ir.Add(ir.GetRegister(n), ir.Imm32(u32(4 * mcl::bit::count_ones(list))));
+    const auto writeback_address = ir.Add(ir.GetRegister(n), ir.Imm32(u32(4 * std::popcount(list))));
     return STMHelper(ir, W, n, list, start_address, writeback_address);
 }
 
 bool TranslatorVisitor::arm_STM_usr() {
-    return InterpretThisInstruction();
+    UNREACHABLE();
 }
 
 }  // namespace Dynarmic::A32

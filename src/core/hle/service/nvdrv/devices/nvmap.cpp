@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2018 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -7,7 +10,7 @@
 
 #include "common/alignment.h"
 #include "common/assert.h"
-#include "common/logging/log.h"
+#include "common/logging.h"
 #include "core/core.h"
 #include "core/hle/kernel/k_page_table.h"
 #include "core/hle/kernel/k_process.h"
@@ -17,7 +20,7 @@
 #include "core/hle/service/nvdrv/devices/nvmap.h"
 #include "core/memory.h"
 
-using Core::Memory::SUYU_PAGESIZE;
+using Core::Memory::YUZU_PAGESIZE;
 
 namespace Service::Nvidia::Devices {
 
@@ -82,14 +85,14 @@ NvResult nvmap::IocCreate(IocCreateParams& params) {
 
     std::shared_ptr<NvCore::NvMap::Handle> handle_description{};
     auto result =
-        file.CreateHandle(Common::AlignUp(params.size, SUYU_PAGESIZE), handle_description);
+        file.CreateHandle(Common::AlignUp(params.size, YUZU_PAGESIZE), handle_description);
     if (result != NvResult::Success) {
         LOG_CRITICAL(Service_NVDRV, "Failed to create Object");
         return result;
     }
     handle_description->orig_size = params.size; // Orig size is the unaligned size
     params.handle = handle_description->id;
-    LOG_DEBUG(Service_NVDRV, "handle: {}, size: 0x{:X}", handle_description->id, params.size);
+    LOG_DEBUG(Service_NVDRV, "handle: {}, size: {:#X}", handle_description->id, params.size);
 
     return NvResult::Success;
 }
@@ -108,8 +111,8 @@ NvResult nvmap::IocAlloc(IocAllocParams& params, DeviceFD fd) {
     }
 
     // Force page size alignment at a minimum
-    if (params.align < SUYU_PAGESIZE) {
-        params.align = SUYU_PAGESIZE;
+    if (params.align < YUZU_PAGESIZE) {
+        params.align = YUZU_PAGESIZE;
     }
 
     auto handle_description{file.GetHandle(params.handle)};

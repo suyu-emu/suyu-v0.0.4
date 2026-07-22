@@ -1,9 +1,10 @@
+# SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+# SPDX-License-Identifier: GPL-3.0-or-later
+
 # SPDX-FileCopyrightText: 2018 yuzu Emulator Project
 # SPDX-License-Identifier: GPL-2.0-or-later
 
 add_library(core STATIC
-    anti_piracy_manager.cpp
-    anti_piracy_manager.h
     arm/arm_interface.cpp
     arm/arm_interface.h
     arm/debug.cpp
@@ -16,6 +17,8 @@ add_library(core STATIC
     constants.h
     core.cpp
     core.h
+    game_settings.cpp
+    game_settings.h
     core_timing.cpp
     core_timing.h
     cpu_manager.cpp
@@ -30,8 +33,6 @@ add_library(core STATIC
     crypto/key_manager.h
     crypto/partition_data_manager.cpp
     crypto/partition_data_manager.h
-    crypto/sha_util.cpp
-    crypto/sha_util.h
     crypto/xts_encryption_layer.cpp
     crypto/xts_encryption_layer.h
     debugger/debugger.cpp
@@ -92,6 +93,8 @@ add_library(core STATIC
     file_sys/fssystem/fssystem_crypto_configuration.h
     file_sys/fssystem/fssystem_hierarchical_integrity_verification_storage.cpp
     file_sys/fssystem/fssystem_hierarchical_integrity_verification_storage.h
+    file_sys/fssystem/fssystem_hierarchical_sha3_storage.cpp
+    file_sys/fssystem/fssystem_hierarchical_sha3_storage.h
     file_sys/fssystem/fssystem_hierarchical_sha256_storage.cpp
     file_sys/fssystem/fssystem_hierarchical_sha256_storage.h
     file_sys/fssystem/fssystem_indirect_storage.cpp
@@ -106,8 +109,6 @@ add_library(core STATIC
     file_sys/fssystem/fssystem_nca_header.cpp
     file_sys/fssystem/fssystem_nca_header.h
     file_sys/fssystem/fssystem_nca_reader.cpp
-    file_sys/fssystem/fssystem_pooled_buffer.cpp
-    file_sys/fssystem/fssystem_pooled_buffer.h
     file_sys/fssystem/fssystem_sparse_storage.cpp
     file_sys/fssystem/fssystem_sparse_storage.h
     file_sys/fssystem/fssystem_switch_storage.h
@@ -189,6 +190,8 @@ add_library(core STATIC
     frontend/applets/general.h
     frontend/applets/mii_edit.cpp
     frontend/applets/mii_edit.h
+    frontend/applets/net_connect.cpp
+    frontend/applets/net_connect.h
     frontend/applets/profile_select.cpp
     frontend/applets/profile_select.h
     frontend/applets/software_keyboard.cpp
@@ -204,7 +207,6 @@ add_library(core STATIC
     hle/ipc.h
     hle/kernel/board/nintendo/nx/k_memory_layout.cpp
     hle/kernel/board/nintendo/nx/k_memory_layout.h
-    libretro_wrapper.cpp
     hle/kernel/board/nintendo/nx/k_system_control.cpp
     hle/kernel/board/nintendo/nx/k_system_control.h
     hle/kernel/board/nintendo/nx/secure_monitor.h
@@ -340,7 +342,6 @@ add_library(core STATIC
     hle/kernel/message_buffer.h
     hle/kernel/physical_core.cpp
     hle/kernel/physical_core.h
-    hle/kernel/physical_memory.h
     hle/kernel/slab_helpers.h
     hle/kernel/svc.cpp
     hle/kernel/svc.h
@@ -427,6 +428,8 @@ add_library(core STATIC
     hle/service/am/frontend/applet_mii_edit.cpp
     hle/service/am/frontend/applet_mii_edit.h
     hle/service/am/frontend/applet_mii_edit_types.h
+    hle/service/am/frontend/applet_net_connect.cpp
+    hle/service/am/frontend/applet_net_connect.h
     hle/service/am/frontend/applet_profile_select.cpp
     hle/service/am/frontend/applet_profile_select.h
     hle/service/am/frontend/applet_software_keyboard.cpp
@@ -449,12 +452,8 @@ add_library(core STATIC
     hle/service/am/process_holder.h
     hle/service/am/service/all_system_applet_proxies_service.cpp
     hle/service/am/service/all_system_applet_proxies_service.h
-    hle/service/am/service/applet_alternative_functions.cpp
-    hle/service/am/service/applet_alternative_functions.h
     hle/service/am/service/applet_common_functions.cpp
     hle/service/am/service/applet_common_functions.h
-    hle/service/am/service/system_process_common_functions.cpp
-    hle/service/am/service/system_process_common_functions.h
     hle/service/am/service/application_accessor.cpp
     hle/service/am/service/application_accessor.h
     hle/service/am/service/application_creator.cpp
@@ -489,6 +488,10 @@ add_library(core STATIC
     hle/service/am/service/library_applet_self_accessor.h
     hle/service/am/service/lock_accessor.cpp
     hle/service/am/service/lock_accessor.h
+    hle/service/am/service/overlay_functions.cpp
+    hle/service/am/service/overlay_functions.h
+    hle/service/am/service/overlay_applet_proxy.cpp
+    hle/service/am/service/overlay_applet_proxy.h
     hle/service/am/service/process_winding_controller.cpp
     hle/service/am/service/process_winding_controller.h
     hle/service/am/service/self_controller.cpp
@@ -559,8 +562,14 @@ add_library(core STATIC
     hle/service/bcat/delivery_cache_storage_service.h
     hle/service/bcat/news/newly_arrived_event_holder.cpp
     hle/service/bcat/news/newly_arrived_event_holder.h
+    hle/service/bcat/news/msgpack.cpp
+    hle/service/bcat/news/msgpack.h
     hle/service/bcat/news/news_data_service.cpp
     hle/service/bcat/news/news_data_service.h
+    hle/service/bcat/news/builtin_news.cpp
+    hle/service/bcat/news/builtin_news.h
+    hle/service/bcat/news/news_storage.cpp
+    hle/service/bcat/news/news_storage.h
     hle/service/bcat/news/news_database_service.cpp
     hle/service/bcat/news/news_database_service.h
     hle/service/bcat/news/news_service.cpp
@@ -683,8 +692,6 @@ add_library(core STATIC
     hle/service/glue/time/time_zone_binary.h
     hle/service/glue/time/worker.cpp
     hle/service/glue/time/worker.h
-    hle/service/gpio/gpio.cpp
-    hle/service/gpio/gpio.h
     hle/service/grc/grc.cpp
     hle/service/grc/grc.h
     hle/service/hid/active_vibration_device_list.cpp
@@ -693,8 +700,6 @@ add_library(core STATIC
     hle/service/hid/applet_resource.h
     hle/service/hid/hid.cpp
     hle/service/hid/hid.h
-    hle/service/i2c/i2c.cpp
-    hle/service/i2c/i2c.h
     hle/service/hid/hid_debug_server.cpp
     hle/service/hid/hid_debug_server.h
     hle/service/hid/hid_server.cpp
@@ -714,6 +719,8 @@ add_library(core STATIC
     hle/service/kernel_helpers.h
     hle/service/lbl/lbl.cpp
     hle/service/lbl/lbl.h
+    hle/service/ldn/client_process_monitor.cpp
+    hle/service/ldn/client_process_monitor.h
     hle/service/ldn/lan_discovery.cpp
     hle/service/ldn/lan_discovery.h
     hle/service/ldn/ldn.cpp
@@ -920,6 +927,8 @@ add_library(core STATIC
     hle/service/olsc/olsc.h
     hle/service/olsc/remote_storage_controller.cpp
     hle/service/olsc/remote_storage_controller.h
+    hle/service/olsc/stopper_object.cpp
+    hle/service/olsc/stopper_object.h
     hle/service/olsc/transfer_task_list_controller.cpp
     hle/service/olsc/transfer_task_list_controller.h
     hle/service/omm/omm.cpp
@@ -1112,6 +1121,12 @@ add_library(core STATIC
     hle/service/vi/vi_types.h
     hle/service/vi/vsync_manager.cpp
     hle/service/vi/vsync_manager.h
+    hle/service/gpio/gpio.cpp
+    hle/service/gpio/gpio.h
+    hle/service/i2c/i2c.cpp
+    hle/service/i2c/i2c.h
+    internal_network/emu_net_state.cpp
+    internal_network/emu_net_state.h
     internal_network/network.cpp
     internal_network/network.h
     internal_network/network_interface.cpp
@@ -1119,6 +1134,9 @@ add_library(core STATIC
     internal_network/socket_proxy.cpp
     internal_network/socket_proxy.h
     internal_network/sockets.h
+    internal_network/wifi_scanner.h
+    launch_timestamp_cache.cpp
+    launch_timestamp_cache.h
     loader/deconstructed_rom_directory.cpp
     loader/deconstructed_rom_directory.h
     loader/kip.cpp
@@ -1146,16 +1164,30 @@ add_library(core STATIC
     memory/dmnt_cheat_vm.h
     perf_stats.cpp
     perf_stats.h
-    precompiled_headers.h
     reporter.cpp
     reporter.h
     tools/freezer.cpp
     tools/freezer.h
-    tools/hactool_integration.cpp
-    tools/hactool_integration.h
     tools/renderdoc.cpp
-    tools/renderdoc.h
-)
+    tools/renderdoc.h)
+
+if (ENABLE_WIFI_SCAN)
+    target_sources(core PRIVATE internal_network/wifi_scanner.cpp)
+    if (PLATFORM_LINUX)
+        target_link_libraries(core PRIVATE iw)
+    endif()
+else()
+    target_sources(core PRIVATE internal_network/wifi_scanner_dummy.cpp)
+endif()
+
+if (WIN32)
+    target_compile_definitions(core PRIVATE _WIN32_WINNT=0x0A00 WINVER=0x0A00)
+
+    if(TARGET iw)
+        target_link_libraries(core PRIVATE iw)
+        message(STATUS "Linking 'core' with iw on Linux.")
+    endif()
+endif()
 
 if (MSVC)
     target_compile_options(core PRIVATE
@@ -1167,24 +1199,37 @@ if (MSVC)
     )
 else()
     target_compile_options(core PRIVATE
-        -Werror=conversion
-
-        -Wno-sign-conversion
-        -Wno-cast-function-type
-
-        $<$<CXX_COMPILER_ID:Clang>:-fsized-deallocation>
-    )
+        $<$<COMPILE_LANGUAGE:C,CXX>:-Werror=conversion>
+        $<$<COMPILE_LANGUAGE:C,CXX>:-Wno-sign-conversion>
+        $<$<COMPILE_LANGUAGE:C,CXX>:-Wno-cast-function-type>
+        $<$<CXX_COMPILER_ID:Clang>:-fsized-deallocation>)
+    # pre-clang19 will spam with "OH DID YOU MEAN THIS?" otherwise...
+    if (CXX_CLANG AND CMAKE_CXX_COMPILER_VERSION VERSION_GREATER_EQUAL 20)
+        target_compile_options(core PRIVATE $<$<COMPILE_LANGUAGE:C,CXX>:-Wno-cast-function-type-mismatch>)
+    endif()
 endif()
 
-target_link_libraries(core PUBLIC common PRIVATE audio_core hid_core network video_core nx_tzdb tz nintendo_library)
-target_link_libraries(core PUBLIC Boost::headers PRIVATE fmt::fmt nlohmann_json::nlohmann_json mbedtls RenderDoc::API)
-if (MINGW)
-    target_link_libraries(core PRIVATE ${MSWSOCK_LIBRARY})
+target_include_directories(core PRIVATE ${OPUS_INCLUDE_DIRS})
+target_link_libraries(core PUBLIC common PRIVATE audio_core hid_core network video_core nx_tzdb tz)
+
+if (BOOST_NO_HEADERS)
+    target_link_libraries(core PUBLIC Boost::container Boost::heap Boost::asio Boost::process Boost::crc)
+else()
+    target_link_libraries(core PUBLIC Boost::headers)
 endif()
+
+target_link_libraries(core PRIVATE
+    OpenSSL::SSL
+    fmt::fmt
+    nlohmann_json::nlohmann_json
+    RenderDoc::API
+    ZLIB::ZLIB)
+
+target_link_libraries(core PUBLIC httplib::httplib zstd::zstd)
 
 if (ENABLE_WEB_SERVICE)
-    target_compile_definitions(core PRIVATE -DENABLE_WEB_SERVICE)
-    target_link_libraries(core PRIVATE web_service)
+    target_compile_definitions(core PUBLIC ENABLE_WEB_SERVICE)
+    target_link_libraries(core PUBLIC web_service)
 endif()
 
 if (HAS_NCE)
@@ -1202,14 +1247,12 @@ if (HAS_NCE)
         arm/nce/interpreter_visitor.h
         arm/nce/patcher.cpp
         arm/nce/patcher.h
-        arm/nce/visitor_base.h
-    )
-    target_link_libraries(core PRIVATE merry::mcl merry::oaknut)
+        arm/nce/visitor_base.h)
+    target_link_libraries(core PRIVATE merry::oaknut)
 endif()
 
-if (ARCHITECTURE_x86_64 OR ARCHITECTURE_arm64)
+if (ARCHITECTURE_x86_64 OR ARCHITECTURE_arm64 OR ARCHITECTURE_riscv64 OR ARCHITECTURE_loongarch64)
     target_sources(core PRIVATE
-        arm/dynarmic/arm_dynarmic.cpp
         arm/dynarmic/arm_dynarmic.h
         arm/dynarmic/arm_dynarmic_64.cpp
         arm/dynarmic/arm_dynarmic_64.h
@@ -1224,34 +1267,27 @@ if (ARCHITECTURE_x86_64 OR ARCHITECTURE_arm64)
         hle/service/jit/jit_context.cpp
         hle/service/jit/jit_context.h
         hle/service/jit/jit.cpp
-        hle/service/jit/jit.h
-    )
+        hle/service/jit/jit.h)
     target_link_libraries(core PRIVATE dynarmic::dynarmic)
 endif()
 
-if(ENABLE_OPENSSL)
-    target_sources(core PRIVATE
-        hle/service/ssl/ssl_backend_openssl.cpp)
-    target_link_libraries(core PRIVATE OpenSSL::SSL)
-elseif (APPLE)
-    target_sources(core PRIVATE
-        hle/service/ssl/ssl_backend_securetransport.cpp)
-    target_link_libraries(core PRIVATE "-framework Security")
-elseif (WIN32)
-    target_sources(core PRIVATE
-        hle/service/ssl/ssl_backend_schannel.cpp)
-    target_link_libraries(core PRIVATE crypt32 secur32)
-else()
-    target_sources(core PRIVATE
-        hle/service/ssl/ssl_backend_none.cpp)
-endif()
+target_sources(core PRIVATE hle/service/ssl/ssl_backend_openssl.cpp)
 
-if (SUYU_USE_PRECOMPILED_HEADERS)
-    target_precompile_headers(core PRIVATE precompiled_headers.h)
-endif()
+target_link_libraries(core PRIVATE OpenSSL::SSL OpenSSL::Crypto)
 
-if (SUYU_ENABLE_LTO)
-  set_property(TARGET core PROPERTY INTERPROCEDURAL_OPTIMIZATION TRUE)
-endif()
+# TODO
+
+# elseif (APPLE)
+#     target_sources(core PRIVATE
+#         hle/service/ssl/ssl_backend_securetransport.cpp)
+#     target_link_libraries(core PRIVATE "-framework Security")
+# elseif (WIN32)
+#     target_sources(core PRIVATE
+#         hle/service/ssl/ssl_backend_schannel.cpp)
+#     target_link_libraries(core PRIVATE crypt32 secur32)
+# else()
+#     target_sources(core PRIVATE
+#         hle/service/ssl/ssl_backend_none.cpp)
+# endif()
 
 create_target_directory_groups(core)

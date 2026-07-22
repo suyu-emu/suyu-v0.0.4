@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2020 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -6,6 +9,7 @@
 #include <array>
 #include <optional>
 #include <vector>
+#include <variant>
 
 #include "common/common_funcs.h"
 #include "common/common_types.h"
@@ -13,7 +17,7 @@
 
 #ifdef _WIN32
 #include <winsock2.h>
-#elif SUYU_UNIX
+#else
 #include <netinet/in.h>
 #endif
 
@@ -45,6 +49,7 @@ enum class Errno {
     TIMEDOUT,
     MSGSIZE,
     INPROGRESS,
+    ISCONN,
     OTHER,
 };
 
@@ -104,7 +109,7 @@ constexpr IPv4Address TranslateIPv4(in_addr addr) {
     auto& bytes = addr.S_un.S_un_b;
     return IPv4Address{bytes.s_b1, bytes.s_b2, bytes.s_b3, bytes.s_b4};
 }
-#elif SUYU_UNIX
+#else
 constexpr IPv4Address TranslateIPv4(in_addr addr) {
     const u32 bytes = addr.s_addr;
     return IPv4Address{static_cast<u8>(bytes), static_cast<u8>(bytes >> 8),
@@ -120,7 +125,6 @@ std::string IPv4AddressToString(IPv4Address ip_addr);
 u32 IPv4AddressToInteger(IPv4Address ip_addr);
 
 // named to avoid name collision with Windows macro
-Common::Expected<std::vector<AddrInfo>, GetAddrInfoError> GetAddressInfo(
-    const std::string& host, const std::optional<std::string>& service);
+std::variant<std::vector<AddrInfo>, GetAddrInfoError> GetAddressInfo(const std::string& host, const std::optional<std::string>& service);
 
 } // namespace Network

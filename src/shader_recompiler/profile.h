@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2021 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -7,12 +10,16 @@
 
 namespace Shader {
 
+enum class Stage : u32;
+
 struct Profile {
     u32 supported_spirv{0x00010000};
     bool unified_descriptor_binding{};
     bool support_descriptor_aliasing{};
     bool support_int8{};
+    bool support_uniform_and_storage_buffer_8bit{};
     bool support_int16{};
+    bool support_uniform_and_storage_buffer_16bit{};
     bool support_int64{};
     bool support_vertex_instance_id{};
     bool support_float_controls{};
@@ -27,6 +34,7 @@ struct Profile {
     bool support_fp64_signed_zero_nan_preserve{};
     bool support_explicit_workgroup_layout{};
     bool support_vote{};
+    u32 supported_subgroup_stages{0x7F};
     bool support_viewport_index_layer_non_geometry{};
     bool support_viewport_mask{};
     bool support_typeless_image_loads{};
@@ -45,6 +53,7 @@ struct Profile {
     bool support_scaled_attributes{};
     bool support_multi_viewport{};
     bool support_geometry_streams{};
+    bool support_sampled_image_array_nonuniform_indexing{};
 
     bool warp_size_potentially_larger_than_guest{};
 
@@ -88,8 +97,11 @@ struct Profile {
     bool has_broken_robust{};
 
     u64 min_ssbo_alignment{};
-
     u32 max_user_clip_distances{};
+
+    bool SupportsSubgroupStage(Stage stage) const {
+        return (supported_subgroup_stages & (1u << static_cast<u32>(stage))) != 0;
+    }
 };
 
 } // namespace Shader

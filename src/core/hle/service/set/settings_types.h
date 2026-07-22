@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2024 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
@@ -169,6 +172,8 @@ enum class Language : u32 {
     SimplifiedCHhinese,
     TraditionalChinese,
     BrazilianPortuguese,
+    Polish,
+    Thai
 };
 
 /// This is "nn::settings::LanguageCode", which is a NUL-terminated string stored in a u64.
@@ -191,6 +196,8 @@ enum class LanguageCode : u64 {
     ZH_HANS = 0x00736E61482D687A,
     ZH_HANT = 0x00746E61482D687A,
     PT_BR = 0x00000052422D7470,
+    PL = 0x000000000000706C,
+    TH = 0x0000000000006874,
 };
 
 /// This is nn::settings::system::NotificationVolume
@@ -248,7 +255,7 @@ enum class PlatformRegion : s32 {
     Terra = 2,
 };
 
-constexpr std::array<LanguageCode, 18> available_language_codes = {{
+constexpr std::array<LanguageCode, 20> available_language_codes = {{
     LanguageCode::JA,
     LanguageCode::EN_US,
     LanguageCode::FR,
@@ -267,9 +274,11 @@ constexpr std::array<LanguageCode, 18> available_language_codes = {{
     LanguageCode::ZH_HANS,
     LanguageCode::ZH_HANT,
     LanguageCode::PT_BR,
+    LanguageCode::PL,
+    LanguageCode::TH
 }};
 
-static constexpr std::array<std::pair<LanguageCode, KeyboardLayout>, 18> language_to_layout{{
+static constexpr std::array<std::pair<LanguageCode, KeyboardLayout>, 20> language_to_layout{{
     {LanguageCode::JA, KeyboardLayout::Japanese},
     {LanguageCode::EN_US, KeyboardLayout::EnglishUs},
     {LanguageCode::FR, KeyboardLayout::French},
@@ -288,6 +297,8 @@ static constexpr std::array<std::pair<LanguageCode, KeyboardLayout>, 18> languag
     {LanguageCode::ZH_HANS, KeyboardLayout::ChineseSimplified},
     {LanguageCode::ZH_HANT, KeyboardLayout::ChineseTraditional},
     {LanguageCode::PT_BR, KeyboardLayout::Portuguese},
+    {LanguageCode::PL, KeyboardLayout::EnglishUsInternational},
+    {LanguageCode::TH, KeyboardLayout::EnglishUsInternational}
 }};
 
 /// This is nn::settings::system::AccountNotificationFlag
@@ -398,13 +409,16 @@ struct AccountNotificationSettings {
 static_assert(sizeof(AccountNotificationSettings) == 0x18,
               "AccountNotificationSettings is an invalid size");
 
+/// This is nn::settings::system::AccountUserSettings (stubbed)
+struct AccountUserSettings {
+    std::array<u8, 0x40> data;
+};
+static_assert(sizeof(AccountUserSettings) == 0x40,
+              "AccountUserSettings is an invalid size");
+
 /// This is nn::settings::factory::BatteryLot
 struct BatteryLot {
     std::array<char, 0x18> lot_number;
-    BatteryLot() = default;
-    BatteryLot(const char* str) {
-        std::copy(str, str + std::min(sizeof(lot_number), strlen(str)), lot_number.begin());
-    }
 };
 static_assert(sizeof(BatteryLot) == 0x18, "BatteryLot is an invalid size");
 
@@ -481,10 +495,6 @@ static_assert(sizeof(NotificationSettings) == 0x18, "NotificationSettings is an 
 /// This is nn::settings::factory::SerialNumber
 struct SerialNumber {
     std::array<char, 0x18> serial_number;
-    SerialNumber() = default;
-    SerialNumber(const char* str) {
-        std::copy(str, str + std::min(sizeof(serial_number), strlen(str)), serial_number.begin());
-    }
 };
 static_assert(sizeof(SerialNumber) == 0x18, "SerialNumber is an invalid size");
 

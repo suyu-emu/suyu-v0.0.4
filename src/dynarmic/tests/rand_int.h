@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 /* This file is part of the dynarmic project.
  * Copyright (c) 2020 MerryMage
  * SPDX-License-Identifier: 0BSD
@@ -17,11 +20,9 @@ inline std::mt19937 g_rand_int_generator = [] {
 }  // namespace detail
 
 template<typename T>
+    requires std::is_integral_v<T>
+        && (!std::is_same_v<T, signed char> && !std::is_same_v<T, unsigned char>)
 T RandInt(T min, T max) {
-    static_assert(std::is_integral_v<T>, "T must be an integral type.");
-    static_assert(!std::is_same_v<T, signed char> && !std::is_same_v<T, unsigned char>,
-                  "Using char with uniform_int_distribution is undefined behavior.");
-
     std::uniform_int_distribution<T> rand(min, max);
     return rand(detail::g_rand_int_generator);
 }

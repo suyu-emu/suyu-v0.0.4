@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 /* This file is part of the dynarmic project.
@@ -14,10 +14,9 @@
 
 #include <fmt/format.h>
 #include <fmt/ostream.h>
-#include "dynarmic/common/assert.h"
-#include <mcl/bit/bit_field.hpp>
-#include <mcl/scope_exit.hpp>
-#include "dynarmic/common/common_types.h"
+#include "common/assert.h"
+#include "dynarmic/mcl/bit.hpp"
+#include "common/common_types.h"
 #include <boost/container/static_vector.hpp>
 
 #include "dynarmic/backend/x64/a32_jitstate.h"
@@ -60,8 +59,10 @@ static Xbyak::Address MJitStateExtReg(A32::ExtReg reg) {
     UNREACHABLE();
 }
 
-A32EmitContext::A32EmitContext(const A32::UserConfig& conf, RegAlloc& reg_alloc, IR::Block& block)
-        : EmitContext(reg_alloc, block), conf(conf) {}
+A32EmitContext::A32EmitContext(const A32::UserConfig& conf, RegAlloc& reg_alloc, IR::Block& block, boost::container::stable_vector<Xbyak::Label>& shared_labels)
+    : EmitContext(reg_alloc, block, shared_labels)
+    , conf(conf)
+{}
 
 A32::LocationDescriptor A32EmitContext::Location() const {
     return A32::LocationDescriptor{block.Location()};
@@ -87,9 +88,11 @@ A32EmitX64::A32EmitX64(BlockOfCode& code, A32::UserConfig conf, A32::Jit* jit_in
     code.PreludeComplete();
     ClearFastDispatchTable();
 
-    exception_handler.SetFastmemCallback([this](u64 rip_) {
-        return FastmemCallback(rip_);
-    });
+    if (conf.fastmem_pointer.has_value()) {
+        exception_handler.SetFastmemCallback([this](u64 rip_) {
+            return FastmemCallback(rip_);
+        });
+    }
 }
 
 A32EmitX64::~A32EmitX64() = default;
@@ -100,77 +103,86 @@ A32EmitX64::BlockDescriptor A32EmitX64::Emit(IR::Block& block) {
     }
 
     code.EnableWriting();
-    SCOPE_EXIT {
-        code.DisableWriting();
-    };
-
-    const boost::container::static_vector<HostLoc, 28> gpr_order = [this] {
-        boost::container::static_vector<HostLoc, 28> gprs{any_gpr};
-        if (conf.fastmem_pointer) {
-            gprs.erase(std::find(gprs.begin(), gprs.end(), HostLoc::R13));
-        }
-        if (conf.page_table) {
-            gprs.erase(std::find(gprs.begin(), gprs.end(), HostLoc::R14));
-        }
+    new (&this->reg_alloc) RegAlloc([this] {
+        std::bitset<32> gprs{any_gpr};
+        if (conf.fastmem_pointer)
+            gprs.reset(size_t(HostLoc::R13));
+        if (conf.page_table)
+            gprs.reset(size_t(HostLoc::R14));
         return gprs;
-    }();
+    }(), any_xmm);
 
-    new (&this->reg_alloc) RegAlloc(&code, gpr_order, any_xmm);
-    A32EmitContext ctx{conf, reg_alloc, block};
+    A32EmitContext ctx{conf, reg_alloc, block, shared_labels};
 
     // Start emitting.
     code.align();
     const u8* const entrypoint = code.getCurr();
+    code.mov(code.qword[rsp + ABI_SHADOW_SPACE + offsetof(StackLayout, abi_base_pointer)], rbp);
+    code.lea(rbp, code.ptr[rsp + ABI_SHADOW_SPACE + offsetof(StackLayout, abi_base_pointer) - 8]);
 
     EmitCondPrelude(ctx);
-
-    auto const loop_all_inst = [this, &block, &ctx](auto const func) {
-        for (auto iter = block.begin(); iter != block.end(); ++iter) [[likely]] {
-            auto* inst = &*iter;
-            // Call the relevant Emit* member function.
-            switch (inst->GetOpcode()) {
-#define OPCODE(name, type, ...)                     \
-            case IR::Opcode::name:                  \
-                A32EmitX64::Emit##name(ctx, inst);  \
-                break;
-#define A32OPC(name, type, ...)                     \
-            case IR::Opcode::A32##name:             \
-                A32EmitX64::EmitA32##name(ctx, inst);\
-                break;
+    typedef void (EmitX64::*EmitHandlerFn)(EmitContext& context, IR::Inst* inst);
+    constexpr EmitHandlerFn opcode_handlers[] = {
+#define OPCODE(name, type, ...) &EmitX64::Emit##name,
+#define A32OPC(name, type, ...)
+#define A64OPC(name, type, ...)
+#include "dynarmic/ir/opcodes.inc"
+#undef OPCODE
+#undef A32OPC
+#undef A64OPC
+    };
+    typedef void (A32EmitX64::*A32EmitHandlerFn)(A32EmitContext& context, IR::Inst* inst);
+    constexpr A32EmitHandlerFn a32_handlers[] = {
+#define OPCODE(...)
+#define A32OPC(name, type, ...) &A32EmitX64::EmitA32##name,
 #define A64OPC(...)
 #include "dynarmic/ir/opcodes.inc"
 #undef OPCODE
 #undef A32OPC
 #undef A64OPC
-            default:
-                UNREACHABLE();
-            }
-            reg_alloc.EndOfAllocScope();
-            func(reg_alloc);
-        }
     };
-    if (!conf.very_verbose_debugging_output) [[likely]] {
-        loop_all_inst([](auto&) { /*noop*/ });
-    } else [[unlikely]] {
-        loop_all_inst([this](auto& reg_alloc) {
+
+    for (auto& inst : block.instructions) {
+        auto const opcode = inst.GetOpcode();
+        // Call the relevant Emit* member function.
+        switch (opcode) {
+#define OPCODE(name, type, ...) case IR::Opcode::name: goto opcode_branch;
+#define A32OPC(name, type, ...) case IR::Opcode::A32##name: goto a32_branch;
+#define A64OPC(name, type, ...)
+#include "dynarmic/ir/opcodes.inc"
+#undef OPCODE
+#undef A32OPC
+#undef A64OPC
+        default:
+            UNREACHABLE();
+        }
+opcode_branch:
+        (this->*opcode_handlers[size_t(opcode)])(ctx, &inst);
+        goto finish_this_inst;
+a32_branch:
+        // Update with FIRST A32 instruction
+        (this->*a32_handlers[size_t(opcode) - size_t(IR::Opcode::A32SetCheckBit)])(ctx, &inst);
+finish_this_inst:
+        ctx.reg_alloc.EndOfAllocScope();
+#ifndef NDEBUG
+        if (conf.very_verbose_debugging_output)
             EmitVerboseDebuggingOutput(reg_alloc);
-        });
+#endif
     }
 
     reg_alloc.AssertNoMoreUses();
 
-    if (conf.enable_cycle_counting) {
+    if (conf.enable_cycle_counting)
         EmitAddCycles(block.CycleCount());
-    }
-    EmitX64::EmitTerminal(block.GetTerminal(), ctx.Location().SetSingleStepping(false), ctx.IsSingleStep());
+    code.mov(rbp, code.qword[rsp + ABI_SHADOW_SPACE + offsetof(StackLayout, abi_base_pointer)]);
+    EmitTerminal(block.GetTerminal(), ctx.Location().SetSingleStepping(false), ctx.IsSingleStep());
     code.int3();
 
-    for (auto& deferred_emit : ctx.deferred_emits) {
+    for (auto& deferred_emit : ctx.deferred_emits)
         deferred_emit();
-    }
     code.int3();
 
-    const size_t size = static_cast<size_t>(code.getCurr() - entrypoint);
+    const size_t size = size_t(code.getCurr() - entrypoint);
 
     const A32::LocationDescriptor descriptor{block.Location()};
     const A32::LocationDescriptor end_location{block.EndLocation()};
@@ -178,7 +190,10 @@ A32EmitX64::BlockDescriptor A32EmitX64::Emit(IR::Block& block) {
     const auto range = boost::icl::discrete_interval<u32>::closed(descriptor.PC(), end_location.PC() - 1);
     block_ranges.AddRange(range, descriptor);
 
-    return RegisterBlock(descriptor, entrypoint, size);
+    auto const bdesc = RegisterBlock(descriptor, entrypoint, size);
+    code.DisableWriting();
+    shared_labels.clear();
+    return bdesc;
 }
 
 void A32EmitX64::ClearCache() {
@@ -215,13 +230,13 @@ void A32EmitX64::ClearFastDispatchTable() {
 }
 
 void A32EmitX64::GenTerminalHandlers() {
-    // PC ends up in ebp, location_descriptor ends up in rbx
+    // PC ends up in edi, location_descriptor ends up in rbx
     const auto calculate_location_descriptor = [this] {
         // This calculation has to match up with IREmitter::PushRSB
         code.mov(ebx, dword[code.ABI_JIT_PTR + offsetof(A32JitState, upper_location_descriptor)]);
         code.shl(rbx, 32);
         code.mov(ecx, MJitStateReg(A32::Reg::PC));
-        code.mov(ebp, ecx);
+        code.mov(edi, ecx);
         code.or_(rbx, rcx);
     };
 
@@ -236,7 +251,7 @@ void A32EmitX64::GenTerminalHandlers() {
     code.mov(dword[code.ABI_JIT_PTR + offsetof(A32JitState, rsb_ptr)], eax);
     code.cmp(rbx, qword[code.ABI_JIT_PTR + offsetof(A32JitState, rsb_location_descriptors) + rax * sizeof(u64)]);
     if (conf.HasOptimization(OptimizationFlag::FastDispatch)) {
-        code.jne(rsb_cache_miss);
+        code.jne(rsb_cache_miss, code.T_NEAR);
     } else {
         code.jne(code.GetReturnFromRunCodeAddress());
     }
@@ -249,20 +264,21 @@ void A32EmitX64::GenTerminalHandlers() {
         terminal_handler_fast_dispatch_hint = code.getCurr<const void*>();
         calculate_location_descriptor();
         code.L(rsb_cache_miss);
-        code.mov(r12, reinterpret_cast<u64>(fast_dispatch_table.data()));
-        code.mov(rbp, rbx);
+        code.mov(r8, reinterpret_cast<u64>(fast_dispatch_table.data()));
+        //code.mov(r12d, MJitStateReg(A32::Reg::PC));
+        code.mov(r12, rbx);
         if (code.HasHostFeature(HostFeature::SSE42)) {
-            code.crc32(rbp, r12);
+            code.crc32(r12, r8);
         }
-        code.and_(ebp, fast_dispatch_table_mask);
-        code.lea(rbp, ptr[r12 + rbp]);
-        code.cmp(rbx, qword[rbp + offsetof(FastDispatchEntry, location_descriptor)]);
-        code.jne(fast_dispatch_cache_miss);
-        code.jmp(ptr[rbp + offsetof(FastDispatchEntry, code_ptr)]);
+        code.and_(r12d, fast_dispatch_table_mask);
+        code.lea(r12, ptr[r8 + r12]);
+        code.cmp(rbx, qword[r12 + offsetof(FastDispatchEntry, location_descriptor)]);
+        code.jne(fast_dispatch_cache_miss, code.T_NEAR);
+        code.jmp(ptr[r12 + offsetof(FastDispatchEntry, code_ptr)]);
         code.L(fast_dispatch_cache_miss);
-        code.mov(qword[rbp + offsetof(FastDispatchEntry, location_descriptor)], rbx);
+        code.mov(qword[r12 + offsetof(FastDispatchEntry, location_descriptor)], rbx);
         code.LookupBlock();
-        code.mov(ptr[rbp + offsetof(FastDispatchEntry, code_ptr)], rax);
+        code.mov(ptr[r12 + offsetof(FastDispatchEntry, code_ptr)], rax);
         code.jmp(rax);
         PerfMapRegister(terminal_handler_fast_dispatch_hint, code.getCurr(), "a32_terminal_handler_fast_dispatch_hint");
 
@@ -281,47 +297,47 @@ void A32EmitX64::GenTerminalHandlers() {
 
 void A32EmitX64::EmitA32SetCheckBit(A32EmitContext& ctx, IR::Inst* inst) {
     auto args = ctx.reg_alloc.GetArgumentInfo(inst);
-    const Xbyak::Reg8 to_store = ctx.reg_alloc.UseGpr(args[0]).cvt8();
+    const Xbyak::Reg8 to_store = ctx.reg_alloc.UseGpr(code, args[0]).cvt8();
     code.mov(code.byte[rsp + ABI_SHADOW_SPACE + offsetof(StackLayout, check_bit)], to_store);
 }
 
 void A32EmitX64::EmitA32GetRegister(A32EmitContext& ctx, IR::Inst* inst) {
     const A32::Reg reg = inst->GetArg(0).GetA32RegRef();
-    const Xbyak::Reg32 result = ctx.reg_alloc.ScratchGpr().cvt32();
+    const Xbyak::Reg32 result = ctx.reg_alloc.ScratchGpr(code).cvt32();
 
     code.mov(result, MJitStateReg(reg));
-    ctx.reg_alloc.DefineValue(inst, result);
+    ctx.reg_alloc.DefineValue(code, inst, result);
 }
 
 void A32EmitX64::EmitA32GetExtendedRegister32(A32EmitContext& ctx, IR::Inst* inst) {
     const A32::ExtReg reg = inst->GetArg(0).GetA32ExtRegRef();
     ASSERT(A32::IsSingleExtReg(reg));
 
-    const Xbyak::Xmm result = ctx.reg_alloc.ScratchXmm();
+    const Xbyak::Xmm result = ctx.reg_alloc.ScratchXmm(code);
     code.movss(result, MJitStateExtReg(reg));
-    ctx.reg_alloc.DefineValue(inst, result);
+    ctx.reg_alloc.DefineValue(code, inst, result);
 }
 
 void A32EmitX64::EmitA32GetExtendedRegister64(A32EmitContext& ctx, IR::Inst* inst) {
     const A32::ExtReg reg = inst->GetArg(0).GetA32ExtRegRef();
     ASSERT(A32::IsDoubleExtReg(reg));
 
-    const Xbyak::Xmm result = ctx.reg_alloc.ScratchXmm();
+    const Xbyak::Xmm result = ctx.reg_alloc.ScratchXmm(code);
     code.movsd(result, MJitStateExtReg(reg));
-    ctx.reg_alloc.DefineValue(inst, result);
+    ctx.reg_alloc.DefineValue(code, inst, result);
 }
 
 void A32EmitX64::EmitA32GetVector(A32EmitContext& ctx, IR::Inst* inst) {
     const A32::ExtReg reg = inst->GetArg(0).GetA32ExtRegRef();
     ASSERT(A32::IsDoubleExtReg(reg) || A32::IsQuadExtReg(reg));
 
-    const Xbyak::Xmm result = ctx.reg_alloc.ScratchXmm();
+    const Xbyak::Xmm result = ctx.reg_alloc.ScratchXmm(code);
     if (A32::IsDoubleExtReg(reg)) {
         code.movsd(result, MJitStateExtReg(reg));
     } else {
         code.movaps(result, MJitStateExtReg(reg));
     }
-    ctx.reg_alloc.DefineValue(inst, result);
+    ctx.reg_alloc.DefineValue(code, inst, result);
 }
 
 void A32EmitX64::EmitA32SetRegister(A32EmitContext& ctx, IR::Inst* inst) {
@@ -330,11 +346,11 @@ void A32EmitX64::EmitA32SetRegister(A32EmitContext& ctx, IR::Inst* inst) {
 
     if (args[1].IsImmediate()) {
         code.mov(MJitStateReg(reg), args[1].GetImmediateU32());
-    } else if (args[1].IsInXmm()) {
-        const Xbyak::Xmm to_store = ctx.reg_alloc.UseXmm(args[1]);
+    } else if (args[1].IsInXmm(ctx.reg_alloc)) {
+        const Xbyak::Xmm to_store = ctx.reg_alloc.UseXmm(code, args[1]);
         code.movd(MJitStateReg(reg), to_store);
     } else {
-        const Xbyak::Reg32 to_store = ctx.reg_alloc.UseGpr(args[1]).cvt32();
+        const Xbyak::Reg32 to_store = ctx.reg_alloc.UseGpr(code, args[1]).cvt32();
         code.mov(MJitStateReg(reg), to_store);
     }
 }
@@ -344,11 +360,11 @@ void A32EmitX64::EmitA32SetExtendedRegister32(A32EmitContext& ctx, IR::Inst* ins
     const A32::ExtReg reg = inst->GetArg(0).GetA32ExtRegRef();
     ASSERT(A32::IsSingleExtReg(reg));
 
-    if (args[1].IsInXmm()) {
-        Xbyak::Xmm to_store = ctx.reg_alloc.UseXmm(args[1]);
+    if (args[1].IsInXmm(ctx.reg_alloc)) {
+        Xbyak::Xmm to_store = ctx.reg_alloc.UseXmm(code, args[1]);
         code.movss(MJitStateExtReg(reg), to_store);
     } else {
-        Xbyak::Reg32 to_store = ctx.reg_alloc.UseGpr(args[1]).cvt32();
+        Xbyak::Reg32 to_store = ctx.reg_alloc.UseGpr(code, args[1]).cvt32();
         code.mov(MJitStateExtReg(reg), to_store);
     }
 }
@@ -358,11 +374,11 @@ void A32EmitX64::EmitA32SetExtendedRegister64(A32EmitContext& ctx, IR::Inst* ins
     const A32::ExtReg reg = inst->GetArg(0).GetA32ExtRegRef();
     ASSERT(A32::IsDoubleExtReg(reg));
 
-    if (args[1].IsInXmm()) {
-        const Xbyak::Xmm to_store = ctx.reg_alloc.UseXmm(args[1]);
+    if (args[1].IsInXmm(ctx.reg_alloc)) {
+        const Xbyak::Xmm to_store = ctx.reg_alloc.UseXmm(code, args[1]);
         code.movsd(MJitStateExtReg(reg), to_store);
     } else {
-        const Xbyak::Reg64 to_store = ctx.reg_alloc.UseGpr(args[1]);
+        const Xbyak::Reg64 to_store = ctx.reg_alloc.UseGpr(code, args[1]);
         code.mov(MJitStateExtReg(reg), to_store);
     }
 }
@@ -372,7 +388,7 @@ void A32EmitX64::EmitA32SetVector(A32EmitContext& ctx, IR::Inst* inst) {
     const A32::ExtReg reg = inst->GetArg(0).GetA32ExtRegRef();
     ASSERT(A32::IsDoubleExtReg(reg) || A32::IsQuadExtReg(reg));
 
-    const Xbyak::Xmm to_store = ctx.reg_alloc.UseXmm(args[1]);
+    const Xbyak::Xmm to_store = ctx.reg_alloc.UseXmm(code, args[1]);
     if (A32::IsDoubleExtReg(reg)) {
         code.movsd(MJitStateExtReg(reg), to_store);
     } else {
@@ -381,9 +397,9 @@ void A32EmitX64::EmitA32SetVector(A32EmitContext& ctx, IR::Inst* inst) {
 }
 
 void A32EmitX64::EmitA32GetCpsr(A32EmitContext& ctx, IR::Inst* inst) {
-    const Xbyak::Reg32 result = ctx.reg_alloc.ScratchGpr().cvt32();
-    const Xbyak::Reg32 tmp = ctx.reg_alloc.ScratchGpr().cvt32();
-    const Xbyak::Reg32 tmp2 = ctx.reg_alloc.ScratchGpr().cvt32();
+    const Xbyak::Reg32 result = ctx.reg_alloc.ScratchGpr(code).cvt32();
+    const Xbyak::Reg32 tmp = ctx.reg_alloc.ScratchGpr(code).cvt32();
+    const Xbyak::Reg32 tmp2 = ctx.reg_alloc.ScratchGpr(code).cvt32();
 
     if (code.HasHostFeature(HostFeature::FastBMI2)) {
         // Here we observe that cpsr_et and cpsr_ge are right next to each other in memory,
@@ -426,15 +442,15 @@ void A32EmitX64::EmitA32GetCpsr(A32EmitContext& ctx, IR::Inst* inst) {
 
     code.or_(result, dword[code.ABI_JIT_PTR + offsetof(A32JitState, cpsr_jaifm)]);
 
-    ctx.reg_alloc.DefineValue(inst, result);
+    ctx.reg_alloc.DefineValue(code, inst, result);
 }
 
 void A32EmitX64::EmitA32SetCpsr(A32EmitContext& ctx, IR::Inst* inst) {
     auto args = ctx.reg_alloc.GetArgumentInfo(inst);
 
-    const Xbyak::Reg32 cpsr = ctx.reg_alloc.UseScratchGpr(args[0]).cvt32();
-    const Xbyak::Reg32 tmp = ctx.reg_alloc.ScratchGpr().cvt32();
-    const Xbyak::Reg32 tmp2 = ctx.reg_alloc.ScratchGpr().cvt32();
+    const Xbyak::Reg32 cpsr = ctx.reg_alloc.UseScratchGpr(code, args[0]).cvt32();
+    const Xbyak::Reg32 tmp = ctx.reg_alloc.ScratchGpr(code).cvt32();
+    const Xbyak::Reg32 tmp2 = ctx.reg_alloc.ScratchGpr(code).cvt32();
 
     if (conf.always_little_endian) {
         code.and_(cpsr, 0xFFFFFDFF);
@@ -499,7 +515,7 @@ void A32EmitX64::EmitA32SetCpsr(A32EmitContext& ctx, IR::Inst* inst) {
 
 void A32EmitX64::EmitA32SetCpsrNZCV(A32EmitContext& ctx, IR::Inst* inst) {
     auto args = ctx.reg_alloc.GetArgumentInfo(inst);
-    const Xbyak::Reg32 to_store = ctx.reg_alloc.UseScratchGpr(args[0]).cvt32();
+    const Xbyak::Reg32 to_store = ctx.reg_alloc.UseScratchGpr(code, args[0]).cvt32();
     code.mov(dword[code.ABI_JIT_PTR + offsetof(A32JitState, cpsr_nzcv)], to_store);
 }
 
@@ -510,15 +526,15 @@ void A32EmitX64::EmitA32SetCpsrNZCVRaw(A32EmitContext& ctx, IR::Inst* inst) {
 
         code.mov(dword[code.ABI_JIT_PTR + offsetof(A32JitState, cpsr_nzcv)], NZCV::ToX64(imm));
     } else if (code.HasHostFeature(HostFeature::FastBMI2)) {
-        const Xbyak::Reg32 a = ctx.reg_alloc.UseScratchGpr(args[0]).cvt32();
-        const Xbyak::Reg32 b = ctx.reg_alloc.ScratchGpr().cvt32();
+        const Xbyak::Reg32 a = ctx.reg_alloc.UseScratchGpr(code, args[0]).cvt32();
+        const Xbyak::Reg32 b = ctx.reg_alloc.ScratchGpr(code).cvt32();
 
         code.shr(a, 28);
         code.mov(b, NZCV::x64_mask);
         code.pdep(a, a, b);
         code.mov(dword[code.ABI_JIT_PTR + offsetof(A32JitState, cpsr_nzcv)], a);
     } else {
-        const Xbyak::Reg32 a = ctx.reg_alloc.UseScratchGpr(args[0]).cvt32();
+        const Xbyak::Reg32 a = ctx.reg_alloc.UseScratchGpr(code, args[0]).cvt32();
 
         code.shr(a, 28);
         code.imul(a, a, NZCV::to_x64_multiplier);
@@ -535,8 +551,8 @@ void A32EmitX64::EmitA32SetCpsrNZCVQ(A32EmitContext& ctx, IR::Inst* inst) {
         code.mov(dword[code.ABI_JIT_PTR + offsetof(A32JitState, cpsr_nzcv)], NZCV::ToX64(imm));
         code.mov(code.byte[code.ABI_JIT_PTR + offsetof(A32JitState, cpsr_q)], u8((imm & 0x08000000) != 0 ? 1 : 0));
     } else if (code.HasHostFeature(HostFeature::FastBMI2)) {
-        const Xbyak::Reg32 a = ctx.reg_alloc.UseScratchGpr(args[0]).cvt32();
-        const Xbyak::Reg32 b = ctx.reg_alloc.ScratchGpr().cvt32();
+        const Xbyak::Reg32 a = ctx.reg_alloc.UseScratchGpr(code, args[0]).cvt32();
+        const Xbyak::Reg32 b = ctx.reg_alloc.ScratchGpr(code).cvt32();
 
         code.shr(a, 28);
         code.setc(code.byte[code.ABI_JIT_PTR + offsetof(A32JitState, cpsr_q)]);
@@ -544,7 +560,7 @@ void A32EmitX64::EmitA32SetCpsrNZCVQ(A32EmitContext& ctx, IR::Inst* inst) {
         code.pdep(a, a, b);
         code.mov(dword[code.ABI_JIT_PTR + offsetof(A32JitState, cpsr_nzcv)], a);
     } else {
-        const Xbyak::Reg32 a = ctx.reg_alloc.UseScratchGpr(args[0]).cvt32();
+        const Xbyak::Reg32 a = ctx.reg_alloc.UseScratchGpr(code, args[0]).cvt32();
 
         code.shr(a, 28);
         code.setc(code.byte[code.ABI_JIT_PTR + offsetof(A32JitState, cpsr_q)]);
@@ -557,8 +573,8 @@ void A32EmitX64::EmitA32SetCpsrNZCVQ(A32EmitContext& ctx, IR::Inst* inst) {
 void A32EmitX64::EmitA32SetCpsrNZ(A32EmitContext& ctx, IR::Inst* inst) {
     auto args = ctx.reg_alloc.GetArgumentInfo(inst);
 
-    const Xbyak::Reg32 nz = ctx.reg_alloc.UseGpr(args[0]).cvt32();
-    const Xbyak::Reg32 tmp = ctx.reg_alloc.ScratchGpr().cvt32();
+    const Xbyak::Reg32 nz = ctx.reg_alloc.UseGpr(code, args[0]).cvt32();
+    const Xbyak::Reg32 tmp = ctx.reg_alloc.ScratchGpr(code).cvt32();
 
     code.movzx(tmp, code.byte[code.ABI_JIT_PTR + offsetof(A32JitState, cpsr_nzcv) + 1]);
     code.and_(tmp, 1);
@@ -575,12 +591,12 @@ void A32EmitX64::EmitA32SetCpsrNZC(A32EmitContext& ctx, IR::Inst* inst) {
 
             code.mov(code.byte[code.ABI_JIT_PTR + offsetof(A32JitState, cpsr_nzcv) + 1], c);
         } else {
-            const Xbyak::Reg8 c = ctx.reg_alloc.UseGpr(args[1]).cvt8();
+            const Xbyak::Reg8 c = ctx.reg_alloc.UseGpr(code, args[1]).cvt8();
 
             code.mov(code.byte[code.ABI_JIT_PTR + offsetof(A32JitState, cpsr_nzcv) + 1], c);
         }
     } else {
-        const Xbyak::Reg32 nz = ctx.reg_alloc.UseScratchGpr(args[0]).cvt32();
+        const Xbyak::Reg32 nz = ctx.reg_alloc.UseScratchGpr(code, args[0]).cvt32();
 
         if (args[1].IsImmediate()) {
             const bool c = args[1].GetImmediateU1();
@@ -588,7 +604,7 @@ void A32EmitX64::EmitA32SetCpsrNZC(A32EmitContext& ctx, IR::Inst* inst) {
             code.or_(nz, c);
             code.mov(code.byte[code.ABI_JIT_PTR + offsetof(A32JitState, cpsr_nzcv) + 1], nz.cvt8());
         } else {
-            const Xbyak::Reg32 c = ctx.reg_alloc.UseGpr(args[1]).cvt32();
+            const Xbyak::Reg32 c = ctx.reg_alloc.UseGpr(code, args[1]).cvt32();
 
             code.or_(nz, c);
             code.mov(code.byte[code.ABI_JIT_PTR + offsetof(A32JitState, cpsr_nzcv) + 1], nz.cvt8());
@@ -597,13 +613,13 @@ void A32EmitX64::EmitA32SetCpsrNZC(A32EmitContext& ctx, IR::Inst* inst) {
 }
 
 static void EmitGetFlag(BlockOfCode& code, A32EmitContext& ctx, IR::Inst* inst, size_t flag_bit) {
-    const Xbyak::Reg32 result = ctx.reg_alloc.ScratchGpr().cvt32();
+    const Xbyak::Reg32 result = ctx.reg_alloc.ScratchGpr(code).cvt32();
     code.mov(result, dword[code.ABI_JIT_PTR + offsetof(A32JitState, cpsr_nzcv)]);
     if (flag_bit != 0) {
         code.shr(result, static_cast<int>(flag_bit));
     }
     code.and_(result, 1);
-    ctx.reg_alloc.DefineValue(inst, result);
+    ctx.reg_alloc.DefineValue(code, inst, result);
 }
 
 void A32EmitX64::EmitA32GetCFlag(A32EmitContext& ctx, IR::Inst* inst) {
@@ -617,27 +633,27 @@ void A32EmitX64::EmitA32OrQFlag(A32EmitContext& ctx, IR::Inst* inst) {
             code.mov(dword[code.ABI_JIT_PTR + offsetof(A32JitState, cpsr_q)], 1);
         }
     } else {
-        const Xbyak::Reg8 to_store = ctx.reg_alloc.UseGpr(args[0]).cvt8();
+        const Xbyak::Reg8 to_store = ctx.reg_alloc.UseGpr(code, args[0]).cvt8();
 
         code.or_(code.byte[code.ABI_JIT_PTR + offsetof(A32JitState, cpsr_q)], to_store);
     }
 }
 
 void A32EmitX64::EmitA32GetGEFlags(A32EmitContext& ctx, IR::Inst* inst) {
-    const Xbyak::Xmm result = ctx.reg_alloc.ScratchXmm();
+    const Xbyak::Xmm result = ctx.reg_alloc.ScratchXmm(code);
     code.movd(result, dword[code.ABI_JIT_PTR + offsetof(A32JitState, cpsr_ge)]);
-    ctx.reg_alloc.DefineValue(inst, result);
+    ctx.reg_alloc.DefineValue(code, inst, result);
 }
 
 void A32EmitX64::EmitA32SetGEFlags(A32EmitContext& ctx, IR::Inst* inst) {
     auto args = ctx.reg_alloc.GetArgumentInfo(inst);
     ASSERT(!args[0].IsImmediate());
 
-    if (args[0].IsInXmm()) {
-        const Xbyak::Xmm to_store = ctx.reg_alloc.UseXmm(args[0]);
+    if (args[0].IsInXmm(ctx.reg_alloc)) {
+        const Xbyak::Xmm to_store = ctx.reg_alloc.UseXmm(code, args[0]);
         code.movd(dword[code.ABI_JIT_PTR + offsetof(A32JitState, cpsr_ge)], to_store);
     } else {
-        const Xbyak::Reg32 to_store = ctx.reg_alloc.UseGpr(args[0]).cvt32();
+        const Xbyak::Reg32 to_store = ctx.reg_alloc.UseGpr(code, args[0]).cvt32();
         code.mov(dword[code.ABI_JIT_PTR + offsetof(A32JitState, cpsr_ge)], to_store);
     }
 }
@@ -654,8 +670,8 @@ void A32EmitX64::EmitA32SetGEFlagsCompressed(A32EmitContext& ctx, IR::Inst* inst
 
         code.mov(dword[code.ABI_JIT_PTR + offsetof(A32JitState, cpsr_ge)], ge);
     } else if (code.HasHostFeature(HostFeature::FastBMI2)) {
-        const Xbyak::Reg32 a = ctx.reg_alloc.UseScratchGpr(args[0]).cvt32();
-        const Xbyak::Reg32 b = ctx.reg_alloc.ScratchGpr().cvt32();
+        const Xbyak::Reg32 a = ctx.reg_alloc.UseScratchGpr(code, args[0]).cvt32();
+        const Xbyak::Reg32 b = ctx.reg_alloc.ScratchGpr(code).cvt32();
 
         code.mov(b, 0x01010101);
         code.shr(a, 16);
@@ -663,7 +679,7 @@ void A32EmitX64::EmitA32SetGEFlagsCompressed(A32EmitContext& ctx, IR::Inst* inst
         code.imul(a, a, 0xFF);
         code.mov(dword[code.ABI_JIT_PTR + offsetof(A32JitState, cpsr_ge)], a);
     } else {
-        const Xbyak::Reg32 a = ctx.reg_alloc.UseScratchGpr(args[0]).cvt32();
+        const Xbyak::Reg32 a = ctx.reg_alloc.UseScratchGpr(code, args[0]).cvt32();
 
         code.shr(a, 16);
         code.and_(a, 0xF);
@@ -688,7 +704,7 @@ void A32EmitX64::EmitA32InstructionSynchronizationBarrier(A32EmitContext& ctx, I
         return;
     }
 
-    ctx.reg_alloc.HostCall(nullptr);
+    ctx.reg_alloc.HostCall(code, nullptr);
     Devirtualize<&A32::UserCallbacks::InstructionSynchronizationBarrierRaised>(conf.callbacks).EmitCall(code);
 }
 
@@ -696,7 +712,7 @@ void A32EmitX64::EmitA32BXWritePC(A32EmitContext& ctx, IR::Inst* inst) {
     auto args = ctx.reg_alloc.GetArgumentInfo(inst);
     auto& arg = args[0];
 
-    const u32 upper_without_t = (ctx.EndLocation().SetSingleStepping(false).UniqueHash() >> 32) & 0xFFFFFFFE;
+    const u64 upper_without_t = (ctx.EndLocation().SetSingleStepping(false).UniqueHash() >> 32) & 0xFFFFFFFE;
 
     // Pseudocode:
     // if (new_pc & 1) {
@@ -716,9 +732,9 @@ void A32EmitX64::EmitA32BXWritePC(A32EmitContext& ctx, IR::Inst* inst) {
         code.mov(MJitStateReg(A32::Reg::PC), new_pc & mask);
         code.mov(dword[code.ABI_JIT_PTR + offsetof(A32JitState, upper_location_descriptor)], new_upper);
     } else {
-        const Xbyak::Reg32 new_pc = ctx.reg_alloc.UseScratchGpr(arg).cvt32();
-        const Xbyak::Reg32 mask = ctx.reg_alloc.ScratchGpr().cvt32();
-        const Xbyak::Reg32 new_upper = ctx.reg_alloc.ScratchGpr().cvt32();
+        const Xbyak::Reg32 new_pc = ctx.reg_alloc.UseScratchGpr(code, arg).cvt32();
+        const Xbyak::Reg32 mask = ctx.reg_alloc.ScratchGpr(code).cvt32();
+        const Xbyak::Reg32 new_upper = ctx.reg_alloc.ScratchGpr(code).cvt32();
 
         code.mov(mask, new_pc);
         code.and_(mask, 1);
@@ -731,11 +747,9 @@ void A32EmitX64::EmitA32BXWritePC(A32EmitContext& ctx, IR::Inst* inst) {
 }
 
 void A32EmitX64::EmitA32UpdateUpperLocationDescriptor(A32EmitContext& ctx, IR::Inst*) {
-    for (auto& inst : ctx.block) {
-        if (inst.GetOpcode() == IR::Opcode::A32BXWritePC) {
+    for (auto& inst : ctx.block.instructions)
+        if (inst.GetOpcode() == IR::Opcode::A32BXWritePC)
             return;
-        }
-    }
     EmitSetUpperLocationDescriptor(ctx.EndLocation(), ctx.Location());
 }
 
@@ -743,7 +757,7 @@ void A32EmitX64::EmitA32CallSupervisor(A32EmitContext& ctx, IR::Inst* inst) {
     code.SwitchMxcsrOnExit();
 
     if (conf.enable_cycle_counting) {
-        ctx.reg_alloc.HostCall(nullptr);
+        ctx.reg_alloc.HostCall(code, nullptr);
         code.mov(code.ABI_PARAM2, qword[rsp + ABI_SHADOW_SPACE + offsetof(StackLayout, cycles_to_run)]);
         code.sub(code.ABI_PARAM2, qword[rsp + ABI_SHADOW_SPACE + offsetof(StackLayout, cycles_remaining)]);
         Devirtualize<&A32::UserCallbacks::AddTicks>(conf.callbacks).EmitCall(code);
@@ -751,7 +765,7 @@ void A32EmitX64::EmitA32CallSupervisor(A32EmitContext& ctx, IR::Inst* inst) {
     }
 
     auto args = ctx.reg_alloc.GetArgumentInfo(inst);
-    ctx.reg_alloc.HostCall(nullptr, {}, args[0]);
+    ctx.reg_alloc.HostCall(code, nullptr, {}, args[0]);
     Devirtualize<&A32::UserCallbacks::CallSVC>(conf.callbacks).EmitCall(code);
 
     if (conf.enable_cycle_counting) {
@@ -765,7 +779,7 @@ void A32EmitX64::EmitA32CallSupervisor(A32EmitContext& ctx, IR::Inst* inst) {
 void A32EmitX64::EmitA32ExceptionRaised(A32EmitContext& ctx, IR::Inst* inst) {
     code.SwitchMxcsrOnExit();
 
-    ctx.reg_alloc.HostCall(nullptr);
+    ctx.reg_alloc.HostCall(code, nullptr);
     if (conf.enable_cycle_counting) {
         code.mov(code.ABI_PARAM2, qword[rsp + ABI_SHADOW_SPACE + offsetof(StackLayout, cycles_to_run)]);
         code.sub(code.ABI_PARAM2, qword[rsp + ABI_SHADOW_SPACE + offsetof(StackLayout, cycles_remaining)]);
@@ -795,7 +809,7 @@ static u32 GetFpscrImpl(A32JitState* jit_state) {
 }
 
 void A32EmitX64::EmitA32GetFpscr(A32EmitContext& ctx, IR::Inst* inst) {
-    ctx.reg_alloc.HostCall(inst);
+    ctx.reg_alloc.HostCall(code, inst);
     code.mov(code.ABI_PARAM1, code.ABI_JIT_PTR);
 
     code.stmxcsr(code.dword[code.ABI_JIT_PTR + offsetof(A32JitState, guest_MXCSR)]);
@@ -808,7 +822,7 @@ static void SetFpscrImpl(u32 value, A32JitState* jit_state) {
 
 void A32EmitX64::EmitA32SetFpscr(A32EmitContext& ctx, IR::Inst* inst) {
     auto args = ctx.reg_alloc.GetArgumentInfo(inst);
-    ctx.reg_alloc.HostCall(nullptr, args[0]);
+    ctx.reg_alloc.HostCall(code, nullptr, args[0]);
     code.mov(code.ABI_PARAM2, code.ABI_JIT_PTR);
 
     code.CallFunction(&SetFpscrImpl);
@@ -816,17 +830,17 @@ void A32EmitX64::EmitA32SetFpscr(A32EmitContext& ctx, IR::Inst* inst) {
 }
 
 void A32EmitX64::EmitA32GetFpscrNZCV(A32EmitContext& ctx, IR::Inst* inst) {
-    const Xbyak::Reg32 result = ctx.reg_alloc.ScratchGpr().cvt32();
+    const Xbyak::Reg32 result = ctx.reg_alloc.ScratchGpr(code).cvt32();
     code.mov(result, dword[code.ABI_JIT_PTR + offsetof(A32JitState, fpsr_nzcv)]);
-    ctx.reg_alloc.DefineValue(inst, result);
+    ctx.reg_alloc.DefineValue(code, inst, result);
 }
 
 void A32EmitX64::EmitA32SetFpscrNZCV(A32EmitContext& ctx, IR::Inst* inst) {
     auto args = ctx.reg_alloc.GetArgumentInfo(inst);
 
     if (code.HasHostFeature(HostFeature::FastBMI2)) {
-        const Xbyak::Reg32 value = ctx.reg_alloc.UseGpr(args[0]).cvt32();
-        const Xbyak::Reg32 tmp = ctx.reg_alloc.ScratchGpr().cvt32();
+        const Xbyak::Reg32 value = ctx.reg_alloc.UseGpr(code, args[0]).cvt32();
+        const Xbyak::Reg32 tmp = ctx.reg_alloc.ScratchGpr(code).cvt32();
 
         code.mov(tmp, NZCV::x64_mask);
         code.pext(tmp, value, tmp);
@@ -836,7 +850,7 @@ void A32EmitX64::EmitA32SetFpscrNZCV(A32EmitContext& ctx, IR::Inst* inst) {
         return;
     }
 
-    const Xbyak::Reg32 value = ctx.reg_alloc.UseScratchGpr(args[0]).cvt32();
+    const Xbyak::Reg32 value = ctx.reg_alloc.UseScratchGpr(code, args[0]).cvt32();
 
     code.and_(value, NZCV::x64_mask);
     code.imul(value, value, NZCV::from_x64_multiplier);
@@ -849,7 +863,7 @@ static void EmitCoprocessorException() {
 }
 
 static void CallCoprocCallback(BlockOfCode& code, RegAlloc& reg_alloc, A32::Coprocessor::Callback callback, IR::Inst* inst = nullptr, std::optional<Argument::copyable_reference> arg0 = {}, std::optional<Argument::copyable_reference> arg1 = {}) {
-    reg_alloc.HostCall(inst, {}, arg0, arg1);
+    reg_alloc.HostCall(code, inst, {}, arg0, arg1);
 
     if (callback.user_arg) {
         code.mov(code.ABI_PARAM1, reinterpret_cast<u64>(*callback.user_arg));
@@ -912,8 +926,8 @@ void A32EmitX64::EmitA32CoprocSendOneWord(A32EmitContext& ctx, IR::Inst* inst) {
     }
 
     if (const auto destination_ptr = std::get_if<u32*>(&action)) {
-        const Xbyak::Reg32 reg_word = ctx.reg_alloc.UseGpr(args[1]).cvt32();
-        const Xbyak::Reg64 reg_destination_addr = ctx.reg_alloc.ScratchGpr();
+        const Xbyak::Reg32 reg_word = ctx.reg_alloc.UseGpr(code, args[1]).cvt32();
+        const Xbyak::Reg64 reg_destination_addr = ctx.reg_alloc.ScratchGpr(code);
 
         code.mov(reg_destination_addr, reinterpret_cast<u64>(*destination_ptr));
         code.mov(code.dword[reg_destination_addr], reg_word);
@@ -952,9 +966,9 @@ void A32EmitX64::EmitA32CoprocSendTwoWords(A32EmitContext& ctx, IR::Inst* inst) 
     }
 
     if (const auto destination_ptrs = std::get_if<std::array<u32*, 2>>(&action)) {
-        const Xbyak::Reg32 reg_word1 = ctx.reg_alloc.UseGpr(args[1]).cvt32();
-        const Xbyak::Reg32 reg_word2 = ctx.reg_alloc.UseGpr(args[2]).cvt32();
-        const Xbyak::Reg64 reg_destination_addr = ctx.reg_alloc.ScratchGpr();
+        const Xbyak::Reg32 reg_word1 = ctx.reg_alloc.UseGpr(code, args[1]).cvt32();
+        const Xbyak::Reg32 reg_word2 = ctx.reg_alloc.UseGpr(code, args[2]).cvt32();
+        const Xbyak::Reg64 reg_destination_addr = ctx.reg_alloc.ScratchGpr(code);
 
         code.mov(reg_destination_addr, reinterpret_cast<u64>((*destination_ptrs)[0]));
         code.mov(code.dword[reg_destination_addr], reg_word1);
@@ -996,13 +1010,13 @@ void A32EmitX64::EmitA32CoprocGetOneWord(A32EmitContext& ctx, IR::Inst* inst) {
     }
 
     if (const auto source_ptr = std::get_if<u32*>(&action)) {
-        const Xbyak::Reg32 reg_word = ctx.reg_alloc.ScratchGpr().cvt32();
-        const Xbyak::Reg64 reg_source_addr = ctx.reg_alloc.ScratchGpr();
+        const Xbyak::Reg32 reg_word = ctx.reg_alloc.ScratchGpr(code).cvt32();
+        const Xbyak::Reg64 reg_source_addr = ctx.reg_alloc.ScratchGpr(code);
 
         code.mov(reg_source_addr, reinterpret_cast<u64>(*source_ptr));
         code.mov(reg_word, code.dword[reg_source_addr]);
 
-        ctx.reg_alloc.DefineValue(inst, reg_word);
+        ctx.reg_alloc.DefineValue(code, inst, reg_word);
 
         return;
     }
@@ -1036,9 +1050,9 @@ void A32EmitX64::EmitA32CoprocGetTwoWords(A32EmitContext& ctx, IR::Inst* inst) {
     }
 
     if (const auto source_ptrs = std::get_if<std::array<u32*, 2>>(&action)) {
-        const Xbyak::Reg64 reg_result = ctx.reg_alloc.ScratchGpr();
-        const Xbyak::Reg64 reg_destination_addr = ctx.reg_alloc.ScratchGpr();
-        const Xbyak::Reg64 reg_tmp = ctx.reg_alloc.ScratchGpr();
+        const Xbyak::Reg64 reg_result = ctx.reg_alloc.ScratchGpr(code);
+        const Xbyak::Reg64 reg_destination_addr = ctx.reg_alloc.ScratchGpr(code);
+        const Xbyak::Reg64 reg_tmp = ctx.reg_alloc.ScratchGpr(code);
 
         code.mov(reg_destination_addr, reinterpret_cast<u64>((*source_ptrs)[1]));
         code.mov(reg_result.cvt32(), code.dword[reg_destination_addr]);
@@ -1047,7 +1061,7 @@ void A32EmitX64::EmitA32CoprocGetTwoWords(A32EmitContext& ctx, IR::Inst* inst) {
         code.mov(reg_tmp.cvt32(), code.dword[reg_destination_addr]);
         code.or_(reg_result, reg_tmp);
 
-        ctx.reg_alloc.DefineValue(inst, reg_result);
+        ctx.reg_alloc.DefineValue(code, inst, reg_result);
 
         return;
     }
@@ -1124,26 +1138,9 @@ std::string A32EmitX64::LocationDescriptorToFriendlyName(const IR::LocationDescr
                        descriptor.FPSCR().Value());
 }
 
-void A32EmitX64::EmitTerminalImpl(IR::Term::Interpret terminal, IR::LocationDescriptor initial_location, bool) {
-    ASSERT(A32::LocationDescriptor{terminal.next}.TFlag() == A32::LocationDescriptor{initial_location}.TFlag() && "Unimplemented");
-    ASSERT(A32::LocationDescriptor{terminal.next}.EFlag() == A32::LocationDescriptor{initial_location}.EFlag() && "Unimplemented");
-    ASSERT(terminal.num_instructions == 1 && "Unimplemented");
-
-    code.mov(code.ABI_PARAM2.cvt32(), A32::LocationDescriptor{terminal.next}.PC());
-    code.mov(code.ABI_PARAM3.cvt32(), 1);
-    code.mov(MJitStateReg(A32::Reg::PC), code.ABI_PARAM2.cvt32());
-    code.SwitchMxcsrOnExit();
-    Devirtualize<&A32::UserCallbacks::InterpreterFallback>(conf.callbacks).EmitCall(code);
-    code.ReturnFromRunCode(true);  // TODO: Check cycles
-}
-
-void A32EmitX64::EmitTerminalImpl(IR::Term::ReturnToDispatch, IR::LocationDescriptor, bool) {
-    code.ReturnFromRunCode();
-}
-
 void A32EmitX64::EmitSetUpperLocationDescriptor(IR::LocationDescriptor new_location, IR::LocationDescriptor old_location) {
     auto get_upper = [](const IR::LocationDescriptor& desc) -> u32 {
-        return static_cast<u32>(A32::LocationDescriptor{desc}.SetSingleStepping(false).UniqueHash() >> 32);
+        return u32(A32::LocationDescriptor{desc}.SetSingleStepping(false).UniqueHash() >> 32);
     };
 
     const u32 old_upper = get_upper(old_location);
@@ -1157,90 +1154,102 @@ void A32EmitX64::EmitSetUpperLocationDescriptor(IR::LocationDescriptor new_locat
     }
 }
 
-void A32EmitX64::EmitTerminalImpl(IR::Term::LinkBlock terminal, IR::LocationDescriptor initial_location, bool is_single_step) {
-    EmitSetUpperLocationDescriptor(terminal.next, initial_location);
+namespace {
+void EmitTerminalImpl(A32EmitX64& e, IR::Term::ReturnToDispatch, IR::LocationDescriptor, bool) {
+    e.code.ReturnFromRunCode();
+}
 
-    if (!conf.HasOptimization(OptimizationFlag::BlockLinking) || is_single_step) {
-        code.mov(MJitStateReg(A32::Reg::PC), A32::LocationDescriptor{terminal.next}.PC());
-        code.ReturnFromRunCode();
+void EmitTerminalImpl(A32EmitX64& e, IR::Term::LinkBlock terminal, IR::LocationDescriptor initial_location, bool is_single_step) {
+    e.EmitSetUpperLocationDescriptor(terminal.next, initial_location);
+    if (!e.conf.HasOptimization(OptimizationFlag::BlockLinking) || is_single_step) {
+        e.code.mov(MJitStateReg(A32::Reg::PC), A32::LocationDescriptor{terminal.next}.PC());
+        e.code.ReturnFromRunCode();
     } else {
-        if (conf.enable_cycle_counting) {
-            code.cmp(qword[rsp + ABI_SHADOW_SPACE + offsetof(StackLayout, cycles_remaining)], 0);
-            patch_information[terminal.next].jg.push_back(code.getCurr());
-            if (const auto next_bb = GetBasicBlock(terminal.next)) {
-                EmitPatchJg(terminal.next, next_bb->entrypoint);
+        if (e.conf.enable_cycle_counting) {
+            e.code.cmp(qword[rsp + ABI_SHADOW_SPACE + offsetof(StackLayout, cycles_remaining)], 0);
+            e.patch_information[terminal.next].jg.push_back(e.code.getCurr());
+            if (const auto next_bb = e.GetBasicBlock(terminal.next)) {
+                e.EmitPatchJg(terminal.next, next_bb->entrypoint);
             } else {
-                EmitPatchJg(terminal.next);
+                e.EmitPatchJg(terminal.next);
             }
         } else {
-            code.cmp(dword[code.ABI_JIT_PTR + offsetof(A32JitState, halt_reason)], 0);
-            patch_information[terminal.next].jz.push_back(code.getCurr());
-            if (const auto next_bb = GetBasicBlock(terminal.next)) {
-                EmitPatchJz(terminal.next, next_bb->entrypoint);
+            e.code.cmp(dword[e.code.ABI_JIT_PTR + offsetof(A32JitState, halt_reason)], 0);
+            e.patch_information[terminal.next].jz.push_back(e.code.getCurr());
+            if (const auto next_bb = e.GetBasicBlock(terminal.next)) {
+                e.EmitPatchJz(terminal.next, next_bb->entrypoint);
             } else {
-                EmitPatchJz(terminal.next);
+                e.EmitPatchJz(terminal.next);
             }
         }
-        code.mov(MJitStateReg(A32::Reg::PC), A32::LocationDescriptor{terminal.next}.PC());
-        PushRSBHelper(rax, rbx, terminal.next);
-        code.ForceReturnFromRunCode();
+        e.code.mov(MJitStateReg(A32::Reg::PC), A32::LocationDescriptor{terminal.next}.PC());
+        e.PushRSBHelper(rax, rbx, terminal.next);
+        e.code.ForceReturnFromRunCode();
     }
 }
 
-void A32EmitX64::EmitTerminalImpl(IR::Term::LinkBlockFast terminal, IR::LocationDescriptor initial_location, bool is_single_step) {
-    EmitSetUpperLocationDescriptor(terminal.next, initial_location);
-
-    if (!conf.HasOptimization(OptimizationFlag::BlockLinking) || is_single_step) {
-        code.mov(MJitStateReg(A32::Reg::PC), A32::LocationDescriptor{terminal.next}.PC());
-        code.ReturnFromRunCode();
+void EmitTerminalImpl(A32EmitX64& e, IR::Term::LinkBlockFast terminal, IR::LocationDescriptor initial_location, bool is_single_step) {
+    e.EmitSetUpperLocationDescriptor(terminal.next, initial_location);
+    if (!e.conf.HasOptimization(OptimizationFlag::BlockLinking) || is_single_step) {
+        e.code.mov(MJitStateReg(A32::Reg::PC), A32::LocationDescriptor{terminal.next}.PC());
+        e.code.ReturnFromRunCode();
     } else {
-        patch_information[terminal.next].jmp.push_back(code.getCurr());
-        if (const auto next_bb = GetBasicBlock(terminal.next)) {
-            EmitPatchJmp(terminal.next, next_bb->entrypoint);
+        e.patch_information[terminal.next].jmp.push_back(e.code.getCurr());
+        if (const auto next_bb = e.GetBasicBlock(terminal.next)) {
+            e.EmitPatchJmp(terminal.next, next_bb->entrypoint);
         } else {
-            EmitPatchJmp(terminal.next);
+            e.EmitPatchJmp(terminal.next);
         }
     }
 }
 
-void A32EmitX64::EmitTerminalImpl(IR::Term::PopRSBHint, IR::LocationDescriptor, bool is_single_step) {
-    if (!conf.HasOptimization(OptimizationFlag::ReturnStackBuffer) || is_single_step) {
-        code.ReturnFromRunCode();
-        return;
+void EmitTerminalImpl(A32EmitX64& e, IR::Term::PopRSBHint, IR::LocationDescriptor, bool is_single_step) {
+    if (!e.conf.HasOptimization(OptimizationFlag::ReturnStackBuffer) || is_single_step) {
+        e.code.ReturnFromRunCode();
+    } else {
+        e.code.jmp(e.terminal_handler_pop_rsb_hint);
     }
-
-    code.jmp(terminal_handler_pop_rsb_hint);
 }
 
-void A32EmitX64::EmitTerminalImpl(IR::Term::FastDispatchHint, IR::LocationDescriptor, bool is_single_step) {
-    if (!conf.HasOptimization(OptimizationFlag::FastDispatch) || is_single_step) {
-        code.ReturnFromRunCode();
-        return;
+void EmitTerminalImpl(A32EmitX64& e, IR::Term::FastDispatchHint, IR::LocationDescriptor, bool is_single_step) {
+    if (!e.conf.HasOptimization(OptimizationFlag::FastDispatch) || is_single_step) {
+        e.code.ReturnFromRunCode();
+    } else {
+        e.code.jmp(e.terminal_handler_fast_dispatch_hint);
     }
-
-    code.jmp(terminal_handler_fast_dispatch_hint);
 }
 
-void A32EmitX64::EmitTerminalImpl(IR::Term::If terminal, IR::LocationDescriptor initial_location, bool is_single_step) {
-    Xbyak::Label pass = EmitCond(terminal.if_);
-    EmitTerminal(terminal.else_, initial_location, is_single_step);
-    code.L(pass);
-    EmitTerminal(terminal.then_, initial_location, is_single_step);
+void EmitTerminalImpl(A32EmitX64& e, IR::Term::If terminal, IR::LocationDescriptor initial_location, bool is_single_step) {
+    Xbyak::Label pass = e.EmitCond(terminal.if_);
+    e.EmitTerminal(terminal.else_, initial_location, is_single_step);
+    e.code.L(pass);
+    e.EmitTerminal(terminal.then_, initial_location, is_single_step);
 }
 
-void A32EmitX64::EmitTerminalImpl(IR::Term::CheckBit terminal, IR::LocationDescriptor initial_location, bool is_single_step) {
+void EmitTerminalImpl(A32EmitX64& e, IR::Term::CheckBit terminal, IR::LocationDescriptor initial_location, bool is_single_step) {
     Xbyak::Label fail;
-    code.cmp(code.byte[rsp + ABI_SHADOW_SPACE + offsetof(StackLayout, check_bit)], u8(0));
-    code.jz(fail);
-    EmitTerminal(terminal.then_, initial_location, is_single_step);
-    code.L(fail);
-    EmitTerminal(terminal.else_, initial_location, is_single_step);
+    e.code.cmp(e.code.byte[rsp + ABI_SHADOW_SPACE + offsetof(StackLayout, check_bit)], u8(0));
+    e.code.jz(fail);
+    e.EmitTerminal(terminal.then_, initial_location, is_single_step);
+    e.code.L(fail);
+    e.EmitTerminal(terminal.else_, initial_location, is_single_step);
 }
 
-void A32EmitX64::EmitTerminalImpl(IR::Term::CheckHalt terminal, IR::LocationDescriptor initial_location, bool is_single_step) {
-    code.cmp(dword[code.ABI_JIT_PTR + offsetof(A32JitState, halt_reason)], 0);
-    code.jne(code.GetForceReturnFromRunCodeAddress());
-    EmitTerminal(terminal.else_, initial_location, is_single_step);
+void EmitTerminalImpl(A32EmitX64& e, IR::Term::CheckHalt terminal, IR::LocationDescriptor initial_location, bool is_single_step) {
+    e.code.cmp(dword[e.code.ABI_JIT_PTR + offsetof(A32JitState, halt_reason)], 0);
+    e.code.jne(e.code.GetForceReturnFromRunCodeAddress());
+    e.EmitTerminal(terminal.else_, initial_location, is_single_step);
+}
+
+void EmitTerminalImpl(A32EmitX64&, IR::Term::Invalid, IR::LocationDescriptor, bool) {
+    UNREACHABLE();
+}
+}
+
+void A32EmitX64::EmitTerminal(IR::Terminal terminal, IR::LocationDescriptor initial_location, bool is_single_step) noexcept {
+    boost::apply_visitor([this, initial_location, is_single_step](auto x) {
+        EmitTerminalImpl(*this, x, initial_location, is_single_step);
+    }, terminal);
 }
 
 void A32EmitX64::EmitPatchJg(const IR::LocationDescriptor& target_desc, CodePtr target_code_ptr) {

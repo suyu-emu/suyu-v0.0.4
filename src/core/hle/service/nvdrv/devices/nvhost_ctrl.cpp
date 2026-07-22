@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: 2021 yuzu Emulator Project
 // SPDX-FileCopyrightText: 2021 Skyline Team and Contributors
 // SPDX-License-Identifier: GPL-3.0-or-later
@@ -6,9 +9,9 @@
 #include <cstdlib>
 #include <cstring>
 
-#include <fmt/format.h>
+#include <fmt/ranges.h>
 #include "common/assert.h"
-#include "common/logging/log.h"
+#include "common/logging.h"
 #include "common/scope_exit.h"
 #include "core/core.h"
 #include "core/hle/kernel/k_event.h"
@@ -87,7 +90,7 @@ NvResult nvhost_ctrl::NvOsGetConfigU32(IocGetConfigParams& params) {
 }
 
 NvResult nvhost_ctrl::IocCtrlEventWait(IocCtrlEventWaitParams& params, bool is_allocation) {
-    LOG_DEBUG(Service_NVDRV, "EventWait syncpt_id={}, threshold={}, timeout={}, is_allocation={}",
+    LOG_DEBUG(Service_NVDRV, "syncpt_id={}, threshold={}, timeout={}, is_allocation={}",
               params.fence.id, params.fence.value, params.timeout, is_allocation);
 
     bool must_unmark_fail = !is_allocation;
@@ -184,8 +187,6 @@ NvResult nvhost_ctrl::IocCtrlEventWait(IocCtrlEventWaitParams& params, bool is_a
 
     params.value.raw = 0;
 
-    LOG_DEBUG(Service_NVDRV, "EventWait BLOCKING on syncpt_id={}, target_value={}, slot={}",
-              fence_id, target_value, slot);
     event.status.store(EventState::Waiting, std::memory_order_release);
     event.assigned_syncpt = fence_id;
     event.assigned_value = target_value;
@@ -202,7 +203,7 @@ NvResult nvhost_ctrl::IocCtrlEventWait(IocCtrlEventWaitParams& params, bool is_a
             auto& event_ = events[slot];
             if (event_.status.exchange(EventState::Signalling, std::memory_order_acq_rel) ==
                 EventState::Waiting) {
-                event_.kevent->Signal();
+                event_.kevent->Signal(system.Kernel());
             }
             event_.status.store(EventState::Signalled, std::memory_order_release);
         });
@@ -291,7 +292,7 @@ NvResult nvhost_ctrl::IocCtrlClearEventWait(IocCtrlEventClearParams& params) {
     }
     event.fails++;
     event.status.store(EventState::Cancelled, std::memory_order_release);
-    event.kevent->Clear();
+    event.kevent->Clear(system.Kernel());
 
     return NvResult::Success;
 }

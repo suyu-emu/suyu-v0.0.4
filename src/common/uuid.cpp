@@ -1,15 +1,19 @@
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2022 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
 #include <bit>
 #include <optional>
-#include <fmt/format.h>
+#include <random>
 
-#include "common/random.h"
+#include <fmt/ranges.h>
 
 #include "common/assert.h"
 #include "common/tiny_mt.h"
 #include "common/uuid.h"
+#include "common/random.h"
 
 namespace Common {
 
@@ -175,19 +179,16 @@ u128 UUID::AsU128() const {
 }
 
 UUID UUID::MakeRandom() {
-    return MakeRandomWithSeed(Common::Random::Random32());
+    return MakeRandomWithSeed(Common::Random::Random32(0));
 }
 
 UUID UUID::MakeRandomWithSeed(u32 seed) {
     // Create and initialize our RNG.
     TinyMT rng;
     rng.Initialize(seed);
-
     UUID uuid;
-
     // Populate the UUID with random bytes.
     rng.GenerateRandomBytes(uuid.uuid.data(), sizeof(UUID));
-
     return uuid;
 }
 

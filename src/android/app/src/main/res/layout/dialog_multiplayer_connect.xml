@@ -59,8 +59,11 @@
                 android:layout_marginBottom="16dp"
                 android:text="@string/multiplayer_public_room"
                 app:cornerRadius="16dp"
+                app:backgroundTint="?attr/colorPrimary"
                 app:icon="@drawable/ic_search"
-                app:iconPadding="12dp" />
+                app:iconPadding="12dp"
+                app:iconTint="?attr/colorOnPrimary"
+                android:textColor="?attr/colorOnPrimary" />
 
             <Space
                 android:layout_width="20dp"

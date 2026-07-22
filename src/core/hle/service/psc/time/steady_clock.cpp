@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2023 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -10,10 +13,11 @@ namespace Service::PSC::Time {
 
 SteadyClock::SteadyClock(Core::System& system_, std::shared_ptr<TimeManager> manager,
                          bool can_write_steady_clock, bool can_write_uninitialized_clock)
-    : ServiceFramework{system_, "ISteadyClock"}, m_system{system},
-      m_clock_core{manager->m_standard_steady_clock},
-      m_can_write_steady_clock{can_write_steady_clock}, m_can_write_uninitialized_clock{
-                                                            can_write_uninitialized_clock} {
+    : ServiceFramework{system_, "ISteadyClock"}
+    , m_clock_core{manager->m_standard_steady_clock}
+    , m_can_write_steady_clock{can_write_steady_clock}
+    , m_can_write_uninitialized_clock{can_write_uninitialized_clock}
+{
     // clang-format off
          static const FunctionInfo functions[] = {
         {0, D<&SteadyClock::GetCurrentTimePoint>, "GetCurrentTimePoint"},
@@ -87,7 +91,7 @@ Result SteadyClock::IsRtcResetDetected(Out<bool> out_is_detected) {
 
 Result SteadyClock::GetSetupResultValue(Out<Result> out_result) {
     SCOPE_EXIT {
-        LOG_DEBUG(Service_Time, "called. out_result=0x{:X}", out_result->raw);
+        LOG_DEBUG(Service_Time, "called. out_result={:#X}", out_result->raw);
     };
 
     R_UNLESS(m_can_write_uninitialized_clock || m_clock_core.IsInitialized(),

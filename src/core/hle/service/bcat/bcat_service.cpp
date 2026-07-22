@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2018 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -40,21 +43,21 @@ IBcatService::IBcatService(Core::System& system_, BcatBackend& backend_)
             {20401, nullptr, "UnregisterSystemApplicationDeliveryTask"},
             {20410, nullptr, "SetSystemApplicationDeliveryTaskTimer"},
             {30100, D<&IBcatService::SetPassphrase>, "SetPassphrase"},
-            {30101, nullptr, "Unknown30101"},
-            {30102, nullptr, "Unknown30102"},
+            {30101, nullptr, "Unknown30101"}, //2.0.0-2.3.0
+            {30102, nullptr, "Unknown30102"}, //2.0.0-2.3.0
             {30200, nullptr, "RegisterBackgroundDeliveryTask"},
             {30201, nullptr, "UnregisterBackgroundDeliveryTask"},
             {30202, nullptr, "BlockDeliveryTask"},
             {30203, nullptr, "UnblockDeliveryTask"},
             {30210, nullptr, "SetDeliveryTaskTimer"},
             {30300, D<&IBcatService::RegisterSystemApplicationDeliveryTasks>, "RegisterSystemApplicationDeliveryTasks"},
-            {90100, nullptr, "EnumerateBackgroundDeliveryTask"},
-            {90101, nullptr, "Unknown90101"},
+            {90100, nullptr, "GetDeliveryTaskList"},
+            {90101, nullptr, "GetDeliveryTaskListForSystem"}, //11.0.0+
             {90200, nullptr, "GetDeliveryList"},
             {90201, D<&IBcatService::ClearDeliveryCacheStorage>, "ClearDeliveryCacheStorage"},
             {90202, nullptr, "ClearDeliveryTaskSubscriptionStatus"},
             {90300, nullptr, "GetPushNotificationLog"},
-            {90301, nullptr, "Unknown90301"},
+            {90301, nullptr, "GetDeliveryCacheStorageUsage"}, //11.0.0+
         };
     // clang-format on
     RegisterHandlers(functions);
@@ -67,7 +70,7 @@ Result IBcatService::RequestSyncDeliveryCache(
     LOG_DEBUG(Service_BCAT, "called");
 
     auto& progress_backend{GetProgressBackend(SyncType::Normal)};
-    backend.Synchronize({system.GetApplicationProcessProgramID(),
+    backend.Synchronize(system.Kernel(), {system.GetApplicationProcessProgramID(),
                          GetCurrentBuildID(system.GetApplicationProcessBuildID())},
                         GetProgressBackend(SyncType::Normal));
 
@@ -83,7 +86,7 @@ Result IBcatService::RequestSyncDeliveryCacheWithDirectoryName(
     LOG_DEBUG(Service_BCAT, "called, name={}", name);
 
     auto& progress_backend{GetProgressBackend(SyncType::Directory)};
-    backend.SynchronizeDirectory({system.GetApplicationProcessProgramID(),
+    backend.SynchronizeDirectory(system.Kernel(), {system.GetApplicationProcessProgramID(),
                                   GetCurrentBuildID(system.GetApplicationProcessBuildID())},
                                  name, progress_backend);
 
@@ -102,9 +105,9 @@ Result IBcatService::SetPassphrase(u64 application_id,
 
     Passphrase passphrase{};
     std::memcpy(passphrase.data(), passphrase_buffer.data(),
-                std::min(passphrase.size(), passphrase_buffer.size()));
+                (std::min)(passphrase.size(), passphrase_buffer.size()));
 
-    backend.SetPassphrase(application_id, passphrase);
+    backend.SetPassphrase(system.Kernel(), application_id, passphrase);
     R_SUCCEED();
 }
 
@@ -117,7 +120,7 @@ Result IBcatService::ClearDeliveryCacheStorage(u64 application_id) {
     LOG_DEBUG(Service_BCAT, "called, title_id={:016X}", application_id);
 
     R_UNLESS(application_id != 0, ResultInvalidArgument);
-    R_UNLESS(backend.Clear(application_id), FileSys::ResultPermissionDenied);
+    R_UNLESS(backend.Clear(system.Kernel(), application_id), FileSys::ResultPermissionDenied);
     R_SUCCEED();
 }
 

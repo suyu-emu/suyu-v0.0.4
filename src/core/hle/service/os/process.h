@@ -1,7 +1,12 @@
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2024 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
 #pragma once
+
+#include <utility>
 
 #include "common/common_types.h"
 
@@ -22,8 +27,17 @@ namespace Service {
 
 class Process {
 public:
-    explicit Process(Core::System& system);
-    ~Process();
+    inline explicit Process(Core::System& system) noexcept : m_system(system) {}
+    inline ~Process() { this->Finalize(); }
+
+    Process(const Process&) = delete;
+    Process& operator=(const Process&) = delete;
+    Process& operator=(Process&&) = delete;
+    inline Process(Process&& other) noexcept
+        : m_system(other.m_system), m_process(std::exchange(other.m_process, nullptr)),
+          m_main_thread_stack_size(std::exchange(other.m_main_thread_stack_size, 0)),
+          m_main_thread_priority(std::exchange(other.m_main_thread_priority, 0)),
+          m_process_started(std::exchange(other.m_process_started, false)) {}
 
     bool Initialize(Loader::AppLoader& loader, Loader::ResultStatus& out_load_result);
     void Finalize();
@@ -50,8 +64,8 @@ public:
 private:
     Core::System& m_system;
     Kernel::KProcess* m_process{};
-    s32 m_main_thread_priority{};
     u64 m_main_thread_stack_size{};
+    s32 m_main_thread_priority{};
     bool m_process_started{};
 };
 

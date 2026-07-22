@@ -1,9 +1,8 @@
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2024 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
-
-#include <algorithm>
-#include <cstring>
-#include <utility>
 
 #include "common/settings.h"
 #include "common/uuid.h"
@@ -12,6 +11,7 @@
 #include "core/file_sys/registered_cache.h"
 #include "core/file_sys/savedata_factory.h"
 #include "core/hle/kernel/k_transfer_memory.h"
+#include "core/hle/result.h"
 #include "core/hle/service/am/am_results.h"
 #include "core/hle/service/am/applet.h"
 #include "core/hle/service/am/service/application_functions.h"
@@ -25,83 +25,6 @@
 #include "core/hle/service/sm/sm.h"
 
 namespace Service::AM {
-namespace {
-
-constexpr u64 SufficientSaveDataSize = 0xF0000000;
-
-std::pair<u64, u64> GetNacpSaveDataSizeMax(Core::System& system, u64 program_id,
-                                           bool device_save) {
-    const auto read_from_raw = [device_save](const FileSys::RawNACP& raw_nacp) {
-        const u64 default_normal = device_save ? raw_nacp.device_save_data_size
-                                               : raw_nacp.user_account_save_data_size;
-        const u64 default_journal = device_save ? raw_nacp.device_save_data_journal_size
-                                                : raw_nacp.user_account_save_data_journal_size;
-        u64 max_normal = device_save ? raw_nacp.device_save_data_max_size
-                                     : raw_nacp.user_account_save_data_max_size;
-        u64 max_journal = device_save ? raw_nacp.device_save_data_max_journal_size
-                                      : raw_nacp.user_account_save_data_max_journal_size;
-
-        if (max_normal == 0) {
-            max_normal = default_normal;
-        }
-        if (max_journal == 0) {
-            max_journal = default_journal;
-        }
-
-        return std::make_pair(max_normal, max_journal);
-    };
-
-    std::vector<u8> raw_control;
-    if (system.GetARPManager().GetControlProperty(&raw_control, program_id).IsSuccess() &&
-        !raw_control.empty()) {
-        FileSys::RawNACP raw_nacp{};
-        std::memcpy(&raw_nacp, raw_control.data(), std::min(sizeof(raw_nacp), raw_control.size()));
-        const auto [max_normal, max_journal] = read_from_raw(raw_nacp);
-        if (max_normal != 0 || max_journal != 0) {
-            return {max_normal, max_journal};
-        }
-    }
-
-    const auto metadata = [&] {
-        const FileSys::PatchManager pm{program_id, system.GetFileSystemController(),
-                                       system.GetContentProvider()};
-        auto control = pm.GetControlMetadata();
-        if (control.first != nullptr) {
-            return control;
-        }
-
-        const FileSys::PatchManager pm_update{FileSys::GetUpdateTitleID(program_id),
-                                              system.GetFileSystemController(),
-                                              system.GetContentProvider()};
-        return pm_update.GetControlMetadata();
-    }();
-
-    if (metadata.first != nullptr) {
-        const auto& nacp = metadata.first;
-        const u64 default_normal =
-            device_save ? nacp->GetDeviceSaveDataSize() : nacp->GetDefaultNormalSaveSize();
-        const u64 default_journal = device_save ? nacp->GetDeviceSaveDataJournalSize()
-                                                : nacp->GetDefaultJournalSaveSize();
-        u64 max_normal = device_save ? nacp->GetDeviceSaveDataMaxSize()
-                                     : nacp->GetUserAccountSaveDataMaxSize();
-        u64 max_journal = device_save ? nacp->GetDeviceSaveDataMaxJournalSize()
-                                      : nacp->GetUserAccountSaveDataMaxJournalSize();
-
-        if (max_normal == 0) {
-            max_normal = default_normal;
-        }
-        if (max_journal == 0) {
-            max_journal = default_journal;
-        }
-        if (max_normal != 0 || max_journal != 0) {
-            return {max_normal, max_journal};
-        }
-    }
-
-    return {SufficientSaveDataSize, SufficientSaveDataSize};
-}
-
-} // namespace
 
 IApplicationFunctions::IApplicationFunctions(Core::System& system_, std::shared_ptr<Applet> applet)
     : ServiceFramework{system_, "IApplicationFunctions"}, m_applet{std::move(applet)} {
@@ -110,7 +33,7 @@ IApplicationFunctions::IApplicationFunctions(Core::System& system_, std::shared_
         {1, D<&IApplicationFunctions::PopLaunchParameter>, "PopLaunchParameter"},
         {10, nullptr, "CreateApplicationAndPushAndRequestToStart"},
         {11, nullptr, "CreateApplicationAndPushAndRequestToStartForQuest"},
-        {12, nullptr, "CreateApplicationAndRequestToStart"},
+        {12, D<&IApplicationFunctions::CreateApplicationAndRequestToStart>, "CreateApplicationAndRequestToStart"},
         {13, nullptr, "CreateApplicationAndRequestToStartForQuest"},
         {14, nullptr, "CreateApplicationWithAttributeAndPushAndRequestToStartForQuest"},
         {15, nullptr, "CreateApplicationWithAttributeAndRequestToStartForQuest"},
@@ -129,12 +52,12 @@ IApplicationFunctions::IApplicationFunctions(Core::System& system_, std::shared_
         {32, D<&IApplicationFunctions::BeginBlockingHomeButton>, "BeginBlockingHomeButton"},
         {33, D<&IApplicationFunctions::EndBlockingHomeButton>, "EndBlockingHomeButton"},
         {34, nullptr, "SelectApplicationLicense"},
-        {35, D<&IApplicationFunctions::GetDeviceSaveDataSizeMax>, "GetDeviceSaveDataSizeMax"},
+        {35, nullptr, "GetDeviceSaveDataSizeMax"},
         {36, nullptr, "GetLimitedApplicationLicense"},
         {37, nullptr, "GetLimitedApplicationLicenseUpgradableEvent"},
         {40, D<&IApplicationFunctions::NotifyRunning>, "NotifyRunning"},
         {50, D<&IApplicationFunctions::GetPseudoDeviceId>, "GetPseudoDeviceId"},
-        {60, nullptr, "SetMediaPlaybackStateForApplication"},
+        {60, D<&IApplicationFunctions::SetMediaPlaybackStateForApplication>, "SetMediaPlaybackStateForApplication"},
         {65, D<&IApplicationFunctions::IsGamePlayRecordingSupported>, "IsGamePlayRecordingSupported"},
         {66, D<&IApplicationFunctions::InitializeGamePlayRecording>, "InitializeGamePlayRecording"},
         {67, D<&IApplicationFunctions::SetGamePlayRecordingState>, "SetGamePlayRecordingState"},
@@ -166,7 +89,12 @@ IApplicationFunctions::IApplicationFunctions(Core::System& system_, std::shared_
         {181, nullptr, "UpgradeLaunchRequiredVersion"},
         {190, nullptr, "SendServerMaintenanceOverlayNotification"},
         {200, nullptr, "GetLastApplicationExitReason"},
-        {210, D<&IApplicationFunctions::GetUnknownEvent>, "GetUnknownEvent"},
+        {210, D<&IApplicationFunctions::GetUnknownEvent210>, "Unknown210"},
+        {220, nullptr, "Unknown220"}, // [20.0.0+]
+        {300, nullptr, "CreateMovieWriter"}, // [19.0.0+]
+        {310, nullptr, "Unknown310"}, // [20.0.0+]
+        {320, nullptr, "Unknown320"}, // [20.0.0+]
+        {330, D<&IApplicationFunctions::Unknown330>, "Unknown330"}, // [20.0.0+]
         {500, nullptr, "StartContinuousRecordingFlushForDebug"},
         {1000, nullptr, "CreateMovieMaker"},
         {1001, D<&IApplicationFunctions::PrepareForJit>, "PrepareForJit"},
@@ -294,7 +222,7 @@ Result IApplicationFunctions::GetDisplayVersion(Out<DisplayVersion> out_display_
     if (res.first != nullptr) {
         const auto& version = res.first->GetVersionString();
         std::memcpy(out_display_version->string.data(), version.data(),
-                    std::min(version.size(), out_display_version->string.size()));
+                    (std::min)(version.size(), out_display_version->string.size()));
     } else {
         static constexpr char default_version[]{"1.0.0"};
         std::memcpy(out_display_version->string.data(), default_version, sizeof(default_version));
@@ -346,14 +274,10 @@ Result IApplicationFunctions::CreateCacheStorage(Out<u32> out_target_media,
 
 Result IApplicationFunctions::GetSaveDataSizeMax(Out<u64> out_max_normal_size,
                                                  Out<u64> out_max_journal_size) {
-    const auto [max_normal_size, max_journal_size] =
-        GetNacpSaveDataSizeMax(system, m_applet->program_id, false);
+    LOG_WARNING(Service_AM, "(STUBBED) called");
 
-    LOG_INFO(Service_AM, "called, max_normal={:#x}, max_journal={:#x}", max_normal_size,
-             max_journal_size);
-
-    *out_max_normal_size = max_normal_size;
-    *out_max_journal_size = max_journal_size;
+    *out_max_normal_size = 0xFFFFFFF;
+    *out_max_journal_size = 0xFFFFFFF;
 
     R_SUCCEED();
 }
@@ -366,24 +290,10 @@ Result IApplicationFunctions::GetCacheStorageMax(Out<u32> out_cache_storage_inde
     R_TRY(system.GetARPManager().GetControlProperty(&nacp, m_applet->program_id));
 
     auto raw_nacp = std::make_unique<FileSys::RawNACP>();
-    std::memcpy(raw_nacp.get(), nacp.data(), std::min(sizeof(*raw_nacp), nacp.size()));
+    std::memcpy(raw_nacp.get(), nacp.data(), (std::min)(sizeof(*raw_nacp), nacp.size()));
 
     *out_cache_storage_index_max = static_cast<u32>(raw_nacp->cache_storage_max_index);
     *out_max_journal_size = static_cast<u64>(raw_nacp->cache_storage_data_and_journal_max_size);
-
-    R_SUCCEED();
-}
-
-Result IApplicationFunctions::GetDeviceSaveDataSizeMax(Out<u64> out_max_normal_size,
-                                                       Out<u64> out_max_journal_size) {
-    const auto [max_normal_size, max_journal_size] =
-        GetNacpSaveDataSizeMax(system, m_applet->program_id, true);
-
-    LOG_INFO(Service_AM, "called, max_normal={:#x}, max_journal={:#x}", max_normal_size,
-             max_journal_size);
-
-    *out_max_normal_size = max_normal_size;
-    *out_max_journal_size = max_journal_size;
 
     R_SUCCEED();
 }
@@ -455,6 +365,13 @@ Result IApplicationFunctions::InitializeGamePlayRecording(
     R_SUCCEED();
 }
 
+Result IApplicationFunctions::SetMediaPlaybackStateForApplication(bool enabled) {
+    LOG_WARNING(Service_AM, "(stubbed) {}", enabled);
+    std::scoped_lock lk{m_applet->lock};
+    m_applet->media_playback_state = enabled;
+    R_SUCCEED();
+}
+
 Result IApplicationFunctions::SetGamePlayRecordingState(
     GamePlayRecordingState game_play_recording_state) {
     LOG_WARNING(Service_AM, "(STUBBED) called");
@@ -522,6 +439,19 @@ Result IApplicationFunctions::ExecuteProgram(ProgramSpecifyKind kind, u64 value)
     R_SUCCEED();
 }
 
+// https://switchbrew.org/wiki/Applet_Manager_services#CreateApplicationAndRequestToStart
+Result IApplicationFunctions::CreateApplicationAndRequestToStart(u64 application_id) {
+    LOG_INFO(Service_AM, "called, application_id={:016X}", application_id);
+
+    // If application_id is 0, relaunch the current application
+    const u64 target_application_id =
+        (application_id == 0) ? m_applet->program_id : application_id;
+
+    system.GetUserChannel() = m_applet->user_channel_launch_parameter;
+    system.ExecuteProgram(target_application_id);
+    R_SUCCEED();
+}
+
 Result IApplicationFunctions::ClearUserChannel() {
     LOG_DEBUG(Service_AM, "called");
     m_applet->user_channel_launch_parameter.clear();
@@ -556,8 +486,21 @@ Result IApplicationFunctions::GetFriendInvitationStorageChannelEvent(
 
 Result IApplicationFunctions::TryPopFromFriendInvitationStorageChannel(
     Out<SharedPointer<IStorage>> out_storage) {
-    LOG_INFO(Service_AM, "(STUBBED) called");
-    R_THROW(AM::ResultNoDataInChannel);
+    LOG_DEBUG(Service_AM, "called");
+
+    std::scoped_lock lk{m_applet->lock};
+
+    auto& channel = m_applet->friend_invitation_storage_channel;
+
+    if (channel.empty()) {
+        return AM::ResultNoDataInChannel;
+    }
+
+    auto data = channel.back();
+    channel.pop_back();
+
+    *out_storage = std::make_shared<IStorage>(system, std::move(data));
+    R_SUCCEED();
 }
 
 Result IApplicationFunctions::GetNotificationStorageChannelEvent(
@@ -574,9 +517,16 @@ Result IApplicationFunctions::GetHealthWarningDisappearedSystemEvent(
     R_SUCCEED();
 }
 
-Result IApplicationFunctions::GetUnknownEvent(OutCopyHandle<Kernel::KReadableEvent> out_event) {
+Result IApplicationFunctions::GetUnknownEvent210(
+    OutCopyHandle<Kernel::KReadableEvent> out_event) {
     LOG_DEBUG(Service_AM, "called");
-    *out_event = m_applet->unknown_application_functions_event.GetHandle();
+    *out_event = m_applet->unknown_event.GetHandle();
+    R_SUCCEED();
+}
+
+Result IApplicationFunctions::Unknown330(Out<u8> out) {
+    LOG_DEBUG(Service_AM, "called");
+    *out = 0;
     R_SUCCEED();
 }
 

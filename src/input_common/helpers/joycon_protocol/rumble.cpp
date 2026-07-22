@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2022 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -5,7 +8,7 @@
 #include <cmath>
 
 #include "common/input.h"
-#include "common/logging/log.h"
+#include "common/logging.h"
 #include "input_common/helpers/joycon_protocol/rumble.h"
 
 namespace InputCommon::Joycon {
@@ -29,7 +32,7 @@ Common::Input::DriverResult RumbleProtocol::SendVibration(const VibrationValue& 
 
     // Protect joycons from damage from strong vibrations
     const f32 clamp_amplitude =
-        1.0f / std::max(1.0f, vibration.high_amplitude + vibration.low_amplitude);
+        1.0f / (std::max)(1.0f, vibration.high_amplitude + vibration.low_amplitude);
 
     const u16 encoded_high_frequency = EncodeHighFrequency(vibration.high_frequency);
     const u8 encoded_high_amplitude =

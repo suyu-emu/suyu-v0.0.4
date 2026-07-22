@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2024 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -8,6 +11,7 @@
 #include "core/hle/service/cmif_types.h"
 #include "core/hle/service/ipc_helpers.h"
 #include "core/hle/service/service.h"
+#include <typeinfo>
 
 namespace Service {
 
@@ -296,15 +300,15 @@ void ReadInArgument(bool is_domain, CallArguments& args, const u8* raw_data, HLE
             std::span<const u8> buffer{};
 
             ASSERT(ctx.CanReadBuffer(InBufferIndex));
-            if constexpr ((ArgType::Attr & BufferAttr_HipcAutoSelect) != 0) {
+            if constexpr (ArgType::Attr & BufferAttr_HipcAutoSelect) {
                 buffer = ctx.ReadBuffer(InBufferIndex);
-            } else if constexpr ((ArgType::Attr & BufferAttr_HipcMapAlias) != 0) {
+            } else if constexpr (ArgType::Attr & BufferAttr_HipcMapAlias) {
                 buffer = ctx.ReadBufferA(InBufferIndex);
             } else /* if (ArgType::Attr & BufferAttr_HipcPointer) */ {
                 buffer = ctx.ReadBufferX(InBufferIndex);
             }
 
-            std::memcpy(&std::get<ArgIndex>(args), buffer.data(), std::min(BufferSize, buffer.size()));
+            std::memcpy(&std::get<ArgIndex>(args), buffer.data(), (std::min)(BufferSize, buffer.size()));
 
             return ReadInArgument<MethodArguments, CallArguments, PrevAlign, DataOffset, HandleIndex, InBufferIndex + 1, OutBufferIndex, RawDataFinished, ArgIndex + 1>(is_domain, args, raw_data, ctx, temp);
         } else if constexpr (ArgumentTraits<ArgType>::Type == ArgumentType::InBuffer) {
@@ -313,9 +317,9 @@ void ReadInArgument(bool is_domain, CallArguments& args, const u8* raw_data, HLE
             std::span<const u8> buffer{};
 
             if (ctx.CanReadBuffer(InBufferIndex)) {
-                if constexpr ((ArgType::Attr & BufferAttr_HipcAutoSelect) != 0) {
+                if constexpr (ArgType::Attr & BufferAttr_HipcAutoSelect) {
                     buffer = ctx.ReadBuffer(InBufferIndex);
-                } else if constexpr ((ArgType::Attr & BufferAttr_HipcMapAlias) != 0) {
+                } else if constexpr (ArgType::Attr & BufferAttr_HipcMapAlias) {
                     buffer = ctx.ReadBufferA(InBufferIndex);
                 } else /* if (ArgType::Attr & BufferAttr_HipcPointer) */ {
                     buffer = ctx.ReadBufferX(InBufferIndex);
@@ -402,9 +406,9 @@ void WriteOutArgument(bool is_domain, CallArguments& args, u8* raw_data, HLERequ
             constexpr size_t BufferSize = sizeof(typename ArgType::Type);
 
             ASSERT(ctx.CanWriteBuffer(OutBufferIndex));
-            if constexpr ((ArgType::Attr & BufferAttr_HipcAutoSelect) != 0) {
+            if constexpr (ArgType::Attr & BufferAttr_HipcAutoSelect) {
                 ctx.WriteBuffer(std::get<ArgIndex>(args), OutBufferIndex);
-            } else if constexpr ((ArgType::Attr & BufferAttr_HipcMapAlias) != 0) {
+            } else if constexpr (ArgType::Attr & BufferAttr_HipcMapAlias) {
                 ctx.WriteBufferB(&std::get<ArgIndex>(args), BufferSize, OutBufferIndex);
             } else /* if (ArgType::Attr & BufferAttr_HipcPointer) */ {
                 ctx.WriteBufferC(&std::get<ArgIndex>(args), BufferSize, OutBufferIndex);
@@ -416,9 +420,9 @@ void WriteOutArgument(bool is_domain, CallArguments& args, u8* raw_data, HLERequ
             const size_t size = buffer.size();
 
             if (size > 0 && ctx.CanWriteBuffer(OutBufferIndex)) {
-                if constexpr ((ArgType::Attr & BufferAttr_HipcAutoSelect) != 0) {
+                if constexpr (ArgType::Attr & BufferAttr_HipcAutoSelect) {
                     ctx.WriteBuffer(buffer.data(), size, OutBufferIndex);
-                } else if constexpr ((ArgType::Attr & BufferAttr_HipcMapAlias) != 0) {
+                } else if constexpr (ArgType::Attr & BufferAttr_HipcMapAlias) {
                     ctx.WriteBufferB(buffer.data(), size, OutBufferIndex);
                 } else /* if (ArgType::Attr & BufferAttr_HipcPointer) */ {
                     ctx.WriteBufferC(buffer.data(), size, OutBufferIndex);
@@ -435,10 +439,17 @@ void WriteOutArgument(bool is_domain, CallArguments& args, u8* raw_data, HLERequ
 template <bool Domain, typename T, typename... A>
 void CmifReplyWrapImpl(HLERequestContext& ctx, T& t, Result (T::*f)(A...)) {
     const auto mgr = ctx.GetManager().get();
-
     // Verify domain state.
     if constexpr (!Domain) {
-        ASSERT_MSG(!mgr->IsDomain(), "Non-domain reply used on domain session");
+        const bool is_domain = mgr ? mgr->IsDomain() : false;
+        ASSERT_MSG(!is_domain,
+            "Non-domain reply used on domain session\n"
+            "Service={} (TIPC={} CmdType={} Cmd=0x{:08X}\n"
+            "HasDomainHeader={} DomainHandlers={}\nDesc={}",
+            t.GetServiceName(), ctx.IsTipc(),
+            u32(ctx.GetCommandType()), u32(ctx.GetCommand()),
+            ctx.HasDomainMessageHeader(), mgr ? u32(mgr->DomainHandlerCount()) : 0u,
+            ctx.Description());
     }
     const bool is_domain = Domain ? mgr->IsDomain() : false;
 

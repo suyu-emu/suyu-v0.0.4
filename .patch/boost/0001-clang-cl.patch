@@ -1,0 +1,13 @@
+diff --git a/libs/cobalt/include/boost/cobalt/concepts.hpp b/libs/cobalt/include/boost/cobalt/concepts.hpp
+index d49f2ec..a9bdb80 100644
+--- a/libs/cobalt/include/boost/cobalt/concepts.hpp
++++ b/libs/cobalt/include/boost/cobalt/concepts.hpp
+@@ -62,7 +62,7 @@ struct enable_awaitables
+ template <typename T>
+ concept with_get_executor = requires (T& t)
+ {
+-  {t.get_executor()} -> asio::execution::executor;
++  t.get_executor();
+ };
+ 
+ 

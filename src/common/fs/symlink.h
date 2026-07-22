@@ -6,7 +6,7 @@
 #include <filesystem>
 namespace Common::FS {
 
-bool CreateSymlink(const std::filesystem::path &from, const std::filesystem::path &to);
+bool CreateSymlink(std::filesystem::path from, std::filesystem::path to);
 bool IsSymlink(const std::filesystem::path &path);
 
 } // namespace Common::FS

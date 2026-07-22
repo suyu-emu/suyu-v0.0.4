@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 /* This file is part of the dynarmic project.
@@ -11,7 +11,7 @@
 #include <string>
 
 #include <fmt/format.h>
-#include "dynarmic/common/common_types.h"
+#include "common/common_types.h"
 
 namespace Dynarmic::IR {
 
@@ -45,8 +45,8 @@ constexpr bool IsArithmeticShift(const Opcode op) noexcept {
 
 /// @brief Determines whether or not this instruction performs a logical shift.
 constexpr bool IsCircularShift(const Opcode op) noexcept {
-    return op == Opcode::RotateRight32
-        || op == Opcode::RotateRight64
+    return op == Opcode::BitRotateRight32
+        || op == Opcode::BitRotateRight64
         || op == Opcode::RotateRightExtended;
 }
 
@@ -654,3 +654,11 @@ constexpr bool MayGetNZCVFromOp(const Opcode op) noexcept {
 }
 
 }  // namespace Dynarmic::IR
+
+template<>
+struct fmt::formatter<Dynarmic::IR::Opcode> : fmt::formatter<std::string_view> {
+    template<typename FormatContext>
+    auto format(Dynarmic::IR::Opcode op, FormatContext& ctx) const {
+        return formatter<std::string_view>::format(GetNameOf(op), ctx);
+    }
+};

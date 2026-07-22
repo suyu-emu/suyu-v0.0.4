@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 /* This file is part of the dynarmic project.
@@ -10,31 +10,29 @@
 
 #include <boost/icl/interval_map.hpp>
 #include <boost/icl/interval_set.hpp>
-#include "dynarmic/common/common_types.h"
+#include "common/common_types.h"
 #include <ankerl/unordered_dense.h>
 
 namespace Dynarmic::Backend {
 
-template<typename ProgramCounterType>
-void BlockRangeInformation<ProgramCounterType>::AddRange(boost::icl::discrete_interval<ProgramCounterType> range, IR::LocationDescriptor location) {
-    block_ranges.add(std::make_pair(range, std::set<IR::LocationDescriptor>{location}));
+template<typename P>
+void BlockRangeInformation<P>::AddRange(boost::icl::discrete_interval<P> range, IR::LocationDescriptor location) {
+    block_ranges.add(std::make_pair(range, ankerl::unordered_dense::set<IR::LocationDescriptor>{location}));
 }
 
-template<typename ProgramCounterType>
-void BlockRangeInformation<ProgramCounterType>::ClearCache() {
+template<typename P>
+void BlockRangeInformation<P>::ClearCache() {
     block_ranges.clear();
 }
 
-template<typename ProgramCounterType>
-ankerl::unordered_dense::set<IR::LocationDescriptor> BlockRangeInformation<ProgramCounterType>::InvalidateRanges(const boost::icl::interval_set<ProgramCounterType>& ranges) {
+template<typename P>
+ankerl::unordered_dense::set<IR::LocationDescriptor> BlockRangeInformation<P>::InvalidateRanges(const boost::icl::interval_set<P>& ranges) {
     ankerl::unordered_dense::set<IR::LocationDescriptor> erase_locations;
     for (auto invalidate_interval : ranges) {
         auto pair = block_ranges.equal_range(invalidate_interval);
-        for (auto it = pair.first; it != pair.second; ++it) {
-            for (const auto& descriptor : it->second) {
+        for (auto it = pair.first; it != pair.second; ++it)
+            for (const auto& descriptor : it->second)
                 erase_locations.insert(descriptor);
-            }
-        }
     }
     // TODO: EFFICIENCY: Remove ranges that are to be erased.
     return erase_locations;

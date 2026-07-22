@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 /* This file is part of the dynarmic project.
@@ -12,10 +12,9 @@
 
 #include <boost/icl/interval_set.hpp>
 #include <fmt/format.h>
-#include "dynarmic/common/assert.h"
+#include "common/assert.h"
 #include <bit>
-#include <mcl/scope_exit.hpp>
-#include "dynarmic/common/common_types.h"
+#include "common/common_types.h"
 #include "dynarmic/common/llvm_disassemble.h"
 
 #include "dynarmic/backend/x64/a32_emit_x64.h"
@@ -25,6 +24,7 @@
 #include "dynarmic/backend/x64/devirtualize.h"
 #include "dynarmic/backend/x64/jitstate_info.h"
 #include "dynarmic/common/atomic.h"
+#include "dynarmic/frontend/A32/a32_location_descriptor.h"
 #include "dynarmic/frontend/A32/translate/a32_translate.h"
 #include "dynarmic/interface/A32/a32.h"
 #include "dynarmic/ir/basic_block.h"
@@ -63,24 +63,20 @@ static Optimization::PolyfillOptions GenPolyfillOptions(const BlockOfCode& code)
 }
 
 struct Jit::Impl {
-    Impl(Jit* jit, A32::UserConfig conf)
-            : block_of_code(GenRunCodeCallbacks(conf.callbacks, &GetCurrentBlockThunk, this, conf), JitStateInfo{jit_state}, conf.code_cache_size, GenRCP(conf))
-            , emitter(block_of_code, conf, jit)
-            , polyfill_options(GenPolyfillOptions(block_of_code))
-            , conf(std::move(conf))
-            , jit_interface(jit) {}
+    Impl(Jit* jit, A32::UserConfig conf) noexcept
+        : block_of_code(GenRunCodeCallbacks(conf.callbacks, &GetCurrentBlockThunk, this, conf), JitStateInfo{jit_state}, conf.code_cache_size, GenRCP(conf))
+        , emitter(block_of_code, conf, jit)
+        , polyfill_options(GenPolyfillOptions(block_of_code))
+        , conf(std::move(conf))
+        , jit_interface(jit)
+    {}
 
     ~Impl() = default;
 
     HaltReason Run() {
         ASSERT(!jit_interface->is_executing);
         PerformRequestedCacheInvalidation(static_cast<HaltReason>(Atomic::Load(&jit_state.halt_reason)));
-
         jit_interface->is_executing = true;
-        SCOPE_EXIT {
-            jit_interface->is_executing = false;
-        };
-
         const CodePtr current_codeptr = [this] {
             // RSB optimization
             const u32 new_rsb_ptr = (jit_state.rsb_ptr - 1) & A32JitState::RSBPtrMask;
@@ -91,27 +87,19 @@ struct Jit::Impl {
 
             return GetCurrentBlock();
         }();
-
         const HaltReason hr = block_of_code.RunCode(&jit_state, current_codeptr);
-
         PerformRequestedCacheInvalidation(hr);
-
+        jit_interface->is_executing = false;
         return hr;
     }
 
     HaltReason Step() {
         ASSERT(!jit_interface->is_executing);
         PerformRequestedCacheInvalidation(static_cast<HaltReason>(Atomic::Load(&jit_state.halt_reason)));
-
         jit_interface->is_executing = true;
-        SCOPE_EXIT {
-            jit_interface->is_executing = false;
-        };
-
         const HaltReason hr = block_of_code.StepCode(&jit_state, GetCurrentSingleStep());
-
         PerformRequestedCacheInvalidation(hr);
-
+        jit_interface->is_executing = false;
         return hr;
     }
 
@@ -201,8 +189,7 @@ private:
     }
 
     A32EmitX64::BlockDescriptor GetBasicBlock(IR::LocationDescriptor descriptor) {
-        auto block = emitter.GetBasicBlock(descriptor);
-        if (block)
+        if (auto block = emitter.GetBasicBlock(descriptor))
             return *block;
 
         constexpr size_t MINIMUM_REMAINING_CODESIZE = 1 * 1024 * 1024;
@@ -212,7 +199,10 @@ private:
         }
         block_of_code.EnsureMemoryCommitted(MINIMUM_REMAINING_CODESIZE);
 
-        IR::Block ir_block = A32::Translate(A32::LocationDescriptor{descriptor}, conf.callbacks, {conf.arch_version, conf.define_unpredictable_behaviour, conf.hook_hint_instructions});
+        // LocationDescriptor ctor() does important ops (like tflags) do not skip
+        auto const arch_descriptor = A32::LocationDescriptor{descriptor};
+        ir_block.Reset(arch_descriptor);
+        A32::Translate(ir_block, arch_descriptor, conf.callbacks, {conf.arch_version, conf.define_unpredictable_behaviour, conf.hook_hint_instructions});
         Optimization::Optimize(ir_block, conf, polyfill_options);
         return emitter.Emit(ir_block);
     }
@@ -239,13 +229,13 @@ private:
         }
     }
 
+    IR::Block ir_block = {LocationDescriptor(0, PSR(0), FPSCR(0), false)};
     A32JitState jit_state;
     BlockOfCode block_of_code;
     A32EmitX64 emitter;
     Optimization::PolyfillOptions polyfill_options;
-
+    // Keep it here, you don't wanna mess with the fuckery that's initializer lists
     const A32::UserConfig conf;
-
     Jit* jit_interface;
 
     // Requests made during execution to invalidate the cache are queued up here.

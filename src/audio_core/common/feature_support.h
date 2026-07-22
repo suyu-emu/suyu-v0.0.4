@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2022 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -10,16 +13,12 @@
 #include "common/assert.h"
 #include "common/common_funcs.h"
 #include "common/common_types.h"
-#include "common/polyfill_ranges.h"
+#include <ranges>
 
 namespace AudioCore {
 constexpr u32 CurrentRevision = 15;
 
 enum class SupportTags {
-    BiquadFilterParameterFloat,
-    CommandProcessingTimeEstimatorVersion5,
-    SplitterPrevVolumeReset,
-    BiquadFilterParameterForSplitter,
     CommandProcessingTimeEstimatorVersion4,
     CommandProcessingTimeEstimatorVersion3,
     CommandProcessingTimeEstimatorVersion2,
@@ -48,6 +47,10 @@ enum class SupportTags {
     DelayChannelMappingChange,
     ReverbChannelMappingChange,
     I3dl2ReverbChannelMappingChange,
+    SplitterPrevVolumeReset,
+    SplitterBiquadFilterParameter,
+    SplitterDestinationV2b,
+    VoiceInParameterV2,
 
     // Not a real tag, just here to get the count.
     Size
@@ -92,10 +95,10 @@ constexpr bool CheckFeatureSupported(SupportTags tag, u32 user_revision) {
             {SupportTags::DelayChannelMappingChange, 11},
             {SupportTags::ReverbChannelMappingChange, 11},
             {SupportTags::I3dl2ReverbChannelMappingChange, 11},
-            {SupportTags::CommandProcessingTimeEstimatorVersion5, 11},
-            {SupportTags::BiquadFilterParameterForSplitter, 12},
+            {SupportTags::SplitterBiquadFilterParameter, 12},
             {SupportTags::SplitterPrevVolumeReset, 13},
-            {SupportTags::BiquadFilterParameterFloat, 15},
+            {SupportTags::SplitterDestinationV2b, 15},
+            {SupportTags::VoiceInParameterV2, 15},
         }};
 
     const auto& feature =

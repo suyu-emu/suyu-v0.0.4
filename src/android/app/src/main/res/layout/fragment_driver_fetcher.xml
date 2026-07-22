@@ -7,19 +7,22 @@
     android:layout_height="match_parent"
     android:background="?attr/colorSurface">
 
-
     <com.google.android.material.appbar.AppBarLayout
         android:id="@+id/appbar_drivers"
+        style="@style/Widget.Eden.TransparentTopAppBarLayout"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:fitsSystemWindows="true"
         android:touchscreenBlocksFocus="false"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toTopOf="parent"
 
         app:liftOnScrollTargetViewId="@id/list_drivers">
 
         <com.google.android.material.appbar.MaterialToolbar
             android:id="@+id/toolbar_drivers"
+            style="@style/Widget.Eden.TransparentTopToolbar"
             android:layout_width="match_parent"
             android:layout_height="?attr/actionBarSize"
             android:touchscreenBlocksFocus="false"

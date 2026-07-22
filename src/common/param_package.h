@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: 2017 Citra Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -5,14 +8,14 @@
 
 #include <initializer_list>
 #include <string>
-#include <unordered_map>
+#include <ankerl/unordered_dense.h>
 
 namespace Common {
 
 /// A string-based key-value container supporting serializing to and deserializing from a string
 class ParamPackage {
 public:
-    using DataType = std::unordered_map<std::string, std::string>;
+    using DataType = ankerl::unordered_dense::map<std::string, std::string>;
 
     ParamPackage() = default;
     explicit ParamPackage(const std::string& serialized);

@@ -1,9 +1,12 @@
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2018 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "audio_core/audio_core.h"
 #include "common/assert.h"
-#include "common/logging/log.h"
+#include "common/logging.h"
 #include "core/core.h"
 #include "core/hle/service/nvdrv/core/container.h"
 #include "core/hle/service/nvdrv/devices/ioctl_serialization.h"
@@ -22,18 +25,20 @@ NvResult nvhost_nvdec::Ioctl1(DeviceFD fd, Ioctl command, std::span<const u8> in
     switch (command.group) {
     case 0x0:
         switch (command.cmd) {
-        case 0x1:
+        case 0x01:
             return WrapFixedVariable(this, &nvhost_nvdec::Submit, input, output, fd);
-        case 0x2:
+        case 0x02:
             return WrapFixed(this, &nvhost_nvdec::GetSyncpoint, input, output);
-        case 0x3:
+        case 0x03:
             return WrapFixed(this, &nvhost_nvdec::GetWaitbase, input, output);
-        case 0x7:
+        case 0x07:
             return WrapFixed(this, &nvhost_nvdec::SetSubmitTimeout, input, output);
-        case 0x9:
+        case 0x09:
             return WrapFixedVariable(this, &nvhost_nvdec::MapBuffer, input, output, fd);
-        case 0xa:
+        case 0x0a:
             return WrapFixedVariable(this, &nvhost_nvdec::UnmapBuffer, input, output);
+        case 0x23:
+            return WrapFixed(this, &nvhost_nvdec::GetClkRate, input, output);
         default:
             break;
         }

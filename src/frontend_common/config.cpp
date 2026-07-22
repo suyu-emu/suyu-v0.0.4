@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: 2023 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -5,19 +8,19 @@
 #include <array>
 #include "common/fs/fs.h"
 #include "common/fs/path_util.h"
-#include "common/logging/log.h"
+#include "common/logging.h"
 #include "common/settings.h"
 #include "common/settings_common.h"
 #include "common/settings_enums.h"
 #include "config.h"
-#include "core/core.h"
-#include "core/hle/service/acc/profile_manager.h"
-#include "hid_core/resources/npad/npad.h"
-#include "network/network.h"
+
+#ifdef _WIN32
+#include "common/string_util.h"
+#endif
 
 #include <boost/algorithm/string/replace.hpp>
 
-#include "common/string_util.h"
+#include "common/assert.h"
 
 namespace FS = Common::FS;
 
@@ -25,7 +28,7 @@ Config::Config(const ConfigType config_type)
     : type(config_type), global{config_type == ConfigType::GlobalConfig} {}
 
 void Config::Initialize(const std::string& config_name) {
-    const std::filesystem::path fs_config_loc = FS::GetSuyuPath(FS::SuyuPath::ConfigDir);
+    const std::filesystem::path fs_config_loc = FS::GetEdenPath(FS::EdenPath::ConfigDir);
     const auto config_file = fmt::format("{}.ini", config_name);
 
     switch (type) {
@@ -51,7 +54,7 @@ void Config::Initialize(const std::string& config_name) {
 
 void Config::Initialize(const std::optional<std::string> config_path) {
     const std::filesystem::path default_sdl_config_path =
-        FS::GetSuyuPath(FS::SuyuPath::ConfigDir) / "sdl2-config.ini";
+        FS::GetEdenPath(FS::EdenPath::ConfigDir) / "sdl2-config.ini";
     config_loc = config_path.value_or(FS::PathToUTF8String(default_sdl_config_path));
     void(FS::CreateParentDir(config_loc));
     SetUpIni();
@@ -145,9 +148,9 @@ void Config::ReadPlayerValues(const std::size_t player_index) {
     }
 
     if (player_prefix.empty() && Settings::IsConfiguringGlobal()) {
-        const auto controller = static_cast<Settings::ControllerType>(
+        const auto controller = Settings::ControllerType(
             ReadIntegerSetting(std::string(player_prefix).append("type"),
-                               static_cast<u8>(Settings::ControllerType::ProController)));
+                               u8(Settings::ControllerType::ProController)));
 
         if (controller == Settings::ControllerType::LeftJoycon ||
             controller == Settings::ControllerType::RightJoycon) {
@@ -162,26 +165,26 @@ void Config::ReadPlayerValues(const std::size_t player_index) {
         player.connected = ReadBooleanSetting(connected_key.append("connected"),
                                               std::make_optional(player_index == 0));
 
-        player.controller_type = static_cast<Settings::ControllerType>(
+        player.controller_type = Settings::ControllerType(
             ReadIntegerSetting(std::string(player_prefix).append("type"),
-                               static_cast<u8>(Settings::ControllerType::ProController)));
+                               u8(Settings::ControllerType::ProController)));
 
         player.vibration_enabled = ReadBooleanSetting(
             std::string(player_prefix).append("vibration_enabled"), std::make_optional(true));
 
-        player.vibration_strength = static_cast<int>(
-            ReadIntegerSetting(std::string(player_prefix).append("vibration_strength"), 100));
+        player.vibration_strength =
+            int(ReadIntegerSetting(std::string(player_prefix).append("vibration_strength"), 100));
 
-        player.body_color_left = static_cast<u32>(ReadIntegerSetting(
+        player.body_color_left = u32(ReadIntegerSetting(
             std::string(player_prefix).append("body_color_left"), Settings::JOYCON_BODY_NEON_BLUE));
-        player.body_color_right = static_cast<u32>(ReadIntegerSetting(
+        player.body_color_right = u32(ReadIntegerSetting(
             std::string(player_prefix).append("body_color_right"), Settings::JOYCON_BODY_NEON_RED));
-        player.button_color_left = static_cast<u32>(
-            ReadIntegerSetting(std::string(player_prefix).append("button_color_left"),
-                               Settings::JOYCON_BUTTONS_NEON_BLUE));
-        player.button_color_right = static_cast<u32>(
-            ReadIntegerSetting(std::string(player_prefix).append("button_color_right"),
-                               Settings::JOYCON_BUTTONS_NEON_RED));
+        player.button_color_left =
+            u32(ReadIntegerSetting(std::string(player_prefix).append("button_color_left"),
+                                   Settings::JOYCON_BUTTONS_NEON_BLUE));
+        player.button_color_right =
+            u32(ReadIntegerSetting(std::string(player_prefix).append("button_color_right"),
+                                   Settings::JOYCON_BUTTONS_NEON_RED));
     }
 }
 
@@ -189,11 +192,11 @@ void Config::ReadTouchscreenValues() {
     Settings::values.touchscreen.enabled =
         ReadBooleanSetting(std::string("touchscreen_enabled"), std::make_optional(true));
     Settings::values.touchscreen.rotation_angle =
-        static_cast<u32>(ReadIntegerSetting(std::string("touchscreen_angle"), 0));
+        u32(ReadIntegerSetting(std::string("touchscreen_angle"), 0));
     Settings::values.touchscreen.diameter_x =
-        static_cast<u32>(ReadIntegerSetting(std::string("touchscreen_diameter_x"), 90));
+        u32(ReadIntegerSetting(std::string("touchscreen_diameter_x"), 90));
     Settings::values.touchscreen.diameter_y =
-        static_cast<u32>(ReadIntegerSetting(std::string("touchscreen_diameter_y"), 90));
+        u32(ReadIntegerSetting(std::string("touchscreen_diameter_y"), 90));
 }
 
 void Config::ReadAudioValues() {
@@ -235,33 +238,27 @@ void Config::ReadControlValues() {
 void Config::ReadMotionTouchValues() {
     Settings::values.touch_from_button_maps.clear();
     int num_touch_from_button_maps = BeginArray(std::string("touch_from_button_maps"));
-
     if (num_touch_from_button_maps > 0) {
         for (int i = 0; i < num_touch_from_button_maps; ++i) {
             SetArrayIndex(i);
-
             Settings::TouchFromButtonMap map;
             map.name = ReadStringSetting(std::string("name"), std::string("default"));
-
-            const int num_touch_maps = BeginArray(std::string("entries"));
-            map.buttons.reserve(num_touch_maps);
+            int const num_touch_maps = BeginArray(std::string("entries"));
+            map.buttons.resize(num_touch_maps);
             for (int j = 0; j < num_touch_maps; j++) {
                 SetArrayIndex(j);
-                std::string touch_mapping = ReadStringSetting(std::string("bind"));
-                map.buttons.emplace_back(std::move(touch_mapping));
+                map.buttons[j] = ReadStringSetting(std::string("bind"));
             }
             EndArray(); // entries
             Settings::values.touch_from_button_maps.emplace_back(std::move(map));
         }
     } else {
-        Settings::values.touch_from_button_maps.emplace_back(
-            Settings::TouchFromButtonMap{"default", {}});
+        Settings::values.touch_from_button_maps.emplace_back(Settings::TouchFromButtonMap{"default", {}});
         num_touch_from_button_maps = 1;
     }
     EndArray(); // touch_from_button_maps
 
-    Settings::values.touch_from_button_map_index = std::clamp(
-        Settings::values.touch_from_button_map_index.GetValue(), 0, num_touch_from_button_maps - 1);
+    Settings::values.touch_from_button_map_index = (std::min)(Settings::values.touch_from_button_map_index.GetValue(), u32(num_touch_from_button_maps - 1));
 }
 
 void Config::ReadCoreValues() {
@@ -275,11 +272,24 @@ void Config::ReadCoreValues() {
 void Config::ReadDataStorageValues() {
     BeginGroup(Settings::TranslateCategory(Settings::Category::DataStorage));
 
-    FS::SetSuyuPath(FS::SuyuPath::NANDDir, ReadStringSetting(std::string("nand_directory")));
-    FS::SetSuyuPath(FS::SuyuPath::SDMCDir, ReadStringSetting(std::string("sdmc_directory")));
-    FS::SetSuyuPath(FS::SuyuPath::LoadDir, ReadStringSetting(std::string("load_directory")));
-    FS::SetSuyuPath(FS::SuyuPath::DumpDir, ReadStringSetting(std::string("dump_directory")));
-    FS::SetSuyuPath(FS::SuyuPath::TASDir, ReadStringSetting(std::string("tas_directory")));
+    using namespace Common::FS;
+
+    const auto setPath = [this](const EdenPath& path, const char* setting) {
+        SetEdenPath(path, ReadStringSetting(std::string(setting)));
+    };
+
+    setPath(EdenPath::NANDDir, "nand_directory");
+    setPath(EdenPath::SDMCDir, "sdmc_directory");
+    setPath(EdenPath::LoadDir, "load_directory");
+    setPath(EdenPath::DumpDir, "dump_directory");
+    setPath(EdenPath::TASDir, "tas_directory");
+
+    const auto save_dir_setting = ReadStringSetting(std::string("save_directory"));
+    if (save_dir_setting.empty()) {
+        SetEdenPath(EdenPath::SaveDir, GetEdenPathString(EdenPath::NANDDir));
+    } else {
+        SetEdenPath(EdenPath::SaveDir, save_dir_setting);
+    }
 
     ReadCategory(Settings::Category::DataStorage);
 
@@ -298,16 +308,6 @@ void Config::ReadDebuggingValues() {
 
     EndGroup();
 }
-
-#ifdef __unix__
-void Config::ReadLinuxValues() {
-    BeginGroup(Settings::TranslateCategory(Settings::Category::Linux));
-
-    ReadCategory(Settings::Category::Linux);
-
-    EndGroup();
-}
-#endif
 
 void Config::ReadServiceValues() {
     BeginGroup(Settings::TranslateCategory(Settings::Category::Services));
@@ -354,58 +354,6 @@ void Config::ReadCpuValues() {
     ReadCategory(Settings::Category::CpuDebug);
     ReadCategory(Settings::Category::CpuUnsafe);
 
-    const auto has_setting = [this](const char* key) {
-        return Exists(GetSection(), key) ||
-               Exists(GetSection(), std::string(key).append("\\default")) ||
-               Exists(GetSection(), std::string(key).append("\\use_global"));
-    };
-
-    if (!has_setting("cpu_core_provider") && !has_setting("cpu_execution_path") &&
-        !has_setting("cpu_recompiler_engine") && has_setting("cpu_backend")) {
-        const auto legacy_backend = static_cast<Settings::CpuBackend>(
-            ReadIntegerSetting("cpu_backend",
-                               static_cast<s64>(Settings::CpuBackend::Dynarmic)));
-        const bool use_global = global ? true : ReadBooleanSetting("cpu_backend\\use_global", true);
-
-        Settings::values.cpu_core_provider.SetGlobal(use_global);
-        Settings::values.cpu_execution_path.SetGlobal(use_global);
-        Settings::values.cpu_recompiler_engine.SetGlobal(use_global);
-
-        const auto apply_legacy_backend = [&](Settings::CpuBackend backend) {
-            switch (backend) {
-            case Settings::CpuBackend::Nce:
-                Settings::values.cpu_core_provider = Settings::CpuCoreProvider::Builtin;
-                Settings::values.cpu_execution_path = Settings::CpuExecutionPath::Nce;
-                Settings::values.cpu_recompiler_engine =
-                    Settings::CpuRecompilerEngine::Dynarmic;
-                break;
-            case Settings::CpuBackend::Ballistic:
-                Settings::values.cpu_core_provider = Settings::CpuCoreProvider::Builtin;
-                Settings::values.cpu_execution_path = Settings::CpuExecutionPath::Jit;
-                Settings::values.cpu_recompiler_engine =
-                    Settings::CpuRecompilerEngine::BallisticExperimental;
-                break;
-            case Settings::CpuBackend::Rem:
-                Settings::values.cpu_core_provider = Settings::CpuCoreProvider::RemExperimental;
-                Settings::values.cpu_execution_path = Settings::CpuExecutionPath::Jit;
-                Settings::values.cpu_recompiler_engine =
-                    Settings::CpuRecompilerEngine::Dynarmic;
-                break;
-            case Settings::CpuBackend::Dynarmic:
-            default:
-                Settings::values.cpu_core_provider = Settings::CpuCoreProvider::Builtin;
-                Settings::values.cpu_execution_path = Settings::CpuExecutionPath::Jit;
-                Settings::values.cpu_recompiler_engine =
-                    Settings::CpuRecompilerEngine::Dynarmic;
-                break;
-            }
-        };
-
-        apply_legacy_backend(legacy_backend);
-    }
-
-    Settings::SanitizeCpuBackendSettings();
-
     EndGroup();
 }
 
@@ -414,6 +362,8 @@ void Config::ReadRendererValues() {
 
     ReadCategory(Settings::Category::Renderer);
     ReadCategory(Settings::Category::RendererAdvanced);
+    ReadCategory(Settings::Category::RendererHacks);
+    ReadCategory(Settings::Category::RendererExtensions);
     ReadCategory(Settings::Category::RendererDebug);
 
     EndGroup();
@@ -423,7 +373,7 @@ void Config::ReadScreenshotValues() {
     BeginGroup(Settings::TranslateCategory(Settings::Category::Screenshots));
 
     ReadCategory(Settings::Category::Screenshots);
-    FS::SetSuyuPath(FS::SuyuPath::ScreenshotsDir,
+    FS::SetEdenPath(FS::EdenPath::ScreenshotsDir,
                     ReadStringSetting(std::string("screenshot_path")));
 
     EndGroup();
@@ -467,18 +417,15 @@ void Config::ReadValues() {
         ReadDataStorageValues();
         ReadDebuggingValues();
         ReadDisabledAddOnValues();
-        ReadNetworkValues();
         ReadServiceValues();
         ReadWebServiceValues();
         ReadMiscellaneousValues();
-        ReadLibraryAppletValues();
     }
+    ReadLibraryAppletValues();
+    ReadNetworkValues();
     ReadControlValues();
     ReadCoreValues();
     ReadCpuValues();
-#ifdef __unix__
-    ReadLinuxValues();
-#endif
     ReadRendererValues();
     ReadAudioValues();
     ReadSystemValues();
@@ -500,9 +447,8 @@ void Config::SavePlayerValues(const std::size_t player_index) {
                            std::make_optional(std::string("")));
     }
 
-    WriteIntegerSetting(
-        std::string(player_prefix).append("type"), static_cast<u8>(player.controller_type),
-        std::make_optional(static_cast<u8>(Settings::ControllerType::ProController)));
+    WriteIntegerSetting(std::string(player_prefix).append("type"), u8(player.controller_type),
+                        std::make_optional(u8(Settings::ControllerType::ProController)));
 
     if (!player_prefix.empty() || !Settings::IsConfiguringGlobal()) {
         if (global) {
@@ -538,26 +484,23 @@ void Config::SaveTouchscreenValues() {
                         std::make_optional(true));
 
     WriteIntegerSetting(std::string("touchscreen_angle"), touchscreen.rotation_angle,
-                        std::make_optional(static_cast<u32>(0)));
+                        std::make_optional(u32(0)));
     WriteIntegerSetting(std::string("touchscreen_diameter_x"), touchscreen.diameter_x,
-                        std::make_optional(static_cast<u32>(90)));
+                        std::make_optional(u32(90)));
     WriteIntegerSetting(std::string("touchscreen_diameter_y"), touchscreen.diameter_y,
-                        std::make_optional(static_cast<u32>(90)));
+                        std::make_optional(u32(90)));
 }
 
 void Config::SaveMotionTouchValues() {
     BeginArray(std::string("touch_from_button_maps"));
     for (std::size_t p = 0; p < Settings::values.touch_from_button_maps.size(); ++p) {
-        SetArrayIndex(static_cast<int>(p));
-        WriteStringSetting(std::string("name"), Settings::values.touch_from_button_maps[p].name,
-                           std::make_optional(std::string("default")));
-
+        SetArrayIndex(int(p));
+        WriteStringSetting(std::string("name"), Settings::values.touch_from_button_maps[p].name, std::make_optional(std::string("default")));
         BeginArray(std::string("entries"));
         for (std::size_t q = 0; q < Settings::values.touch_from_button_maps[p].buttons.size();
              ++q) {
-            SetArrayIndex(static_cast<int>(q));
-            WriteStringSetting(std::string("bind"),
-                               Settings::values.touch_from_button_maps[p].buttons[q]);
+            SetArrayIndex(int(q));
+            WriteStringSetting(std::string("bind"), Settings::values.touch_from_button_maps[p].buttons[q]);
         }
         EndArray(); // entries
     }
@@ -570,19 +513,16 @@ void Config::SaveValues() {
         SaveDataStorageValues();
         SaveDebuggingValues();
         SaveDisabledAddOnValues();
-        SaveNetworkValues();
         SaveWebServiceValues();
         SaveMiscellaneousValues();
-        SaveLibraryAppletValues();
     } else {
         LOG_DEBUG(Config, "Saving only generic configuration values");
     }
+    SaveLibraryAppletValues();
+    SaveNetworkValues();
     SaveControlValues();
     SaveCoreValues();
     SaveCpuValues();
-#ifdef __unix__
-    SaveLinuxValues();
-#endif
     SaveRendererValues();
     SaveAudioValues();
     SaveSystemValues();
@@ -629,16 +569,28 @@ void Config::SaveCoreValues() {
 void Config::SaveDataStorageValues() {
     BeginGroup(Settings::TranslateCategory(Settings::Category::DataStorage));
 
-    WriteStringSetting(std::string("nand_directory"), FS::GetSuyuPathString(FS::SuyuPath::NANDDir),
-                       std::make_optional(FS::GetSuyuPathString(FS::SuyuPath::NANDDir)));
-    WriteStringSetting(std::string("sdmc_directory"), FS::GetSuyuPathString(FS::SuyuPath::SDMCDir),
-                       std::make_optional(FS::GetSuyuPathString(FS::SuyuPath::SDMCDir)));
-    WriteStringSetting(std::string("load_directory"), FS::GetSuyuPathString(FS::SuyuPath::LoadDir),
-                       std::make_optional(FS::GetSuyuPathString(FS::SuyuPath::LoadDir)));
-    WriteStringSetting(std::string("dump_directory"), FS::GetSuyuPathString(FS::SuyuPath::DumpDir),
-                       std::make_optional(FS::GetSuyuPathString(FS::SuyuPath::DumpDir)));
-    WriteStringSetting(std::string("tas_directory"), FS::GetSuyuPathString(FS::SuyuPath::TASDir),
-                       std::make_optional(FS::GetSuyuPathString(FS::SuyuPath::TASDir)));
+    using namespace Common::FS;
+
+    const auto writePath = [this](const char* setting, const EdenPath& path) {
+        WriteStringSetting(std::string(setting), FS::GetEdenPathString(path),
+                           std::make_optional(FS::GetEdenPathString(path)));
+    };
+
+    writePath("nand_directory", EdenPath::NANDDir);
+    writePath("sdmc_directory", EdenPath::SDMCDir);
+    writePath("load_directory", EdenPath::LoadDir);
+    writePath("dump_directory", EdenPath::DumpDir);
+    writePath("tas_directory", EdenPath::TASDir);
+
+    const auto save_path = FS::GetEdenPathString(EdenPath::SaveDir);
+    const auto nand_path = FS::GetEdenPathString(EdenPath::NANDDir);
+    if (save_path == nand_path) {
+        WriteStringSetting(std::string("save_directory"), std::string(""),
+                           std::make_optional(std::string("")));
+    } else {
+        WriteStringSetting(std::string("save_directory"), save_path,
+                           std::make_optional(std::string("")));
+    }
 
     WriteCategory(Settings::Category::DataStorage);
 
@@ -657,16 +609,6 @@ void Config::SaveDebuggingValues() {
     EndGroup();
 }
 
-#ifdef __unix__
-void Config::SaveLinuxValues() {
-    BeginGroup(Settings::TranslateCategory(Settings::Category::Linux));
-
-    WriteCategory(Settings::Category::Linux);
-
-    EndGroup();
-}
-#endif
-
 void Config::SaveNetworkValues() {
     BeginGroup(Settings::TranslateCategory(Settings::Category::Services));
 
@@ -683,13 +625,11 @@ void Config::SaveDisabledAddOnValues() {
     BeginArray(std::string(""));
     for (const auto& elem : Settings::values.disabled_addons) {
         SetArrayIndex(i);
-        WriteIntegerSetting(std::string("title_id"), elem.first,
-                            std::make_optional(static_cast<u64>(0)));
+        WriteIntegerSetting(std::string("title_id"), elem.first, std::make_optional(u64(0)));
         BeginArray(std::string("disabled"));
         for (std::size_t j = 0; j < elem.second.size(); ++j) {
-            SetArrayIndex(static_cast<int>(j));
-            WriteStringSetting(std::string("d"), elem.second[j],
-                               std::make_optional(std::string("")));
+            SetArrayIndex(int(j));
+            WriteStringSetting(std::string("d"), elem.second[j], std::make_optional(std::string("")));
         }
         EndArray(); // disabled
         ++i;
@@ -714,10 +654,6 @@ void Config::SaveCpuValues() {
     WriteCategory(Settings::Category::CpuDebug);
     WriteCategory(Settings::Category::CpuUnsafe);
 
-    config->Delete(GetSection().c_str(), "cpu_backend", true);
-    config->Delete(GetSection().c_str(), "cpu_backend\\default", true);
-    config->Delete(GetSection().c_str(), "cpu_backend\\use_global", true);
-
     EndGroup();
 }
 
@@ -726,6 +662,8 @@ void Config::SaveRendererValues() {
 
     WriteCategory(Settings::Category::Renderer);
     WriteCategory(Settings::Category::RendererAdvanced);
+    WriteCategory(Settings::Category::RendererHacks);
+    WriteCategory(Settings::Category::RendererExtensions);
     WriteCategory(Settings::Category::RendererDebug);
 
     EndGroup();
@@ -735,7 +673,7 @@ void Config::SaveScreenshotValues() {
     BeginGroup(Settings::TranslateCategory(Settings::Category::Screenshots));
 
     WriteStringSetting(std::string("screenshot_path"),
-                       FS::GetSuyuPathString(FS::SuyuPath::ScreenshotsDir));
+                       FS::GetEdenPathString(FS::EdenPath::ScreenshotsDir));
     WriteCategory(Settings::Category::Screenshots);
 
     EndGroup();
@@ -774,10 +712,10 @@ bool Config::ReadBooleanSetting(const std::string& key, const std::optional<bool
 
     if (config->GetBoolValue(GetSection().c_str(),
                              std::string(full_key).append("\\default").c_str(), false)) {
-        return static_cast<bool>(default_value.value());
+        return bool(default_value.value());
     } else {
         return config->GetBoolValue(GetSection().c_str(), full_key.c_str(),
-                                    static_cast<bool>(default_value.value()));
+                                    bool(default_value.value()));
     }
 }
 
@@ -785,21 +723,18 @@ s64 Config::ReadIntegerSetting(const std::string& key, const std::optional<s64> 
     std::string full_key = GetFullKey(key, false);
     if (!default_value.has_value()) {
         try {
-            return std::stoll(
-                std::string(config->GetValue(GetSection().c_str(), full_key.c_str(), "0")));
+            return std::stoll(std::string(config->GetValue(GetSection().c_str(), full_key.c_str(), "0")));
         } catch (...) {
             return 0;
         }
     }
 
     s64 result = 0;
-    if (config->GetBoolValue(GetSection().c_str(),
-                             std::string(full_key).append("\\default").c_str(), true)) {
+    if (config->GetBoolValue(GetSection().c_str(), std::string(full_key).append("\\default").c_str(), true)) {
         result = default_value.value();
     } else {
         try {
-            result = std::stoll(std::string(config->GetValue(
-                GetSection().c_str(), full_key.c_str(), ToString(default_value.value()).c_str())));
+            result = std::stoll(std::string(config->GetValue(GetSection().c_str(), full_key.c_str(), ToString(default_value.value()).c_str())));
         } catch (...) {
             result = default_value.value();
         }
@@ -971,17 +906,14 @@ void Config::ReadSettingGeneric(Settings::BasicSetting* const setting) {
 
     bool use_global = true;
     if (setting->Switchable() && !global) {
-        use_global =
-            ReadBooleanSetting(std::string(key).append("\\use_global"), std::make_optional(true));
+        use_global = ReadBooleanSetting(std::string(key).append("\\use_global"), std::make_optional(true));
         setting->SetGlobal(use_global);
     }
 
     if (global || !use_global) {
-        const bool is_default =
-            ReadBooleanSetting(std::string(key).append("\\default"), std::make_optional(true));
+        const bool is_default = ReadBooleanSetting(std::string(key).append("\\default"), std::make_optional(true));
         if (!is_default) {
-            const std::string setting_string = ReadStringSetting(key, default_value);
-            setting->LoadString(setting_string);
+            setting->LoadString(ReadStringSetting(key, default_value));
         } else {
             // Empty string resets the Setting to default
             setting->LoadString("");
@@ -1062,7 +994,7 @@ std::string Config::AdjustOutputString(const std::string& string) {
 
     // Windows requires that two forward slashes are used at the start of a path for unmapped
     // network drives so we have to watch for that here
-#ifndef ANDROID
+#ifndef __ANDROID__
     if (string.substr(0, 2) == "//") {
         boost::replace_all(adjusted_string, "//", "/");
         adjusted_string.insert(0, "/");
@@ -1103,10 +1035,9 @@ std::string Config::GetFullKey(const std::string& key, bool skipArrayIndex) {
 
 int Config::BeginArray(const std::string& array) {
     array_stack.push_back(ConfigArray{AdjustKey(array), 0, 0});
-    const int size = config->GetLongValue(GetSection().c_str(),
-                                          GetFullKey(std::string("size"), true).c_str(), 0);
-    array_stack.back().size = size;
-    return size;
+    const int size = config->GetLongValue(GetSection().c_str(), GetFullKey(std::string("size"), true).c_str(), 0);
+    array_stack.back().size = (std::max)(0, size);
+    return array_stack.back().size;
 }
 
 void Config::EndArray() {
@@ -1124,7 +1055,7 @@ void Config::EndArray() {
         // Edge-case where the first array created doesn't have a name
         config->SetValue(GetSection().c_str(), std::string("size").c_str(), ToString(size).c_str());
     } else {
-        const auto key = GetFullKey(std::string("size"), true);
+        auto const key = GetFullKey(std::string("size"), true);
         config->SetValue(GetSection().c_str(), key.c_str(), ToString(size).c_str());
     }
 

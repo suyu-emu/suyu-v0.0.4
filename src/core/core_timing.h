@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2020 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -16,7 +19,7 @@
 
 #include "common/common_types.h"
 #include "common/thread.h"
-#include "common/wall_clock.h"
+#include "common/cpu_features.h"
 
 namespace Core::Timing {
 
@@ -115,7 +118,7 @@ public:
 
     void Idle();
 
-    s64 GetDowncount() const {
+    s64 GetDowncount() const noexcept {
         return downcount;
     }
 
@@ -125,11 +128,8 @@ public:
     /// Returns the current GPU tick value.
     u64 GetGPUTicks() const;
 
-    /// Returns current time in microseconds.
-    std::chrono::microseconds GetGlobalTimeUs() const;
-
-    /// Returns current time in nanoseconds.
-    std::chrono::nanoseconds GetGlobalTimeNs() const;
+    [[nodiscard]] std::chrono::microseconds GetGlobalTimeUs() const noexcept;
+    [[nodiscard]] std::chrono::nanoseconds GetGlobalTimeNs() const noexcept;
 
     /// Checks for events manually and returns time in nanoseconds for next event, threadsafe.
     std::optional<s64> Advance();
@@ -138,46 +138,32 @@ public:
     void SetTimerResolutionNs(std::chrono::nanoseconds ns);
 #endif
 
-private:
     struct Event;
-
-    static void ThreadEntry(CoreTiming& instance);
-    void ThreadLoop();
 
     void Reset();
 
-    std::unique_ptr<Common::WallClock> clock;
-
+    using heap_t = boost::heap::fibonacci_heap<CoreTiming::Event, boost::heap::compare<std::greater<>>>;
+    heap_t event_queue;
     s64 global_timer = 0;
-
 #ifdef _WIN32
     s64 timer_resolution_ns;
 #endif
-
-    using heap_t =
-        boost::heap::fibonacci_heap<CoreTiming::Event, boost::heap::compare<std::greater<>>>;
-
-    heap_t event_queue;
     u64 event_fifo_id = 0;
-
-    Common::Event event{};
-    Common::Event pause_event{};
-    mutable std::mutex basic_lock;
-    std::mutex advance_lock;
-    std::unique_ptr<std::jthread> timer_thread;
-    std::atomic<bool> paused{};
-    std::atomic<bool> paused_set{};
-    std::atomic<bool> wait_set{};
-    std::atomic<bool> shutting_down{};
-    std::atomic<bool> has_started{};
-    std::function<void()> on_thread_init{};
-
-    bool is_multicore{};
     s64 pause_end_time{};
-
     /// Cycle timing
     u64 cpu_ticks{};
     s64 downcount{};
+    Common::Event event{};
+    Common::Event pause_event{};
+    std::function<void()> on_thread_init{};
+    std::jthread timer_thread;
+    mutable std::mutex basic_lock;
+    std::mutex advance_lock;
+    std::atomic<bool> paused{};
+    std::atomic<bool> paused_set{};
+    std::atomic<bool> wait_set{};
+    std::atomic<bool> has_started{};
+    bool is_multicore{};
 };
 
 /// Creates a core timing event with the given name and callback.

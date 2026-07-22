@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2018 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -15,7 +18,9 @@ namespace Service::Audio {
 using namespace AudioCore::Renderer;
 
 IAudioRendererManager::IAudioRendererManager(Core::System& system_)
-    : ServiceFramework{system_, "audren:u"}, impl{std::make_unique<Manager>(system_)} {
+    : ServiceFramework{system_, "audren:u"}
+    , impl(system_)
+{
     // clang-format off
     static const FunctionInfo functions[] = {
         {0, D<&IAudioRendererManager::OpenAudioRenderer>, "OpenAudioRenderer"},

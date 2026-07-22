@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2023 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -15,6 +18,10 @@
 #include "core/hle/service/ssl/ssl_backend.h"
 #include "core/internal_network/network.h"
 #include "core/internal_network/sockets.h"
+
+#ifdef YUZU_BUNDLED_OPENSSL
+#include <openssl/cert.h>
+#endif
 
 using namespace Common::FS;
 
@@ -38,11 +45,85 @@ void OneTimeInit();
 void OneTimeInitLogFile();
 bool OneTimeInitBIO();
 
+#ifdef YUZU_BUNDLED_OPENSSL
+// This is ported from httplib
+struct scope_exit {
+  explicit scope_exit(std::function<void(void)> &&f)
+      : exit_function(std::move(f)), execute_on_destruction{true} {}
+
+  scope_exit(scope_exit &&rhs) noexcept
+      : exit_function(std::move(rhs.exit_function)),
+        execute_on_destruction{rhs.execute_on_destruction} {
+    rhs.release();
+  }
+
+  ~scope_exit() {
+    if (execute_on_destruction) { this->exit_function(); }
+  }
+
+  void release() { this->execute_on_destruction = false; }
+
+private:
+  scope_exit(const scope_exit &) = delete;
+  void operator=(const scope_exit &) = delete;
+  scope_exit &operator=(scope_exit &&) = delete;
+
+  std::function<void(void)> exit_function;
+  bool execute_on_destruction;
+};
+
+inline X509_STORE *CreateCaCertStore(const char *ca_cert,
+                                                    std::size_t size) {
+    auto mem = BIO_new_mem_buf(ca_cert, static_cast<int>(size));
+    auto se = scope_exit([&] { BIO_free_all(mem); });
+    if (!mem) { return nullptr; }
+
+    auto inf = PEM_X509_INFO_read_bio(mem, nullptr, nullptr, nullptr);
+    if (!inf) { return nullptr; }
+
+    auto cts = X509_STORE_new();
+    if (cts) {
+        for (auto i = 0; i < static_cast<int>(sk_X509_INFO_num(inf)); i++) {
+            auto itmp = sk_X509_INFO_value(inf, i);
+            if (!itmp) { continue; }
+
+            if (itmp->x509) { X509_STORE_add_cert(cts, itmp->x509); }
+            if (itmp->crl) { X509_STORE_add_crl(cts, itmp->crl); }
+        }
+    }
+
+    sk_X509_INFO_pop_free(inf, X509_INFO_free);
+    return cts;
+}
+
+inline void SetCaCertStore(SSL_CTX *ctx, X509_STORE *ca_cert_store) {
+    if (ca_cert_store) {
+        if (ctx) {
+            if (SSL_CTX_get_cert_store(ctx) != ca_cert_store) {
+                // Free memory allocated for old cert and use new store `ca_cert_store`
+                SSL_CTX_set_cert_store(ctx, ca_cert_store);
+            }
+        } else {
+            X509_STORE_free(ca_cert_store);
+        }
+    }
+}
+
+inline void LoadCaCertStore(SSL_CTX* ctx, const char* ca_cert, std::size_t size)
+{
+    SetCaCertStore(ctx, CreateCaCertStore(ca_cert, size));
+}
+#endif
+
 } // namespace
 
 class SSLConnectionBackendOpenSSL final : public SSLConnectionBackend {
 public:
     Result Init() {
+        // on bundled OpenSSL, load ca cert store
+#ifdef YUZU_BUNDLED_OPENSSL
+        LoadCaCertStore(ssl_ctx, kCert, sizeof(kCert));
+#endif
         std::call_once(one_time_init_flag, OneTimeInit);
 
         if (!one_time_init_success) {
@@ -77,9 +158,11 @@ public:
     }
 
     Result SetHostName(const std::string& hostname) override {
-        if (!SSL_set1_host(ssl, hostname.c_str())) { // hostname for verification
-            LOG_ERROR(Service_SSL, "SSL_set1_host({}) failed", hostname);
-            return CheckOpenSSLErrors();
+        if (!skip_cert_verification) {
+            if (!SSL_set1_host(ssl, hostname.c_str())) {
+                LOG_ERROR(Service_SSL, "SSL_set1_host({}) failed", hostname);
+                return CheckOpenSSLErrors();
+            }
         }
         if (!SSL_set_tlsext_host_name(ssl, hostname.c_str())) { // hostname for SNI
             LOG_ERROR(Service_SSL, "SSL_set_tlsext_host_name({}) failed", hostname);
@@ -88,15 +171,32 @@ public:
         return ResultSuccess;
     }
 
+    void SetVerifyOption(u32 option) override {
+        skip_cert_verification = (option == 0);
+        LOG_WARNING(Service_SSL, "option={} skip_verification={}", option,
+                    skip_cert_verification);
+        if (skip_cert_verification) {
+            SSL_set_verify(ssl, SSL_VERIFY_NONE, nullptr);
+            SSL_set1_host(ssl, nullptr);
+            SSL_set_hostflags(ssl, 0);
+        } else {
+            SSL_set_verify(ssl, SSL_VERIFY_PEER, nullptr);
+        }
+    }
+
     Result DoHandshake() override {
         SSL_set_verify_result(ssl, X509_V_OK);
         const int ret = SSL_do_handshake(ssl);
-        const long verify_result = SSL_get_verify_result(ssl);
-        if (verify_result != X509_V_OK) {
-            LOG_ERROR(Service_SSL, "SSL cert verification failed because: {}",
-                      X509_verify_cert_error_string(verify_result));
-            return CheckOpenSSLErrors();
+
+        if (!skip_cert_verification) {
+            const long verify_result = SSL_get_verify_result(ssl);
+            if (verify_result != X509_V_OK) {
+                LOG_ERROR(Service_SSL, "SSL cert verification failed because: {}",
+                          X509_verify_cert_error_string(verify_result));
+                return CheckOpenSSLErrors();
+            }
         }
+
         if (ret <= 0) {
             const int ssl_err = SSL_get_error(ssl, ret);
             if (ssl_err == SSL_ERROR_ZERO_RETURN ||
@@ -247,6 +347,7 @@ public:
     SSL* ssl = nullptr;
     BIO* bio = nullptr;
     bool got_read_eof = false;
+    bool skip_cert_verification = false;
 
     std::shared_ptr<Network::SocketBase> socket;
 };
@@ -286,7 +387,7 @@ Result CheckOpenSSLErrors() {
             msg.append(data);
         }
         Common::Log::FmtLogMessage(Common::Log::Class::Service_SSL, Common::Log::Level::Error,
-                                   Common::Log::TrimSourcePath(file), line, func, "OpenSSL: {}",
+                                   file, line, func, "OpenSSL: {}",
                                    msg);
     }
     return ResultInternalError;
@@ -320,8 +421,8 @@ void OneTimeInit() {
 void OneTimeInitLogFile() {
     const char* logfile = getenv("SSLKEYLOGFILE");
     if (logfile) {
-        key_log_file.Open(std::filesystem::path(logfile), FileAccessMode::Append,
-                          FileType::TextFile, FileShareFlag::ShareWriteOnly);
+        key_log_file.Open(logfile, FileAccessMode::Append, FileType::TextFile,
+                          FileShareFlag::ShareWriteOnly);
         if (key_log_file.IsOpen()) {
             SSL_CTX_set_keylog_callback(ssl_ctx, &SSLConnectionBackendOpenSSL::KeyLogCallback);
         } else {

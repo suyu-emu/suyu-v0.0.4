@@ -1,10 +1,10 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 // SPDX-FileCopyrightText: 2023 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
-#include "common/logging/log.h"
+#include "common/logging.h"
 #include "input_common/main.h"
 #include "qt_config.h"
 #include "uisettings.h"
@@ -231,6 +231,16 @@ void QtConfig::ReadPathValues() {
         QString::fromStdString(ReadStringSetting(std::string("recentFiles")))
             .split(QStringLiteral(", "), Qt::SkipEmptyParts, Qt::CaseSensitive);
 
+    const int external_dirs_size = BeginArray(std::string("external_content_dirs"));
+    for (int i = 0; i < external_dirs_size; ++i) {
+        SetArrayIndex(i);
+        std::string dir_path = ReadStringSetting(std::string("path"));
+        if (!dir_path.empty()) {
+            Settings::values.external_content_dirs.push_back(dir_path);
+        }
+    }
+    EndArray();
+
     ReadCategory(Settings::Category::Paths);
 
     EndGroup();
@@ -294,11 +304,22 @@ void QtConfig::ReadUIGamelistValues() {
     }
     EndArray();
 
+    const int linked_size = BeginArray("ryujinx_linked");
+    for (int i = 0; i < linked_size; ++i) {
+        SetArrayIndex(i);
+
+        QDir ryu_dir = QString::fromStdString(ReadStringSetting("ryujinx_path"));
+        u64 program_id = ReadUnsignedIntegerSetting("program_id");
+
+        UISettings::values.ryujinx_link_paths.insert(program_id, ryu_dir);
+    }
+    EndArray();
+
     EndGroup();
 }
 
 void QtConfig::ReadUILayoutValues() {
-    BeginGroup(Settings::TranslateCategory(Settings::Category::UiGameList));
+    BeginGroup(Settings::TranslateCategory(Settings::Category::UiLayout));
 
     ReadCategory(Settings::Category::UiLayout);
 
@@ -435,6 +456,13 @@ void QtConfig::SavePathValues() {
     WriteStringSetting(std::string("recentFiles"),
                        UISettings::values.recent_files.join(QStringLiteral(", ")).toStdString());
 
+    BeginArray(std::string("external_content_dirs"));
+    for (int i = 0; i < static_cast<int>(Settings::values.external_content_dirs.size()); ++i) {
+        SetArrayIndex(i);
+        WriteStringSetting(std::string("path"), Settings::values.external_content_dirs[i]);
+    }
+    EndArray();
+
     EndGroup();
 }
 
@@ -499,6 +527,21 @@ void QtConfig::SaveUIGamelistValues() {
     }
     EndArray(); // favorites
 
+    BeginArray(std::string("ryujinx_linked"));
+    int i = 0;
+    QMapIterator iter(UISettings::values.ryujinx_link_paths);
+
+    while (iter.hasNext()) {
+        iter.next();
+
+        SetArrayIndex(i);
+        WriteIntegerSetting("program_id", iter.key());
+        WriteStringSetting("ryujinx_path", iter.value().absolutePath().toStdString());
+        ++i;
+    }
+
+    EndArray(); // ryujinx
+
     EndGroup();
 }
 
@@ -535,10 +578,10 @@ void QtConfig::SaveMultiplayerValues() {
 }
 
 std::vector<Settings::BasicSetting*>& QtConfig::FindRelevantList(Settings::Category category) {
-    auto& map = Settings::values.linkage.by_category;
-    if (map.contains(category)) {
-        return Settings::values.linkage.by_category[category];
-    }
+    auto& list = Settings::values.linkage.by_category[category];
+    if (!list.empty())
+        return list;
+
     return UISettings::values.linkage.by_category[category];
 }
 

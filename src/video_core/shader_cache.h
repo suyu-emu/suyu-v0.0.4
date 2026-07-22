@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2020 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -7,12 +10,12 @@
 #include <memory>
 #include <mutex>
 #include <span>
-#include <unordered_map>
+#include <ankerl/unordered_dense.h>
 #include <utility>
 #include <vector>
 
 #include "common/common_types.h"
-#include "common/polyfill_ranges.h"
+#include <ranges>
 #include "video_core/control/channel_state_cache.h"
 #include "video_core/host1x/gpu_device_memory_manager.h"
 #include "video_core/rasterizer_interface.h"
@@ -36,8 +39,8 @@ struct ShaderInfo {
 };
 
 class ShaderCache : public VideoCommon::ChannelSetupCaches<VideoCommon::ChannelInfo> {
-    static constexpr u64 SUYU_PAGEBITS = 14;
-    static constexpr u64 SUYU_PAGESIZE = u64(1) << SUYU_PAGEBITS;
+    static constexpr u64 YUZU_PAGEBITS = 14;
+    static constexpr u64 YUZU_PAGESIZE = u64(1) << YUZU_PAGEBITS;
 
     static constexpr size_t NUM_PROGRAMS = 6;
 
@@ -133,12 +136,6 @@ private:
     /// @param entry Entry to unmark from memory
     void UnmarkMemory(Entry* entry);
 
-    /// @brief Removes a vector of shaders from a list
-    /// @param removed_shaders Shaders to be removed from the storage
-    /// @pre invalidation_mutex is locked
-    /// @pre lookup_mutex is locked
-    void RemoveShadersFromStorage(std::span<ShaderInfo*> removed_shaders);
-
     /// @brief Creates a new entry in the lookup cache and returns its pointer
     /// @pre lookup_mutex is locked
     Entry* NewEntry(VAddr addr, VAddr addr_end, ShaderInfo* data);
@@ -151,8 +148,8 @@ private:
     mutable std::mutex lookup_mutex;
     std::mutex invalidation_mutex;
 
-    std::unordered_map<u64, std::unique_ptr<Entry>> lookup_cache;
-    std::unordered_map<u64, std::vector<Entry*>> invalidation_cache;
+    ankerl::unordered_dense::map<u64, std::unique_ptr<Entry>> lookup_cache;
+    ankerl::unordered_dense::map<u64, std::vector<Entry*>> invalidation_cache;
     std::vector<std::unique_ptr<ShaderInfo>> storage;
     std::vector<Entry*> marked_for_removal;
 };

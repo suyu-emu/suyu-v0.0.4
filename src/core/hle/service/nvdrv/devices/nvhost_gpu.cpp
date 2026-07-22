@@ -1,9 +1,12 @@
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2018 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
 #include <cstring>
 #include "common/assert.h"
-#include "common/logging/log.h"
+#include "common/logging.h"
 #include "core/core.h"
 #include "core/hle/kernel/k_process.h"
 #include "core/hle/service/nvdrv/core/container.h"
@@ -168,32 +171,23 @@ NvResult nvhost_gpu::SetChannelPriority(IoctlChannelSetPriority& params) {
     LOG_INFO(Service_NVDRV, "called, priority={:X}", channel_priority);
 
     switch (static_cast<ChannelPriority>(channel_priority)) {
-    case ChannelPriority::Low:
-        channel_timeslice = 1300;
-        break;
-    case ChannelPriority::Medium:
-        channel_timeslice = 2600;
-        break;
-    case ChannelPriority::High:
-        channel_timeslice = 5200;
-        break;
-    default:
-        return NvResult::BadParameter;
+    case ChannelPriority::Low: channel_timeslice = 1300; break;
+    case ChannelPriority::Medium: channel_timeslice = 2600; break;
+    case ChannelPriority::High: channel_timeslice = 5200; break;
+    default : return NvResult::BadParameter;
     }
 
     return NvResult::Success;
 }
 
 NvResult nvhost_gpu::AllocGPFIFOEx(IoctlAllocGpfifoEx& params, DeviceFD fd) {
-    LOG_DEBUG(Service_NVDRV,
-              "called, num_entries={:X}, num_jobs={:X}, flags={:X}, reserved1={:X}, "
+    LOG_DEBUG(Service_NVDRV, "called, num_entries={:X}, flags={:X}, reserved1={:X}, "
               "reserved2={:X}, reserved3={:X}",
-              params.num_entries, params.num_jobs, params.flags, params.reserved[0],
-              params.reserved[1], params.reserved[2]);
+              params.num_entries, params.flags, params.reserved[0], params.reserved[1],
+              params.reserved[2]);
 
     if (channel_state->initialized) {
-        LOG_DEBUG(Service_NVDRV,
-                  "Channel already initialized; AllocGPFIFOEx returning AlreadyAllocated");
+        LOG_DEBUG(Service_NVDRV, "Channel already initialized; AllocGPFIFOEx returning AlreadyAllocated");
         return NvResult::AlreadyAllocated;
     }
 
@@ -202,8 +196,10 @@ NvResult nvhost_gpu::AllocGPFIFOEx(IoctlAllocGpfifoEx& params, DeviceFD fd) {
         program_id = session->process->GetProgramId();
     }
 
+    // Store program id for later lazy initialization
     channel_state->program_id = program_id;
 
+    // If address space is not yet bound, defer channel initialization.
     if (!channel_state->memory_manager) {
         params.fence_out = syncpoint_manager.GetSyncpointFence(channel_syncpoint);
         return NvResult::Success;
@@ -218,14 +214,13 @@ NvResult nvhost_gpu::AllocGPFIFOEx(IoctlAllocGpfifoEx& params, DeviceFD fd) {
 
 NvResult nvhost_gpu::AllocGPFIFOEx2(IoctlAllocGpfifoEx& params, DeviceFD fd) {
     LOG_DEBUG(Service_NVDRV,
-              "called, num_entries={:X}, num_jobs={:X}, flags={:X}, reserved1={:X}, "
+              "called, num_entries={:X}, flags={:X}, reserved1={:X}, "
               "reserved2={:X}, reserved3={:X}",
-              params.num_entries, params.num_jobs, params.flags, params.reserved[0],
-              params.reserved[1], params.reserved[2]);
+              params.num_entries, params.flags, params.reserved[0], params.reserved[1],
+              params.reserved[2]);
 
     if (channel_state->initialized) {
-        LOG_DEBUG(Service_NVDRV,
-                  "Channel already initialized; AllocGPFIFOEx2 returning AlreadyAllocated");
+        LOG_DEBUG(Service_NVDRV, "Channel already initialized; AllocGPFIFOEx2 returning AlreadyAllocated");
         return NvResult::AlreadyAllocated;
     }
 
@@ -234,8 +229,10 @@ NvResult nvhost_gpu::AllocGPFIFOEx2(IoctlAllocGpfifoEx& params, DeviceFD fd) {
         program_id = session->process->GetProgramId();
     }
 
+    // Store program id for later lazy initialization
     channel_state->program_id = program_id;
 
+    // If address space is not yet bound, defer channel initialization.
     if (!channel_state->memory_manager) {
         params.fence_out = syncpoint_manager.GetSyncpointFence(channel_syncpoint);
         return NvResult::Success;
@@ -251,29 +248,23 @@ NvResult nvhost_gpu::AllocGPFIFOEx2(IoctlAllocGpfifoEx& params, DeviceFD fd) {
 s32_le nvhost_gpu::GetObjectContextClassNumberIndex(CtxClasses class_number) {
     constexpr s32_le invalid_class_number_index = -1;
     switch (class_number) {
-    case CtxClasses::Ctx2D:
-        return 0;
-    case CtxClasses::Ctx3D:
-        return 1;
-    case CtxClasses::CtxCompute:
-        return 2;
-    case CtxClasses::CtxKepler:
-        return 3;
-    case CtxClasses::CtxDMA:
-        return 4;
-    case CtxClasses::CtxChannelGPFIFO:
-        return 5;
-    default:
-        return invalid_class_number_index;
+    case CtxClasses::Ctx2D: return 0;
+    case CtxClasses::Ctx3D: return 1;
+    case CtxClasses::CtxCompute: return 2;
+    case CtxClasses::CtxKepler: return 3;
+    case CtxClasses::CtxDMA: return 4;
+    case CtxClasses::CtxChannelGPFIFO: return 5;
+    default: return invalid_class_number_index;
     }
 }
 
 NvResult nvhost_gpu::AllocateObjectContext(IoctlAllocObjCtx& params) {
-    LOG_DEBUG(Service_NVDRV, "called, class_num={:#X}, flags={:#X}, obj_id={:#X}",
-              params.class_num, params.flags, params.obj_id);
+    LOG_DEBUG(Service_NVDRV, "called, class_num={:#X}, flags={:#X}, obj_id={:#X}", params.class_num,
+              params.flags, params.obj_id);
 
+    // Do not require channel initialization here: some clients allocate contexts before binding.
     if (!channel_state) {
-        LOG_ERROR(Service_NVDRV, "No channel state available");
+        LOG_ERROR(Service_NVDRV, "No channel state available!");
         return NvResult::InvalidState;
     }
 
@@ -282,10 +273,12 @@ NvResult nvhost_gpu::AllocateObjectContext(IoctlAllocObjCtx& params) {
     if (params.flags) {
         LOG_WARNING(Service_NVDRV, "non-zero flags={:#X} for class={:#X}", params.flags,
                     params.class_num);
-        params.flags = 0;
+
+        constexpr u32 allowed_mask{};
+        params.flags = allowed_mask;
     }
 
-    const s32_le ctx_class_number_index =
+    s32_le ctx_class_number_index = 
         GetObjectContextClassNumberIndex(static_cast<CtxClasses>(params.class_num));
     if (ctx_class_number_index < 0) {
         LOG_ERROR(Service_NVDRV, "Invalid class number for object context: {:#X}",
@@ -294,12 +287,12 @@ NvResult nvhost_gpu::AllocateObjectContext(IoctlAllocObjCtx& params) {
     }
 
     if (ctxObjs[ctx_class_number_index].has_value()) {
-        LOG_WARNING(Service_NVDRV,
-                    "Object context for class {:#X} already allocated on this channel",
+        LOG_WARNING(Service_NVDRV, "Object context for class {:#X} already allocated on this channel",
                     params.class_num);
         return NvResult::AlreadyAllocated;
     }
 
+    // Defer actual hardware context binding until channel is initialized.
     ctxObjs[ctx_class_number_index] = params;
 
     return NvResult::Success;
@@ -346,13 +339,14 @@ static boost::container::small_vector<Tegra::CommandHeader, 512> BuildIncrementW
 }
 
 NvResult nvhost_gpu::SubmitGPFIFOImpl(IoctlSubmitGpfifo& params, Tegra::CommandList&& entries) {
-    LOG_DEBUG(Service_NVDRV, "SubmitGPFIFO gpfifo={:X}, num_entries={:X}, flags={:X}",
-              params.address, params.num_entries, params.flags.raw);
+    LOG_TRACE(Service_NVDRV, "called, gpfifo={:X}, num_entries={:X}, flags={:X}", params.address,
+              params.num_entries, params.flags.raw);
 
     auto& gpu = system.GPU();
 
     std::scoped_lock lock(channel_mutex);
 
+    // Lazily initialize channel when address space is available
     if (!channel_state->initialized && channel_state->memory_manager) {
         system.GPU().InitChannel(*channel_state, channel_state->program_id);
     }
@@ -426,20 +420,20 @@ NvResult nvhost_gpu::SubmitGPFIFOBase2(IoctlSubmitGpfifo& params,
 }
 
 NvResult nvhost_gpu::GetWaitbase(IoctlGetWaitbase& params) {
-    LOG_INFO(Service_NVDRV, "called, unknown=0x{:X}", params.unknown);
+    LOG_INFO(Service_NVDRV, "called, unknown={:#X}", params.unknown);
 
     params.value = 0; // Seems to be hard coded at 0
     return NvResult::Success;
 }
 
 NvResult nvhost_gpu::ChannelSetTimeout(IoctlChannelSetTimeout& params) {
-    LOG_INFO(Service_NVDRV, "called, timeout=0x{:X}", params.timeout);
+    LOG_INFO(Service_NVDRV, "called, timeout={:#X}", params.timeout);
 
     return NvResult::Success;
 }
 
 NvResult nvhost_gpu::ChannelSetTimeslice(IoctlSetTimeslice& params) {
-    LOG_INFO(Service_NVDRV, "called, timeslice=0x{:X}", params.timeslice);
+    LOG_INFO(Service_NVDRV, "called, timeslice={:#X}", params.timeslice);
 
     if (params.timeslice < 1000 || params.timeslice > 5000) {
         return NvResult::BadParameter;

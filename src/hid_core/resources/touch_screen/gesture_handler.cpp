@@ -1,6 +1,10 @@
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2024 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
+#include <numbers>
 #include "common/math_util.h"
 #include "hid_core/resources/touch_screen/gesture_handler.h"
 
@@ -16,7 +20,7 @@ GestureHandler::~GestureHandler() {}
 
 void GestureHandler::SetTouchState(std::span<TouchState> touch_state, u32 count, s64 timestamp) {
     gesture = {};
-    gesture.active_points = std::min(MaxPoints, static_cast<std::size_t>(count));
+    gesture.active_points = (std::min)(MaxPoints, static_cast<std::size_t>(count));
 
     for (size_t id = 0; id < gesture.active_points; ++id) {
         const auto& [active_x, active_y] = touch_state[id].position;
@@ -211,7 +215,7 @@ void GestureHandler::UpdatePanEvent(GestureState& next_state, GestureType& type)
     if (std::abs(angle_between_two_lines) > AngleThreshold) {
         type = GestureType::Rotate;
         next_state.scale = 0;
-        next_state.rotation_angle = angle_between_two_lines * 180.0f / Common::PI;
+        next_state.rotation_angle = angle_between_two_lines * 180.0f / float(std::numbers::pi_v<float>);
     }
 }
 

@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2024 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -28,15 +31,15 @@ IAudioRenderer::IAudioRenderer(Core::System& system_, Manager& manager_,
         {7, D<&IAudioRenderer::QuerySystemEvent>, "QuerySystemEvent"},
         {8, D<&IAudioRenderer::SetRenderingTimeLimit>, "SetRenderingTimeLimit"},
         {9, D<&IAudioRenderer::GetRenderingTimeLimit>, "GetRenderingTimeLimit"},
-        {10, D<&IAudioRenderer::RequestUpdateAuto>, "RequestUpdateAuto"},
-        {11, nullptr, "ExecuteAudioRendererRendering"},
-        {12, D<&IAudioRenderer::SetVoiceDropParameter>, "SetVoiceDropParameter"},
-        {13, D<&IAudioRenderer::GetVoiceDropParameter>, "GetVoiceDropParameter"},
+        {10, D<&IAudioRenderer::RequestUpdateAuto>, "RequestUpdateAuto"}, //3.0.0+
+        {11, nullptr, "ExecuteAudioRendererRendering"}, //3.0.0+
+        {12, D<&IAudioRenderer::SetVoiceDropParameter>, "SetVoiceDropParameter"}, //15.0.0+
+        {13, D<&IAudioRenderer::GetVoiceDropParameter>, "GetVoiceDropParameter"}, //15.0.0+
     };
     // clang-format on
     RegisterHandlers(functions);
 
-    process_handle->Open();
+    process_handle->Open(system_.Kernel());
     impl->Initialize(params, transfer_memory, transfer_memory_size, process_handle,
                      applet_resource_user_id, session_id);
 }
@@ -44,7 +47,7 @@ IAudioRenderer::IAudioRenderer(Core::System& system_, Manager& manager_,
 IAudioRenderer::~IAudioRenderer() {
     impl->Finalize();
     service_context.CloseEvent(rendered_event);
-    process_handle->Close();
+    process_handle->Close(system.Kernel());
 }
 
 Result IAudioRenderer::GetSampleRate(Out<u32> out_sample_rate) {

@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2024 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
@@ -7,7 +10,9 @@
 
 namespace Service::HID {
 
-NpadAbstractPalmaHandler::NpadAbstractPalmaHandler() {}
+NpadAbstractPalmaHandler::NpadAbstractPalmaHandler(Kernel::KernelCore& kernel_)
+    : kernel{kernel_}
+{}
 
 NpadAbstractPalmaHandler::~NpadAbstractPalmaHandler() = default;
 
@@ -25,7 +30,7 @@ void NpadAbstractPalmaHandler::SetPalmaResource(PalmaResource* resource) {
 }
 
 Result NpadAbstractPalmaHandler::IncrementRefCounter() {
-    if (ref_counter == std::numeric_limits<s32>::max() - 1) {
+    if (ref_counter == (std::numeric_limits<s32>::max)() - 1) {
         return ResultNpadHandlerOverflow;
     }
     ref_counter++;

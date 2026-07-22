@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2023 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -14,8 +17,8 @@ namespace FileSys {
 using namespace Common::Literals;
 
 class AesCtrCounterExtendedStorage : public IReadOnlyStorage {
-    SUYU_NON_COPYABLE(AesCtrCounterExtendedStorage);
-    SUYU_NON_MOVEABLE(AesCtrCounterExtendedStorage);
+    YUZU_NON_COPYABLE(AesCtrCounterExtendedStorage);
+    YUZU_NON_MOVEABLE(AesCtrCounterExtendedStorage);
 
 public:
     static constexpr size_t BlockSize = 0x10;
@@ -89,7 +92,7 @@ public:
     virtual size_t Read(u8* buffer, size_t size, size_t offset) const override;
 
     virtual size_t GetSize() const override {
-        BucketTree::Offsets offsets;
+        BucketTree::Offsets offsets{};
         ASSERT(R_SUCCEEDED(m_table.GetOffsets(std::addressof(offsets))));
 
         return offsets.end_offset;

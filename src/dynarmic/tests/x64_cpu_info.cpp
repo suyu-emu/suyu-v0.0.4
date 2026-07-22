@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 /* This file is part of the dynarmic project.
  * Copyright (c) 2020 MerryMage
  * SPDX-License-Identifier: 0BSD
@@ -11,7 +14,7 @@
 #include <utility>
 
 #include <catch2/catch_test_macros.hpp>
-#include <xbyak/xbyak_util.h>
+#include "dynarmic/backend/x64/xbyak.h"
 
 TEST_CASE("Host CPU supports", "[a64]") {
     using Cpu = Xbyak::util::Cpu;
@@ -36,8 +39,6 @@ TEST_CASE("Host CPU supports", "[a64]") {
         X(tAMX_TILE),
         X(tAVX),
         X(tAVX2),
-        X(tAVX512_4FMAPS),
-        X(tAVX512_4VNNIW),
         X(tAVX512_BF16),
         X(tAVX512_BITALG),
         X(tAVX512_FP16),
@@ -50,10 +51,8 @@ TEST_CASE("Host CPU supports", "[a64]") {
         X(tAVX512BW),
         X(tAVX512CD),
         X(tAVX512DQ),
-        X(tAVX512ER),
         X(tAVX512F),
         X(tAVX512IFMA),
-        X(tAVX512PF),
         X(tAVX512VBMI),
         X(tAVX512VL),
         X(tAVX_VNNI),
@@ -81,7 +80,6 @@ TEST_CASE("Host CPU supports", "[a64]") {
         X(tPCLMULQDQ),
         X(tPOPCNT),
         X(tPREFETCHW),
-        X(tPREFETCHWT1),
         X(tRDRAND),
         X(tRDSEED),
         X(tRDTSCP),

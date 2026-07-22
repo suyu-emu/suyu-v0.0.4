@@ -1,5 +1,7 @@
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2021 yuzu Emulator Project
-// SPDX-FileCopyrightText: 2024 sudachi Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
 #include <bit>
@@ -54,6 +56,7 @@ std::optional<OutAttr> OutputAttrPointer(EmitContext& ctx, IR::Attribute attr) {
             return OutputAccessChain(ctx, ctx.output_f32, info.id, index_id);
         }
     }
+
     switch (attr) {
     case IR::Attribute::PointSize:
         return ctx.output_point_size;
@@ -199,7 +202,8 @@ void EmitGetIndirectBranchVariable(EmitContext&) {
 }
 
 Id EmitGetCbufU8(EmitContext& ctx, const IR::Value& binding, const IR::Value& offset) {
-    if (ctx.profile.support_descriptor_aliasing && ctx.profile.support_int8) {
+    if (ctx.profile.support_descriptor_aliasing && ctx.profile.support_int8 &&
+        ctx.profile.support_uniform_and_storage_buffer_8bit) {
         const Id load{GetCbuf(ctx, ctx.U8, &UniformDefinitions::U8, sizeof(u8), binding, offset,
                               ctx.load_const_func_u8)};
         return ctx.OpUConvert(ctx.U32[1], load);
@@ -216,7 +220,8 @@ Id EmitGetCbufU8(EmitContext& ctx, const IR::Value& binding, const IR::Value& of
 }
 
 Id EmitGetCbufS8(EmitContext& ctx, const IR::Value& binding, const IR::Value& offset) {
-    if (ctx.profile.support_descriptor_aliasing && ctx.profile.support_int8) {
+    if (ctx.profile.support_descriptor_aliasing && ctx.profile.support_int8 &&
+        ctx.profile.support_uniform_and_storage_buffer_8bit) {
         const Id load{GetCbuf(ctx, ctx.S8, &UniformDefinitions::S8, sizeof(s8), binding, offset,
                               ctx.load_const_func_u8)};
         return ctx.OpSConvert(ctx.U32[1], load);
@@ -233,7 +238,8 @@ Id EmitGetCbufS8(EmitContext& ctx, const IR::Value& binding, const IR::Value& of
 }
 
 Id EmitGetCbufU16(EmitContext& ctx, const IR::Value& binding, const IR::Value& offset) {
-    if (ctx.profile.support_descriptor_aliasing && ctx.profile.support_int16) {
+    if (ctx.profile.support_descriptor_aliasing && ctx.profile.support_int16 &&
+        ctx.profile.support_uniform_and_storage_buffer_16bit) {
         const Id load{GetCbuf(ctx, ctx.U16, &UniformDefinitions::U16, sizeof(u16), binding, offset,
                               ctx.load_const_func_u16)};
         return ctx.OpUConvert(ctx.U32[1], load);
@@ -250,7 +256,8 @@ Id EmitGetCbufU16(EmitContext& ctx, const IR::Value& binding, const IR::Value& o
 }
 
 Id EmitGetCbufS16(EmitContext& ctx, const IR::Value& binding, const IR::Value& offset) {
-    if (ctx.profile.support_descriptor_aliasing && ctx.profile.support_int16) {
+    if (ctx.profile.support_descriptor_aliasing && ctx.profile.support_int16 &&
+        ctx.profile.support_uniform_and_storage_buffer_16bit) {
         const Id load{GetCbuf(ctx, ctx.S16, &UniformDefinitions::S16, sizeof(s16), binding, offset,
                               ctx.load_const_func_u16)};
         return ctx.OpSConvert(ctx.U32[1], load);
@@ -358,7 +365,7 @@ Id EmitGetAttribute(EmitContext& ctx, IR::Attribute attr, Id vertex) {
         return ctx.OpBitcast(ctx.F32[1], ctx.OpLoad(ctx.U32[1], ctx.draw_index));
     case IR::Attribute::FrontFace:
         return ctx.OpSelect(ctx.F32[1], ctx.OpLoad(ctx.U1, ctx.front_face),
-                            ctx.OpBitcast(ctx.F32[1], ctx.Const(std::numeric_limits<u32>::max())),
+                            ctx.OpBitcast(ctx.F32[1], ctx.Const((std::numeric_limits<u32>::max)())),
                             ctx.f32_zero_value);
     case IR::Attribute::PointSpriteS:
         return ctx.OpLoad(ctx.F32[1],
@@ -413,6 +420,14 @@ void EmitSetAttribute(EmitContext& ctx, IR::Attribute attr, Id value, [[maybe_un
     }
     if (Sirit::ValidId(output->type)) {
         value = ctx.OpBitcast(output->type, value);
+    }
+
+    static constexpr IR::Attribute cd0 = IR::Attribute::ClipDistance0;
+    static constexpr IR::Attribute cd7 = IR::Attribute::ClipDistance7;
+
+    if (attr >= cd0 && attr <= cd7) {
+        const u32 idx = (u32) attr - (u32) cd0;
+        clip_distance_written.set(idx);
     }
     ctx.OpStore(output->pointer, value);
 }
@@ -473,8 +488,22 @@ void EmitSetPatch(EmitContext& ctx, IR::Patch patch, Id value) {
 
 void EmitSetFragColor(EmitContext& ctx, u32 index, u32 component, Id value) {
     const Id component_id{ctx.Const(component)};
-    const Id pointer{ctx.OpAccessChain(ctx.output_f32, ctx.frag_color.at(index), component_id)};
-    ctx.OpStore(pointer, value);
+    const AttributeType type{ctx.runtime_info.color_output_types[index]};
+    if (type == AttributeType::Float) {
+        const Id pointer{ctx.OpAccessChain(ctx.output_f32, ctx.frag_color.at(index), component_id)};
+        ctx.OpStore(pointer, value);
+    } else if (type == AttributeType::UnsignedInt) {
+        const Id pointer{ctx.OpAccessChain(ctx.output_u32, ctx.frag_color.at(index), component_id)};
+        ctx.OpStore(pointer, ctx.OpBitcast(ctx.U32[1], value));
+    } else if (type == AttributeType::SignedInt) {
+        const Id output_s32{ctx.TypePointer(spv::StorageClass::Output, ctx.S32[1])};
+        const Id pointer{ctx.OpAccessChain(output_s32, ctx.frag_color.at(index), component_id)};
+        ctx.OpStore(pointer, ctx.OpBitcast(ctx.S32[1], value));
+    } else {
+        // Disabled or unknown, treat as float
+        const Id pointer{ctx.OpAccessChain(ctx.output_f32, ctx.frag_color.at(index), component_id)};
+        ctx.OpStore(pointer, value);
+    }
 }
 
 void EmitSetSampleMask(EmitContext& ctx, Id value) {

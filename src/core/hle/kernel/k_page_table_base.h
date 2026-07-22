@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2023 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -49,8 +52,8 @@ class KResourceLimit;
 class KSystemResource;
 
 class KPageTableBase {
-    SUYU_NON_COPYABLE(KPageTableBase);
-    SUYU_NON_MOVEABLE(KPageTableBase);
+    YUZU_NON_COPYABLE(KPageTableBase);
+    YUZU_NON_MOVEABLE(KPageTableBase);
 
 public:
     using TraversalEntry = Common::PageTable::TraversalEntry;
@@ -58,14 +61,12 @@ public:
 
     class MemoryRange {
     private:
-        KernelCore& m_kernel;
-        KPhysicalAddress m_address;
-        size_t m_size;
-        bool m_heap;
+        KPhysicalAddress m_address = 0;
+        size_t m_size = 0;
+        bool m_heap = false;
 
     public:
-        explicit MemoryRange(KernelCore& kernel)
-            : m_kernel(kernel), m_address(0), m_size(0), m_heap(false) {}
+        explicit MemoryRange() : m_address(0), m_size(0), m_heap(false) {}
 
         void Set(KPhysicalAddress address, size_t size, bool heap) {
             m_address = address;
@@ -83,8 +84,8 @@ public:
             return m_heap;
         }
 
-        void Open();
-        void Close();
+        void Open(KernelCore& kernel);
+        void Close(KernelCore& kernel);
     };
 
 protected:
@@ -186,7 +187,6 @@ private:
     };
 
 private:
-    KernelCore& m_kernel;
     Core::System& m_system;
     KProcessAddress m_address_space_start{};
     KProcessAddress m_address_space_end{};
@@ -212,7 +212,7 @@ private:
     mutable KLightLock m_general_lock;
     mutable KLightLock m_map_physical_memory_lock;
     KLightLock m_device_map_lock;
-    std::unique_ptr<Common::PageTable> m_impl{};
+    Common::PageTable m_impl{};
     Core::Memory::Memory* m_memory{};
     KMemoryBlockManager m_memory_block_manager{};
     u32 m_allocate_option{};
@@ -220,6 +220,7 @@ private:
     bool m_is_kernel{};
     bool m_enable_aslr{};
     bool m_enable_device_address_space_merge{};
+    bool m_allowed_exec_device_mapping{};
     KMemoryBlockSlabManager* m_memory_block_slab_manager{};
     KBlockInfoManager* m_block_info_manager{};
     KResourceLimit* m_resource_limit{};
@@ -250,6 +251,10 @@ public:
     }
     bool IsAslrEnabled() const {
         return m_enable_aslr;
+    }
+
+    void AllowDeviceMappingOfExecPages() {
+        m_allowed_exec_device_mapping = true;
     }
 
     bool Contains(KProcessAddress addr) const {
@@ -297,26 +302,11 @@ public:
     }
 
 public:
-    Core::Memory::Memory& GetMemory() {
-        return *m_memory;
-    }
-
-    Core::Memory::Memory& GetMemory() const {
-        return *m_memory;
-    }
-
-    Common::PageTable& GetImpl() {
-        return *m_impl;
-    }
-
-    Common::PageTable& GetImpl() const {
-        return *m_impl;
-    }
-
-    size_t GetNumGuardPages() const {
-        return this->IsKernel() ? 1 : 4;
-    }
-
+    [[nodiscard]] Core::Memory::Memory& GetMemory() noexcept { return *m_memory; }
+    [[nodiscard]] Core::Memory::Memory const& GetMemory() const noexcept { return *m_memory; }
+    [[nodiscard]] Common::PageTable& GetImpl() noexcept { return m_impl; }
+    [[nodiscard]] Common::PageTable const& GetImpl() const noexcept { return m_impl; }
+    [[nodiscard]] size_t GetNumGuardPages() const noexcept { return this->IsKernel() ? 1 : 4; }
 protected:
     // NOTE: These three functions (Operate, Operate, FinalizeUpdate) are virtual functions
     // in Nintendo's kernel. We devirtualize them, since KPageTable is the only derived
@@ -336,35 +326,35 @@ protected:
     bool IsLinearMappedPhysicalAddress(KPhysicalAddress phys_addr) {
         ASSERT(this->IsLockedByCurrentThread());
 
-        return m_kernel.MemoryLayout().IsLinearMappedPhysicalAddress(
+        return m_system.Kernel().MemoryLayout().IsLinearMappedPhysicalAddress(
             m_cached_physical_linear_region, phys_addr);
     }
 
     bool IsLinearMappedPhysicalAddress(KPhysicalAddress phys_addr, size_t size) {
         ASSERT(this->IsLockedByCurrentThread());
 
-        return m_kernel.MemoryLayout().IsLinearMappedPhysicalAddress(
+        return m_system.Kernel().MemoryLayout().IsLinearMappedPhysicalAddress(
             m_cached_physical_linear_region, phys_addr, size);
     }
 
     bool IsHeapPhysicalAddress(KPhysicalAddress phys_addr) {
         ASSERT(this->IsLockedByCurrentThread());
 
-        return m_kernel.MemoryLayout().IsHeapPhysicalAddress(m_cached_physical_heap_region,
+        return m_system.Kernel().MemoryLayout().IsHeapPhysicalAddress(m_cached_physical_heap_region,
                                                              phys_addr);
     }
 
     bool IsHeapPhysicalAddress(KPhysicalAddress phys_addr, size_t size) {
         ASSERT(this->IsLockedByCurrentThread());
 
-        return m_kernel.MemoryLayout().IsHeapPhysicalAddress(m_cached_physical_heap_region,
+        return m_system.Kernel().MemoryLayout().IsHeapPhysicalAddress(m_cached_physical_heap_region,
                                                              phys_addr, size);
     }
 
     bool IsHeapPhysicalAddressForFinalize(KPhysicalAddress phys_addr) {
         ASSERT(!this->IsLockedByCurrentThread());
 
-        return m_kernel.MemoryLayout().IsHeapPhysicalAddress(m_cached_physical_heap_region,
+        return m_system.Kernel().MemoryLayout().IsHeapPhysicalAddress(m_cached_physical_heap_region,
                                                              phys_addr);
     }
 
@@ -442,7 +432,7 @@ private:
                             Svc::MemoryState state) const;
 
     Result AllocateAndMapPagesImpl(PageLinkedList* page_list, KProcessAddress address,
-                                   size_t num_pages, KPageProperties& perm);
+                                   size_t num_pages, KMemoryPermission perm);
     Result MapPageGroupImpl(PageLinkedList* page_list, KProcessAddress address,
                             const KPageGroup& pg, const KPageProperties properties, bool reuse_ll);
 
@@ -683,9 +673,6 @@ public:
     size_t GetAliasRegionSize() const {
         return m_alias_region_end - m_alias_region_start;
     }
-    size_t GetReservedRegionExtraSize() const {
-        return m_alias_region_extra_size;
-    }
     size_t GetStackRegionSize() const {
         return m_stack_region_end - m_stack_region_start;
     }
@@ -697,6 +684,10 @@ public:
     }
     size_t GetAliasCodeRegionSize() const {
         return m_alias_code_region_end - m_alias_code_region_start;
+    }
+
+    size_t GetAliasRegionExtraSize() const {
+        return m_alias_region_extra_size;
     }
 
     size_t GetNormalMemorySize() const {
@@ -750,15 +741,15 @@ public:
 
     // Member heap
     u8* GetHeapVirtualPointer(KPhysicalAddress addr) {
-        return GetHeapVirtualPointer(m_kernel, addr);
+        return GetHeapVirtualPointer(m_system.Kernel(), addr);
     }
 
     KPhysicalAddress GetHeapPhysicalAddress(KVirtualAddress addr) {
-        return GetHeapPhysicalAddress(m_kernel, addr);
+        return GetHeapPhysicalAddress(m_system.Kernel(), addr);
     }
 
     KVirtualAddress GetHeapVirtualAddress(KPhysicalAddress addr) {
-        return GetHeapVirtualAddress(m_kernel, addr);
+        return GetHeapVirtualAddress(m_system.Kernel(), addr);
     }
 
     // TODO: GetPageTableVirtualAddress

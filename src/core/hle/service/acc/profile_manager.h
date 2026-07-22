@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2018 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -89,20 +92,30 @@ public:
     Common::UUID GetLastOpenedUser() const;
     UserIDArray GetStoredOpenedUsers() const;
     void StoreOpenedUsers();
+    void SetUserPosition(u64 position, Common::UUID uuid);
 
     bool CanSystemRegisterUser() const;
 
     bool RemoveUser(Common::UUID uuid);
+    bool RemoveProfileAtIndex(std::size_t index);
+
     bool SetProfileBase(Common::UUID uuid, const ProfileBase& profile_new);
     bool SetProfileBaseAndData(Common::UUID uuid, const ProfileBase& profile_new,
                                const UserData& data_new);
 
     void WriteUserSaveFile();
 
+    void ResetUserSaveFile();
+
+    std::vector<Common::UUID> FindExistingProfileUUIDs();
+    std::vector<std::string> FindExistingProfileStrings();
+    std::vector<std::string> FindGoodProfiles();
+    std::vector<std::string> FindOrphanedProfiles();
+
 private:
     void ParseUserSaveFile();
     std::optional<std::size_t> AddToProfiles(const ProfileInfo& profile);
-    bool RemoveProfileAtIndex(std::size_t index);
+    void RemoveAllProfiles();
 
     bool is_save_needed{};
     std::array<ProfileInfo, MAX_USERS> profiles{};

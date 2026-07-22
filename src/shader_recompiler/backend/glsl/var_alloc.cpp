@@ -1,10 +1,13 @@
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2021 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
 #include <string>
 #include <string_view>
 
-#include <fmt/format.h>
+#include <fmt/ranges.h>
 
 #include "shader_recompiler/backend/glsl/var_alloc.h"
 #include "shader_recompiler/exception.h"
@@ -155,7 +158,7 @@ Id VarAlloc::Alloc(GlslVarType type) {
         if (use_tracker.var_use[var]) {
             continue;
         }
-        use_tracker.num_used = std::max(use_tracker.num_used, var + 1);
+        use_tracker.num_used = (std::max)(use_tracker.num_used, var + 1);
         use_tracker.var_use[var] = true;
         Id ret{};
         ret.is_valid.Assign(1);

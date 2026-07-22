@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2024 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -17,7 +20,7 @@ IDisplayController::IDisplayController(Core::System& system_, std::shared_ptr<Ap
         {2, nullptr, "GetLastApplicationCaptureImage"},
         {3, nullptr, "GetCallerAppletCaptureImage"},
         {4, nullptr, "UpdateCallerAppletCaptureImage"},
-        {5, nullptr, "GetLastForegroundCaptureImageEx"},
+        {5, D<&IDisplayController::GetLastForegroundCaptureImageEx>, "GetLastForegroundCaptureImageEx"},
         {6, nullptr, "GetLastApplicationCaptureImageEx"},
         {7, D<&IDisplayController::GetCallerAppletCaptureImageEx>, "GetCallerAppletCaptureImageEx"},
         {8, D<&IDisplayController::TakeScreenShotOfOwnLayer>, "TakeScreenShotOfOwnLayer"},
@@ -47,6 +50,13 @@ IDisplayController::IDisplayController(Core::System& system_, std::shared_ptr<Ap
 }
 
 IDisplayController::~IDisplayController() = default;
+
+Result IDisplayController::GetLastForegroundCaptureImageEx(
+    Out<bool> out_was_written, OutBuffer<BufferAttr_HipcMapAlias> out_image_data) {
+    LOG_WARNING(Service_AM, "(STUBBED) called");
+    *out_was_written = true;
+    R_SUCCEED();
+}
 
 Result IDisplayController::GetCallerAppletCaptureImageEx(
     Out<bool> out_was_written, OutBuffer<BufferAttr_HipcMapAlias> out_image_data) {

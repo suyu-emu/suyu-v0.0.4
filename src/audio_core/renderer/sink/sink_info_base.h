@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2022 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -168,9 +171,9 @@ protected:
     /// Node id for this sink
     u32 node_id{};
     /// State buffer for this sink
-    std::array<u8, std::max(sizeof(DeviceState), sizeof(CircularBufferState))> state{};
+    std::array<u8, (std::max)(sizeof(DeviceState), sizeof(CircularBufferState))> state{};
     /// Parameter buffer for this sink
-    std::array<u8, std::max(sizeof(DeviceInParameter), sizeof(CircularBufferInParameter))>
+    std::array<u8, (std::max)(sizeof(DeviceInParameter), sizeof(CircularBufferInParameter))>
         parameter{};
 };
 

@@ -1,4 +1,7 @@
-// SPDX-FileCopyrightText: Copyright 2019 suyu Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
+// SPDX-FileCopyrightText: Copyright 2019 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
 #pragma once
@@ -12,6 +15,7 @@
 
 #include "common/bounded_threadsafe_queue.h"
 #include "common/polyfill_thread.h"
+#include "video_core/dma_pusher.h"
 #include "video_core/framebuffer_config.h"
 
 namespace Tegra {
@@ -89,7 +93,7 @@ struct CommandDataContainer {
 
 /// Struct used to synchronize the GPU thread
 struct SynchState final {
-    using CommandQueue = Common::MPSCQueue<CommandDataContainer>;
+    using CommandQueue = Common::SPSCQueue<CommandDataContainer>;
     std::mutex write_lock;
     CommandQueue queue;
     u64 last_fence{};
@@ -100,7 +104,7 @@ struct SynchState final {
 /// Class used to manage the GPU thread
 class ThreadManager final {
 public:
-    explicit ThreadManager(Core::System& system_, bool is_async_);
+    explicit ThreadManager(Core::System& system_);
     ~ThreadManager();
 
     /// Creates and starts the GPU thread.
@@ -108,27 +112,25 @@ public:
                      Tegra::Control::Scheduler& scheduler);
 
     /// Push GPU command entries to be processed
-    void SubmitList(s32 channel, Tegra::CommandList&& entries);
+    void SubmitList(s32 channel, Tegra::CommandList&& entries, bool is_async);
 
     /// Notify rasterizer that any caches of the specified region should be flushed to Switch memory
-    void FlushRegion(DAddr addr, u64 size);
+    void FlushRegion(DAddr addr, u64 size, bool is_async);
 
     /// Notify rasterizer that any caches of the specified region should be invalidated
     void InvalidateRegion(DAddr addr, u64 size);
 
     /// Notify rasterizer that any caches of the specified region should be flushed and invalidated
-    void FlushAndInvalidateRegion(DAddr addr, u64 size);
+    void FlushAndInvalidateRegion(DAddr addr, u64 size, bool is_async);
 
-    void TickGPU();
+    void TickGPU(bool is_async);
 
 private:
     /// Pushes a command to be executed by the GPU thread
-    u64 PushCommand(CommandData&& command_data, bool block = false);
+    u64 PushCommand(CommandData&& command_data, bool block, bool is_async);
 
     Core::System& system;
-    const bool is_async;
     VideoCore::RasterizerInterface* rasterizer = nullptr;
-
     SynchState state;
     std::jthread thread;
 };

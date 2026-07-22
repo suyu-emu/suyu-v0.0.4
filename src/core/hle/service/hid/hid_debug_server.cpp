@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2023 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
@@ -87,7 +90,7 @@ IHidDebugServer::IHidDebugServer(Core::System& system_, std::shared_ptr<Resource
         {209, nullptr, "GetAvailableFirmwareVersionForRevert"},
         {210, nullptr, "IsFirmwareUpdatingDevice"},
         {211, nullptr, "StartFirmwareUpdateIndividual"},
-        {212, nullptr, "GetDetailFirmwareVersion"},
+        {212, nullptr, "GetDetailFirmwareVersion"}, // 19.0.0+
         {215, nullptr, "SetUsbFirmwareForceUpdateEnabled"},
         {216, nullptr, "SetAllKuinaDevicesToFirmwareUpdateMode"},
         {221, nullptr, "UpdateControllerColor"},
@@ -121,11 +124,11 @@ IHidDebugServer::IHidDebugServer(Core::System& system_, std::shared_ptr<Resource
         {249, nullptr, "ConnectUniquePad"},
         {250, nullptr, "IsVirtual"},
         {251, nullptr, "GetAnalogStickModuleParam"},
-        {253, nullptr, "ClearStorageForShipment"},
-        {261, nullptr, "UpdateDesignInfo12"},
-        {262, nullptr, "GetUniquePadButtonCount"},
-        {267, nullptr, "SetAnalogStickCalibration"},
-        {268, nullptr, "ResetAnalogStickCalibration"},
+        {253, nullptr, "ClearStorageForShipment"}, //19.0.0+
+        {261, nullptr, "UpdateDesignInfo12"}, //21.0.0+
+        {262, nullptr, "GetUniquePadButtonCount"}, //21.0.0+
+        {267, nullptr, "SetAnalogStickCalibration"}, //21.0.0+
+        {268, nullptr, "ResetAnalogStickCalibration"}, //21.0.0+
         {301, nullptr, "GetAbstractedPadHandles"},
         {302, nullptr, "GetAbstractedPadState"},
         {303, nullptr, "GetAbstractedPadsState"},
@@ -142,8 +145,8 @@ IHidDebugServer::IHidDebugServer(Core::System& system_, std::shared_ptr<Resource
         {331, nullptr, "DetachHdlsVirtualDevice"},
         {332, nullptr, "SetHdlsState"},
         {350, nullptr, "AddRegisteredDevice"},
-        {351, nullptr, "GetRegisteredDevicesCountDebug"},
-        {352, nullptr, "DeleteRegisteredDevicesDebug"},
+        {351, nullptr, "GetRegisteredDevicesCountDebug"}, //17.0.0-18.1.0
+        {352, nullptr, "DeleteRegisteredDevicesDebug"}, //17.0.0-18.1.0
         {400, nullptr, "DisableExternalMcuOnNxDevice"},
         {401, nullptr, "DisableRailDeviceFiltering"},
         {402, nullptr, "EnableWiredPairing"},
@@ -155,26 +158,26 @@ IHidDebugServer::IHidDebugServer(Core::System& system_, std::shared_ptr<Resource
         {551, nullptr, "GetAnalogStickModelData"},
         {552, nullptr, "ResetAnalogStickModelData"},
         {600, nullptr, "ConvertPadState"},
-        {601, nullptr, "IsButtonConfigSupported"},
-        {602, nullptr, "IsButtonConfigEmbeddedSupported"},
-        {603, nullptr, "DeleteButtonConfig"},
-        {604, nullptr, "DeleteButtonConfigEmbedded"},
-        {605, nullptr, "SetButtonConfigEnabled"},
-        {606, nullptr, "SetButtonConfigEmbeddedEnabled"},
-        {607, nullptr, "IsButtonConfigEnabled"},
-        {608, nullptr, "IsButtonConfigEmbeddedEnabled"},
-        {609, nullptr, "SetButtonConfigEmbedded"},
-        {610, nullptr, "SetButtonConfigFull"},
-        {611, nullptr, "SetButtonConfigLeft"},
-        {612, nullptr, "SetButtonConfigRight"},
-        {613, nullptr, "GetButtonConfigEmbedded"},
-        {614, nullptr, "GetButtonConfigFull"},
-        {615, nullptr, "GetButtonConfigLeft"},
-        {616, nullptr, "GetButtonConfigRight"},
+        {601, nullptr, "IsButtonConfigSupported"}, //18.0.0+
+        {602, nullptr, "IsButtonConfigEmbeddedSupported"}, //18.0.0+
+        {603, nullptr, "DeleteButtonConfig"}, //18.0.0+
+        {604, nullptr, "DeleteButtonConfigEmbedded"}, //18.0.0+
+        {605, nullptr, "SetButtonConfigEnabled"}, //18.0.0+
+        {606, nullptr, "SetButtonConfigEmbeddedEnabled"}, //18.0.0+
+        {607, nullptr, "IsButtonConfigEnabled"}, //18.0.0+
+        {608, nullptr, "IsButtonConfigEmbeddedEnabled"}, //18.0.0+
+        {609, nullptr, "SetButtonConfigEmbedded"}, //18.0.0+
+        {610, nullptr, "SetButtonConfigFull"}, //18.0.0+
+        {611, nullptr, "SetButtonConfigLeft"}, //18.0.0+
+        {612, nullptr, "SetButtonConfigRight"}, //18.0.0+
+        {613, nullptr, "GetButtonConfigEmbedded"}, //18.0.0+
+        {614, nullptr, "GetButtonConfigFull"}, //18.0.0+
+        {615, nullptr, "GetButtonConfigLeft"}, //18.0.0+
+        {616, nullptr, "GetButtonConfigRight"}, //18.0.0+
         {650, nullptr, "AddButtonPlayData"},
         {651, nullptr, "StartButtonPlayData"},
         {652, nullptr, "StopButtonPlayData"},
-        {700, nullptr, "GetRailAttachEventCount"},
+        {700, nullptr, "GetRailAttachEventCount"}, //21.0.0+
         {2000, nullptr, "DeactivateDigitizer"},
         {2001, nullptr, "SetDigitizerAutoPilotState"},
         {2002, nullptr, "UnsetDigitizerAutoPilotState"},
@@ -202,7 +205,7 @@ Result IHidDebugServer::SetTouchScreenAutoPilotState(
     AutoPilotState auto_pilot{};
 
     auto_pilot.count =
-        static_cast<u64>(std::min(auto_pilot_buffer.size(), auto_pilot.state.size()));
+        static_cast<u64>((std::min)(auto_pilot_buffer.size(), auto_pilot.state.size()));
     memcpy(auto_pilot.state.data(), auto_pilot_buffer.data(),
            auto_pilot.count * sizeof(TouchState));
 

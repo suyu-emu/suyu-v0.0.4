@@ -1,15 +1,53 @@
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2024 yuzu Emulator Project
-// SPDX-FileCopyrightText: Copyright 2024 suyu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
+#include "common/settings.h"
+#include "core/hle/service/acc/profile_manager.h"
 #include "core/hle/service/am/applet_data_broker.h"
 #include "core/hle/service/am/applet_manager.h"
+#include "core/hle/service/am/frontend/applet_profile_select.h"
 #include "core/hle/service/am/frontend/applets.h"
+#include "core/hle/service/am/library_applet_storage.h"
 #include "core/hle/service/am/service/library_applet_accessor.h"
 #include "core/hle/service/am/service/storage.h"
 #include "core/hle/service/cmif_serialization.h"
 
 namespace Service::AM {
+
+namespace {
+
+void EnableSingleUserPlay(const std::shared_ptr<LibraryAppletStorage>& impl) {
+    constexpr s64 DisplayOptionsOffset = 0x90;
+    constexpr s64 IsSkipEnabledOffset = 1;
+    constexpr s64 ShowSkipButtonOffset = 4;
+    constexpr bool enabled = true;
+
+    impl->Write(DisplayOptionsOffset + IsSkipEnabledOffset, &enabled, sizeof(enabled));
+    impl->Write(DisplayOptionsOffset + ShowSkipButtonOffset, &enabled, sizeof(enabled));
+}
+
+void ReplaceEmptyUuidWithCurrentUser(const std::shared_ptr<LibraryAppletStorage>& impl) {
+    Frontend::UiReturnArg return_arg{};
+    impl->Read(0, &return_arg, sizeof(return_arg));
+
+    if (return_arg.uuid_selected.IsValid()) {
+        return;
+    }
+
+    Service::Account::ProfileManager profile_manager;
+    const auto current_user_idx = Settings::values.current_user.GetValue();
+
+    if (auto uuid = profile_manager.GetUser(current_user_idx)) {
+        return_arg.result = 0;
+        return_arg.uuid_selected = *uuid;
+        impl->Write(0, &return_arg, sizeof(return_arg));
+    }
+}
+
+} // namespace
 
 ILibraryAppletAccessor::ILibraryAppletAccessor(Core::System& system_,
                                                std::shared_ptr<AppletDataBroker> broker,
@@ -25,7 +63,10 @@ ILibraryAppletAccessor::ILibraryAppletAccessor(Core::System& system_,
         {25, D<&ILibraryAppletAccessor::Terminate>, "Terminate"},
         {30, D<&ILibraryAppletAccessor::GetResult>, "GetResult"},
         {50, nullptr, "SetOutOfFocusApplicationSuspendingEnabled"},
-        {60, D<&ILibraryAppletAccessor::PresetLibraryAppletGpuTimeSliceZero>, "PresetLibraryAppletGpuTimeSliceZero"},
+        {60, D<&ILibraryAppletAccessor::PresetLibraryAppletGpuTimeSliceZero>, "PresetLibraryAppletGpuTimeSliceZero"}, //10.0.0+
+        {80, nullptr, "RequestForLibraryAppletToGetForeground"}, //19.0.0+
+        {81, nullptr, "GetCurrentChildLibraryApplet"}, //19.0.0+
+        {90, D<&ILibraryAppletAccessor::Unknown90>, "Unknown90"}, //20.0.0+
         {100, D<&ILibraryAppletAccessor::PushInData>, "PushInData"},
         {101, D<&ILibraryAppletAccessor::PopOutData>, "PopOutData"},
         {102, nullptr, "PushExtraStorage"},
@@ -34,9 +75,10 @@ ILibraryAppletAccessor::ILibraryAppletAccessor(Core::System& system_,
         {105, D<&ILibraryAppletAccessor::GetPopOutDataEvent>, "GetPopOutDataEvent"},
         {106, D<&ILibraryAppletAccessor::GetPopInteractiveOutDataEvent>, "GetPopInteractiveOutDataEvent"},
         {110, nullptr, "NeedsToExitProcess"},
-        {120, nullptr, "GetLibraryAppletInfo"},
+        {120, D<&ILibraryAppletAccessor::GetLibraryAppletInfo>, "GetLibraryAppletInfo"},
         {150, nullptr, "RequestForAppletToGetForeground"},
-        {160, D<&ILibraryAppletAccessor::GetIndirectLayerConsumerHandle>, "GetIndirectLayerConsumerHandle"},
+        {160, D<&ILibraryAppletAccessor::GetIndirectLayerConsumerHandle>, "GetIndirectLayerConsumerHandle"}, //2.0.0+
+        {170, D<&ILibraryAppletAccessor::Unknown170>, "Unknown170"}, //22.0.0+
     };
     // clang-format on
 
@@ -81,7 +123,7 @@ Result ILibraryAppletAccessor::RequestExit() {
     LOG_DEBUG(Service_AM, "called");
     {
         std::scoped_lock lk{m_applet->lock};
-        m_applet->lifecycle_manager.RequestExit();
+        m_applet->lifecycle_manager.RequestExit(system.Kernel());
     }
     FrontendRequestExit();
     R_SUCCEED();
@@ -94,43 +136,64 @@ Result ILibraryAppletAccessor::Terminate() {
     R_SUCCEED();
 }
 
+Result ILibraryAppletAccessor::Unknown90() {
+    LOG_WARNING(Service_AM, "(STUBBED) called");
+    R_SUCCEED();
+}
+
 Result ILibraryAppletAccessor::PushInData(SharedPointer<IStorage> storage) {
     LOG_DEBUG(Service_AM, "called");
-    m_broker->GetInData().Push(storage);
+
+    // Special case for ProfileSelect applet, to enable single user play as
+    // somehow some games want an additional user and not let you continue...
+    if (m_applet->applet_id == AppletId::ProfileSelect) {
+        auto impl = storage->GetImpl();
+        const s64 size = impl->GetSize();
+
+        const bool is_ui_settings = size == sizeof(Frontend::UiSettings) ||
+                                    size == sizeof(Frontend::UiSettingsV1);
+        if (is_ui_settings) {
+            EnableSingleUserPlay(impl);
+        }
+    }
+
+    m_broker->GetInData().Push(system.Kernel(), storage);
     R_SUCCEED();
 }
 
 Result ILibraryAppletAccessor::PopOutData(Out<SharedPointer<IStorage>> out_storage) {
     LOG_DEBUG(Service_AM, "called");
-    // suyu todo: move library applet fix to another function
-    // since this function is only called for applets that give a result,
-    // applets that don't (e.g. info applets in 1st party games) simply freeze
-    if (auto caller = m_applet->caller_applet.lock(); caller != nullptr) {
-        caller->SetInteractibleLocked(true);
 
-        caller->lifecycle_manager.SetFocusState(FocusState::InFocus);
-        caller->lifecycle_manager.UpdateRequestedFocusState();
-
-        caller->lifecycle_manager.SetResumeNotificationEnabled(true);
-        caller->lifecycle_manager.RequestResumeNotification();
-        caller->UpdateSuspensionStateLocked(true);
-    } else {
-        LOG_CRITICAL(Service_AM, "Caller applet pointer is invalid.");
-        LOG_CRITICAL(Service_AM, "The emulator will freeze!");
+    if (auto caller_applet = m_applet->caller_applet.lock(); caller_applet) {
+        caller_applet->lifecycle_manager.GetSystemEvent().Signal(system.Kernel());
+        caller_applet->lifecycle_manager.RequestResumeNotification();
+        caller_applet->lifecycle_manager.GetSystemEvent().Clear(system.Kernel());
+        caller_applet->lifecycle_manager.UpdateRequestedFocusState();
     }
-    R_RETURN(m_broker->GetOutData().Pop(out_storage.Get()));
+
+    R_TRY(m_broker->GetOutData().Pop(system.Kernel(), out_storage.Get()));
+
+    if (m_applet->applet_id == AppletId::ProfileSelect && *out_storage) {
+        auto impl = (*out_storage)->GetImpl();
+
+        if (impl->GetSize() == sizeof(Frontend::UiReturnArg)) {
+            ReplaceEmptyUuidWithCurrentUser(impl);
+        }
+    }
+
+    R_SUCCEED();
 }
 
 Result ILibraryAppletAccessor::PushInteractiveInData(SharedPointer<IStorage> storage) {
     LOG_DEBUG(Service_AM, "called");
-    m_broker->GetInteractiveInData().Push(storage);
+    m_broker->GetInteractiveInData().Push(system.Kernel(), storage);
     FrontendExecuteInteractive();
     R_SUCCEED();
 }
 
 Result ILibraryAppletAccessor::PopInteractiveOutData(Out<SharedPointer<IStorage>> out_storage) {
     LOG_DEBUG(Service_AM, "called");
-    R_RETURN(m_broker->GetInteractiveOutData().Pop(out_storage.Get()));
+    R_RETURN(m_broker->GetInteractiveOutData().Pop(system.Kernel(), out_storage.Get()));
 }
 
 Result ILibraryAppletAccessor::GetPopOutDataEvent(OutCopyHandle<Kernel::KReadableEvent> out_event) {
@@ -152,6 +215,22 @@ Result ILibraryAppletAccessor::GetIndirectLayerConsumerHandle(Out<u64> out_handl
     // We require a non-zero handle to be valid. Using 0xdeadbeef allows us to trace if this is
     // actually used anywhere
     *out_handle = 0xdeadbeef;
+    R_SUCCEED();
+}
+
+Result ILibraryAppletAccessor::GetLibraryAppletInfo(
+    Out<LibraryAppletInfo> out_library_applet_info) {
+    LOG_INFO(Service_AM, "called");
+    *out_library_applet_info = {
+        .applet_id = m_applet->applet_id,
+        .library_applet_mode = m_applet->library_applet_mode,
+    };
+    R_SUCCEED();
+}
+
+Result ILibraryAppletAccessor::Unknown170(OutCopyHandle<Kernel::KReadableEvent> out_event) {
+    LOG_WARNING(Service_AM, "(STUBBED) called");
+    *out_event = m_applet->unknown_event.GetHandle();
     R_SUCCEED();
 }
 

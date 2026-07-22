@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 /* This file is part of the dynarmic project.
@@ -10,9 +10,9 @@
 #include <vector>
 
 #include <catch2/catch_test_macros.hpp>
-#include "dynarmic/common/common_types.h"
+#include "common/common_types.h"
 
-#include "../rand_int.h"
+#include "dynarmic/tests/rand_int.h"
 #include "dynarmic/common/fp/fpcr.h"
 #include "dynarmic/common/fp/fpsr.h"
 #include "dynarmic/common/fp/op.h"

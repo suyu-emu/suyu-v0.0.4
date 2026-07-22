@@ -5,27 +5,24 @@ Comment: It is best to use this file to record copyright information about
 Files: dist/english_plurals/*
        dist/icons/controller/*.png
        dist/icons/overlay/*.png
-       dist/icons/overlay_dark/*.png
        dist/languages/*
        dist/qt_themes/*/icons/48x48/sd_card.png
        dist/qt_themes/*/icons/index.theme
        dist/qt_themes/default/style.qss
-       dist/qt_themes/*/icons.qrc
-       dist/qt_themes/*/style.qrc
 Copyright: yuzu Emulator Project
-           suyu Emulator Project
 License: GPL-2.0-or-later
 
-Files: dist/qt_themes/default/icons/256x256/suyu.png
-       dist/suyu.bmp
-       dist/suyu.icns
-       dist/suyu.ico
-       dist/suyu.svg
-Copyright: suyu Emulator Project
-License: GPL-2.0-or-later
+Files: dist/qt_themes/default/icons/256x256/eden.png
+       dist/yuzu.bmp
+       dist/eden.icns
+       dist/eden.ico
+       dist/dev.eden_emu.eden.svg
+Copyright: 2025 Eden Emulator Project
+License: GPL-3.0-or-later
 
 Files: dist/qt_themes/qdarkstyle*/LICENSE.*
-       dist/qt_themes/qdarkstyle*/dark.qss
+       dist/qt_themes/qdarkstyle*/style.qrc
+       dist/qt_themes/qdarkstyle*/style.qss
 Copyright: 2013 Colin Duquesnoy
            2019 Daniel Cosmo Pizetta
 License: MIT
@@ -35,28 +32,28 @@ Copyright: 2013 Colin Duquesnoy
            2019 Daniel Cosmo Pizetta
 License: CC-BY-4.0
 
-Files: dist/qt_themes/monochrome/icons/256x256/plus_folder.png
-       dist/qt_themes/monochrome/icons/48x48/bad_folder.png
-       dist/qt_themes/monochrome/icons/48x48/chip.png
-       dist/qt_themes/monochrome/icons/48x48/folder.png
-       dist/qt_themes/monochrome/icons/48x48/star.png
-       dist/qt_themes/monochrome_dark/icons/48x48/bad_folder.png
-       dist/qt_themes/monochrome_dark/icons/48x48/chip.png
-       dist/qt_themes/monochrome_dark/icons/48x48/folder.png
-       dist/qt_themes/monochrome_dark/icons/48x48/star.png
-       dist/qt_themes/monochrome_dark/icons/256x256/plus_folder.png
+Files: dist/qt_themes/default/icons/256x256/plus_folder.png
+       dist/qt_themes/default/icons/48x48/bad_folder.png
+       dist/qt_themes/default/icons/48x48/chip.png
+       dist/qt_themes/default/icons/48x48/folder.png
+       dist/qt_themes/default/icons/48x48/star.png
+       dist/qt_themes/qdarkstyle/icons/256x256/plus_folder.png
+       dist/qt_themes/qdarkstyle/icons/48x48/bad_folder.png
+       dist/qt_themes/qdarkstyle/icons/48x48/chip.png
+       dist/qt_themes/qdarkstyle/icons/48x48/folder.png
+       dist/qt_themes/qdarkstyle/icons/48x48/star.png
 Copyright: Refactoring UI Inc.
 License: MIT
 Comment: https://github.com/tailwindlabs/heroicons
 
-Files: dist/qt_themes/default/icons/16x16/lock.png
-       dist/qt_themes/default/icons/256x256/plus_folder.png
-       dist/qt_themes/default/icons/48x48/bad_folder.png
-       dist/qt_themes/default/icons/48x48/chip.png
-       dist/qt_themes/default/icons/48x48/folder.png
-       dist/qt_themes/default_dark/icons/16x16/lock.png
-       dist/qt_themes/default/icons/16x16/info.png
-       dist/qt_themes/default/icons/16x16/sync.png
+Files: dist/qt_themes/colorful/icons/16x16/lock.png
+       dist/qt_themes/colorful/icons/256x256/plus_folder.png
+       dist/qt_themes/colorful/icons/48x48/bad_folder.png
+       dist/qt_themes/colorful/icons/48x48/chip.png
+       dist/qt_themes/colorful/icons/48x48/folder.png
+       dist/qt_themes/colorful_dark/icons/16x16/lock.png
+       dist/qt_themes/colorful/icons/16x16/info.png
+       dist/qt_themes/colorful/icons/16x16/sync.png
 Copyright: Icons8
 License: MIT
 Comment: https://github.com/icons8/flat-color-icons
@@ -72,15 +69,15 @@ Files: dist/qt_themes/*/icons/48x48/no_avatar.png
 Copyright: Ionic (http://ionic.io/)
 License: MIT
 
-Files: dist/qt_themes/default/icons/48x48/star.png
-       dist/qt_themes/default/icons/16x16/checked.png
-       dist/qt_themes/default/icons/16x16/failed.png
+Files: dist/qt_themes/colorful/icons/48x48/star.png
+       dist/qt_themes/colorful/icons/16x16/checked.png
+       dist/qt_themes/colorful/icons/16x16/failed.png
 Copyright: SVG Repo
 License: CC0-1.0
 
 Files: dist/qt_themes/*/icons/16x16/view-refresh.png
-       dist/qt_themes/monochrome/icons/16x16/lock.png
-       dist/qt_themes/monochrome_dark/icons/16x16/lock.png
+       dist/qt_themes/default/icons/16x16/lock.png
+       dist/qt_themes/qdarkstyle/icons/16x16/lock.png
 Copyright: Google, Inc.
 License: Apache-2.0
 
@@ -111,29 +108,20 @@ Files: externals/FidelityFX-FSR/*
 Copyright: 2021 Advanced Micro Devices, Inc.
 License: MIT
 
-Files: src/suyu/*.ui
+Files: src/yuzu/*.ui
 Copyright: 2018-2022 yuzu Emulator Project
 License: GPL-2.0-or-later
 
-Files: src/suyu/compatdb.ui
-       src/suyu/main.ui
-Copyright: 2014-2017 Citra Emulator Project
-License: GPL-2.0-or-later
-
-Files: src/suyu/loading_screen.ui
+Files: src/yuzu/loading_screen.ui
 Copyright: 2019 James Rowe <jroweboy@gmail.com>
 License: GPL-2.0-or-later
 
-Files: src/suyu/applets/aboutdialog.ui
-       src/suyu/applets/qt_software_keyboard.ui
-       src/suyu/util/overlay_dialog.ui
+Files: src/yuzu/applets/aboutdialog.ui
+       src/yuzu/applets/qt_software_keyboard.ui
+       src/yuzu/util/overlay_dialog.ui
 Copyright: 2020-2021 Its-Rei <kupfel@gmail.com>
            2020-2021 yuzu Emulator Project
 License: GPL-2.0-or-later
-
-Files: vcpkg.json
-Copyright: 2022 yuzu Emulator Project
-License: GPL-3.0-or-later
 
 Files: .github/ISSUE_TEMPLATE/*
 Copyright: 2022 yuzu Emulator Project
@@ -163,164 +151,38 @@ Files: src/android/app/debug.keystore
 Copyright: 2023 yuzu Emulator Project
 License: GPL-3.0-or-later
 
-Files: .github-archive/ISSUE_TEMPLATE/*
-Copyright: 2022 yuzu Emulator Project
-License: GPL-2.0-or-later
+Files: dist/qt_themes/colorful/icons/48x48/user-trash.png
+       dist/qt_themes/colorful/icons/48x48/upload.png
+       dist/qt_themes/colorful/icons/48x48/download.png
+Copyright: 2014 Uri Herrera
+           1996-2025 KDE Software Foundation
+License: LGPL-2.0-or-later
 
-Files: .forgejo/ISSUE_TEMPLATE/*
-Copyright: 2024 suyu Emulator Project
+Files: dist/qt_themes/default/icons/48x48/user-trash.png
+       dist/qt_themes/default/icons/48x48/upload.png
+       dist/qt_themes/default/icons/48x48/download.png
+       dist/qt_themes/default_dark/icons/48x48/user-trash.png
+       dist/qt_themes/default_dark/icons/48x48/upload.png
+       dist/qt_themes/default_dark/icons/48x48/download.png
+Copyright: 2025 Fonticons, Inc.
+License: CC-BY-4.0
+Comment: All of these icons have been modified by crueter <crueter@crueter.xyz>
+
+Files: CMakeModules/CPM.cmake
+Copyright: 2019-2023 Lars Melchior
+License: MIT
+
+Files: CMakeModules/CPMUtil.cmake
+       CMakeModules/CPM.cmake
+       CMakeModules/GetSCMRev.cmake
+       CMakeModules/DetectArchitecture.cmake
+       tools/cpm/*
+       tools/update-cpm.sh
+       tools/shellcheck.sh
+       docs/CPMUtil.md
+       **cpmfile.json
+Copyright: 2025 crueter <crueter@crueter.xyz>
 License: GPL-3.0-or-later
-
-Files: .gitea/ISSUE_TEMPLATE/*
-Copyright: 2024 suyu Emulator Project
-License: GPL-3.0-or-later
-
-Files: .gitlab-ci.yml
-Copyright: 2024 suyu Emulator Project
-License: GPL-3.0-or-later
-
-Files: dist/icns_generator.sh
-Copyright: 2024 suyu Emulator Project
-License: GPL-3.0-or-later
-
-Files: img/*
-Copyright: 2024 suyu Emulator Project
-License: CC0-1.0
-
-Files: externals/metal-cpp/*
-Copyright: 2020-2024 Apple Inc.
-License: Apache-2.0
-
-Files: vcpkg*.log vcpkg-configuration.json tools/eden_migration.sh
-Copyright: Various
-License: GPL-3.0-or-later
-
-Files: .github/workflows/android-build.yml
-Copyright: 2024 suyu Emulator Project
-License: GPL-3.0-or-later
-
-Files: src/suyu_cmd/emu_window/emu_window_sdl2_mtl.*
-Copyright: 2024 suyu Emulator Project
-License: GPL-3.0-or-later
-
-Files: src/video_core/host_shaders/convert_abgr8_srgb_to_d24s8.frag
-Copyright: 2024 suyu Emulator Project
-License: GPL-3.0-or-later
-
-Files: src/video_core/renderer_vulkan/vk_texture_manager.cpp
-Copyright: 2024 suyu Emulator Project
-License: GPL-3.0-or-later
-
-Files: src/dedicated_room/yuzu_room.h
-Copyright: 2018-2024 yuzu Emulator Project, 2024 suyu Emulator Project
-License: GPL-3.0-or-later
-
-Files: .github/workflows/auto-fix-workflows.lock.yml
-       .github/workflows/auto-fix-workflows.md
-       .github/workflows/autofix.yml
-       .github/workflows/autoupdate.yml
-       .github/workflows/autoupdate.yml.backup
-       .github/workflows/clone-issues.yml
-       .github/workflows/cmake-multi-platform.yml
-       .github/workflows/eden-sync.md
-       .github/workflows/post-logs-comment.yml
-       .github/workflows/test-connection.yml
-Copyright: 2025 suyu Emulator Project
-License: GPL-3.0-or-later
-
-Files: .cleanthat/.cleanthat.yaml
-       .coderabbit.yaml
-       BUILD_FIX_STATUS.md
-       CONAN_MIGRATION_PLAN.md
-       ENCRYPTION_DISABLE_PLAN.md
-       MIGRATION_COMPLETE.md
-       README.md
-       SESSION_SUMMARY.md
-       WORKFLOW_MONITORING.md
-       WORK_COMPLETED_SUMMARY.md
-       boost-cmake-install.log
-       conanfile.txt
-       vcpkg_install_log.txt
-       vcpkg_llvm_install_log.txt
-Copyright: 2025 suyu Emulator Project
-License: GPL-3.0-or-later
-
-Files: docs/*
-Copyright: 2025 suyu Emulator Project
-License: GPL-3.0-or-later
-
-Files: scripts/*
-Copyright: 2025 suyu Emulator Project
-License: GPL-3.0-or-later
-
-Files: src/dynarmic/.clang-format
-       src/dynarmic/.gitignore
-       src/dynarmic/CMakeModules/CreateDirectoryGroups.cmake
-       src/dynarmic/CMakeModules/DetectArchitecture.cmake
-       src/dynarmic/CMakeModules/FindUnicorn.cmake
-       src/dynarmic/CMakeModules/TargetArchitectureSpecificSources.cmake
-       src/dynarmic/CMakeModules/dynarmicConfig.cmake.in
-       src/dynarmic/CMakeModules/impl/TargetArchitectureSpecificSourcesWrapFile.cmake
-       src/dynarmic/docs/Design.md
-       src/dynarmic/docs/Doxyfile
-       src/dynarmic/docs/FastMemory.md
-       src/dynarmic/docs/Fastmem.svg
-       src/dynarmic/docs/HostToGuest.svg
-       src/dynarmic/docs/RegisterAllocator.md
-       src/dynarmic/docs/ReturnStackBufferOptimization.md
-       src/dynarmic/externals/cpmfile.json
-       src/dynarmic/src/dynarmic/frontend/A32/decoder/arm.inc
-       src/dynarmic/src/dynarmic/frontend/A32/decoder/asimd.inc
-       src/dynarmic/src/dynarmic/frontend/A32/decoder/thumb16.inc
-       src/dynarmic/src/dynarmic/frontend/A32/decoder/thumb32.inc
-       src/dynarmic/src/dynarmic/frontend/A32/decoder/vfp.inc
-       src/dynarmic/src/dynarmic/frontend/A32/translate/impl/common.h
-       src/dynarmic/src/dynarmic/frontend/A64/decoder/a64.inc
-       src/dynarmic/src/dynarmic/ir/opcodes.inc
-       src/dynarmic/tests/A32/vfp_vadd_f32.inc
-       src/dynarmic/tests/A32/vfp_vsub_f32.inc
-       src/dynarmic/tests/rsqrt_test_fn.s
-       src/dynarmic/README.md
-Copyright: 2016-2025 dynarmic contributors
-           2025 Eden Emulator Project
-License: GPL-3.0-or-later
-
-Files: src/android/app/src/main/legacy/drawable/ic_icon_bg.png
-       src/android/app/src/main/legacy/drawable/ic_icon_bg_orig.png
-Copyright: 2025 suyu Emulator Project
-License: GPL-3.0-or-later
-
-Files: src/core/libretro_wrapper.cpp
-       src/core/libretro_wrapper.h
-       src/nintendo_library/nintendo_library.cpp
-       src/nintendo_library/nintendo_library.h
-       src/qt_common/externals/cpmfile.json
-       src/suyu/icons/folder.svg
-       src/suyu/icons/game_placeholder.svg
-       src/suyu/icons/grid_view.svg
-       src/suyu/icons/list_view.svg
-       src/suyu/icons/play.svg
-       src/suyu/icons/search.svg
-       src/suyu/icons/settings.svg
-       src/suyu/migration_dialog.cpp
-       src/suyu/migration_dialog.h
-       src/suyu/modern_dark.qss
-Copyright: 2025 suyu Emulator Project
-License: GPL-3.0-or-later
-
-Files: src/video_core/host_shaders/convert_astc_hdr_to_rgba16f.comp
-       src/video_core/host_shaders/convert_bc7_to_rgba8.comp
-       src/video_core/host_shaders/convert_rgb_to_yuv420.comp
-       src/video_core/host_shaders/convert_rgba16f_to_rgba8.frag
-       src/video_core/host_shaders/convert_rgba8_to_bgra8.frag
-       src/video_core/host_shaders/convert_yuv420_to_rgb.comp
-       src/video_core/host_shaders/dither_temporal.frag
-       src/video_core/host_shaders/dynamic_resolution_scale.comp
-       src/video_core/host_shaders/present_area.frag
-Copyright: 2025 suyu Emulator Project
-License: GPL-3.0-or-later
-
-Files: vcpkg-overlays/mcl/portfile.cmake
-       vcpkg-overlays/mcl/vcpkg.json
-Copyright: 2025 suyu Emulator Project
-License: GPL-3.0-or-later
+Comment: CPM.cmake has had additional modifications from crueter to better work with CPMUtil
+         https://git.crueter.xyz/CMake/CPMUtil
+         https://git.crueter.xyz/CMake/Modules

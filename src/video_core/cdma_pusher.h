@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2020 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -15,11 +18,11 @@
 #include "common/common_types.h"
 #include "common/polyfill_thread.h"
 #include "core/memory.h"
+#include "video_core/host1x/control.h"
 
 namespace Tegra {
 
 namespace Host1x {
-class Control;
 class Host1x;
 class Nvdec;
 class SyncptIncrManager;
@@ -117,25 +120,19 @@ protected:
 
     virtual void ProcessMethod(u32 method, u32 arg) = 0;
 
-    Host1x::Host1x& host1x;
-    Tegra::MemoryManager& memory_manager;
-
 private:
-    /// Process the command entry
-    void ProcessEntries(std::stop_token stop_token);
-
     /// Invoke command class devices to execute the command based on the current state
     void ExecuteCommand(u32 state_offset, u32 data);
 
-    std::unique_ptr<Host1x::Control> host_processor;
-
-    std::mutex command_mutex;
-    std::condition_variable_any command_cv;
-    std::deque<ChCommandHeaderList> command_lists;
-    std::jthread thread;
-
+protected:
     ThiRegisters thi_regs{};
+    std::deque<ChCommandHeaderList> command_lists;
+    std::condition_variable_any command_cv;
+    Host1x::Control host_processor;
+    std::mutex command_mutex;
+    Host1x::Host1x& host1x;
     ChClassId current_class;
+    std::jthread thread;
 };
 
 } // namespace Tegra

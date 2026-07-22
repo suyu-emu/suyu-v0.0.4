@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2020 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -5,17 +8,14 @@
 #include <mutex>
 #include <string>
 #include <tuple>
+#include "common/cpu_features.h"
+#include "common/cpu_features.h"
 
 #ifdef _WIN32
 #include "common/windows/timer_resolution.h"
 #endif
 
-#ifdef ARCHITECTURE_x86_64
-#include "common/x64/cpu_wait.h"
-#endif
-
 #include "common/settings.h"
-#include "common/microprofile.h"
 #include "core/core_timing.h"
 #include "core/hardware_properties.h"
 
@@ -45,30 +45,45 @@ struct CoreTiming::Event {
     }
 };
 
-CoreTiming::CoreTiming() : clock{Common::CreateOptimalClock()} {}
-
+CoreTiming::CoreTiming() = default;
 CoreTiming::~CoreTiming() {
     Reset();
-}
-
-void CoreTiming::ThreadEntry(CoreTiming& instance) {
-    static constexpr char name[] = "HostTiming";
-    MicroProfileOnThreadCreate(name);
-    Common::SetCurrentThreadName(name);
-    Common::SetCurrentThreadPriority(Common::ThreadPriority::High);
-    instance.on_thread_init();
-    instance.ThreadLoop();
-    MicroProfileOnThreadExit();
 }
 
 void CoreTiming::Initialize(std::function<void()>&& on_thread_init_) {
     Reset();
     on_thread_init = std::move(on_thread_init_);
     event_fifo_id = 0;
-    shutting_down = false;
     cpu_ticks = 0;
     if (is_multicore) {
-        timer_thread = std::make_unique<std::jthread>(ThreadEntry, std::ref(*this));
+        timer_thread = std::jthread([this](std::stop_token stop_token) {
+            Common::SetCurrentThreadName("HostTiming");
+            Common::SetCurrentThreadPriority(Common::ThreadPriority::High);
+            on_thread_init();
+            has_started = true;
+
+            // base frequency in MHz: 1ns (10^-9) = 1GHz (10^9)
+            while (!stop_token.stop_requested()) {
+                while (!paused && !stop_token.stop_requested()) {
+                    paused_set = false;
+                    if (auto const next_time = Advance(); next_time) {
+                        // There are more events left in the queue, wait until the next event.
+                        auto const wait_time = *next_time - GetGlobalTimeNs().count();
+                        if (wait_time > 0) {
+                            event.WaitFor(std::chrono::nanoseconds(wait_time));
+                        }
+                    } else {
+                        // Queue is empty, wait until another event is scheduled and signals us to
+                        // continue.
+                        wait_set = true;
+                        event.Wait();
+                    }
+                    wait_set = false;
+                }
+                paused_set = true;
+                pause_event.Wait();
+            }
+        });
     }
 }
 
@@ -93,7 +108,7 @@ void CoreTiming::SyncPause(bool is_paused) {
     }
 
     Pause(is_paused);
-    if (timer_thread) {
+    if (timer_thread.joinable()) {
         if (!is_paused) {
             pause_event.Set();
         }
@@ -171,13 +186,21 @@ void CoreTiming::UnscheduleEvent(const std::shared_ptr<EventType>& event_type,
     }
 }
 
+static u64 GetNextTickCount(u64 next_ticks) {
+    if (Settings::values.use_custom_cpu_ticks.GetValue()) {
+        return Settings::values.cpu_ticks.GetValue();
+    }
+    return next_ticks;
+}
+
 void CoreTiming::AddTicks(u64 ticks_to_add) {
-    cpu_ticks += ticks_to_add;
-    downcount -= static_cast<s64>(cpu_ticks);
+    const u64 ticks = GetNextTickCount(ticks_to_add);
+    cpu_ticks += ticks;
+    downcount -= static_cast<s64>(ticks);
 }
 
 void CoreTiming::Idle() {
-    cpu_ticks += 1000U;
+    AddTicks(1000U);
 }
 
 void CoreTiming::ResetTicks() {
@@ -185,28 +208,22 @@ void CoreTiming::ResetTicks() {
 }
 
 u64 CoreTiming::GetClockTicks() const {
-    u64 fres;
-    if (is_multicore) [[likely]] {
-        fres = clock->GetCNTPCT();
-    } else {
-        fres = Common::WallClock::CPUTickToCNTPCT(cpu_ticks);
+    u64 fres = is_multicore ? Common::g_wall_clock.GetCNTPCT() : Common::WallClock::CPUTickToCNTPCT(cpu_ticks);
+    if (auto const overclock = Settings::values.fast_cpu_time.GetValue(); overclock != Settings::CpuClock::Off) {
+        fres = u64(f64(fres) * (1.7 + 0.3 * u32(overclock)));
     }
-
-    if (Settings::values.sync_core_speed.GetValue()) {
-        const double ticks = static_cast<double>(fres);
-        const double speed_limit =
-            static_cast<double>(Settings::values.speed_limit.GetValue()) * 0.01;
-        fres = static_cast<u64>(ticks / speed_limit);
+    if (::Settings::values.sync_core_speed.GetValue()) {
+        auto const ticks = f64(fres);
+        auto const speed_limit = f64(Settings::SpeedLimit()) * 0.01;
+        return u64(ticks / speed_limit);
     }
-
     return fres;
 }
 
 u64 CoreTiming::GetGPUTicks() const {
-    if (is_multicore) [[likely]] {
-        return clock->GetGPUTick();
-    }
-    return Common::WallClock::CPUTickToGPUTick(cpu_ticks);
+    return is_multicore
+        ? Common::g_wall_clock.GetGPUTick()
+        : Common::WallClock::CPUTickToGPUTick(cpu_ticks);
 }
 
 std::optional<s64> CoreTiming::Advance() {
@@ -268,75 +285,29 @@ std::optional<s64> CoreTiming::Advance() {
     }
 }
 
-void CoreTiming::ThreadLoop() {
-    has_started = true;
-    while (!shutting_down) {
-        while (!paused) {
-            paused_set = false;
-            const auto next_time = Advance();
-            if (next_time) {
-                // There are more events left in the queue, wait until the next event.
-                auto wait_time = *next_time - GetGlobalTimeNs().count();
-                if (wait_time > 0) {
-#ifdef _WIN32
-                    while (!paused && !event.IsSet() && wait_time > 0) {
-                        wait_time = *next_time - GetGlobalTimeNs().count();
-                        if (wait_time >= timer_resolution_ns) {
-                            Common::Windows::SleepForOneTick();
-                        } else {
-#ifdef ARCHITECTURE_x86_64
-                            Common::X64::MicroSleep();
-#else
-                            std::this_thread::yield();
-#endif
-                        }
-                    }
-
-                    if (event.IsSet()) {
-                        event.Reset();
-                    }
-#else
-                    event.WaitFor(std::chrono::nanoseconds(wait_time));
-#endif
-                }
-            } else {
-                // Queue is empty, wait until another event is scheduled and signals us to
-                // continue.
-                wait_set = true;
-                event.Wait();
-            }
-            wait_set = false;
-        }
-
-        paused_set = true;
-        pause_event.Wait();
-    }
-}
-
 void CoreTiming::Reset() {
     paused = true;
-    shutting_down = true;
     pause_event.Set();
     event.Set();
-    if (timer_thread) {
-        timer_thread->join();
+    if (timer_thread.joinable()) {
+        timer_thread.request_stop();
+        timer_thread.join();
     }
-    timer_thread.reset();
     has_started = false;
 }
 
-std::chrono::nanoseconds CoreTiming::GetGlobalTimeNs() const {
-    if (is_multicore) [[likely]] {
-        return clock->GetTimeNS();
-    }
-    return std::chrono::nanoseconds{Common::WallClock::CPUTickToNS(cpu_ticks)};
+/// @brief Returns current time in nanoseconds.
+std::chrono::nanoseconds CoreTiming::GetGlobalTimeNs() const noexcept {
+    return is_multicore
+        ? Common::g_wall_clock.GetTimeNS()
+        : std::chrono::nanoseconds{Common::WallClock::CPUTickToNS(cpu_ticks)};
 }
 
-std::chrono::microseconds CoreTiming::GetGlobalTimeUs() const {
-    if (is_multicore) [[likely]] {
-        return clock->GetTimeUS();
-    }
-    return std::chrono::microseconds{Common::WallClock::CPUTickToUS(cpu_ticks)};
+/// @brief Returns current time in microseconds.
+std::chrono::microseconds CoreTiming::GetGlobalTimeUs() const noexcept {
+    return is_multicore
+        ? Common::g_wall_clock.GetTimeUS()
+        : std::chrono::microseconds{Common::WallClock::CPUTickToUS(cpu_ticks)};
 }
 
 #ifdef _WIN32

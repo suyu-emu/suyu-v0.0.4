@@ -28,8 +28,8 @@ public:
     explicit PlayTimeManager();
     ~PlayTimeManager();
 
-    SUYU_NON_COPYABLE(PlayTimeManager);
-    SUYU_NON_MOVEABLE(PlayTimeManager);
+    YUZU_NON_COPYABLE(PlayTimeManager);
+    YUZU_NON_MOVEABLE(PlayTimeManager);
 
     u64 GetPlayTime(u64 program_id) const;
     void ResetProgramPlayTime(u64 program_id);
@@ -48,7 +48,7 @@ private:
     void Save();
 
     PlayTimeDatabase database;
-    u64 running_program_id;
+    u64 running_program_id{};
     std::jthread play_time_thread;
 };
 

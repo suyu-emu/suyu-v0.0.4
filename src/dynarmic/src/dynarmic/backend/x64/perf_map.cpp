@@ -1,21 +1,21 @@
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 /* This file is part of the dynarmic project.
  * Copyright (c) 2018 MerryMage
  * SPDX-License-Identifier: 0BSD
  */
 
-#include "dynarmic/backend/x64/perf_map.h"
-
 #include <cstddef>
 #include <string>
+#include <fmt/format.h>
 
-#ifdef __linux__
-
+#include "dynarmic/backend/x64/perf_map.h"
+#include "common/common_types.h"
+#if defined(__linux__) && !defined(__ANDROID__)
 #    include <cstdio>
 #    include <cstdlib>
 #    include <mutex>
-
-#    include <fmt/format.h>
-#    include <mcl/stdint.hpp>
 #    include <sys/types.h>
 #    include <unistd.h>
 
@@ -76,18 +76,6 @@ void PerfMapClear() {
     file = nullptr;
     OpenFile();
 }
-
-}  // namespace Dynarmic::Backend::X64
-
-#else
-
-namespace Dynarmic::Backend::X64 {
-
-namespace detail {
-void PerfMapRegister(const void*, const void*, std::string_view) {}
-}  // namespace detail
-
-void PerfMapClear() {}
 
 }  // namespace Dynarmic::Backend::X64
 

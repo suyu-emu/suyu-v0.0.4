@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2018 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -7,7 +10,7 @@
 #include "audio_core/common/common.h"
 #include "audio_core/sink/cubeb_sink.h"
 #include "audio_core/sink/sink_stream.h"
-#include "common/logging/log.h"
+#include "common/logging.h"
 #include "common/scope_exit.h"
 #include "core/core.h"
 
@@ -70,7 +73,7 @@ public:
             minimum_latency = TargetSampleCount * 2;
         }
 
-        minimum_latency = std::max(minimum_latency, TargetSampleCount * 2);
+        minimum_latency = (std::max)(minimum_latency, TargetSampleCount * 2);
 
         LOG_INFO(Service_Audio,
                  "Opening cubeb stream {} type {} with: rate {} channels {} (system channels {}) "
@@ -208,7 +211,7 @@ CubebSink::CubebSink(std::string_view target_device_name) {
     com_init_result = CoInitializeEx(nullptr, COINIT_MULTITHREADED);
 #endif
 
-    if (cubeb_init(&ctx, "suyu", nullptr) != CUBEB_OK) {
+    if (cubeb_init(&ctx, "Eden", nullptr) != CUBEB_OK) {
         LOG_CRITICAL(Audio_Sink, "cubeb_init failed");
         return;
     }
@@ -304,7 +307,7 @@ std::vector<std::string> ListCubebSinkDevices(bool capture) {
     auto com_init_result = CoInitializeEx(nullptr, COINIT_MULTITHREADED);
 #endif
 
-    if (cubeb_init(&ctx, "suyu Device Enumerator", nullptr) != CUBEB_OK) {
+    if (cubeb_init(&ctx, "Eden Device Enumerator", nullptr) != CUBEB_OK) {
         LOG_CRITICAL(Audio_Sink, "cubeb_init failed");
         return {};
     }
@@ -369,7 +372,7 @@ u32 GetCubebLatency() {
         LOG_CRITICAL(Audio_Sink, "Error getting minimum latency, error: {}", latency_error);
         latency = TargetSampleCount * 2;
     }
-    latency = std::max(latency, TargetSampleCount * 2);
+    latency = (std::max)(latency, TargetSampleCount * 2);
     cubeb_destroy(ctx);
     return latency;
 }
@@ -394,7 +397,7 @@ bool IsCubebSuitable() {
 #endif
 
     // Init cubeb
-    if (cubeb_init(&ctx, "suyu Latency Getter", nullptr) != CUBEB_OK) {
+    if (cubeb_init(&ctx, "Eden Latency Getter", nullptr) != CUBEB_OK) {
         LOG_ERROR(Audio_Sink, "Cubeb failed to init, it is not suitable.");
         return false;
     }
@@ -423,12 +426,12 @@ bool IsCubebSuitable() {
         LOG_ERROR(Audio_Sink, "Cubeb could not get min latency, it is not suitable.");
         return false;
     }
-    latency = std::max(latency, TargetSampleCount * 2);
+    latency = (std::max)(latency, TargetSampleCount * 2);
 
     // Test opening a device with standard parameters
     cubeb_devid output_device{0};
     cubeb_devid input_device{0};
-    std::string name{"Suyu test"};
+    std::string name{"Eden test"};
     cubeb_stream* stream{nullptr};
 
     if (cubeb_stream_init(ctx, &stream, name.c_str(), input_device, nullptr, output_device, &params,

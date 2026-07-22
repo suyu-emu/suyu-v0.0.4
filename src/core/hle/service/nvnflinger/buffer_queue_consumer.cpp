@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2021 yuzu Emulator Project
 // SPDX-FileCopyrightText: Copyright 2014 The Android Open Source Project
 // SPDX-License-Identifier: GPL-3.0-or-later
@@ -5,7 +8,7 @@
 // https://cs.android.com/android/platform/superproject/+/android-5.1.1_r38:frameworks/native/libs/gui/BufferQueueConsumer.cpp
 
 #include "common/assert.h"
-#include "common/logging/log.h"
+#include "common/logging.h"
 #include "core/hle/service/nvnflinger/buffer_item.h"
 #include "core/hle/service/nvnflinger/buffer_queue_consumer.h"
 #include "core/hle/service/nvnflinger/buffer_queue_core.h"
@@ -96,11 +99,6 @@ Status BufferQueueConsumer::AcquireBuffer(BufferItem* out_buffer,
         slots[slot].acquire_called = true;
         slots[slot].needs_cleanup_on_release = false;
         slots[slot].buffer_state = BufferState::Acquired;
-
-        // TODO: for now, avoid resetting the fence, so that when we next return this
-        // slot to the producer, it will wait for the fence to pass. We should fix this
-        // by properly waiting for the fence in the BufferItemConsumer.
-        // slots[slot].fence = Fence::NoFence();
     }
 
     // If the buffer has previously been acquired by the consumer, set graphic_buffer to nullptr to
@@ -320,7 +318,7 @@ void BufferQueueConsumer::Transact(u32 code, std::span<const u8> parcel_data,
 
     const auto serialized = parcel_out.Serialize();
     std::memcpy(parcel_reply.data(), serialized.data(),
-                std::min(parcel_reply.size(), serialized.size()));
+                (std::min)(parcel_reply.size(), serialized.size()));
 }
 
 Kernel::KReadableEvent* BufferQueueConsumer::GetNativeHandle(u32 type_id) {

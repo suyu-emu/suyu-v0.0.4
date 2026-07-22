@@ -1,6 +1,11 @@
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: 2005-2014 Daniel James
 // SPDX-FileCopyrightText: 2016 Austin Appleby
 // SPDX-License-Identifier: BSL-1.0
+
+#pragma once
 
 #include <array>
 #include <climits>

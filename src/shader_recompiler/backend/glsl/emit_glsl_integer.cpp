@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2021 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -39,7 +42,7 @@ void EmitIAdd32(EmitContext& ctx, IR::Inst& inst, std::string_view a, std::strin
     // which may be overwritten by the result of the addition
     if (IR::Inst * overflow{inst.GetAssociatedPseudoOperation(IR::Opcode::GetOverflowFromOp)}) {
         // https://stackoverflow.com/questions/55468823/how-to-detect-integer-overflow-in-c
-        constexpr u32 s32_max{static_cast<u32>(std::numeric_limits<s32>::max())};
+        constexpr u32 s32_max{static_cast<u32>((std::numeric_limits<s32>::max)())};
         const auto sub_a{fmt::format("{}u-{}", s32_max, a)};
         const auto positive_result{fmt::format("int({})>int({})", b, sub_a)};
         const auto negative_result{fmt::format("int({})<int({})", b, sub_a)};
@@ -93,6 +96,11 @@ void EmitINeg64(EmitContext& ctx, IR::Inst& inst, std::string_view value) {
 
 void EmitIAbs32(EmitContext& ctx, IR::Inst& inst, std::string_view value) {
     ctx.AddU32("{}=abs(int({}));", inst, value);
+}
+
+void EmitIAbs64(EmitContext& ctx, IR::Inst& inst, std::string_view value) {
+    // TODO: Uhm, are you sure? This may crash on some drivers!
+    ctx.AddU32("{}=abs(int64_t({}));", inst, value);
 }
 
 void EmitShiftLeftLogical32(EmitContext& ctx, IR::Inst& inst, std::string_view base,

@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2023 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -29,17 +32,17 @@ Result CreateDeviceAddressSpace(Core::System& system, Handle* out, uint64_t das_
     KDeviceAddressSpace* das = KDeviceAddressSpace::Create(system.Kernel());
     R_UNLESS(das != nullptr, ResultOutOfResource);
     SCOPE_EXIT {
-        das->Close();
+        das->Close(system.Kernel());
     };
 
     // Initialize the device address space.
-    R_TRY(das->Initialize(das_address, das_size));
+    R_TRY(das->Initialize(system.Kernel(), das_address, das_size));
 
     // Register the device address space.
     KDeviceAddressSpace::Register(system.Kernel(), das);
 
     // Add to the handle table.
-    R_TRY(GetCurrentProcess(system.Kernel()).GetHandleTable().Add(out, das));
+    R_TRY(GetCurrentProcess(system.Kernel()).GetHandleTable().Add(system.Kernel(), out, das));
 
     R_SUCCEED();
 }
@@ -47,8 +50,8 @@ Result CreateDeviceAddressSpace(Core::System& system, Handle* out, uint64_t das_
 Result AttachDeviceAddressSpace(Core::System& system, DeviceName device_name, Handle das_handle) {
     // Get the device address space.
     KScopedAutoObject das = GetCurrentProcess(system.Kernel())
-                                .GetHandleTable()
-                                .GetObject<KDeviceAddressSpace>(das_handle);
+        .GetHandleTable()
+        .GetObject<KDeviceAddressSpace>(system.Kernel(), das_handle);
     R_UNLESS(das.IsNotNull(), ResultInvalidHandle);
 
     // Attach.
@@ -58,8 +61,8 @@ Result AttachDeviceAddressSpace(Core::System& system, DeviceName device_name, Ha
 Result DetachDeviceAddressSpace(Core::System& system, DeviceName device_name, Handle das_handle) {
     // Get the device address space.
     KScopedAutoObject das = GetCurrentProcess(system.Kernel())
-                                .GetHandleTable()
-                                .GetObject<KDeviceAddressSpace>(das_handle);
+        .GetHandleTable()
+        .GetObject<KDeviceAddressSpace>(system.Kernel(), das_handle);
     R_UNLESS(das.IsNotNull(), ResultInvalidHandle);
 
     // Detach.
@@ -99,13 +102,13 @@ Result MapDeviceAddressSpaceByForce(Core::System& system, Handle das_handle, Han
 
     // Get the device address space.
     KScopedAutoObject das = GetCurrentProcess(system.Kernel())
-                                .GetHandleTable()
-                                .GetObject<KDeviceAddressSpace>(das_handle);
+        .GetHandleTable()
+        .GetObject<KDeviceAddressSpace>(system.Kernel(), das_handle);
     R_UNLESS(das.IsNotNull(), ResultInvalidHandle);
 
     // Get the process.
     KScopedAutoObject process =
-        GetCurrentProcess(system.Kernel()).GetHandleTable().GetObject<KProcess>(process_handle);
+        GetCurrentProcess(system.Kernel()).GetHandleTable().GetObject<KProcess>(system.Kernel(), process_handle);
     R_UNLESS(process.IsNotNull(), ResultInvalidHandle);
 
     // Validate that the process address is within range.
@@ -140,13 +143,13 @@ Result MapDeviceAddressSpaceAligned(Core::System& system, Handle das_handle, Han
 
     // Get the device address space.
     KScopedAutoObject das = GetCurrentProcess(system.Kernel())
-                                .GetHandleTable()
-                                .GetObject<KDeviceAddressSpace>(das_handle);
+        .GetHandleTable()
+        .GetObject<KDeviceAddressSpace>(system.Kernel(), das_handle);
     R_UNLESS(das.IsNotNull(), ResultInvalidHandle);
 
     // Get the process.
     KScopedAutoObject process =
-        GetCurrentProcess(system.Kernel()).GetHandleTable().GetObject<KProcess>(process_handle);
+        GetCurrentProcess(system.Kernel()).GetHandleTable().GetObject<KProcess>(system.Kernel(), process_handle);
     R_UNLESS(process.IsNotNull(), ResultInvalidHandle);
 
     // Validate that the process address is within range.
@@ -172,13 +175,12 @@ Result UnmapDeviceAddressSpace(Core::System& system, Handle das_handle, Handle p
 
     // Get the device address space.
     KScopedAutoObject das = GetCurrentProcess(system.Kernel())
-                                .GetHandleTable()
-                                .GetObject<KDeviceAddressSpace>(das_handle);
+        .GetHandleTable()
+        .GetObject<KDeviceAddressSpace>(system.Kernel(), das_handle);
     R_UNLESS(das.IsNotNull(), ResultInvalidHandle);
 
     // Get the process.
-    KScopedAutoObject process =
-        GetCurrentProcess(system.Kernel()).GetHandleTable().GetObject<KProcess>(process_handle);
+    KScopedAutoObject process = GetCurrentProcess(system.Kernel()).GetHandleTable().GetObject<KProcess>(system.Kernel(), process_handle);
     R_UNLESS(process.IsNotNull(), ResultInvalidHandle);
 
     // Validate that the process address is within range.

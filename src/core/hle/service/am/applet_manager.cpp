@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2024 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -15,6 +18,7 @@
 #include "core/hle/service/am/service/storage.h"
 #include "core/hle/service/am/window_system.h"
 #include "hid_core/hid_types.h"
+#include "core/hle/service/am/process_creation.h"
 
 namespace Service::AM {
 
@@ -30,8 +34,7 @@ struct LaunchParameterAccountPreselectedUser {
 };
 static_assert(sizeof(LaunchParameterAccountPreselectedUser) == 0x88);
 
-AppletStorageChannel& InitializeFakeCallerApplet(Core::System& system,
-                                                 std::shared_ptr<Applet>& applet) {
+AppletStorageChannel& InitializeFakeCallerApplet(Core::System& system, std::shared_ptr<Applet>& applet) {
     applet->caller_applet_broker = std::make_shared<AppletDataBroker>(system);
     return applet->caller_applet_broker->GetInData();
 }
@@ -48,7 +51,7 @@ void PushInShowQlaunch(Core::System& system, AppletStorageChannel& channel) {
 
     std::vector<u8> argument_data(sizeof(arguments));
     std::memcpy(argument_data.data(), &arguments, sizeof(arguments));
-    channel.Push(std::make_shared<IStorage>(system, std::move(argument_data)));
+    channel.Push(system.Kernel(), std::make_shared<IStorage>(system, std::move(argument_data)));
 }
 
 void PushInShowAlbum(Core::System& system, AppletStorageChannel& channel) {
@@ -64,8 +67,8 @@ void PushInShowAlbum(Core::System& system, AppletStorageChannel& channel) {
     std::vector<u8> argument_data(sizeof(arguments));
     std::vector<u8> settings_data{2};
     std::memcpy(argument_data.data(), &arguments, sizeof(arguments));
-    channel.Push(std::make_shared<IStorage>(system, std::move(argument_data)));
-    channel.Push(std::make_shared<IStorage>(system, std::move(settings_data)));
+    channel.Push(system.Kernel(), std::make_shared<IStorage>(system, std::move(argument_data)));
+    channel.Push(system.Kernel(), std::make_shared<IStorage>(system, std::move(settings_data)));
 }
 
 void PushInShowController(Core::System& system, AppletStorageChannel& channel) {
@@ -112,9 +115,9 @@ void PushInShowController(Core::System& system, AppletStorageChannel& channel) {
     std::memcpy(private_args_data.data(), &private_args, sizeof(private_args));
     std::memcpy(user_args_data.data(), &user_args, sizeof(user_args));
 
-    channel.Push(std::make_shared<IStorage>(system, std::move(common_args_data)));
-    channel.Push(std::make_shared<IStorage>(system, std::move(private_args_data)));
-    channel.Push(std::make_shared<IStorage>(system, std::move(user_args_data)));
+    channel.Push(system.Kernel(), std::make_shared<IStorage>(system, std::move(common_args_data)));
+    channel.Push(system.Kernel(), std::make_shared<IStorage>(system, std::move(private_args_data)));
+    channel.Push(system.Kernel(), std::make_shared<IStorage>(system, std::move(user_args_data)));
 }
 
 void PushInShowCabinetData(Core::System& system, AppletStorageChannel& channel) {
@@ -142,8 +145,8 @@ void PushInShowCabinetData(Core::System& system, AppletStorageChannel& channel) 
     std::vector<u8> settings_data(sizeof(amiibo_settings));
     std::memcpy(argument_data.data(), &arguments, sizeof(arguments));
     std::memcpy(settings_data.data(), &amiibo_settings, sizeof(amiibo_settings));
-    channel.Push(std::make_shared<IStorage>(system, std::move(argument_data)));
-    channel.Push(std::make_shared<IStorage>(system, std::move(settings_data)));
+    channel.Push(system.Kernel(), std::make_shared<IStorage>(system, std::move(argument_data)));
+    channel.Push(system.Kernel(), std::make_shared<IStorage>(system, std::move(settings_data)));
 }
 
 void PushInShowMiiEditData(Core::System& system, AppletStorageChannel& channel) {
@@ -165,7 +168,7 @@ void PushInShowMiiEditData(Core::System& system, AppletStorageChannel& channel) 
     std::vector<u8> argument_data(sizeof(mii_arguments));
     std::memcpy(argument_data.data(), &mii_arguments, sizeof(mii_arguments));
 
-    channel.Push(std::make_shared<IStorage>(system, std::move(argument_data)));
+    channel.Push(system.Kernel(), std::make_shared<IStorage>(system, std::move(argument_data)));
 }
 
 void PushInShowSoftwareKeyboard(Core::System& system, AppletStorageChannel& channel) {
@@ -218,9 +221,9 @@ void PushInShowSoftwareKeyboard(Core::System& system, AppletStorageChannel& chan
     std::memcpy(work_buffer.data(), initial_string.data(),
                 swkbd_config.initial_string_length * sizeof(char16_t));
 
-    channel.Push(std::make_shared<IStorage>(system, std::move(argument_data)));
-    channel.Push(std::make_shared<IStorage>(system, std::move(swkbd_data)));
-    channel.Push(std::make_shared<IStorage>(system, std::move(work_buffer)));
+    channel.Push(system.Kernel(), std::make_shared<IStorage>(system, std::move(argument_data)));
+    channel.Push(system.Kernel(), std::make_shared<IStorage>(system, std::move(swkbd_data)));
+    channel.Push(system.Kernel(), std::make_shared<IStorage>(system, std::move(work_buffer)));
 }
 
 } // namespace
@@ -261,6 +264,22 @@ void AppletManager::SetWindowSystem(WindowSystem* window_system) {
     }
 
     m_cv.wait(lk, [&] { return m_pending_process != nullptr; });
+
+    if (Settings::values.enable_overlay && m_window_system->GetOverlayDisplayApplet() == nullptr) {
+        if (auto overlay_process = CreateProcess(m_system, static_cast<u64>(AppletProgramId::OverlayDisplay), 0, 0)) {
+            auto overlay_applet = std::make_shared<Applet>(m_system, std::move(overlay_process), false);
+            overlay_applet->program_id = static_cast<u64>(AppletProgramId::OverlayDisplay);
+            overlay_applet->applet_id = AppletId::OverlayDisplay;
+            overlay_applet->type = AppletType::OverlayApplet;
+            overlay_applet->library_applet_mode = LibraryAppletMode::PartialForeground;
+            overlay_applet->window_visible = true;
+            overlay_applet->home_button_short_pressed_blocked = false;
+            overlay_applet->home_button_long_pressed_blocked = false;
+            m_window_system->TrackApplet(overlay_applet, false);
+            overlay_applet->process->Run();
+            LOG_INFO(Service_AM, "called, Overlay applet launched before application (initially hidden, watching home button)");
+        }
+    }
 
     const auto& params = m_pending_parameters;
     auto applet = std::make_shared<Applet>(m_system, std::move(m_pending_process),
@@ -320,7 +339,7 @@ void AppletManager::SetWindowSystem(WindowSystem* window_system) {
     }
 
     // Applet was started by frontend, so it is foreground.
-    applet->lifecycle_manager.SetFocusState(FocusState::InFocus);
+    applet->lifecycle_manager.SetFocusState(m_system.Kernel(), FocusState::InFocus);
 
     if (applet->applet_id == AppletId::QLaunch) {
         applet->lifecycle_manager.SetFocusHandlingMode(false);

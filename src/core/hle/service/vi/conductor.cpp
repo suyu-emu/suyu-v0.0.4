@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2024 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -67,7 +70,7 @@ void Conductor::UnlinkVsyncEvent(u64 display_id, Event* event) {
 void Conductor::ProcessVsync() {
     for (auto& [display_id, manager] : m_vsync_managers) {
         m_container.ComposeOnDisplay(&m_swap_interval, &m_compose_speed_scale, display_id);
-        manager.SignalVsync();
+        manager.SignalVsync(m_system.Kernel());
     }
 }
 
@@ -92,7 +95,7 @@ s64 Conductor::GetNextTicks() const {
         if (settings.use_speed_limit.GetValue()) {
             // Scales the speed based on speed_limit setting on MC. SC is handled by
             // SpeedLimiter::DoSpeedLimiting.
-            speed_scale = 100.f / settings.speed_limit.GetValue();
+            speed_scale = 100.f / Settings::SpeedLimit();
         } else {
             // Run at unlocked framerate.
             speed_scale = 0.01f;

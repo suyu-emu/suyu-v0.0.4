@@ -1,10 +1,13 @@
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2021 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 #include <mutex>
 
 #include "common/common_types.h"
-#include "common/logging/log.h"
+#include "common/logging.h"
 #include "core/hle/service/nvnflinger/hos_binder_driver_server.h"
 
 namespace Service::Nvnflinger {
@@ -18,7 +21,7 @@ s32 HosBinderDriverServer::RegisterBinder(std::shared_ptr<android::IBinder>&& bi
     last_id++;
 
     binders[last_id] = std::move(binder);
-    refcounts[last_id] = {};
+    refcounts[last_id] = {}; // strong = 1, weak = 0
 
     return last_id;
 }
@@ -33,22 +36,22 @@ void HosBinderDriverServer::UnregisterBinder(s32 binder_id) {
 void HosBinderDriverServer::AdjustRefcount(s32 binder_id, s32 delta, bool is_weak) {
     std::scoped_lock lk{lock};
 
-    auto it = refcounts.find(binder_id);
-    if (it == refcounts.end()) {
-        LOG_WARNING(Service_VI, "AdjustRefcount called for unknown binder id={}", binder_id);
+    auto search_rc = refcounts.find(binder_id);
+    if (search_rc == refcounts.end()) {
+        LOG_WARNING(Service_VI, "AdjustRefcount called for unknown binder id {}", binder_id);
         return;
     }
 
-    auto& refcounts_for_id = it->second;
-    s32& counter = is_weak ? refcounts_for_id.weak : refcounts_for_id.strong;
+    auto& rc = search_rc->second;
+    s32& counter = is_weak ? rc.weak : rc.strong;
     counter += delta;
-    if (counter < 0) {
-        counter = 0;
-    }
 
-    if (refcounts_for_id.strong == 0 && refcounts_for_id.weak == 0) {
+    if (counter < 0)
+        counter = 0;
+
+    if (rc.strong == 0 && rc.weak == 0) {
         binders.erase(binder_id);
-        refcounts.erase(it);
+        refcounts.erase(search_rc);
     }
 }
 

@@ -1,22 +1,23 @@
-# SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+# SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 # SPDX-License-Identifier: GPL-3.0-or-later
 include(TargetArchitectureSpecificSources)
 
 add_library(dynarmic STATIC
+    mcl/bit.hpp
+    mcl/function_info.hpp
+    mcl/integer_of_size.hpp
+    mcl/intrusive_list.hpp
+    mcl/is_instance_of_template.hpp
+
     backend/block_range_information.cpp
     backend/block_range_information.h
     backend/exception_handler.h
     common/always_false.h
-    common/assert.cpp
-    common/assert.h
     common/cast_util.h
-    common/common_types.h
     common/crypto/aes.cpp
     common/crypto/aes.h
     common/crypto/crc32.cpp
     common/crypto/crc32.h
-    common/crypto/sm4.cpp
-    common/crypto/sm4.h
     common/fp/fpcr.h
     common/fp/fpsr.h
     common/fp/fused.cpp
@@ -55,7 +56,6 @@ add_library(dynarmic STATIC
     common/fp/util.h
     common/llvm_disassemble.cpp
     common/llvm_disassemble.h
-    common/lut_from_list.h
     common/math_util.cpp
     common/math_util.h
     common/safe_ops.h
@@ -71,6 +71,7 @@ add_library(dynarmic STATIC
     frontend/decoder/matcher.h
     frontend/imm.cpp
     frontend/imm.h
+    interface/halt_reason.h
     interface/exclusive_monitor.h
     interface/optimization_flags.h
     ir/acc_type.h
@@ -107,9 +108,6 @@ add_library(dynarmic STATIC
     frontend/A32/decoder/thumb32.inc
     frontend/A32/decoder/vfp.h
     frontend/A32/decoder/vfp.inc
-    frontend/A32/disassembler/disassembler.h
-    frontend/A32/disassembler/disassembler_arm.cpp
-    frontend/A32/disassembler/disassembler_thumb.cpp
     frontend/A32/FPSCR.h
     frontend/A32/ITState.h
     frontend/A32/PSR.h
@@ -124,7 +122,6 @@ add_library(dynarmic STATIC
     interface/A32/config.h
     interface/A32/coprocessor.h
     interface/A32/coprocessor_util.h
-    interface/A32/disassembler.h
     # A64
     frontend/A64/a64_ir_emitter.cpp
     frontend/A64/a64_ir_emitter.h
@@ -175,7 +172,6 @@ if ("x86_64" IN_LIST ARCHITECTURE)
         backend/x64/exclusive_monitor.cpp
         backend/x64/exclusive_monitor_friend.h
         backend/x64/host_feature.h
-        backend/x64/hostloc.cpp
         backend/x64/hostloc.h
         backend/x64/jitstate_info.h
         backend/x64/oparg.h
@@ -259,7 +255,7 @@ if ("arm64" IN_LIST ARCHITECTURE)
     )
 endif()
 
-if ("riscv" IN_LIST ARCHITECTURE)
+if ("riscv64" IN_LIST ARCHITECTURE)
     target_link_libraries(dynarmic PRIVATE biscuit::biscuit)
 
     target_sources(dynarmic PRIVATE
@@ -282,6 +278,7 @@ if ("riscv" IN_LIST ARCHITECTURE)
         backend/riscv64/emit_riscv64_vector.cpp
         backend/riscv64/emit_riscv64.cpp
         backend/riscv64/emit_riscv64.h
+        backend/riscv64/exclusive_monitor.cpp
         backend/riscv64/reg_alloc.cpp
         backend/riscv64/reg_alloc.h
         backend/riscv64/stack_layout.h
@@ -290,9 +287,40 @@ if ("riscv" IN_LIST ARCHITECTURE)
         backend/riscv64/a32_address_space.h
         backend/riscv64/a32_core.h
         backend/riscv64/a32_interface.cpp
+        backend/riscv64/a64_interface.cpp
         backend/riscv64/code_block.h
+
+        common/spin_lock_riscv64.cpp
     )
-    message(FATAL_ERROR "TODO: Unimplemented frontend for this host architecture")
+    message(WARNING "TODO: Incomplete frontend for this host architecture")
+endif()
+
+if ("loongarch64" IN_LIST ARCHITECTURE)
+    target_link_libraries(dynarmic PRIVATE lagoon::lagoon)
+
+    target_sources(dynarmic PRIVATE
+        backend/loongarch64/abi.h
+        backend/loongarch64/a32_jitstate.cpp
+        backend/loongarch64/a32_jitstate.h
+        backend/loongarch64/code_block.h
+        backend/loongarch64/emit_context.h
+        backend/loongarch64/emit_loongarch64.cpp
+        backend/loongarch64/emit_loongarch64.h
+        backend/loongarch64/emit_loongarch64_a32.cpp
+        backend/loongarch64/emit_loongarch64_data_processing.cpp
+        backend/loongarch64/a32_address_space.cpp
+        backend/loongarch64/a32_address_space.h
+        backend/loongarch64/a32_interface.cpp
+        backend/loongarch64/a64_interface.cpp
+        backend/loongarch64/exclusive_monitor.cpp
+        backend/loongarch64/reg_alloc.cpp
+        backend/loongarch64/reg_alloc.h
+        backend/loongarch64/stack_layout.h
+        backend/loongarch64/lagoon_cpp.h
+
+        common/spin_lock_loongarch64.cpp
+    )
+    message(WARNING "TODO: Incomplete frontend for this host architecture")
 endif()
 
 if (WIN32)
@@ -357,20 +385,10 @@ set_target_properties(dynarmic PROPERTIES
     SOVERSION ${dynarmic_VERSION_MAJOR}.${dynarmic_VERSION_MINOR}
 )
 
-if (TARGET unordered_dense::unordered_dense)
-    # weird quirk of system installs
-    target_link_libraries(dynarmic
-    PRIVATE
-        unordered_dense::unordered_dense
-    )
-endif()
-
 target_compile_options(dynarmic PRIVATE ${DYNARMIC_CXX_FLAGS})
-target_link_libraries(dynarmic
-    PUBLIC
-        fmt::fmt
-        merry::mcl
-)
+
+target_link_libraries(dynarmic PRIVATE unordered_dense::unordered_dense)
+target_link_libraries(dynarmic PUBLIC fmt::fmt common)
 
 if (BOOST_NO_HEADERS)
     target_link_libraries(dynarmic PRIVATE Boost::variant Boost::icl Boost::pool)
@@ -396,7 +414,3 @@ if (CMAKE_SYSTEM_NAME STREQUAL "Windows")
     target_compile_definitions(dynarmic PRIVATE FMT_USE_WINDOWS_H=0)
 endif()
 target_compile_definitions(dynarmic PRIVATE FMT_USE_USER_DEFINED_LITERALS=1)
-
-if (DYNARMIC_ENABLE_LTO)
-    set_property(TARGET dynarmic PROPERTY INTERPROCEDURAL_OPTIMIZATION TRUE)
-endif()

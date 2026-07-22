@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2024 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -34,6 +37,11 @@ IDynamicRightsInterface::IDynamicRightsInterface(Core::System& system_)
         {23, nullptr, "GetLimitedApplicationLicenseUpgradableEvent"},
         {24, nullptr, "NotifyLimitedApplicationLicenseUpgradableEventForDebug"},
         {25, nullptr, "RequestProceedDynamicRightsState"},
+        {26, D<&IDynamicRightsInterface::HasAccountRestrictedRightsInRunningApplications>, "HasAccountRestrictedRightsInRunningApplications"},
+        {27, nullptr, "Unknown27"}, //20.0.0+
+        {28, nullptr, "Unknown28"}, //20.0.0+
+        {29, nullptr, "Unknown29"}, //21.0.0+
+        {30, nullptr, "Unknown30"}, //21.0.0+
     };
     // clang-format on
 
@@ -56,6 +64,13 @@ Result IDynamicRightsInterface::GetRunningApplicationStatus(Out<u32> out_status,
 
 Result IDynamicRightsInterface::VerifyActivatedRightsOwners(u64 rights_handle) {
     LOG_WARNING(Service_NS, "(STUBBED) called, rights_handle={:#x}", rights_handle);
+    R_SUCCEED();
+}
+
+Result IDynamicRightsInterface::HasAccountRestrictedRightsInRunningApplications(
+    Out<bool> out_is_restricted) {
+    LOG_WARNING(Service_NS, "(STUBBED) called");
+    *out_is_restricted = 0;
     R_SUCCEED();
 }
 

@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2017 Citra Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -31,11 +34,10 @@ struct Member {
 struct RoomInformation {
     std::string name;          ///< Name of the server
     std::string description;   ///< Server description
-    u32 member_slots;          ///< Maximum number of members in this room
-    u16 port;                  ///< The port of this room
+    u32 member_slots{};        ///< Maximum number of members in this room
+    u16 port{};                ///< The port of this room
     GameInfo preferred_game;   ///< Game to advertise that you want to play
     std::string host_username; ///< Forum username of the host
-    bool enable_suyu_mods;     ///< Allow suyu Moderators to moderate on this room
 };
 
 struct Room {
@@ -44,8 +46,8 @@ struct Room {
     std::string id;
     std::string verify_uid; ///< UID used for verification
     std::string ip;
-    u32 net_version;
-    bool has_password;
+    u32 net_version{};
+    bool has_password = false;
 
     std::vector<Member> members;
 };

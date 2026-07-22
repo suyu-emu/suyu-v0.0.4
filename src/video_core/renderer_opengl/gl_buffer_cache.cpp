@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2018 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -248,7 +251,7 @@ void BufferCacheRuntime::BindVertexBuffers(VideoCommon::HostBindings<Buffer>& bi
     std::ranges::transform(bindings.strides, buffer_strides.begin(),
                            [](u64 stride) { return static_cast<GLsizei>(stride); });
     const u32 count =
-        std::min(static_cast<u32>(bindings.buffers.size()), max_attributes - bindings.min_index);
+        (std::min)(static_cast<u32>(bindings.buffers.size()), max_attributes - bindings.min_index);
     if (has_unified_vertex_buffers) {
         for (u32 index = 0; index < count; ++index) {
             Buffer& buffer = *bindings.buffers[index];

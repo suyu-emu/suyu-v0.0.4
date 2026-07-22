@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2023 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -28,7 +31,7 @@ void AlarmWorker::Initialize(std::shared_ptr<Service::PSC::Time::ServiceManager>
         "Glue:AlarmWorker::AlarmTimer",
         [this](s64 time,
                std::chrono::nanoseconds ns_late) -> std::optional<std::chrono::nanoseconds> {
-            m_timer_event->Signal();
+            m_timer_event->Signal(m_system.Kernel());
             return std::nullopt;
         });
 
@@ -57,7 +60,7 @@ void AlarmWorker::OnPowerStateChanged() {
     s64 closest_time{};
     if (!GetClosestAlarmInfo(closest_alarm_info, closest_time)) {
         m_system.CoreTiming().UnscheduleEvent(m_timer_timing_event);
-        m_timer_event->Clear();
+        m_timer_event->Clear(m_system.Kernel());
         return;
     }
 
@@ -67,7 +70,7 @@ void AlarmWorker::OnPowerStateChanged() {
         auto next_time{closest_alarm_info.alert_time - closest_time};
 
         m_system.CoreTiming().UnscheduleEvent(m_timer_timing_event);
-        m_timer_event->Clear();
+        m_timer_event->Clear(m_system.Kernel());
 
         m_system.CoreTiming().ScheduleEvent(std::chrono::nanoseconds(next_time),
                                             m_timer_timing_event);

@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2019 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -6,10 +9,13 @@
 #include <limits>
 #include <vector>
 
-#include "common/logging/log.h"
-#include "common/polyfill_ranges.h"
+#ifdef __ANDROID__
+#include <android/api-level.h>
+#endif
+
+#include "common/logging.h"
 #include "common/settings.h"
-#include "core/core.h"
+#include "common/settings_enums.h"
 #include "video_core/renderer_vulkan/vk_scheduler.h"
 #include "video_core/renderer_vulkan/vk_swapchain.h"
 #include "video_core/vulkan_common/vk_enum_string_helper.h"
@@ -42,7 +48,8 @@ static VkPresentModeKHR ChooseSwapPresentMode(bool has_imm, bool has_mailbox,
     Settings::VSyncMode setting = [has_imm, has_mailbox]() {
         // Choose Mailbox or Immediate if unlocked and those modes are supported
         const auto mode = Settings::values.vsync_mode.GetValue();
-        if (Settings::values.use_speed_limit.GetValue()) {
+        if (Settings::values.use_speed_limit.GetValue() &&
+            Settings::values.current_speed_mode.GetValue() != Settings::SpeedMode::Turbo) {
             return mode;
         }
         switch (mode) {
@@ -81,15 +88,15 @@ static VkPresentModeKHR ChooseSwapPresentMode(bool has_imm, bool has_mailbox,
 }
 
 VkExtent2D ChooseSwapExtent(const VkSurfaceCapabilitiesKHR& capabilities, u32 width, u32 height) {
-    constexpr auto undefined_size{std::numeric_limits<u32>::max()};
+    constexpr auto undefined_size{(std::numeric_limits<u32>::max)()};
     if (capabilities.currentExtent.width != undefined_size) {
         return capabilities.currentExtent;
     }
     VkExtent2D extent;
-    extent.width = std::max(capabilities.minImageExtent.width,
-                            std::min(capabilities.maxImageExtent.width, width));
-    extent.height = std::max(capabilities.minImageExtent.height,
-                             std::min(capabilities.maxImageExtent.height, height));
+    extent.width = (std::max)(capabilities.minImageExtent.width,
+                            (std::min)(capabilities.maxImageExtent.width, width));
+    extent.height = (std::max)(capabilities.minImageExtent.height,
+                             (std::min)(capabilities.maxImageExtent.height, height));
     return extent;
 }
 
@@ -107,15 +114,26 @@ VkCompositeAlphaFlagBitsKHR ChooseAlphaFlags(const VkSurfaceCapabilitiesKHR& cap
 
 } // Anonymous namespace
 
-Swapchain::Swapchain(VkSurfaceKHR surface_, const Device& device_, Scheduler& scheduler_,
-                     u32 width_, u32 height_)
-    : surface{surface_}, device{device_}, scheduler{scheduler_} {
-    Create(surface_, width_, height_);
+Swapchain::Swapchain(
+    VkSurfaceKHR_T* surface_,
+    const Device& device_,
+    Scheduler& scheduler_,
+    u32 width_,
+    u32 height_)
+    : surface(surface_)
+    , device{device_}
+    , scheduler{scheduler_}
+{
+    Create(surface, width_, height_);
 }
 
 Swapchain::~Swapchain() = default;
 
-void Swapchain::Create(VkSurfaceKHR surface_, u32 width_, u32 height_) {
+void Swapchain::Create(
+    VkSurfaceKHR_T* surface_,
+    u32 width_,
+    u32 height_)
+{
     is_outdated = false;
     is_suboptimal = false;
     width = width_;
@@ -123,7 +141,7 @@ void Swapchain::Create(VkSurfaceKHR surface_, u32 width_, u32 height_) {
     surface = surface_;
 
     const auto physical_device = device.GetPhysical();
-    const auto capabilities{physical_device.GetSurfaceCapabilitiesKHR(surface)};
+    const auto capabilities{physical_device.GetSurfaceCapabilitiesKHR(VkSurfaceKHR(surface))};
     if (capabilities.maxImageExtent.width == 0 || capabilities.maxImageExtent.height == 0) {
         return;
     }
@@ -139,7 +157,7 @@ void Swapchain::Create(VkSurfaceKHR surface_, u32 width_, u32 height_) {
 
 bool Swapchain::AcquireNextImage() {
     const VkResult result = device.GetLogical().AcquireNextImageKHR(
-        *swapchain, std::numeric_limits<u64>::max(), *present_semaphores[frame_index],
+        *swapchain, (std::numeric_limits<u64>::max)(), *present_semaphores[frame_index],
         VK_NULL_HANDLE, &image_index);
     switch (result) {
     case VK_SUCCESS:
@@ -158,7 +176,36 @@ bool Swapchain::AcquireNextImage() {
         break;
     }
 
-    scheduler.Wait(resource_ticks[image_index]);
+    const auto wait_with_frame_pacing = [this] {
+    switch (Settings::values.frame_pacing_mode.GetValue()) {
+    case Settings::FramePacingMode::Target_Auto:
+        scheduler.Wait(resource_ticks[image_index]);
+        break;
+    case Settings::FramePacingMode::Target_30:
+        scheduler.Wait(resource_ticks[image_index], 30.0);
+        break;
+    case Settings::FramePacingMode::Target_60:
+        scheduler.Wait(resource_ticks[image_index], 60.0);
+        break;
+    case Settings::FramePacingMode::Target_90:
+        scheduler.Wait(resource_ticks[image_index], 90.0);
+        break;
+    case Settings::FramePacingMode::Target_120:
+        scheduler.Wait(resource_ticks[image_index], 120.0);
+        break;
+    }
+    };
+
+#ifdef __ANDROID__
+    if (android_get_device_api_level() >= 30) {
+        scheduler.Wait(resource_ticks[image_index]);
+    } else {
+        wait_with_frame_pacing();
+    }
+#else
+    wait_with_frame_pacing();
+#endif
+
     resource_ticks[image_index] = scheduler.CurrentTick();
 
     return is_suboptimal || is_outdated;
@@ -201,10 +248,11 @@ void Swapchain::Present(VkSemaphore render_semaphore) {
 
 void Swapchain::CreateSwapchain(const VkSurfaceCapabilitiesKHR& capabilities) {
     const auto physical_device{device.GetPhysical()};
-    const auto formats{physical_device.GetSurfaceFormatsKHR(surface)};
-    const auto present_modes = physical_device.GetSurfacePresentModesKHR(surface);
-    has_mailbox = std::find(present_modes.begin(), present_modes.end(),
-                            VK_PRESENT_MODE_MAILBOX_KHR) != present_modes.end();
+    const auto formats{physical_device.GetSurfaceFormatsKHR(VkSurfaceKHR(surface))};
+    const auto present_modes = physical_device.GetSurfacePresentModesKHR(VkSurfaceKHR(surface));
+
+    has_mailbox = std::find(present_modes.begin(), present_modes.end(), VK_PRESENT_MODE_MAILBOX_KHR)
+                  != present_modes.end();
     has_imm = std::find(present_modes.begin(), present_modes.end(),
                         VK_PRESENT_MODE_IMMEDIATE_KHR) != present_modes.end();
     has_fifo_relaxed = std::find(present_modes.begin(), present_modes.end(),
@@ -221,16 +269,16 @@ void Swapchain::CreateSwapchain(const VkSurfaceCapabilitiesKHR& capabilities) {
             requested_image_count = capabilities.maxImageCount;
         } else {
             requested_image_count =
-                std::max(requested_image_count, std::min(3U, capabilities.maxImageCount));
+                (std::max)(requested_image_count, (std::min)(3U, capabilities.maxImageCount));
         }
     } else {
-        requested_image_count = std::max(requested_image_count, 3U);
+        requested_image_count = (std::max)(requested_image_count, 3U);
     }
     VkSwapchainCreateInfoKHR swapchain_ci{
         .sType = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR,
         .pNext = nullptr,
         .flags = 0,
-        .surface = surface,
+        .surface = VkSurfaceKHR(surface),
         .minImageCount = requested_image_count,
         .imageFormat = surface_format.format,
         .imageColorSpace = surface_format.colorSpace,
@@ -240,7 +288,7 @@ void Swapchain::CreateSwapchain(const VkSurfaceCapabilitiesKHR& capabilities) {
         .imageSharingMode = VK_SHARING_MODE_EXCLUSIVE,
         .queueFamilyIndexCount = 0,
         .pQueueFamilyIndices = nullptr,
-#ifdef ANDROID
+#ifdef __ANDROID__
         // On Android, do not allow surface rotation to deviate from the frontend.
         .preTransform = VK_SURFACE_TRANSFORM_IDENTITY_BIT_KHR,
 #else
@@ -249,7 +297,7 @@ void Swapchain::CreateSwapchain(const VkSurfaceCapabilitiesKHR& capabilities) {
         .compositeAlpha = alpha_flags,
         .presentMode = present_mode,
         .clipped = VK_FALSE,
-        .oldSwapchain = nullptr,
+        .oldSwapchain = VkSwapchainKHR{},
     };
     const u32 graphics_family{device.GetGraphicsFamily()};
     const u32 present_family{device.GetPresentFamily()};
@@ -259,7 +307,17 @@ void Swapchain::CreateSwapchain(const VkSurfaceCapabilitiesKHR& capabilities) {
         swapchain_ci.queueFamilyIndexCount = static_cast<u32>(queue_indices.size());
         swapchain_ci.pQueueFamilyIndices = queue_indices.data();
     }
-    static constexpr std::array view_formats{VK_FORMAT_B8G8R8A8_UNORM, VK_FORMAT_B8G8R8A8_SRGB};
+    // According to Vulkan spec, when using VK_SWAPCHAIN_CREATE_MUTABLE_FORMAT_BIT_KHR,
+    // the base format (imageFormat) MUST be included in pViewFormats
+    const std::array view_formats{
+        swapchain_ci.imageFormat,  // Base format MUST be first
+        VK_FORMAT_B8G8R8A8_UNORM,
+        VK_FORMAT_B8G8R8A8_SRGB,
+#ifdef __ANDROID__
+        VK_FORMAT_R8G8B8A8_UNORM,  // Android may use RGBA
+        VK_FORMAT_R8G8B8A8_SRGB,
+#endif
+    };
     VkImageFormatListCreateInfo format_list{
         .sType = VK_STRUCTURE_TYPE_IMAGE_FORMAT_LIST_CREATE_INFO_KHR,
         .pNext = nullptr,
@@ -271,7 +329,7 @@ void Swapchain::CreateSwapchain(const VkSurfaceCapabilitiesKHR& capabilities) {
         swapchain_ci.flags |= VK_SWAPCHAIN_CREATE_MUTABLE_FORMAT_BIT_KHR;
     }
     // Request the size again to reduce the possibility of a TOCTOU race condition.
-    const auto updated_capabilities = physical_device.GetSurfaceCapabilitiesKHR(surface);
+    const auto updated_capabilities = physical_device.GetSurfaceCapabilitiesKHR(VkSurfaceKHR(surface));
     swapchain_ci.imageExtent = ChooseSwapExtent(updated_capabilities, width, height);
     // Don't add code within this and the swapchain creation.
     swapchain = device.GetLogical().CreateSwapchainKHR(swapchain_ci);
@@ -280,7 +338,7 @@ void Swapchain::CreateSwapchain(const VkSurfaceCapabilitiesKHR& capabilities) {
 
     images = swapchain.GetImages();
     image_count = static_cast<u32>(images.size());
-#ifdef ANDROID
+#ifdef __ANDROID__
     // Android is already ordered the same as Switch.
     image_view_format = VK_FORMAT_R8G8B8A8_UNORM;
 #else
@@ -300,6 +358,7 @@ void Swapchain::CreateSemaphores() {
 void Swapchain::Destroy() {
     frame_index = 0;
     present_semaphores.clear();
+    render_semaphores.clear();
     swapchain.reset();
 }
 

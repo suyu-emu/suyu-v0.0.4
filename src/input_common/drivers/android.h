@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2024 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
@@ -21,7 +24,7 @@ public:
 
     /**
      * Registers controller number to accept new inputs.
-     * @param j_input_device SuyuInputDevice object from the Android frontend to register.
+     * @param j_input_device YuzuInputDevice object from the Android frontend to register.
      */
     void RegisterController(jobject j_input_device);
 
@@ -62,9 +65,9 @@ public:
     std::vector<Common::ParamPackage> GetInputDevices() const override;
 
     /**
-     * Gets the axes reported by the SuyuInputDevice.
+     * Gets the axes reported by the YuzuInputDevice.
      * @param env JNI environment pointer.
-     * @param j_device SuyuInputDevice from the Android frontend.
+     * @param j_device YuzuInputDevice from the Android frontend.
      * @return Set of the axes reported by the underlying Android InputDevice
      */
     std::set<s32> GetDeviceAxes(JNIEnv* env, jobject& j_device) const;
@@ -87,7 +90,7 @@ public:
     Common::Input::ButtonNames GetUIName(const Common::ParamPackage& params) const override;
 
 private:
-    std::unordered_map<PadIdentifier, jobject> input_devices;
+    ankerl::unordered_dense::map<PadIdentifier, jobject> input_devices;
 
     /// Returns the correct identifier corresponding to the player index
     PadIdentifier GetIdentifier(const std::string& guid, size_t port) const;

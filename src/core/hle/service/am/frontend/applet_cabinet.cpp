@@ -1,8 +1,11 @@
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2022 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "common/assert.h"
-#include "common/logging/log.h"
+#include "common/logging.h"
 #include "core/core.h"
 #include "core/frontend/applets/cabinet.h"
 #include "core/hle/kernel/k_event.h"
@@ -118,7 +121,7 @@ void Cabinet::DisplayCompleted(bool apply_changes, std::string_view amiibo_name)
     case Service::NFP::CabinetMode::StartNicknameAndOwnerSettings: {
         Service::NFP::RegisterInfoPrivate register_info{};
         std::memcpy(register_info.amiibo_name.data(), amiibo_name.data(),
-                    std::min(amiibo_name.size(), register_info.amiibo_name.size() - 1));
+                    (std::min)(amiibo_name.size(), register_info.amiibo_name.size() - 1));
         register_info.mii_store_data.BuildRandom(Mii::Age::All, Mii::Gender::All, Mii::Race::All);
         register_info.mii_store_data.SetNickname({u'y', u'u', u'z', u'u'});
         nfp_device->SetRegisterInfoPrivate(register_info);

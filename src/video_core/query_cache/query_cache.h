@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2023 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
@@ -7,12 +10,12 @@
 #include <deque>
 #include <memory>
 #include <mutex>
-#include <unordered_map>
+#include <ankerl/unordered_dense.h>
 #include <utility>
 
 #include "common/assert.h"
 #include "common/common_types.h"
-#include "common/logging/log.h"
+#include "common/logging.h"
 #include "common/scope_exit.h"
 #include "common/settings.h"
 #include "video_core/engines/maxwell_3d.h"
@@ -115,8 +118,8 @@ struct QueryCacheBase<Traits>::QueryCacheBaseImpl {
     QueryCacheBaseImpl(QueryCacheBase<Traits>* owner_, VideoCore::RasterizerInterface& rasterizer_,
                        Tegra::MaxwellDeviceMemoryManager& device_memory_, RuntimeType& runtime_,
                        Tegra::GPU& gpu_)
-        : owner{owner_}, rasterizer{rasterizer_},
-          device_memory{device_memory_}, runtime{runtime_}, gpu{gpu_} {
+        : owner{owner_}, rasterizer{rasterizer_}, device_memory{device_memory_}, runtime{runtime_},
+          gpu{gpu_} {
         streamer_mask = 0;
         for (size_t i = 0; i < static_cast<size_t>(QueryType::MaxQueryTypes); i++) {
             streamers[i] = runtime.GetStreamerInterface(static_cast<QueryType>(i));
@@ -257,7 +260,7 @@ void QueryCacheBase<Traits>::CounterReport(GPUVAddr addr, QueryType counter_type
     };
     u8* pointer = impl->device_memory.template GetPointer<u8>(cpu_addr);
     u8* pointer_timestamp = impl->device_memory.template GetPointer<u8>(cpu_addr + 8);
-    bool is_synced = !Settings::IsGPULevelHigh() && is_fence;
+    bool is_synced = (Settings::IsGPUFenceBehaviorDefault() ? !Settings::IsGPULevelHigh() : !Settings::IsGPUFenceBehaviorBalanced() && !Settings::IsGPUFenceBehaviorAccurate() && !Settings::IsGPUFenceBehaviorStrict()) && is_fence;
     std::function<void()> operation([this, is_synced, streamer, query_base = query, query_location,
                                      pointer, pointer_timestamp] {
         if (True(query_base->flags & QueryFlagBits::IsInvalidated)) {
@@ -267,7 +270,11 @@ void QueryCacheBase<Traits>::CounterReport(GPUVAddr addr, QueryType counter_type
             return;
         }
         if (False(query_base->flags & QueryFlagBits::IsFinalValueSynced)) [[unlikely]] {
-            ASSERT(false);
+            LOG_ERROR(HW_GPU,
+                      "Query report value not synchronized. Consider increasing GPU accuracy.");
+            if (!is_synced) [[likely]] {
+                impl->pending_unregister.push_back(query_location);
+            }
             return;
         }
         query_base->value += streamer->GetAmendValue();
@@ -370,8 +377,6 @@ void QueryCacheBase<Traits>::NotifySegment(bool resume) {
     if (resume) {
         impl->runtime.ResumeHostConditionalRendering();
     } else {
-        CounterClose(VideoCommon::QueryType::ZPassPixelCount64);
-        CounterClose(VideoCommon::QueryType::StreamingByteCount);
         impl->runtime.PauseHostConditionalRendering();
     }
 }
@@ -407,6 +412,7 @@ bool QueryCacheBase<Traits>::AccelerateHostConditionalRendering() {
                     .found_query = nullptr,
                 };
             }
+            it_current = it_current_2;
         }
         auto* query = impl->ObtainQuery(it_current->second);
         qc_dirty |= True(query->flags & QueryFlagBits::IsHostManaged) &&

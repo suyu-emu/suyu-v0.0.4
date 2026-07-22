@@ -26,7 +26,6 @@ import androidx.navigation.findNavController
 import androidx.preference.PreferenceManager
 import androidx.viewpager2.widget.ViewPager2.OnPageChangeCallback
 import com.google.android.material.transition.MaterialFadeThrough
-import kotlinx.coroutines.launch
 import org.yuzu.yuzu_emu.NativeLibrary
 import java.io.File
 import org.yuzu.yuzu_emu.R
@@ -34,10 +33,13 @@ import org.yuzu.yuzu_emu.YuzuApplication
 import org.yuzu.yuzu_emu.adapters.SetupAdapter
 import org.yuzu.yuzu_emu.databinding.FragmentSetupBinding
 import org.yuzu.yuzu_emu.features.settings.model.Settings
+import org.yuzu.yuzu_emu.model.ButtonState
+import org.yuzu.yuzu_emu.model.GamesViewModel
 import org.yuzu.yuzu_emu.model.HomeViewModel
+import org.yuzu.yuzu_emu.model.PageButton
 import org.yuzu.yuzu_emu.model.SetupCallback
 import org.yuzu.yuzu_emu.model.SetupPage
-import org.yuzu.yuzu_emu.model.StepState
+import org.yuzu.yuzu_emu.model.PageState
 import org.yuzu.yuzu_emu.ui.main.MainActivity
 import org.yuzu.yuzu_emu.utils.DirectoryInitialization
 import org.yuzu.yuzu_emu.utils.NativeConfig
@@ -50,10 +52,15 @@ class SetupFragment : Fragment() {
     private val binding get() = _binding!!
 
     private val homeViewModel: HomeViewModel by activityViewModels()
+    private val gamesViewModel: GamesViewModel by activityViewModels()
 
     private lateinit var mainActivity: MainActivity
 
     private lateinit var hasBeenWarned: BooleanArray
+
+    private lateinit var pages: MutableList<SetupPage>
+
+    private lateinit var pageButtonCallback: SetupCallback
 
     companion object {
         const val KEY_NEXT_VISIBILITY = "NextButtonVisibility"
@@ -94,124 +101,142 @@ class SetupFragment : Fragment() {
         requireActivity().window.navigationBarColor =
             ContextCompat.getColor(requireContext(), android.R.color.transparent)
 
-        val pages = mutableListOf<SetupPage>()
+        pages = mutableListOf<SetupPage>()
         pages.apply {
             add(
                 SetupPage(
-                    R.drawable.ic_yuzu_title,
-                    R.string.welcome,
-                    R.string.welcome_description,
-                    0,
-                    true,
-                    R.string.get_started,
-                    { pageForward() },
-                    false
-                )
-            )
-
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-                add(
-                    SetupPage(
-                        R.drawable.ic_notification,
-                        R.string.notifications,
-                        R.string.notifications_description,
-                        0,
-                        false,
-                        R.string.give_permission,
-                        {
-                            notificationCallback = it
-                            permissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
-                        },
-                        true,
-                        R.string.notification_warning,
-                        R.string.notification_warning_description,
-                        0,
-                        {
-                            if (NotificationManagerCompat.from(requireContext())
+                    R.drawable.ic_permission,
+                    R.string.permissions,
+                    R.string.permissions_description,
+                    mutableListOf<PageButton>().apply {
+                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                            add(
+                                PageButton(
+                                    R.drawable.ic_notification,
+                                    R.string.notifications,
+                                    R.string.notifications_description,
+                                    {
+                                        pageButtonCallback = it
+                                        permissionLauncher.launch(
+                                            Manifest.permission.POST_NOTIFICATIONS
+                                        )
+                                    },
+                                    {
+                                        if (NotificationManagerCompat.from(requireContext())
+                                                .areNotificationsEnabled()
+                                        ) {
+                                            ButtonState.BUTTON_ACTION_COMPLETE
+                                        } else {
+                                            ButtonState.BUTTON_ACTION_INCOMPLETE
+                                        }
+                                    },
+                                    false,
+                                    false,
+                                )
+                            )
+                        }
+                    },
+                    {
+                        if (NotificationManagerCompat.from(requireContext())
                                 .areNotificationsEnabled()
-                            ) {
-                                StepState.COMPLETE
-                            } else {
-                                StepState.INCOMPLETE
-                            }
-                        }
-                    )
-                )
-            }
-
-            add(
-                SetupPage(
-                    R.drawable.ic_key,
-                    R.string.keys,
-                    R.string.keys_description,
-                    R.drawable.ic_add,
-                    true,
-                    R.string.select_keys,
-                    {
-                        keyCallback = it
-                        getProdKey.launch(arrayOf("*/*"))
-                    },
-                    true,
-                    R.string.install_prod_keys_warning,
-                    R.string.install_prod_keys_warning_description,
-                    R.string.install_prod_keys_warning_help,
-                    {
-                        val file = File(DirectoryInitialization.userDirectory + "/keys/prod.keys")
-                        if (file.exists() && NativeLibrary.areKeysPresent()) {
-                            StepState.COMPLETE
+                        ) {
+                            PageState.COMPLETE
                         } else {
-                            StepState.INCOMPLETE
+                            PageState.INCOMPLETE
                         }
                     }
                 )
             )
             add(
                 SetupPage(
-                    R.drawable.ic_firmware,
-                    R.string.firmware,
-                    R.string.firmware_description,
-                    R.drawable.ic_add,
-                    true,
-                    R.string.select_firmware,
-                    {
-                        firmwareCallback = it
-                        getFirmware.launch(arrayOf("application/zip"))
+                    R.drawable.ic_folder_open,
+                    R.string.emulator_data,
+                    R.string.emulator_data_description,
+                    mutableListOf<PageButton>().apply {
+                        add(
+                            PageButton(
+                                R.drawable.ic_key,
+                                R.string.keys,
+                                R.string.keys_description,
+                                {
+                                    pageButtonCallback = it
+                                    getProdKey.launch(arrayOf("*/*"))
+                                },
+                                {
+                                    val file = File(
+                                        DirectoryInitialization.userDirectory + "/keys/prod.keys"
+                                    )
+                                    if (file.exists() && NativeLibrary.areKeysPresent()) {
+                                        ButtonState.BUTTON_ACTION_COMPLETE
+                                    } else {
+                                        ButtonState.BUTTON_ACTION_INCOMPLETE
+                                    }
+                                },
+                                false,
+                                true,
+                                R.string.install_prod_keys_warning,
+                                R.string.install_prod_keys_warning_description,
+                                R.string.install_prod_keys_warning_help,
+                            )
+                        )
+                        add(
+                            PageButton(
+                                R.drawable.ic_firmware,
+                                R.string.firmware,
+                                R.string.firmware_description,
+                                {
+                                    pageButtonCallback = it
+                                    getFirmware.launch(arrayOf("application/zip"))
+                                },
+                                {
+                                    if (NativeLibrary.isFirmwareAvailable()) {
+                                        ButtonState.BUTTON_ACTION_COMPLETE
+                                    } else {
+                                        ButtonState.BUTTON_ACTION_INCOMPLETE
+                                    }
+                                },
+                                false,
+                                true,
+                                R.string.install_firmware_warning,
+                                R.string.install_firmware_warning_description,
+                                R.string.install_firmware_warning_help,
+                            )
+                        )
+                        add(
+                            PageButton(
+                                R.drawable.ic_controller,
+                                R.string.games,
+                                R.string.games_description,
+                                {
+                                    pageButtonCallback = it
+                                    getGamesDirectory.launch(Intent(Intent.ACTION_OPEN_DOCUMENT_TREE).data)
+                                },
+                                {
+                                    if (NativeConfig.getGameDirs().isNotEmpty()) {
+                                        ButtonState.BUTTON_ACTION_COMPLETE
+                                    } else {
+                                        ButtonState.BUTTON_ACTION_INCOMPLETE
+                                    }
+                                },
+                                false,
+                                true,
+                                R.string.add_games_warning,
+                                R.string.add_games_warning_description,
+                                R.string.add_games_warning_help,
+                            )
+                        )
                     },
-                    true,
-                    R.string.install_firmware_warning,
-                    R.string.install_firmware_warning_description,
-                    R.string.install_firmware_warning_help,
                     {
-                        if (NativeLibrary.isFirmwareAvailable()) {
-                            StepState.COMPLETE
+                        val file = File(
+                            DirectoryInitialization.userDirectory + "/keys/prod.keys"
+                        )
+                        if (file.exists() && NativeLibrary.areKeysPresent() &&
+                            NativeLibrary.isFirmwareAvailable() && NativeConfig.getGameDirs()
+                                .isNotEmpty()
+                        ) {
+                            PageState.COMPLETE
                         } else {
-                            StepState.INCOMPLETE
-                        }
-                    }
-                )
-            )
-
-            add(
-                SetupPage(
-                    R.drawable.ic_controller,
-                    R.string.games,
-                    R.string.games_description,
-                    R.drawable.ic_add,
-                    true,
-                    R.string.add_games,
-                    {
-                        gamesDirCallback = it
-                        getGamesDirectory.launch(Intent(Intent.ACTION_OPEN_DOCUMENT_TREE).data)
-                    },
-                    true,
-                    R.string.add_games_warning,
-                    R.string.add_games_warning_description,
-                    R.string.add_games_warning_help,
-                    {
-                        if (NativeConfig.getGameDirs().isNotEmpty()) {
-                            StepState.COMPLETE
-                        } else {
-                            StepState.INCOMPLETE
+                            PageState.INCOMPLETE
                         }
                     }
                 )
@@ -221,12 +246,22 @@ class SetupFragment : Fragment() {
                     R.drawable.ic_check,
                     R.string.done,
                     R.string.done_description,
-                    R.drawable.ic_arrow_forward,
-                    false,
-                    R.string.text_continue,
-                    { finishSetup() },
-                    false
-                )
+                    mutableListOf<PageButton>().apply {
+                        add(
+                            PageButton(
+                                R.drawable.ic_arrow_forward,
+                                R.string.get_started,
+                                0,
+                                buttonAction = {
+                                    finishSetup()
+                                },
+                                buttonState = {
+                                    ButtonState.BUTTON_ACTION_UNDEFINED
+                                },
+                            )
+                        )
+                    }
+                ) { PageState.UNDEFINED }
             )
         }
 
@@ -237,7 +272,7 @@ class SetupFragment : Fragment() {
         homeViewModel.gamesDirSelected.collect(
             viewLifecycleOwner,
             resetState = { homeViewModel.setGamesDirSelected(false) }
-        ) { if (it) gamesDirCallback.onStepCompleted() }
+        ) { if (it) checkForButtonState.invoke() }
 
         binding.viewPager2.apply {
             adapter = SetupAdapter(requireActivity() as AppCompatActivity, pages)
@@ -251,15 +286,18 @@ class SetupFragment : Fragment() {
             override fun onPageSelected(position: Int) {
                 super.onPageSelected(position)
 
-                if (position == 1 && previousPosition == 0) {
-                    ViewUtils.showView(binding.buttonNext)
-                    ViewUtils.showView(binding.buttonBack)
-                } else if (position == 0 && previousPosition == 1) {
+                val isFirstPage = position == 0
+                val isLastPage = position == pages.size - 1
+
+                if (isFirstPage) {
                     ViewUtils.hideView(binding.buttonBack)
+                } else {
+                    ViewUtils.showView(binding.buttonBack)
+                }
+
+                if (isLastPage) {
                     ViewUtils.hideView(binding.buttonNext)
-                } else if (position == pages.size - 1 && previousPosition == pages.size - 2) {
-                    ViewUtils.hideView(binding.buttonNext)
-                } else if (position == pages.size - 2 && previousPosition == pages.size - 1) {
+                } else {
                     ViewUtils.showView(binding.buttonNext)
                 }
 
@@ -271,41 +309,70 @@ class SetupFragment : Fragment() {
             val index = binding.viewPager2.currentItem
             val currentPage = pages[index]
 
-            // Checks if the user has completed the task on the current page
-            if (currentPage.hasWarning) {
-                val stepState = currentPage.stepCompleted.invoke()
-                if (stepState != StepState.INCOMPLETE) {
-                    pageForward()
-                    return@setOnClickListener
-                }
+            val warningMessages =
+                mutableListOf<Triple<Int, Int, Int>>() // title, description, helpLink
 
-                if (!hasBeenWarned[index]) {
-                    SetupWarningDialogFragment.newInstance(
-                        currentPage.warningTitleId,
-                        currentPage.warningDescriptionId,
-                        currentPage.warningHelpLinkId,
-                        index
-                    ).show(childFragmentManager, SetupWarningDialogFragment.TAG)
-                    return@setOnClickListener
+            currentPage.pageButtons?.forEach { button ->
+                if (button.hasWarning || button.isUnskippable) {
+                    val buttonState = button.buttonState()
+                    if (buttonState == ButtonState.BUTTON_ACTION_COMPLETE) {
+                        return@forEach
+                    }
+
+                    if (button.isUnskippable) {
+                        MessageDialogFragment.newInstance(
+                            activity = requireActivity(),
+                            titleId = button.warningTitleId,
+                            descriptionId = button.warningDescriptionId,
+                            helpLinkId = button.warningHelpLinkId
+                        ).show(childFragmentManager, MessageDialogFragment.TAG)
+                        return@setOnClickListener
+                    }
+
+                    if (!hasBeenWarned[index]) {
+                        warningMessages.add(
+                            Triple(
+                                button.warningTitleId,
+                                button.warningDescriptionId,
+                                button.warningHelpLinkId
+                            )
+                        )
+                    }
                 }
+            }
+
+            if (warningMessages.isNotEmpty()) {
+                SetupWarningDialogFragment.newInstance(
+                    warningMessages.map { it.first }.toIntArray(),
+                    warningMessages.map { it.second }.toIntArray(),
+                    warningMessages.map { it.third }.toIntArray(),
+                    index
+                ).show(childFragmentManager, SetupWarningDialogFragment.TAG)
+                return@setOnClickListener
             }
             pageForward()
         }
         binding.buttonBack.setOnClickListener { pageBackward() }
+
 
         if (savedInstanceState != null) {
             val nextIsVisible = savedInstanceState.getBoolean(KEY_NEXT_VISIBILITY)
             val backIsVisible = savedInstanceState.getBoolean(KEY_BACK_VISIBILITY)
             hasBeenWarned = savedInstanceState.getBooleanArray(KEY_HAS_BEEN_WARNED)!!
 
-            binding.buttonNext.setVisible(nextIsVisible)
-            binding.buttonBack.setVisible(backIsVisible)
+            if (nextIsVisible) {
+                binding.buttonNext.visibility = View.VISIBLE
+            }
+            if (backIsVisible) {
+                binding.buttonBack.visibility = View.VISIBLE
+            }
         } else {
             hasBeenWarned = BooleanArray(pages.size)
         }
 
         setInsets()
     }
+
 
     override fun onStop() {
         super.onStop()
@@ -314,10 +381,8 @@ class SetupFragment : Fragment() {
 
     override fun onSaveInstanceState(outState: Bundle) {
         super.onSaveInstanceState(outState)
-        if (_binding != null) {
-            outState.putBoolean(KEY_NEXT_VISIBILITY, binding.buttonNext.isVisible)
-            outState.putBoolean(KEY_BACK_VISIBILITY, binding.buttonBack.isVisible)
-        }
+        outState.putBoolean(KEY_NEXT_VISIBILITY, binding.buttonNext.isVisible)
+        outState.putBoolean(KEY_BACK_VISIBILITY, binding.buttonBack.isVisible)
         outState.putBooleanArray(KEY_HAS_BEEN_WARNED, hasBeenWarned)
     }
 
@@ -326,13 +391,27 @@ class SetupFragment : Fragment() {
         _binding = null
     }
 
-    private lateinit var notificationCallback: SetupCallback
+    private val checkForButtonState: () -> Unit = {
+        val page = pages[binding.viewPager2.currentItem]
+        page.pageButtons?.forEach {
+            if (it.buttonState() == ButtonState.BUTTON_ACTION_COMPLETE) {
+                pageButtonCallback.onStepCompleted(
+                    it.titleId,
+                    pageFullyCompleted = false
+                )
+            }
+
+            if (page.pageSteps() == PageState.COMPLETE) {
+                pageButtonCallback.onStepCompleted(0, pageFullyCompleted = true)
+            }
+        }
+    }
 
     @RequiresApi(Build.VERSION_CODES.TIRAMISU)
     private val permissionLauncher =
         registerForActivityResult(ActivityResultContracts.RequestPermission()) {
             if (it) {
-                notificationCallback.onStepCompleted()
+                checkForButtonState.invoke()
             }
 
             if (!it &&
@@ -345,15 +424,13 @@ class SetupFragment : Fragment() {
             }
         }
 
-    private lateinit var keyCallback: SetupCallback
-    private lateinit var firmwareCallback: SetupCallback
 
     val getProdKey =
         registerForActivityResult(ActivityResultContracts.OpenDocument()) { result ->
             if (result != null) {
                 mainActivity.processKey(result, "keys")
                 if (NativeLibrary.areKeysPresent()) {
-                    keyCallback.onStepCompleted()
+                    checkForButtonState.invoke()
                 }
             }
         }
@@ -363,13 +440,11 @@ class SetupFragment : Fragment() {
             if (result != null) {
                 mainActivity.processFirmware(result) {
                     if (NativeLibrary.isFirmwareAvailable()) {
-                        firmwareCallback.onStepCompleted()
+                        checkForButtonState.invoke()
                     }
                 }
             }
         }
-
-    private lateinit var gamesDirCallback: SetupCallback
 
     val getGamesDirectory =
         registerForActivityResult(ActivityResultContracts.OpenDocumentTree()) { result ->
@@ -379,9 +454,13 @@ class SetupFragment : Fragment() {
         }
 
     private fun finishSetup() {
-        PreferenceManager.getDefaultSharedPreferences(YuzuApplication.appContext).edit()
+        PreferenceManager.getDefaultSharedPreferences(YuzuApplication.appContext)
+            .edit()
             .putBoolean(Settings.PREF_FIRST_APP_LAUNCH, false)
             .apply()
+
+        gamesViewModel.reloadGames(directoriesChanged = true, firstStartup = false)
+
         mainActivity.finishSetup(binding.root.findNavController())
     }
 
@@ -405,8 +484,10 @@ class SetupFragment : Fragment() {
         ViewCompat.setOnApplyWindowInsetsListener(
             binding.root
         ) { _: View, windowInsets: WindowInsetsCompat ->
-            val barInsets = windowInsets.getInsets(WindowInsetsCompat.Type.systemBars())
-            val cutoutInsets = windowInsets.getInsets(WindowInsetsCompat.Type.displayCutout())
+            val barInsets =
+                windowInsets.getInsets(WindowInsetsCompat.Type.systemBars())
+            val cutoutInsets =
+                windowInsets.getInsets(WindowInsetsCompat.Type.displayCutout())
 
             val leftPadding = barInsets.left + cutoutInsets.left
             val topPadding = barInsets.top + cutoutInsets.top
@@ -415,11 +496,22 @@ class SetupFragment : Fragment() {
 
             if (resources.getBoolean(R.bool.small_layout)) {
                 binding.viewPager2
-                    .updatePadding(left = leftPadding, top = topPadding, right = rightPadding)
+                    .updatePadding(
+                        left = leftPadding,
+                        top = topPadding,
+                        right = rightPadding
+                    )
                 binding.constraintButtons
-                    .updatePadding(left = leftPadding, right = rightPadding, bottom = bottomPadding)
+                    .updatePadding(
+                        left = leftPadding,
+                        right = rightPadding,
+                        bottom = bottomPadding
+                    )
             } else {
-                binding.viewPager2.updatePadding(top = topPadding, bottom = bottomPadding)
+                binding.viewPager2.updatePadding(
+                    top = topPadding,
+                    bottom = bottomPadding
+                )
                 binding.constraintButtons
                     .updatePadding(
                         left = leftPadding,

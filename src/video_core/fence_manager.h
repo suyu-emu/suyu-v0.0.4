@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2020 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -8,14 +11,11 @@
 #include <cstring>
 #include <deque>
 #include <functional>
-#include <memory>
 #include <mutex>
 #include <thread>
 #include <queue>
 
 #include "common/common_types.h"
-#include "common/microprofile.h"
-#include "common/scope_exit.h"
 #include "common/settings.h"
 #include "common/thread.h"
 #include "video_core/delayed_destruction_ring.h"
@@ -72,11 +72,11 @@ public:
     }
 
     void SignalFence(std::function<void()>&& func) {
-        bool delay_fence = Settings::IsGPULevelHigh();
+        const bool delay_fence = Settings::IsGPUFenceBehaviorDefault() ? Settings::IsGPULevelHigh() : Settings::IsGPUFenceBehaviorBalanced() || Settings::IsGPUFenceBehaviorAccurate() || Settings::IsGPUFenceBehaviorStrict();
+        const bool should_flush = ShouldFlush();
         if constexpr (!can_async_check) {
             TryReleasePendingFences<false>();
         }
-        const bool should_flush = ShouldFlush();
         CommitAsyncFlushes();
         TFence new_fence = CreateFence(!should_flush);
         if constexpr (can_async_check) {
@@ -193,15 +193,7 @@ private:
     }
 
     void ReleaseThreadFunc(std::stop_token stop_token) {
-        std::string name = "GPUFencingThread";
-        MicroProfileOnThreadCreate(name.c_str());
-
-        // Cleanup
-        SCOPE_EXIT {
-            MicroProfileOnThreadExit();
-        };
-
-        Common::SetCurrentThreadName(name.c_str());
+        Common::SetCurrentThreadName("GPUFencingThread");
         Common::SetCurrentThreadPriority(Common::ThreadPriority::High);
 
         TFence current_fence;

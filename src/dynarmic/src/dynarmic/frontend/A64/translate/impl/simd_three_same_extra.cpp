@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 /* This file is part of the dynarmic project.
  * Copyright (c) 2018 MerryMage
  * SPDX-License-Identifier: 0BSD
@@ -63,9 +66,7 @@ bool TranslatorVisitor::FCMLA_vec(bool Q, Imm<2> size, Vec Vm, Imm<2> rot, Vec V
     const size_t esize = 8U << size.ZeroExtend();
 
     // TODO: Currently we don't support half-precision floating point
-    if (esize == 16) {
-        return InterpretThisInstruction();
-    }
+    ASSERT(esize != 16);
 
     const size_t datasize = Q ? 128 : 64;
     const size_t num_elements = datasize / esize;
@@ -134,9 +135,7 @@ bool TranslatorVisitor::FCADD_vec(bool Q, Imm<2> size, Vec Vm, Imm<1> rot, Vec V
     const size_t esize = 8U << size.ZeroExtend();
 
     // TODO: Currently we don't support half-precision floating point
-    if (esize == 16) {
-        return InterpretThisInstruction();
-    }
+    ASSERT(esize != 16);
 
     const size_t datasize = Q ? 128 : 64;
     const size_t num_elements = datasize / esize;

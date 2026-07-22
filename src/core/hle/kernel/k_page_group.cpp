@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2022 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -21,8 +24,8 @@ void KPageGroup::Finalize() {
     m_last_block = nullptr;
 }
 
-void KPageGroup::CloseAndReset() {
-    auto& mm = m_kernel.MemoryManager();
+void KPageGroup::CloseAndReset(KernelCore& kernel) {
+    auto& mm = kernel.MemoryManager();
 
     KBlockInfo* cur = m_first_block;
     while (cur != nullptr) {
@@ -76,28 +79,22 @@ Result KPageGroup::AddBlock(KPhysicalAddress addr, size_t num_pages) {
     R_SUCCEED();
 }
 
-void KPageGroup::Open() const {
-    auto& mm = m_kernel.MemoryManager();
-
-    for (const auto& it : *this) {
+void KPageGroup::Open(KernelCore& kernel) const {
+    auto& mm = kernel.MemoryManager();
+    for (const auto& it : *this)
         mm.Open(it.GetAddress(), it.GetNumPages());
-    }
 }
 
-void KPageGroup::OpenFirst() const {
-    auto& mm = m_kernel.MemoryManager();
-
-    for (const auto& it : *this) {
+void KPageGroup::OpenFirst(KernelCore& kernel) const {
+    auto& mm = kernel.MemoryManager();
+    for (const auto& it : *this)
         mm.OpenFirst(it.GetAddress(), it.GetNumPages());
-    }
 }
 
-void KPageGroup::Close() const {
-    auto& mm = m_kernel.MemoryManager();
-
-    for (const auto& it : *this) {
+void KPageGroup::Close(KernelCore& kernel) const {
+    auto& mm = kernel.MemoryManager();
+    for (const auto& it : *this)
         mm.Close(it.GetAddress(), it.GetNumPages());
-    }
 }
 
 bool KPageGroup::IsEquivalentTo(const KPageGroup& rhs) const {

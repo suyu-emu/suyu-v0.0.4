@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2021 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -313,6 +316,7 @@ void EmitUDiv32(EmitContext& ctx, IR::Inst& inst, ScalarU32 a, ScalarU32 b);
 void EmitINeg32(EmitContext& ctx, IR::Inst& inst, ScalarS32 value);
 void EmitINeg64(EmitContext& ctx, IR::Inst& inst, Register value);
 void EmitIAbs32(EmitContext& ctx, IR::Inst& inst, ScalarS32 value);
+void EmitIAbs64(EmitContext& ctx, IR::Inst& inst, ScalarS32 value);
 void EmitShiftLeftLogical32(EmitContext& ctx, IR::Inst& inst, ScalarU32 base, ScalarU32 shift);
 void EmitShiftLeftLogical64(EmitContext& ctx, IR::Inst& inst, ScalarRegister base, ScalarU32 shift);
 void EmitShiftRightLogical32(EmitContext& ctx, IR::Inst& inst, ScalarU32 base, ScalarU32 shift);
@@ -541,6 +545,12 @@ void EmitConvertF64U8(EmitContext& ctx, IR::Inst& inst, Register value);
 void EmitConvertF64U16(EmitContext& ctx, IR::Inst& inst, Register value);
 void EmitConvertF64U32(EmitContext& ctx, IR::Inst& inst, ScalarU32 value);
 void EmitConvertF64U64(EmitContext& ctx, IR::Inst& inst, Register value);
+void EmitConvertU16U32(EmitContext& ctx, IR::Inst& inst, Register value);
+void EmitConvertU32U16(EmitContext& ctx, IR::Inst& inst, Register value);
+void EmitConvertU8U32(EmitContext& ctx, IR::Inst& inst, Register value);
+void EmitConvertU32U8(EmitContext& ctx, IR::Inst& inst, Register value);
+void EmitConvertS32S8(EmitContext& ctx, IR::Inst& inst, Register value);
+void EmitConvertS32S16(EmitContext& ctx, IR::Inst& inst, Register value);
 void EmitBindlessImageSampleImplicitLod(EmitContext&);
 void EmitBindlessImageSampleExplicitLod(EmitContext&);
 void EmitBindlessImageSampleDrefImplicitLod(EmitContext&);

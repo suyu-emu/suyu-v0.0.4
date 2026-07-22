@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 package org.yuzu.yuzu_emu.features.settings.ui
@@ -29,6 +29,7 @@ import org.yuzu.yuzu_emu.databinding.ListItemSettingsHeaderBinding
 import org.yuzu.yuzu_emu.features.input.NativeInput
 import org.yuzu.yuzu_emu.features.input.model.AnalogDirection
 import org.yuzu.yuzu_emu.features.settings.model.AbstractIntSetting
+import org.yuzu.yuzu_emu.features.settings.model.Settings
 import org.yuzu.yuzu_emu.features.settings.model.view.*
 import org.yuzu.yuzu_emu.features.settings.ui.viewholder.*
 import org.yuzu.yuzu_emu.utils.ParamPackage
@@ -91,6 +92,18 @@ class SettingsAdapter(
 
             SettingsItem.TYPE_STRING_INPUT -> {
                 StringInputViewHolder(ListItemSettingBinding.inflate(inflater), this)
+            }
+
+            SettingsItem.TYPE_LAUNCHABLE -> {
+                LaunchableViewHolder(ListItemSettingBinding.inflate(inflater), this)
+            }
+			
+            SettingsItem.TYPE_PATH -> {
+                PathViewHolder(ListItemSettingBinding.inflate(inflater), this)
+            }
+
+            SettingsItem.TYPE_GPU_UNSWIZZLE -> {
+                GpuUnswizzleViewHolder(ListItemSettingBinding.inflate(inflater), this)
             }
 
             else -> {
@@ -205,8 +218,20 @@ class SettingsAdapter(
     }
 
     fun onSubmenuClick(item: SubmenuSetting) {
-        val action = SettingsNavigationDirections.actionGlobalSettingsFragment(item.menuKey, null)
-        fragment.view?.findNavController()?.navigate(action)
+        // Check if this is the Freedreno Settings submenu
+        if (item.menuKey == Settings.MenuTag.SECTION_FREEDRENO) {
+            fragment.view?.findNavController()?.navigate(
+                R.id.action_settingsFragment_to_freedrenoSettingsFragment
+            )
+        } else {
+            val action = SettingsNavigationDirections.actionGlobalSettingsFragment(item.menuKey, null)
+            fragment.view?.findNavController()?.navigate(action)
+        }
+    }
+
+    fun onLaunchableClick(item: LaunchableSetting) {
+        val intent = item.launchIntent(context)
+        fragment.requireActivity().startActivity(intent)
     }
 
     fun onInputProfileClick(item: InputProfileSetting, position: Int) {
@@ -425,6 +450,14 @@ class SettingsAdapter(
             position
         ).show(fragment.childFragmentManager, SettingsDialogFragment.TAG)
 
+        // reset language if detected
+        if (item.setting.key == "app_language") {
+            // recreate page apply language change instantly
+            fragment.requireActivity().recreate()
+
+            settingsViewModel.setShouldRecreateForLanguageChange(true)
+        }
+
         return true
     }
 
@@ -432,6 +465,26 @@ class SettingsAdapter(
         item.setting.global = true
         notifyItemChanged(position)
         settingsViewModel.setShouldReloadSettingsList(true)
+    }
+
+    fun onPathClick(item: PathSetting, position: Int) {
+        settingsViewModel.clickedItem = item
+        settingsViewModel.setPathSettingPosition(position)
+        settingsViewModel.setShouldShowPathPicker(true)
+    }
+
+    fun onPathReset(item: PathSetting, position: Int) {
+        settingsViewModel.clickedItem = item
+        settingsViewModel.setPathSettingPosition(position)
+        settingsViewModel.setShouldShowPathResetDialog(true)
+    }
+
+    fun onGpuUnswizzleClick(item: GpuUnswizzleSetting, position: Int) {
+        GpuUnswizzleDialogFragment.newInstance(
+            settingsViewModel,
+            item,
+            position
+        ).show(fragment.childFragmentManager, GpuUnswizzleDialogFragment.TAG)
     }
 
     private class DiffCallback : DiffUtil.ItemCallback<SettingsItem>() {

@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: 2022 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
@@ -7,7 +10,7 @@
 #include <limits>
 #include <mutex>
 #include <optional>
-#include <unordered_map>
+#include <ankerl/unordered_dense.h>
 #include <vector>
 
 #include "common/common_types.h"
@@ -73,7 +76,7 @@ public:
     }
 
 protected:
-    static constexpr size_t UNSET_CHANNEL{std::numeric_limits<size_t>::max()};
+    static constexpr size_t UNSET_CHANNEL{(std::numeric_limits<size_t>::max)()};
 
     P* channel_state;
     size_t current_channel_id{UNSET_CHANNEL};
@@ -85,14 +88,14 @@ protected:
 
     std::deque<P> channel_storage;
     std::deque<size_t> free_channel_ids;
-    std::unordered_map<s32, size_t> channel_map;
+    ankerl::unordered_dense::map<s32, size_t> channel_map;
     std::vector<size_t> active_channel_ids;
     struct AddressSpaceRef {
         size_t ref_count;
         size_t storage_id;
         Tegra::MemoryManager* gpu_memory;
     };
-    std::unordered_map<size_t, AddressSpaceRef> address_spaces;
+    ankerl::unordered_dense::map<size_t, AddressSpaceRef> address_spaces;
     mutable std::mutex config_mutex;
 
     virtual void OnGPUASRegister([[maybe_unused]] size_t map_id) {}

@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2022 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -537,7 +540,7 @@ Result System::Update(std::span<const u8> input, std::span<u8> performance, std:
         return result;
     }
 
-    adsp_rendered_event->Clear();
+    adsp_rendered_event->Clear(core.Kernel());
     num_times_updated++;
 
     const auto end_time{core.CoreTiming().GetGlobalTimeNs().count()};
@@ -621,7 +624,7 @@ void System::SendCommandToDsp() {
             reset_command_buffers = false;
             command_buffer_size = command_size;
             if (remaining_command_count == 0) {
-                adsp_rendered_event->Signal();
+                adsp_rendered_event->Signal(core.Kernel());
             }
         } else {
             audio_renderer.ClearRemainCommandCount(session_id);
@@ -718,7 +721,7 @@ u64 System::GenerateCommand(std::span<u8> in_command_buffer,
 
         const auto estimated_time{start_estimated_time - end_estimated_time};
 
-        const auto time_limit{static_cast<u32>(std::max(dsp_time_limit + estimated_time, 0.0f))};
+        const auto time_limit{static_cast<u32>((std::max)(dsp_time_limit + estimated_time, 0.0f))};
         num_voices_dropped =
             DropVoices(command_buffer, static_cast<u32>(start_estimated_time), time_limit);
     }

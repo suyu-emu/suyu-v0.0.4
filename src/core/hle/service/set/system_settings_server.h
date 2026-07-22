@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2018 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -92,6 +95,8 @@ public:
     Result SetSpeakerAutoMuteFlag(bool force_mute_on_headphone_removed);
     Result GetQuestFlag(Out<QuestFlag> out_quest_flag);
     Result SetQuestFlag(QuestFlag quest_flag);
+    Result GetRebootlessSystemUpdateVersion(
+        Out<RebootlessSystemUpdateVersion> out_rebootless_system_update);
     Result GetDeviceTimeZoneLocationName(Out<Service::PSC::Time::LocationName> out_name);
     Result SetDeviceTimeZoneLocationName(const Service::PSC::Time::LocationName& name);
     Result SetRegionCode(SystemRegionCode region_code);
@@ -104,6 +109,12 @@ public:
     Result SetPrimaryAlbumStorage(PrimaryAlbumStorage primary_album_storage);
     Result GetBatteryLot(Out<BatteryLot> out_battery_lot);
     Result GetSerialNumber(Out<SerialNumber> out_console_serial);
+    Result GetConsoleInformationUploadFlag(Out<bool> out_flag);
+    Result SetConsoleInformationUploadFlag(bool flag);
+    Result GetAutomaticApplicationDownloadFlag(Out<bool> out_flag);
+    Result SetAutomaticApplicationDownloadFlag(bool flag);
+    Result GetUsb30EnableFlag(Out<bool> out_usb30_enable_flag);
+    Result SetUsb30EnableFlag(bool usb30_enable_flag);
     Result GetNfcEnableFlag(Out<bool> out_nfc_enable_flag);
     Result SetNfcEnableFlag(bool nfc_enable_flag);
     Result GetSleepSettings(Out<SleepSettings> out_sleep_settings);
@@ -136,8 +147,6 @@ public:
     Result SetAppletLaunchFlags(u32 applet_launch_flag);
     Result GetKeyboardLayout(Out<KeyboardLayout> out_keyboard_layout);
     Result SetKeyboardLayout(KeyboardLayout keyboard_layout);
-    Result GetRebootlessSystemUpdateVersion(
-        Out<RebootlessSystemUpdateVersion> out_rebootless_system_update);
     Result GetDeviceTimeZoneLocationUpdatedTime(
         Out<Service::PSC::Time::SteadyClockTimePoint> out_time_point);
     Result SetDeviceTimeZoneLocationUpdatedTime(
@@ -157,13 +166,17 @@ public:
     Result GetFieldTestingFlag(Out<bool> out_field_testing_flag);
     Result GetPanelCrcMode(Out<s32> out_panel_crc_mode);
     Result SetPanelCrcMode(s32 panel_crc_mode);
+    Result GetHttpAuthConfigs(Out<s32> out_count, OutBuffer<BufferAttr_HipcMapAlias> out_configs);
+    Result GetAccountUserSettings(
+        Out<u32> out_count,
+        OutLargeData<AccountUserSettings, BufferAttr_HipcMapAlias> out_settings);
+    Result GetDefaultAccountUserSettings(Out<AccountUserSettings> out_settings);
 
 private:
     bool LoadSettingsFile(std::filesystem::path& path, auto&& default_func);
     bool StoreSettingsFile(std::filesystem::path& path, auto& settings);
     void SetupSettings();
     void StoreSettings();
-    void StoreSettingsThreadFunc(std::stop_token stop_token);
     void SetSaveNeeded();
 
     Core::System& m_system;
@@ -171,9 +184,7 @@ private:
     PrivateSettings m_private_settings{};
     DeviceSettings m_device_settings{};
     ApplnSettings m_appln_settings{};
-    std::mutex m_settings_mutex;
     std::mutex m_save_needed_mutex;
-    std::jthread m_save_thread;
     bool m_save_needed{false};
 };
 

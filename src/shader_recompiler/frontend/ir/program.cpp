@@ -4,7 +4,7 @@
 #include <map>
 #include <string>
 
-#include <fmt/format.h>
+#include <fmt/ranges.h>
 
 #include "shader_recompiler/frontend/ir/basic_block.h"
 #include "shader_recompiler/frontend/ir/program.h"

@@ -1,10 +1,12 @@
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2018 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
-#include <algorithm>
 #include <cstring>
 #include "common/assert.h"
-#include "common/logging/log.h"
+#include "common/logging.h"
 #include "core/core.h"
 #include "core/core_timing.h"
 #include "core/hle/service/nvdrv/devices/ioctl_serialization.h"
@@ -36,16 +38,13 @@ NvResult nvhost_ctrl_gpu::Ioctl1(DeviceFD fd, Ioctl command, std::span<const u8>
             return WrapFixed(this, &nvhost_ctrl_gpu::ZBCSetTable, input, output);
         case 0x4:
             return WrapFixed(this, &nvhost_ctrl_gpu::ZBCQueryTable, input, output);
+        //deviation
         case 0x5:
             return WrapFixed(this, &nvhost_ctrl_gpu::GetCharacteristics1, input, output);
         case 0x6:
             return WrapFixed(this, &nvhost_ctrl_gpu::GetTPCMasks1, input, output);
         case 0x7:
             return WrapFixed(this, &nvhost_ctrl_gpu::FlushL2, input, output);
-        case 0x12:
-            return WrapFixed(this, &nvhost_ctrl_gpu::NumVsms, input, output);
-        case 0x13:
-            return WrapFixed(this, &nvhost_ctrl_gpu::VsmsMapping, input, output);
         case 0x14:
             return WrapFixed(this, &nvhost_ctrl_gpu::GetActiveSlotMask, input, output);
         case 0x15:
@@ -57,7 +56,29 @@ NvResult nvhost_ctrl_gpu::Ioctl1(DeviceFD fd, Ioctl command, std::span<const u8>
         }
         break;
     }
-    UNIMPLEMENTED_MSG("Unimplemented ioctl={:08X}", command.raw);
+    // still unimplemented
+    std::string_view friendly_name = [raw = command.raw]() {
+        switch (raw) {
+            case 0x0d: return "INVAL_ICACHE";
+            case 0x0e: return "SET_MMU_DEBUG_MODE ";
+            case 0x0f: return "SET_SM_DEBUG_MODE";
+            case 0x10: return "WAIT_FOR_PAUSE";
+            case 0x11: return "GET_TPC_EXCEPTION_EN_STATUS";
+            case 0x12: return "NUM_VSMS";
+            case 0x13: return "VSMS_MAPPING";
+            case 0x14: return "ZBC_GET_ACTIVE_SLOT_MASK";
+            case 0x15: return "PMU_GET_GPU_LOAD";
+            case 0x16: return "SET_CG_CONTROLS";
+            case 0x17: return "GET_CG_CONTROLS";
+            case 0x18: return "SET_PG_CONTROLS";
+            case 0x19: return "GET_PG_CONTROLS";
+            case 0x1A: return "PMU_GET_ELPG_RESIDENCY_GATING";
+            case 0x1B: return "GET_ERROR_CHANNEL_USER_DATA";
+            case 0x1D: return "GET_CPU_TIME_CORRELATION_INFO";
+            default: return "UNKNOWN";
+        }
+    }();
+    UNIMPLEMENTED_MSG("Unimplemented ioctl={:08X} {}", command.raw, friendly_name);
     return NvResult::NotImplemented;
 }
 
@@ -78,10 +99,12 @@ NvResult nvhost_ctrl_gpu::Ioctl3(DeviceFD fd, Ioctl command, std::span<const u8>
         case 0x6:
             return WrapFixedInlOut(this, &nvhost_ctrl_gpu::GetTPCMasks3, input, output,
                                    inline_output);
-        case 0x12:
-            return WrapFixed(this, &nvhost_ctrl_gpu::NumVsms, input, output);
         case 0x13:
-            return WrapFixed(this, &nvhost_ctrl_gpu::VsmsMapping, input, output);
+            LOG_DEBUG(Service_NVDRV, "(STUBBED) called.");
+
+            // TODO (jarrodnorwell)
+
+            return NvResult::NotImplemented;
         default:
             break;
         }
@@ -89,7 +112,8 @@ NvResult nvhost_ctrl_gpu::Ioctl3(DeviceFD fd, Ioctl command, std::span<const u8>
     default:
         break;
     }
-    UNIMPLEMENTED_MSG("Unimplemented ioctl={:08X}", command.raw);
+    UNIMPLEMENTED_MSG("Unimplemented ioctl={:08X}, group={:01X}, command={:01X}", command.raw,
+                      command.group, command.cmd);
     return NvResult::NotImplemented;
 }
 
@@ -186,7 +210,7 @@ NvResult nvhost_ctrl_gpu::GetCharacteristics3(
 }
 
 NvResult nvhost_ctrl_gpu::GetTPCMasks1(IoctlGpuGetTpcMasksArgs& params) {
-    LOG_DEBUG(Service_NVDRV, "called, mask_buffer_size=0x{:X}", params.mask_buffer_size);
+    LOG_DEBUG(Service_NVDRV, "called, mask_buffer_size={:#X}", params.mask_buffer_size);
     if (params.mask_buffer_size != 0) {
         params.tcp_mask = 3;
     }
@@ -194,7 +218,7 @@ NvResult nvhost_ctrl_gpu::GetTPCMasks1(IoctlGpuGetTpcMasksArgs& params) {
 }
 
 NvResult nvhost_ctrl_gpu::GetTPCMasks3(IoctlGpuGetTpcMasksArgs& params, std::span<u32> tpc_mask) {
-    LOG_DEBUG(Service_NVDRV, "called, mask_buffer_size=0x{:X}", params.mask_buffer_size);
+    LOG_DEBUG(Service_NVDRV, "called, mask_buffer_size={:#X}", params.mask_buffer_size);
     if (params.mask_buffer_size != 0) {
         params.tcp_mask = 3;
     }
@@ -212,26 +236,9 @@ NvResult nvhost_ctrl_gpu::GetActiveSlotMask(IoctlActiveSlotMask& params) {
     return NvResult::Success;
 }
 
-NvResult nvhost_ctrl_gpu::PmuGetGpuLoad(IoctlPmuGetGpuLoad& params) {
-    LOG_DEBUG(Service_NVDRV, "called");
-    params.load = 50;
-    return NvResult::Success;
-}
-
-NvResult nvhost_ctrl_gpu::NumVsms(IoctlNumVsms& params) {
-    LOG_DEBUG(Service_NVDRV, "called");
-
-    params.num_vsms = 2;
-    return NvResult::Success;
-}
-
-NvResult nvhost_ctrl_gpu::VsmsMapping(IoctlVsmsMapping& params) {
-    LOG_DEBUG(Service_NVDRV, "called");
-
-    params.sm0_gpc_index = 0;
-    params.sm0_tpc_index = 0;
-    params.sm1_gpc_index = 0;
-    params.sm1_tpc_index = 1;
+NvResult nvhost_ctrl_gpu::PmuGetGpuLoad(IoctlPmuGetLoad& params) {
+    LOG_WARNING(Service_NVDRV, "(stubbed) called");
+    params.pmu_gpu_load = 100;
     return NvResult::Success;
 }
 
@@ -257,109 +264,112 @@ NvResult nvhost_ctrl_gpu::ZCullGetInfo(IoctlNvgpuGpuZcullGetInfoArgs& params) {
 }
 
 NvResult nvhost_ctrl_gpu::ZBCSetTable(IoctlZbcSetTable& params) {
-    if (params.type > SupportedZbcTypes) {
-        LOG_ERROR(Service_NVDRV, "ZBCSetTable: invalid type={:#X}", params.type);
+    if (params.type > supported_types) {
+        LOG_ERROR(Service_NVDRV, "ZBCSetTable: invalid type {:#X}", params.type);
         return NvResult::BadParameter;
     }
 
-    std::scoped_lock lk{zbc_mutex};
+    std::scoped_lock lk(zbc_mutex);
 
     switch (static_cast<ZBCTypes>(params.type)) {
-    case ZBCTypes::Color: {
-        ZbcColorEntry color_entry{};
-        std::copy_n(std::begin(params.color_ds), color_entry.color_ds.size(),
-                    color_entry.color_ds.begin());
-        std::copy_n(std::begin(params.color_l2), color_entry.color_l2.size(),
-                    color_entry.color_l2.begin());
-        color_entry.format = params.format;
-        color_entry.ref_cnt = 1;
+        case ZBCTypes::color: {
+            ZbcColorEntry color_entry{};
+            std::copy_n(std::begin(params.color_ds), color_entry.color_ds.size(), color_entry.color_ds.begin());
+            std::copy_n(std::begin(params.color_l2), color_entry.color_l2.size(), color_entry.color_l2.begin());
+            color_entry.format = params.format;
+            color_entry.ref_cnt = 1u;
 
-        auto it = std::find_if(zbc_colors.begin(), zbc_colors.end(), [&](const auto& entry) {
-            return color_entry.format == entry.format && color_entry.color_ds == entry.color_ds &&
-                   color_entry.color_l2 == entry.color_l2;
-        });
-        if (it != zbc_colors.end()) {
-            ++it->ref_cnt;
-            LOG_DEBUG(Service_NVDRV, "ZBCSetTable: reused color fmt={:#X}, ref_count={}",
-                      params.format, it->ref_cnt);
-        } else {
-            zbc_colors.push_back(color_entry);
-            LOG_DEBUG(Service_NVDRV, "ZBCSetTable: added color fmt={:#X}, index={}",
-                      params.format, zbc_colors.size() - 1);
+            auto color_it = std::ranges::find_if(zbc_colors,
+                                                 [&](const ZbcColorEntry& color_in_question) {
+                                                     return color_entry.format == color_in_question.format &&
+                                                            color_entry.color_ds == color_in_question.color_ds &&
+                                                            color_entry.color_l2 == color_in_question.color_l2;
+                                                 });
+
+            if (color_it != zbc_colors.end()) {
+                ++color_it->ref_cnt;
+                LOG_DEBUG(Service_NVDRV, "ZBCSetTable: reused color entry fmt={:#X}, ref_cnt={:#X}",
+                          params.format, color_it->ref_cnt);
+            } else {
+                zbc_colors.push_back(color_entry);
+                LOG_DEBUG(Service_NVDRV, "ZBCSetTable: added color entry fmt={:#X}, index={:#X}",
+                          params.format, zbc_colors.size() - 1);
+            }
+            break;
         }
-        break;
-    }
-    case ZBCTypes::Depth: {
-        ZbcDepthEntry depth_entry{params.depth, params.format, 1};
-        auto it = std::find_if(zbc_depths.begin(), zbc_depths.end(), [&](const auto& entry) {
-            return depth_entry.format == entry.format && depth_entry.depth == entry.depth;
-        });
-        if (it != zbc_depths.end()) {
-            ++it->ref_cnt;
-            LOG_DEBUG(Service_NVDRV, "ZBCSetTable: reused depth fmt={:#X}, ref_count={}",
-                      depth_entry.format, it->ref_cnt);
-        } else {
-            zbc_depths.push_back(depth_entry);
-            LOG_DEBUG(Service_NVDRV, "ZBCSetTable: added depth fmt={:#X}, index={}",
-                      depth_entry.format, zbc_depths.size() - 1);
+        case ZBCTypes::depth: {
+            ZbcDepthEntry depth_entry{params.depth, params.format, 1u};
+
+            auto depth_it = std::ranges::find_if(zbc_depths,
+                                                 [&](const ZbcDepthEntry& depth_entry_in_question) {
+                                                     return depth_entry.format == depth_entry_in_question.format &&
+                                                            depth_entry.depth == depth_entry_in_question.depth;
+                                                 });
+
+            if (depth_it != zbc_depths.end()) {
+                ++depth_it->ref_cnt;
+                LOG_DEBUG(Service_NVDRV, "ZBCSetTable: reused depth entry fmt={:#X}, ref_cnt={:#X}",
+                          depth_entry.format, depth_it->ref_cnt);
+            } else {
+                zbc_depths.push_back(depth_entry);
+                LOG_DEBUG(Service_NVDRV, "ZBCSetTable: added depth entry fmt={:#X}, index={:#X}",
+                          depth_entry.format, zbc_depths.size() - 1);
+            }
         }
-        break;
-    }
-    default:
-        return NvResult::BadParameter;
     }
 
     return NvResult::Success;
 }
 
 NvResult nvhost_ctrl_gpu::ZBCQueryTable(IoctlZbcQueryTable& params) {
-    if (params.type > SupportedZbcTypes) {
-        LOG_ERROR(Service_NVDRV, "ZBCQueryTable: invalid type={:#X}", params.type);
+    if (params.type > supported_types) {
+        LOG_ERROR(Service_NVDRV, "ZBCQueryTable: invalid type {:#X}", params.type);
         return NvResult::BadParameter;
     }
 
-    std::scoped_lock lk{zbc_mutex};
+    std::scoped_lock lk(zbc_mutex);
 
     switch (static_cast<ZBCTypes>(params.type)) {
-    case ZBCTypes::Color: {
-        if (params.index_size >= zbc_colors.size()) {
-            LOG_ERROR(Service_NVDRV, "ZBCQueryTable: invalid color index={}", params.index_size);
-            return NvResult::BadParameter;
-        }
+        case ZBCTypes::color: {
+            if (params.index_size >= zbc_colors.size()) {
+                LOG_ERROR(Service_NVDRV, "ZBCQueryTable: invalid color index {:#X}", params.index_size);
+                return NvResult::BadParameter;
+            }
 
-        const auto& entry = zbc_colors[params.index_size];
-        std::copy_n(entry.color_ds.begin(), entry.color_ds.size(), std::begin(params.color_ds));
-        std::copy_n(entry.color_l2.begin(), entry.color_l2.size(), std::begin(params.color_l2));
-        params.depth = 0;
-        params.ref_cnt = entry.ref_cnt;
-        params.format = entry.format;
-        params.index_size = static_cast<u32>(zbc_colors.size());
-        break;
-    }
-    case ZBCTypes::Depth: {
-        if (params.index_size >= zbc_depths.size()) {
-            LOG_ERROR(Service_NVDRV, "ZBCQueryTable: invalid depth index={}", params.index_size);
-            return NvResult::BadParameter;
+            const auto& colors = zbc_colors[params.index_size];
+            std::copy_n(colors.color_ds.begin(), colors.color_ds.size(), std::begin(params.color_ds));
+            std::copy_n(colors.color_l2.begin(), colors.color_l2.size(), std::begin(params.color_l2));
+            params.depth = 0;
+            params.ref_cnt = colors.ref_cnt;
+            params.format = colors.format;
+            params.index_size = static_cast<u32>(zbc_colors.size());
+            break;
         }
+        case ZBCTypes::depth: {
+            if (params.index_size >= zbc_depths.size()) {
+                LOG_ERROR(Service_NVDRV, "ZBCQueryTable: invalid depth index {:#X}", params.index_size);
+                return NvResult::BadParameter;
+            }
 
-        const auto& entry = zbc_depths[params.index_size];
-        std::fill(std::begin(params.color_ds), std::end(params.color_ds), 0);
-        std::fill(std::begin(params.color_l2), std::end(params.color_l2), 0);
-        params.depth = entry.depth;
-        params.ref_cnt = entry.ref_cnt;
-        params.format = entry.format;
-        params.index_size = static_cast<u32>(zbc_depths.size());
-        break;
-    }
-    default:
-        return NvResult::BadParameter;
+            const auto& depth_entry = zbc_depths[params.index_size];
+            std::fill(std::begin(params.color_ds), std::end(params.color_ds), 0);
+            std::fill(std::begin(params.color_l2), std::end(params.color_l2), 0);
+            params.depth = depth_entry.depth;
+            params.ref_cnt = depth_entry.ref_cnt;
+            params.format = depth_entry.format;
+            params.index_size = static_cast<u32>(zbc_depths.size());
+        }
     }
 
     return NvResult::Success;
 }
 
 NvResult nvhost_ctrl_gpu::FlushL2(IoctlFlushL2& params) {
-    LOG_DEBUG(Service_NVDRV, "called, flush={:#X}", params.flush);
+    LOG_DEBUG(Service_NVDRV, "called {:#X}", params.flush);
+    // if ((params.flush & 0x01) != 0) //l2 flush
+    //     /* we dont emulate l2 */;
+    // if ((params.flush & 0x04) != 0) //fb flush
+    //     /* we dont emulate fb */;
     return NvResult::Success;
 }
 

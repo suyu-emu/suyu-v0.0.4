@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2023 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -28,10 +31,10 @@ Result WaitProcessWideKeyAtomic(Core::System& system, u64 address, u64 cv_key, u
         if (offset_tick > 0) {
             timeout = system.Kernel().HardwareTimer().GetTick() + offset_tick + 2;
             if (timeout <= 0) {
-                timeout = std::numeric_limits<s64>::max();
+                timeout = (std::numeric_limits<s64>::max)();
             }
         } else {
-            timeout = std::numeric_limits<s64>::max();
+            timeout = (std::numeric_limits<s64>::max)();
         }
     } else {
         timeout = timeout_ns;
@@ -45,7 +48,7 @@ Result WaitProcessWideKeyAtomic(Core::System& system, u64 address, u64 cv_key, u
 
 /// Signal process wide key
 void SignalProcessWideKey(Core::System& system, u64 cv_key, s32 count) {
-    LOG_TRACE(Kernel_SVC, "called, cv_key=0x{:X}, count=0x{:08X}", cv_key, count);
+    LOG_TRACE(Kernel_SVC, "called, cv_key={:#X}, count=0x{:08X}", cv_key, count);
 
     // Signal the condition variable.
     return GetCurrentProcess(system.Kernel())

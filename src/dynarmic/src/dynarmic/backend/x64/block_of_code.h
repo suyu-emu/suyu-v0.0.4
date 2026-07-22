@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 /* This file is part of the dynarmic project.
@@ -13,11 +13,10 @@
 #include <memory>
 #include <type_traits>
 
-#include <mcl/bit/bit_field.hpp>
-#include "dynarmic/common/common_types.h"
-#include <xbyak/xbyak.h>
-#include <xbyak/xbyak_util.h>
-
+#include "common/common_types.h"
+#include "common/x64/xbyak.h"
+#include "dynarmic/mcl/bit.hpp"
+#include "dynarmic/backend/x64/xbyak.h"
 #include "dynarmic/backend/x64/abi.h"
 #include "dynarmic/backend/x64/callback.h"
 #include "dynarmic/backend/x64/constant_pool.h"
@@ -84,28 +83,17 @@ public:
     /// Code emitter: Load required flags for conditional cond from rax into host rflags
     void LoadRequiredFlagsForCondFromRax(IR::Cond cond);
 
-    /// Code emitter: Calls the function
-    template<typename FunctionPointer>
-    void CallFunction(FunctionPointer fn) {
-        static_assert(std::is_pointer_v<FunctionPointer> && std::is_function_v<std::remove_pointer_t<FunctionPointer>>,
-                      "Supplied type must be a pointer to a function");
-
-        const u64 address = reinterpret_cast<u64>(fn);
-        const u64 distance = address - (getCurr<u64>() + 5);
-
-        if (distance >= 0x0000000080000000ULL && distance < 0xFFFFFFFF80000000ULL) {
-            // Far call
-            mov(rax, address);
-            call(rax);
-        } else {
-            call(fn);
-        }
+    /// @brief Code emitter: Calls the function
+    template<typename F>
+        requires std::is_pointer_v<F> && std::is_function_v<std::remove_pointer_t<F>>
+    void CallFunction(F fn) {
+        ::Common::X64::CallFarFunction(*this, fn);
     }
 
-    /// Code emitter: Calls the lambda. Lambda must not have any captures.
+    /// @brief Code emitter: Calls the lambda. Lambda must not have any captures.
     template<typename Lambda>
     void CallLambda(Lambda l) {
-        CallFunction(Common::FptrCast(l));
+        ::Common::X64::CallFarFunction(*this, Common::FptrCast(l));
     }
 
     void ZeroExtendFrom(size_t bitsize, Xbyak::Reg64 reg) {

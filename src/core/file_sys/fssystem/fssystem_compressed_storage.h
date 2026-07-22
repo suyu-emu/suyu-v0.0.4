@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2023 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -9,16 +12,14 @@
 #include "core/file_sys/fssystem/fs_i_storage.h"
 #include "core/file_sys/fssystem/fssystem_bucket_tree.h"
 #include "core/file_sys/fssystem/fssystem_compression_common.h"
-#include "core/file_sys/fssystem/fssystem_pooled_buffer.h"
-#include "core/file_sys/vfs/vfs.h"
 
 namespace FileSys {
 
 using namespace Common::Literals;
 
 class CompressedStorage : public IReadOnlyStorage {
-    SUYU_NON_COPYABLE(CompressedStorage);
-    SUYU_NON_MOVEABLE(CompressedStorage);
+    YUZU_NON_COPYABLE(CompressedStorage);
+    YUZU_NON_MOVEABLE(CompressedStorage);
 
 public:
     static constexpr size_t NodeSize = 16_KiB;
@@ -47,8 +48,8 @@ public:
 
 private:
     class CompressedStorageCore {
-        SUYU_NON_COPYABLE(CompressedStorageCore);
-        SUYU_NON_MOVEABLE(CompressedStorageCore);
+        YUZU_NON_COPYABLE(CompressedStorageCore);
+        YUZU_NON_MOVEABLE(CompressedStorageCore);
 
     public:
         CompressedStorageCore() : m_table(), m_data_storage() {}
@@ -124,7 +125,7 @@ private:
             }
 
             // Get the table offsets.
-            BucketTree::Offsets table_offsets;
+            BucketTree::Offsets table_offsets{};
             R_TRY(m_table.GetOffsets(std::addressof(table_offsets)));
 
             // Validate arguments.
@@ -176,7 +177,7 @@ private:
             ASSERT(out != nullptr);
 
             // Get our table offsets.
-            BucketTree::Offsets offsets;
+            BucketTree::Offsets offsets{};
             R_TRY(m_table.GetOffsets(std::addressof(offsets)));
 
             // Set the output.
@@ -194,7 +195,7 @@ private:
             R_SUCCEED_IF(size == 0);
 
             // Get the table offsets.
-            BucketTree::Offsets table_offsets;
+            BucketTree::Offsets table_offsets{};
             R_TRY(m_table.GetOffsets(std::addressof(table_offsets)));
 
             // Validate arguments.
@@ -317,23 +318,11 @@ private:
                 R_SUCCEED_IF(entry_count == 0);
 
                 // Get the remaining size in a convenient form.
-                const size_t total_required_size =
-                    static_cast<size_t>(required_access_physical_size);
+                const size_t total_required_size = size_t(required_access_physical_size);
 
                 // Perform the read based on whether we need to allocate a buffer.
                 if (will_allocate_pooled_buffer) {
-                    // Allocate a pooled buffer.
-                    PooledBuffer pooled_buffer;
-                    if (pooled_buffer.GetAllocatableSizeMax() >= total_required_size) {
-                        pooled_buffer.Allocate(total_required_size, m_block_size_max);
-                    } else {
-                        pooled_buffer.AllocateParticularlyLarge(
-                            std::min<size_t>(
-                                total_required_size,
-                                PooledBuffer::GetAllocatableParticularlyLargeSizeMax()),
-                            m_block_size_max);
-                    }
-
+                    std::vector<char> pooled_buffer(std::max(m_block_size_max, total_required_size));
                     // Read each of the entries.
                     for (s32 entry_idx = 0; entry_idx < entry_count; ++entry_idx) {
                         // Determine the current read size.
@@ -342,13 +331,13 @@ private:
                             if (const size_t target_entry_size =
                                     static_cast<size_t>(entries[entry_idx].physical_size) +
                                     static_cast<size_t>(entries[entry_idx].gap_from_prev);
-                                target_entry_size <= pooled_buffer.GetSize()) {
+                                target_entry_size <= pooled_buffer.size()) {
                                 // We'll be using the pooled buffer.
                                 will_use_pooled_buffer = true;
 
                                 // Determine how much we can read.
                                 const size_t max_size = std::min<size_t>(
-                                    required_access_physical_size, pooled_buffer.GetSize());
+                                    required_access_physical_size, pooled_buffer.size());
 
                                 size_t read_size = 0;
                                 for (auto n = entry_idx; n < entry_count; ++n) {
@@ -376,7 +365,7 @@ private:
                         // Perform the read based on whether or not we'll use the pooled buffer.
                         if (will_use_pooled_buffer) {
                             // Read the compressed data into the pooled buffer.
-                            auto* const buffer = pooled_buffer.GetBuffer();
+                            auto* const buffer = pooled_buffer.data();
                             m_data_storage->Read(reinterpret_cast<u8*>(buffer), cur_read_size,
                                                  required_access_physical_offset);
 
@@ -674,8 +663,8 @@ private:
     };
 
     class CacheManager {
-        SUYU_NON_COPYABLE(CacheManager);
-        SUYU_NON_MOVEABLE(CacheManager);
+        YUZU_NON_COPYABLE(CacheManager);
+        YUZU_NON_MOVEABLE(CacheManager);
 
     private:
         struct AccessRange {
@@ -863,11 +852,9 @@ private:
                                static_cast<size_t>(unaligned_range->virtual_size));
 
                         // Get a pooled buffer for our read.
-                        PooledBuffer pooled_buffer;
-                        pooled_buffer.Allocate(size_buffer_required, size_buffer_required);
-
+                        std::vector<char> pooled_buffer(size_buffer_required);
                         // Perform read.
-                        Result rc = read_impl(pooled_buffer.GetBuffer(), size_buffer_required);
+                        Result rc = read_impl(pooled_buffer.data(), size_buffer_required);
                         if (R_FAILED(rc)) {
                             R_THROW(rc);
                         }
@@ -876,8 +863,7 @@ private:
                         const size_t skip_size = cur_offset - unaligned_range->virtual_offset;
                         const size_t copy_size = std::min<size_t>(
                             cur_size, unaligned_range->GetEndVirtualOffset() - cur_offset);
-
-                        std::memcpy(cur_dst, pooled_buffer.GetBuffer() + skip_size, copy_size);
+                        std::memcpy(cur_dst, pooled_buffer.data() + skip_size, copy_size);
 
                         // Advance.
                         cur_dst += copy_size;

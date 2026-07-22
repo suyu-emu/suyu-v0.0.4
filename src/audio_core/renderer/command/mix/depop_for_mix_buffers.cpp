@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2022 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -43,7 +46,7 @@ void DepopForMixBuffersCommand::Dump(
 }
 
 void DepopForMixBuffersCommand::Process(const AudioRenderer::CommandListProcessor& processor) {
-    auto end_index{std::min(processor.buffer_count, input + count)};
+    auto end_index{(std::min)(processor.buffer_count, input + count)};
     std::span<s32> depop_buff{reinterpret_cast<s32*>(depop_buffer), end_index};
 
     for (u32 index = input; index < end_index; index++) {

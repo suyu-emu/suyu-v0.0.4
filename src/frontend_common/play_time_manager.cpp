@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 // SPDX-FileCopyrightText: 2023 yuzu Emulator Project
@@ -7,7 +7,7 @@
 #include "common/fs/file.h"
 #include "common/fs/fs.h"
 #include "common/fs/path_util.h"
-#include "common/logging/log.h"
+#include "common/logging.h"
 #include "common/settings.h"
 #include "common/thread.h"
 #include "core/hle/service/acc/profile_manager.h"
@@ -26,7 +26,7 @@ struct PlayTimeElement {
 };
 
 std::optional<std::filesystem::path> GetCurrentUserPlayTimePath() {
-    return Common::FS::GetSuyuPath(Common::FS::SuyuPath::PlayTimeDir) /
+    return Common::FS::GetEdenPath(Common::FS::EdenPath::PlayTimeDir) /
            "playtime.bin";
 }
 
@@ -96,8 +96,7 @@ std::optional<std::filesystem::path> GetCurrentUserPlayTimePath() {
 
 } // namespace
 
-PlayTimeManager::PlayTimeManager()
-    : running_program_id() {
+PlayTimeManager::PlayTimeManager() : running_program_id() {
     if (!ReadPlayTimeFile(database)) {
         LOG_ERROR(Frontend, "Failed to read play time database! Resetting to default.");
     }
@@ -167,25 +166,9 @@ void PlayTimeManager::ResetProgramPlayTime(u64 program_id) {
     Save();
 }
 
-std::string PlayTimeManager::GetReadablePlayTime(u64 time_seconds) {
-    if (time_seconds == 0) {
-        return {};
-    }
-
-    const auto time_minutes = std::max(static_cast<double>(time_seconds) / 60.0, 1.0);
-    const auto time_hours = static_cast<double>(time_seconds) / 3600.0;
-    const bool is_minutes = time_minutes < 60.0;
-
-    if (is_minutes) {
-        return fmt::format("{:.0f} m", time_minutes);
-    } else {
-        const bool has_remainder = time_seconds % 60 != 0;
-        if (has_remainder) {
-            return fmt::format("{:.1f} h", time_hours);
-        } else {
-            return fmt::format("{:.0f} h", time_hours);
-        }
-    }
+std::string PlayTimeManager::GetReadablePlayTime(u64 t) {
+    return t > 0 ? fmt::format("{:02}:{:02}:{:02}", t / 3600, (t / 60) % 60, t % 60)
+        : std::string{};
 }
 
 std::string PlayTimeManager::GetPlayTimeHours(u64 time_seconds) {

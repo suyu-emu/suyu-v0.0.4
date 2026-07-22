@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 /* This file is part of the dynarmic project.
  * Copyright (c) 2018 MerryMage
  * SPDX-License-Identifier: 0BSD
@@ -115,7 +118,7 @@ bool TranslatorVisitor::MSR_reg(Imm<1> o0, Imm<3> op1, Imm<4> CRn, Imm<4> CRm, I
     default:
         break;
     }
-    return InterpretThisInstruction();
+    UNREACHABLE();
 }
 
 bool TranslatorVisitor::MRS(Imm<1> o0, Imm<3> op1, Imm<4> CRn, Imm<4> CRm, Imm<3> op2, Reg Rt) {
@@ -126,7 +129,7 @@ bool TranslatorVisitor::MRS(Imm<1> o0, Imm<3> op1, Imm<4> CRn, Imm<4> CRm, Imm<3
         return true;
     case SystemRegisterEncoding::CNTPCT_EL0:
         // HACK: Ensure that this is the first instruction in the block it's emitted in, so the cycle count is most up-to-date.
-        if (!ir.block.empty() && !options.wall_clock_cntpct) {
+        if (!ir.block.instructions.empty() && !options.wall_clock_cntpct) {
             ir.block.CycleCount()--;
             ir.SetTerm(IR::Term::LinkBlock{*ir.current_location});
             return false;
@@ -155,7 +158,7 @@ bool TranslatorVisitor::MRS(Imm<1> o0, Imm<3> op1, Imm<4> CRn, Imm<4> CRm, Imm<3
         X(64, Rt, ir.GetTPIDRRO());
         return true;
     }
-    return InterpretThisInstruction();
+    UNREACHABLE();
 }
 
 }  // namespace Dynarmic::A64

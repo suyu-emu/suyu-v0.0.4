@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2023 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -5,12 +8,12 @@
 
 #include <array>
 #include <chrono>
-#include <fmt/format.h>
+#include <fmt/ranges.h>
 
 #include "common/common_types.h"
 #include "common/intrusive_list.h"
 #include "common/uuid.h"
-#include "common/wall_clock.h"
+#include "common/cpu_features.h"
 #include "core/hle/kernel/k_event.h"
 #include "core/hle/service/kernel_helpers.h"
 #include "core/hle/service/psc/time/errors.h"
@@ -135,12 +138,12 @@ constexpr inline std::chrono::nanoseconds ConvertToTimeSpan(s64 ticks) {
         std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::seconds(1)).count()};
 
     constexpr s64 max{Common::WallClock::CNTFRQ *
-                      (std::numeric_limits<s64>::max() / one_second_ns)};
+                      ((std::numeric_limits<s64>::max)() / one_second_ns)};
 
     if (ticks > max) {
-        return std::chrono::nanoseconds(std::numeric_limits<s64>::max());
+        return std::chrono::nanoseconds((std::numeric_limits<s64>::max)());
     } else if (ticks < -max) {
-        return std::chrono::nanoseconds(std::numeric_limits<s64>::min());
+        return std::chrono::nanoseconds((std::numeric_limits<s64>::min)());
     }
 
     auto a{ticks / Common::WallClock::CNTFRQ * one_second_ns};
@@ -153,9 +156,9 @@ constexpr inline Result GetSpanBetweenTimePoints(s64* out_seconds, const SteadyC
                                                  const SteadyClockTimePoint& b) {
     R_UNLESS(out_seconds, ResultInvalidArgument);
     R_UNLESS(a.IdMatches(b), ResultInvalidArgument);
-    R_UNLESS(a.time_point >= 0 || b.time_point <= a.time_point + std::numeric_limits<s64>::max(),
+    R_UNLESS(a.time_point >= 0 || b.time_point <= a.time_point + (std::numeric_limits<s64>::max)(),
              ResultOverflow);
-    R_UNLESS(a.time_point < 0 || b.time_point >= a.time_point + std::numeric_limits<s64>::min(),
+    R_UNLESS(a.time_point < 0 || b.time_point >= a.time_point + (std::numeric_limits<s64>::min)(),
              ResultOverflow);
 
     *out_seconds = b.time_point - a.time_point;
@@ -206,9 +209,9 @@ template <>
 struct fmt::formatter<Service::PSC::Time::CalendarTime> : fmt::formatter<fmt::string_view> {
     template <typename FormatContext>
     auto format(const Service::PSC::Time::CalendarTime& calendar, FormatContext& ctx) const {
-        return fmt::format_to(ctx.out(), "[{:02}/{:02}/{:04} {:02}:{:02}:{:02}]", calendar.day,
-                              calendar.month, calendar.year, calendar.hour, calendar.minute,
-                              calendar.second);
+        return fmt::format_to(ctx.out(), "[{:02}/{:02}/{:04} {:02}:{:02}:{:02}]", u8(calendar.day),
+                              u8(calendar.month), u16(calendar.year), u8(calendar.hour), u8(calendar.minute),
+                              u8(calendar.second));
     }
 };
 
@@ -228,7 +231,7 @@ template <>
 struct fmt::formatter<Service::PSC::Time::LocationName> : fmt::formatter<fmt::string_view> {
     template <typename FormatContext>
     auto format(const Service::PSC::Time::LocationName& name, FormatContext& ctx) const {
-        return formatter<string_view>::format(name.data(), ctx);
+        return fmt::formatter<string_view>::format(name.data(), ctx);
     }
 };
 
@@ -236,7 +239,7 @@ template <>
 struct fmt::formatter<Service::PSC::Time::RuleVersion> : fmt::formatter<fmt::string_view> {
     template <typename FormatContext>
     auto format(const Service::PSC::Time::RuleVersion& version, FormatContext& ctx) const {
-        return formatter<string_view>::format(version.data(), ctx);
+        return fmt::formatter<string_view>::format(version.data(), ctx);
     }
 };
 

@@ -1,31 +1,22 @@
-// SPDX-FileCopyrightText: Copyright 2024 suyu Emulator Project
-// SPDX-License-Identifier: GPL-2.0-or-later
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
 
-#include <limits>
+#include <optional>
 #include <random>
-
 #include "common/random.h"
 
 namespace Common::Random {
-
-[[nodiscard]] static std::random_device& GetGlobalRandomDevice() noexcept {
-    static std::random_device g_random_device{};
-    return g_random_device;
+    [[nodiscard]] static std::random_device& GetGlobalRandomDevice() noexcept {
+        static std::random_device g_random_device{};
+        return g_random_device;
+    }
+    [[nodiscard]] u32 Random32(u32 seed) noexcept {
+        return GetGlobalRandomDevice()();
+    }
+    [[nodiscard]] u64 Random64(u64 seed) noexcept {
+        return GetGlobalRandomDevice()();
+    }
+    [[nodiscard]] std::mt19937 GetMT19937() noexcept {
+        return std::mt19937(GetGlobalRandomDevice()());
+    }
 }
-
-u32 Random32() {
-    return GetGlobalRandomDevice()();
-}
-
-u64 Random64() {
-    std::mt19937_64 gen(GetGlobalRandomDevice()());
-    std::uniform_int_distribution<u64> distribution(1, std::numeric_limits<u64>::max());
-    return distribution(gen);
-}
-
-std::mt19937& GetMT19937() {
-    static thread_local std::mt19937 gen{GetGlobalRandomDevice()()};
-    return gen;
-}
-
-} // namespace Common::Random

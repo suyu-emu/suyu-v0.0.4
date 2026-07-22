@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 /* This file is part of the dynarmic project.
@@ -164,10 +164,10 @@ A32AddressSpace::A32AddressSpace(const A32::UserConfig& conf)
     EmitPrelude();
 }
 
-IR::Block A32AddressSpace::GenerateIR(IR::LocationDescriptor descriptor) const {
-    IR::Block ir_block = A32::Translate(A32::LocationDescriptor{descriptor}, conf.callbacks, {conf.arch_version, conf.define_unpredictable_behaviour, conf.hook_hint_instructions});
+void A32AddressSpace::GenerateIR(IR::Block& ir_block, IR::LocationDescriptor descriptor) const {
+    ir_block.Reset(descriptor);
+    A32::Translate(ir_block, A32::LocationDescriptor{descriptor}, conf.callbacks, {conf.arch_version, conf.define_unpredictable_behaviour, conf.hook_hint_instructions});
     Optimization::Optimize(ir_block, conf, {});
-    return ir_block;
 }
 
 void A32AddressSpace::InvalidateCacheRanges(const boost::icl::interval_set<u32>& ranges) {
@@ -227,7 +227,7 @@ void A32AddressSpace::EmitPrelude() {
 
         if (conf.HasOptimization(OptimizationFlag::ReturnStackBuffer)) {
             code.LDR(Xscratch0, l_return_to_dispatcher);
-            for (size_t i = 0; i < RSBCount; i++) {
+            for (std::size_t i = 0; i < RSBCount; i++) {
                 code.STR(Xscratch0, SP, offsetof(StackLayout, rsb) + offsetof(RSBEntry, code_ptr) + i * sizeof(RSBEntry));
             }
         }
@@ -266,7 +266,7 @@ void A32AddressSpace::EmitPrelude() {
 
         if (conf.HasOptimization(OptimizationFlag::ReturnStackBuffer)) {
             code.LDR(Xscratch0, l_return_to_dispatcher);
-            for (size_t i = 0; i < RSBCount; i++) {
+            for (std::size_t i = 0; i < RSBCount; i++) {
                 code.STR(Xscratch0, SP, offsetof(StackLayout, rsb) + offsetof(RSBEntry, code_ptr) + i * sizeof(RSBEntry));
             }
         }
@@ -372,6 +372,7 @@ EmitConfig A32AddressSpace::GetEmitConfig() {
         .page_table_pointer = std::bit_cast<u64>(conf.page_table),
         .page_table_address_space_bits = 32,
         .page_table_pointer_mask_bits = conf.page_table_pointer_mask_bits,
+        .page_table_log2_stride = conf.page_table_log2_stride,
         .silently_mirror_page_table = true,
         .absolute_offset_page_table = conf.absolute_offset_page_table,
         .detect_misaligned_access_via_page_table = conf.detect_misaligned_access_via_page_table,

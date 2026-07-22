@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2021 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
@@ -5,7 +8,7 @@
 
 #include <memory>
 #include <mutex>
-#include <unordered_map>
+#include <ankerl/unordered_dense.h>
 
 #include "common/common_types.h"
 #include "core/hle/service/nvnflinger/binder.h"
@@ -25,6 +28,7 @@ public:
     void UnregisterBinder(s32 binder_id);
 
     std::shared_ptr<android::IBinder> TryGetBinder(s32 id) const;
+
     void AdjustRefcount(s32 binder_id, s32 delta, bool is_weak);
 
 private:
@@ -33,10 +37,10 @@ private:
         s32 weak{0};
     };
 
-    std::unordered_map<s32, std::shared_ptr<android::IBinder>> binders;
-    std::unordered_map<s32, RefCounts> refcounts;
     mutable std::mutex lock;
-    s32 last_id{};
+    s32 last_id = 0;
+    ankerl::unordered_dense::map<s32, std::shared_ptr<android::IBinder>> binders;
+    ankerl::unordered_dense::map<s32, RefCounts> refcounts;
 };
 
 } // namespace Service::Nvnflinger

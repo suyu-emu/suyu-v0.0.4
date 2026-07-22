@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 // SPDX-FileCopyrightText: 2023 yuzu Emulator Project
@@ -14,48 +14,58 @@ enum class BooleanSetting(override val key: String) : AbstractBooleanSetting {
     FASTMEM_EXCLUSIVES("cpuopt_fastmem_exclusives"),
     CORE_SYNC_CORE_SPEED("sync_core_speed"),
     RENDERER_USE_SPEED_LIMIT("use_speed_limit"),
-    USE_FAST_CPU_TIME("use_fast_cpu_time"),
     USE_CUSTOM_CPU_TICKS("use_custom_cpu_ticks"),
     SKIP_CPU_INNER_INVALIDATION("skip_cpu_inner_invalidation"),
+    FIX_BLOOM_EFFECTS("fix_bloom_effects"),
+    EMULATE_BGR565("emulate_bgr565"),
+    RESCALE_HACK("rescale_hack"),
     CPUOPT_UNSAFE_HOST_MMU("cpuopt_unsafe_host_mmu"),
     USE_DOCKED_MODE("use_docked_mode"),
     USE_AUTO_STUB("use_auto_stub"),
     RENDERER_USE_DISK_SHADER_CACHE("use_disk_shader_cache"),
     RENDERER_FORCE_MAX_CLOCK("force_max_clock"),
+    RENDERER_ASYNCHRONOUS_GPU_EMULATION("use_asynchronous_gpu_emulation"),
+    RENDERER_ASYNC_PRESENTATION("async_presentation"),
     RENDERER_ASYNCHRONOUS_SHADERS("use_asynchronous_shaders"),
-    RENDERER_FAST_GPU("use_fast_gpu_time"),
     RENDERER_REACTIVE_FLUSHING("use_reactive_flushing"),
-    RENDERER_EARLY_RELEASE_FENCES("early_release_fences"),
+    ENABLE_BUFFER_HISTORY("enable_buffer_history"),
+    USE_OPTIMIZED_VERTEX_BUFFERS("use_optimized_vertex_buffers"),
+    ENABLE_GPU_BUFFER_READBACK("enable_gpu_buffer_readback"),
     SYNC_MEMORY_OPERATIONS("sync_memory_operations"),
     BUFFER_REORDER_DISABLE("disable_buffer_reorder"),
     RENDERER_DEBUG("debug"),
-    RENDERER_PROVOKING_VERTEX("provoking_vertex"),
-    RENDERER_DESCRIPTOR_INDEXING("descriptor_indexing"),
+    RENDERER_PATCH_OLD_QCOM_DRIVERS("patch_old_qcom_drivers"),
+    RENDERER_VERTEX_INPUT_DYNAMIC_STATE("vertex_input_dynamic_state"),
     RENDERER_SAMPLE_SHADING("sample_shading"),
+    GPU_UNSWIZZLE_ENABLED("gpu_unswizzle_enabled"),
     PICTURE_IN_PICTURE("picture_in_picture"),
     USE_CUSTOM_RTC("custom_rtc_enabled"),
     BLACK_BACKGROUNDS("black_backgrounds"),
+    INVERT_CONFIRM_BACK_CONTROLLER_BUTTONS("invert_confirm_back_controller_buttons"),
+
+    ENABLE_FOLDER_BUTTON("enable_folder_button"),
+    ENABLE_QLAUNCH_BUTTON("enable_qlaunch_button"),
 
     ENABLE_UPDATE_CHECKS("enable_update_checks"),
     JOYSTICK_REL_CENTER("joystick_rel_center"),
     DPAD_SLIDE("dpad_slide"),
     HAPTIC_FEEDBACK("haptic_feedback"),
     SHOW_INPUT_OVERLAY("show_input_overlay"),
+    OVERLAY_SNAP_TO_GRID("overlay_snap_to_grid"),
     TOUCHSCREEN("touchscreen"),
     AIRPLANE_MODE("airplane_mode"),
 
     SHOW_SOC_OVERLAY("show_soc_overlay"),
+    SHOW_BUILD_ID("show_build_id"),
+    SHOW_DRIVER_VERSION("show_driver_version"),
     SHOW_DEVICE_MODEL("show_device_model"),
     SHOW_GPU_MODEL("show_gpu_model"),
     SHOW_SOC_MODEL("show_soc_model"),
     SHOW_FW_VERSION("show_firmware_version"),
 
     SOC_OVERLAY_BACKGROUND("soc_overlay_background"),
-
-    FRAME_INTERPOLATION("frame_interpolation"),
-//    FRAME_SKIPPING("frame_skipping"),
-
     ENABLE_INPUT_OVERLAY_AUTO_HIDE("enable_input_overlay_auto_hide"),
+    HIDE_OVERLAY_ON_CONTROLLER_INPUT("hide_overlay_on_controller_input"),
 
     PERF_OVERLAY_BACKGROUND("perf_overlay_background"),
     SHOW_PERFORMANCE_OVERLAY("show_performance_overlay"),
@@ -69,8 +79,18 @@ enum class BooleanSetting(override val key: String) : AbstractBooleanSetting {
     SHOW_SHADERS_BUILDING("show_shaders_building"),
 
     DEBUG_FLUSH_BY_LINE("flush_line"),
-    USE_LRU_CACHE("use_lru_cache");
+    DONT_SHOW_DRIVER_SHADER_WARNING("dont_show_driver_shader_warning"),
+    ENABLE_OVERLAY("enable_overlay"),
 
+    // GPU Logging
+    GPU_LOG_VULKAN_CALLS("gpu_log_vulkan_calls"),
+    GPU_LOG_SHADER_DUMPS("gpu_log_shader_dumps"),
+    DUMP_GUEST_SHADERS("dump_guest_shaders"),
+    DUMP_MACROS("dump_macros"),
+    GPU_LOG_MEMORY_TRACKING("gpu_log_memory_tracking"),
+    GPU_LOG_DRIVER_DEBUG("gpu_log_driver_debug"),
+
+    ENABLE_QUICK_SETTINGS("enable_quick_settings");
 
 //  external fun isFrameSkippingEnabled(): Boolean
     external fun isFrameInterpolationEnabled(): Boolean

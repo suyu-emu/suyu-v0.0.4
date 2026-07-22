@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2021 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -7,8 +10,11 @@
 #include <functional>
 #include <memory>
 #include <mutex>
-#include <unordered_map>
+#include <shared_mutex>
 #include <vector>
+#include <atomic>
+
+#include <ankerl/unordered_dense.h>
 
 #include "common/common_types.h"
 #include "common/input.h"
@@ -16,6 +22,7 @@
 #include "common/settings.h"
 #include "common/vector_math.h"
 #include "hid_core/frontend/motion_input.h"
+#include "hid_core/hid_core.h"
 #include "hid_core/hid_types.h"
 #include "hid_core/irsensor/irs_types.h"
 
@@ -178,8 +185,8 @@ public:
     explicit EmulatedController(NpadIdType npad_id_type_);
     ~EmulatedController();
 
-    SUYU_NON_COPYABLE(EmulatedController);
-    SUYU_NON_MOVEABLE(EmulatedController);
+    YUZU_NON_COPYABLE(EmulatedController);
+    YUZU_NON_MOVEABLE(EmulatedController);
 
     /// Converts the controller type from settings to npad type
     static NpadStyleIndex MapSettingsTypeToNPad(Settings::ControllerType type);
@@ -571,23 +578,25 @@ private:
     NpadButton GetTurboButtonMask() const;
 
     const NpadIdType npad_id_type;
-    NpadStyleIndex npad_type{NpadStyleIndex::None};
-    NpadStyleIndex original_npad_type{NpadStyleIndex::None};
     NpadStyleTag supported_style_tag{NpadStyleSet::All};
-    bool is_connected{false};
-    bool is_configuring{false};
-    bool is_initialized{false};
-    bool system_buttons_enabled{true};
     f32 motion_sensitivity{Core::HID::MotionInput::IsAtRestStandard};
     u32 turbo_button_state{0};
     std::size_t nfc_handles{0};
     std::array<VibrationValue, 2> last_vibration_value{DEFAULT_VIBRATION_VALUE,
                                                        DEFAULT_VIBRATION_VALUE};
     std::array<std::chrono::steady_clock::time_point, 2> last_vibration_timepoint{};
+    std::array<bool, HIDCore::available_controllers> controller_connected{};
 
+    // Atomically synched values
+    std::atomic<HID::NpadStyleIndex> npad_type{HID::NpadStyleIndex::None};
+    std::atomic<HID::NpadStyleIndex> original_npad_type{HID::NpadStyleIndex::None};
     // Temporary values to avoid doing changes while the controller is in configuring mode
-    NpadStyleIndex tmp_npad_type{NpadStyleIndex::None};
-    bool tmp_is_connected{false};
+    std::atomic<HID::NpadStyleIndex> tmp_npad_type{HID::NpadStyleIndex::None};
+    std::atomic<bool> tmp_is_connected{false};
+    std::atomic<bool> is_connected{false};
+    std::atomic<bool> is_configuring{false};
+    std::atomic<bool> is_initialized{false};
+    std::atomic<bool> system_buttons_enabled{true};
 
     ButtonParams button_params;
     StickParams stick_params;
@@ -626,11 +635,8 @@ private:
     StickDevices virtual_stick_devices;
     ControllerMotionDevices virtual_motion_devices;
 
-    mutable std::mutex mutex;
     mutable std::mutex callback_mutex;
-    mutable std::mutex npad_mutex;
-    mutable std::mutex connect_mutex;
-    std::unordered_map<int, ControllerUpdateCallback> callback_list;
+    ankerl::unordered_dense::map<int, ControllerUpdateCallback> callback_list;
     int last_callback_key = 0;
 
     // Stores the current status of all controller input

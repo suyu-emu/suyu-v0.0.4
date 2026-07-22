@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2019 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -19,12 +22,19 @@ class Scheduler;
 
 class Swapchain {
 public:
-    explicit Swapchain(VkSurfaceKHR surface, const Device& device, Scheduler& scheduler, u32 width,
-                       u32 height);
+    explicit Swapchain(
+        VkSurfaceKHR_T* surface,
+        const Device& device,
+        Scheduler& scheduler,
+        u32 width,
+        u32 height);
     ~Swapchain();
 
     /// Creates (or recreates) the swapchain with a given size.
-    void Create(VkSurfaceKHR surface, u32 width, u32 height);
+    void Create(
+        VkSurfaceKHR_T* surface,
+        u32 width,
+        u32 height);
 
     /// Acquires the next image in the swapchain, waits as needed.
     bool AcquireNextImage();
@@ -84,7 +94,7 @@ public:
     }
 
     VkSemaphore CurrentRenderSemaphore() const {
-        return *render_semaphores[frame_index];
+        return *render_semaphores[image_index];
     }
 
     u32 GetWidth() const {
@@ -108,7 +118,8 @@ private:
 
     bool NeedsPresentModeUpdate() const;
 
-    VkSurfaceKHR surface;
+    VkSurfaceKHR_T* surface;
+
     const Device& device;
     Scheduler& scheduler;
 

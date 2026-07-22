@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2020 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -67,8 +70,8 @@ void DecompressBlocks(std::span<const u8> input, std::span<u8> output, BufferIma
     const u32 width = copy.image_extent.width;
     const u32 height = copy.image_extent.height * copy.image_subresource.num_layers;
     const u32 depth = copy.image_extent.depth;
-    const u32 block_width = std::min(width, BLOCK_SIZE);
-    const u32 block_height = std::min(height, BLOCK_SIZE);
+    const u32 block_width = (std::min)(width, BLOCK_SIZE);
+    const u32 block_height = (std::min)(height, BLOCK_SIZE);
     const u32 pitch = width * out_bpp;
     size_t input_offset = 0;
     size_t output_offset = 0;

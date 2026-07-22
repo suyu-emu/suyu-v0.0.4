@@ -1,7 +1,10 @@
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2020 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
-#include <fmt/format.h>
+#include <fmt/ranges.h>
 
 #include "common/assert.h"
 #include "common/settings.h"
@@ -48,7 +51,23 @@ ImageInfo::ImageInfo(const TICEntry& config) noexcept {
         config.texture_type != TextureType::Texture2DNoMipmap) {
         ASSERT(!config.IsPitchLinear());
     }
-    switch (config.texture_type) {
+    TextureType tex_type = config.texture_type;
+    if (config.Depth() > 1 || config.BaseLayer() != 0) {
+        switch (tex_type) {
+        case TextureType::Texture1D:
+            tex_type = TextureType::Texture1DArray;
+            break;
+        case TextureType::Texture2D:
+            tex_type = TextureType::Texture2DArray;
+            break;
+        case TextureType::TextureCubemap:
+            tex_type = TextureType::TextureCubeArray;
+            break;
+        default:
+            break;
+        }
+    }
+    switch (tex_type) {
     case TextureType::Texture1D:
         ASSERT(config.BaseLayer() == 0);
         type = ImageType::e1D;
@@ -56,10 +75,9 @@ ImageInfo::ImageInfo(const TICEntry& config) noexcept {
         resources.layers = 1;
         break;
     case TextureType::Texture1DArray:
-        UNIMPLEMENTED_IF(config.BaseLayer() != 0);
         type = ImageType::e1D;
         size.width = config.Width();
-        resources.layers = config.Depth();
+        resources.layers = config.BaseLayer() + config.Depth();
         break;
     case TextureType::Texture2D:
     case TextureType::Texture2DNoMipmap:
@@ -105,11 +123,11 @@ ImageInfo::ImageInfo(const TICEntry& config) noexcept {
         resources.layers = 1;
         break;
     default:
-        ASSERT_MSG(false, "Invalid texture_type={}", static_cast<int>(config.texture_type.Value()));
+        ASSERT_MSG(false, "Invalid texture_type={}", static_cast<int>(tex_type));
         break;
     }
     if (num_samples > 1) {
-        size.width *= NumSamplesX(config.msaa_mode);
+        size.width  *= NumSamplesX(config.msaa_mode);
         size.height *= NumSamplesY(config.msaa_mode);
     }
     if (type != ImageType::Linear) {
@@ -118,7 +136,7 @@ ImageInfo::ImageInfo(const TICEntry& config) noexcept {
         maybe_unaligned_layer_stride = CalculateLayerSize(*this);
         rescaleable &= (block.depth == 0) && resources.levels == 1;
         rescaleable &= size.height > RescaleHeightThreshold ||
-                       GetFormatType(format) != SurfaceType::ColorTexture;
+                           GetFormatType(format) != SurfaceType::ColorTexture;
         downscaleable = size.height > DownscaleHeightThreshold;
     }
 }

@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2021 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -206,6 +209,7 @@ struct TextureDescriptor {
     TextureType type;
     bool is_depth;
     bool is_multisample;
+    bool is_integer;
     bool has_secondary;
     u32 cbuf_index;
     u32 cbuf_offset;

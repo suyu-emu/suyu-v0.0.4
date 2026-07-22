@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2020 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -5,6 +8,7 @@
 
 #include "common/assert.h"
 #include "common/common_types.h"
+#include "common/logging.h"
 #include "core/hle/service/sockets/sockets.h"
 #include "core/hle/service/sockets/sockets_translate.h"
 #include "core/internal_network/network.h"
@@ -37,6 +41,8 @@ Errno Translate(Network::Errno value) {
         return Errno::CONNRESET;
     case Network::Errno::INPROGRESS:
         return Errno::INPROGRESS;
+    case Network::Errno::ISCONN:
+        return Errno::ISCONN;
     default:
         UNIMPLEMENTED_MSG("Unimplemented errno={}", value);
         return Errno::SUCCESS;
@@ -169,49 +175,151 @@ Network::Type Translate(Type type) {
 
 Type Translate(Network::Type type) {
     switch (type) {
-    case Network::Type::Unspecified:
-        return Type::Unspecified;
-    case Network::Type::STREAM:
-        return Type::STREAM;
-    case Network::Type::DGRAM:
-        return Type::DGRAM;
-    case Network::Type::RAW:
-        return Type::RAW;
-    case Network::Type::SEQPACKET:
-        return Type::SEQPACKET;
+    case Network::Type::Unspecified: return Type::Unspecified;
+    case Network::Type::STREAM: return Type::STREAM;
+    case Network::Type::DGRAM: return Type::DGRAM;
+    case Network::Type::RAW: return Type::RAW;
+    case Network::Type::SEQPACKET: return Type::SEQPACKET;
     default:
         UNIMPLEMENTED_MSG("Unimplemented type={}", type);
         return Type{};
     }
 }
 
-Network::Protocol Translate(Protocol protocol) {
+#define NETWORK_PROTOCOL_TRANSLATE_LIST \
+    NETWORK_PROTOCOL_TRANSLATE_ELEM(IP) \
+    NETWORK_PROTOCOL_TRANSLATE_ELEM(ICMP) \
+    NETWORK_PROTOCOL_TRANSLATE_ELEM(TCP) \
+    NETWORK_PROTOCOL_TRANSLATE_ELEM(UDP) \
+    NETWORK_PROTOCOL_TRANSLATE_ELEM(IPV6) \
+    NETWORK_PROTOCOL_TRANSLATE_ELEM(RAW) \
+    NETWORK_PROTOCOL_TRANSLATE_ELEM(IGMP) \
+    NETWORK_PROTOCOL_TRANSLATE_ELEM(GGP) \
+    NETWORK_PROTOCOL_TRANSLATE_ELEM(IPV4) \
+    NETWORK_PROTOCOL_TRANSLATE_ELEM(ST) \
+    NETWORK_PROTOCOL_TRANSLATE_ELEM(EGP) \
+    NETWORK_PROTOCOL_TRANSLATE_ELEM(PIGP) \
+    NETWORK_PROTOCOL_TRANSLATE_ELEM(RCCMON) \
+    NETWORK_PROTOCOL_TRANSLATE_ELEM(NVPII) \
+    NETWORK_PROTOCOL_TRANSLATE_ELEM(PUP) \
+    NETWORK_PROTOCOL_TRANSLATE_ELEM(ARGUS) \
+    NETWORK_PROTOCOL_TRANSLATE_ELEM(EMCON) \
+    NETWORK_PROTOCOL_TRANSLATE_ELEM(XNET) \
+    NETWORK_PROTOCOL_TRANSLATE_ELEM(CHAOS) \
+    NETWORK_PROTOCOL_TRANSLATE_ELEM(MUX) \
+    NETWORK_PROTOCOL_TRANSLATE_ELEM(MEAS) \
+    NETWORK_PROTOCOL_TRANSLATE_ELEM(HMP) \
+    NETWORK_PROTOCOL_TRANSLATE_ELEM(PRM) \
+    NETWORK_PROTOCOL_TRANSLATE_ELEM(IDP) \
+    NETWORK_PROTOCOL_TRANSLATE_ELEM(TRUNK1) \
+    NETWORK_PROTOCOL_TRANSLATE_ELEM(TRUNK2) \
+    NETWORK_PROTOCOL_TRANSLATE_ELEM(LEAF1) \
+    NETWORK_PROTOCOL_TRANSLATE_ELEM(LEAF2) \
+    NETWORK_PROTOCOL_TRANSLATE_ELEM(RDP) \
+    NETWORK_PROTOCOL_TRANSLATE_ELEM(IRTP) \
+    NETWORK_PROTOCOL_TRANSLATE_ELEM(TP) \
+    NETWORK_PROTOCOL_TRANSLATE_ELEM(BLT) \
+    NETWORK_PROTOCOL_TRANSLATE_ELEM(NSP) \
+    NETWORK_PROTOCOL_TRANSLATE_ELEM(INP) \
+    NETWORK_PROTOCOL_TRANSLATE_ELEM(DCCP) \
+    /*NETWORK_PROTOCOL_TRANSLATE_ELEM(3PC)*/ \
+    NETWORK_PROTOCOL_TRANSLATE_ELEM(IDPR) \
+    NETWORK_PROTOCOL_TRANSLATE_ELEM(XTP) \
+    NETWORK_PROTOCOL_TRANSLATE_ELEM(DDP) \
+    NETWORK_PROTOCOL_TRANSLATE_ELEM(CMTP) \
+    NETWORK_PROTOCOL_TRANSLATE_ELEM(TPXX) \
+    NETWORK_PROTOCOL_TRANSLATE_ELEM(IL) \
+    NETWORK_PROTOCOL_TRANSLATE_ELEM(SDRP) \
+    NETWORK_PROTOCOL_TRANSLATE_ELEM(ROUTING) \
+    NETWORK_PROTOCOL_TRANSLATE_ELEM(FRAGMENT) \
+    NETWORK_PROTOCOL_TRANSLATE_ELEM(IDRP) \
+    NETWORK_PROTOCOL_TRANSLATE_ELEM(RSVP) \
+    NETWORK_PROTOCOL_TRANSLATE_ELEM(GRE) \
+    NETWORK_PROTOCOL_TRANSLATE_ELEM(MHRP) \
+    NETWORK_PROTOCOL_TRANSLATE_ELEM(BHA) \
+    NETWORK_PROTOCOL_TRANSLATE_ELEM(ESP) \
+    NETWORK_PROTOCOL_TRANSLATE_ELEM(AH) \
+    NETWORK_PROTOCOL_TRANSLATE_ELEM(INLSP) \
+    NETWORK_PROTOCOL_TRANSLATE_ELEM(SWIPE) \
+    NETWORK_PROTOCOL_TRANSLATE_ELEM(NHRP) \
+    NETWORK_PROTOCOL_TRANSLATE_ELEM(MOBILE) \
+    NETWORK_PROTOCOL_TRANSLATE_ELEM(TLSP) \
+    NETWORK_PROTOCOL_TRANSLATE_ELEM(SKIP) \
+    NETWORK_PROTOCOL_TRANSLATE_ELEM(ICMPV6) \
+    NETWORK_PROTOCOL_TRANSLATE_ELEM(NONE) \
+    NETWORK_PROTOCOL_TRANSLATE_ELEM(DSTOPTS) \
+    NETWORK_PROTOCOL_TRANSLATE_ELEM(AHIP) \
+    NETWORK_PROTOCOL_TRANSLATE_ELEM(CFTP) \
+    NETWORK_PROTOCOL_TRANSLATE_ELEM(HELLO) \
+    NETWORK_PROTOCOL_TRANSLATE_ELEM(SATEXPAK) \
+    NETWORK_PROTOCOL_TRANSLATE_ELEM(KRYPTOLAN) \
+    NETWORK_PROTOCOL_TRANSLATE_ELEM(RVD) \
+    NETWORK_PROTOCOL_TRANSLATE_ELEM(IPPC) \
+    NETWORK_PROTOCOL_TRANSLATE_ELEM(ADFS) \
+    NETWORK_PROTOCOL_TRANSLATE_ELEM(SATMON) \
+    NETWORK_PROTOCOL_TRANSLATE_ELEM(VISA) \
+    NETWORK_PROTOCOL_TRANSLATE_ELEM(IPCV) \
+    NETWORK_PROTOCOL_TRANSLATE_ELEM(CPNX) \
+    NETWORK_PROTOCOL_TRANSLATE_ELEM(CPHB) \
+    NETWORK_PROTOCOL_TRANSLATE_ELEM(WSN) \
+    NETWORK_PROTOCOL_TRANSLATE_ELEM(PVP) \
+    NETWORK_PROTOCOL_TRANSLATE_ELEM(BRSATMON) \
+    NETWORK_PROTOCOL_TRANSLATE_ELEM(ND) \
+    NETWORK_PROTOCOL_TRANSLATE_ELEM(WBMON) \
+    NETWORK_PROTOCOL_TRANSLATE_ELEM(WBEXPAK) \
+    NETWORK_PROTOCOL_TRANSLATE_ELEM(EON) \
+    NETWORK_PROTOCOL_TRANSLATE_ELEM(VMTP) \
+    NETWORK_PROTOCOL_TRANSLATE_ELEM(SVMTP) \
+    NETWORK_PROTOCOL_TRANSLATE_ELEM(VINES) \
+    NETWORK_PROTOCOL_TRANSLATE_ELEM(TTP) \
+    NETWORK_PROTOCOL_TRANSLATE_ELEM(IGP) \
+    NETWORK_PROTOCOL_TRANSLATE_ELEM(DGP) \
+    NETWORK_PROTOCOL_TRANSLATE_ELEM(TCF) \
+    NETWORK_PROTOCOL_TRANSLATE_ELEM(IGRP) \
+    NETWORK_PROTOCOL_TRANSLATE_ELEM(OSPFIGP) \
+    NETWORK_PROTOCOL_TRANSLATE_ELEM(SRPC) \
+    NETWORK_PROTOCOL_TRANSLATE_ELEM(LARP) \
+    NETWORK_PROTOCOL_TRANSLATE_ELEM(MTP) \
+    NETWORK_PROTOCOL_TRANSLATE_ELEM(AX25) \
+    NETWORK_PROTOCOL_TRANSLATE_ELEM(IPEIP) \
+    NETWORK_PROTOCOL_TRANSLATE_ELEM(MICP) \
+    NETWORK_PROTOCOL_TRANSLATE_ELEM(SCCSP) \
+    NETWORK_PROTOCOL_TRANSLATE_ELEM(ETHERIP) \
+    NETWORK_PROTOCOL_TRANSLATE_ELEM(ENCAP) \
+    NETWORK_PROTOCOL_TRANSLATE_ELEM(APES) \
+    NETWORK_PROTOCOL_TRANSLATE_ELEM(GMTP) \
+    NETWORK_PROTOCOL_TRANSLATE_ELEM(IPCOMP) \
+    NETWORK_PROTOCOL_TRANSLATE_ELEM(SCTP) \
+    NETWORK_PROTOCOL_TRANSLATE_ELEM(MH) \
+    NETWORK_PROTOCOL_TRANSLATE_ELEM(UDPLITE) \
+    NETWORK_PROTOCOL_TRANSLATE_ELEM(HIP) \
+    NETWORK_PROTOCOL_TRANSLATE_ELEM(SHIM6) \
+    NETWORK_PROTOCOL_TRANSLATE_ELEM(PIM) \
+    NETWORK_PROTOCOL_TRANSLATE_ELEM(CARP) \
+    NETWORK_PROTOCOL_TRANSLATE_ELEM(PGM) \
+    NETWORK_PROTOCOL_TRANSLATE_ELEM(MPLS) \
+    NETWORK_PROTOCOL_TRANSLATE_ELEM(PFSYNC)
+[[nodiscard]] Network::Protocol Translate(Protocol protocol) {
     switch (protocol) {
-    case Protocol::Unspecified:
-        return Network::Protocol::Unspecified;
-    case Protocol::TCP:
-        return Network::Protocol::TCP;
-    case Protocol::UDP:
-        return Network::Protocol::UDP;
+#define NETWORK_PROTOCOL_TRANSLATE_ELEM(name) case Protocol::name: return Network::Protocol::name;
+    NETWORK_PROTOCOL_TRANSLATE_LIST
+#undef NETWORK_PROTOCOL_TRANSLATE_ELEM
     default:
         UNIMPLEMENTED_MSG("Unimplemented protocol={}", protocol);
-        return Network::Protocol::Unspecified;
+        return {};
     }
 }
-
-Protocol Translate(Network::Protocol protocol) {
+[[nodiscard]] Protocol Translate(Network::Protocol protocol) {
     switch (protocol) {
-    case Network::Protocol::Unspecified:
-        return Protocol::Unspecified;
-    case Network::Protocol::TCP:
-        return Protocol::TCP;
-    case Network::Protocol::UDP:
-        return Protocol::UDP;
+#define NETWORK_PROTOCOL_TRANSLATE_ELEM(name) case Network::Protocol::name: return Protocol::name;
+    NETWORK_PROTOCOL_TRANSLATE_LIST
+#undef NETWORK_PROTOCOL_TRANSLATE_ELEM
     default:
         UNIMPLEMENTED_MSG("Unimplemented protocol={}", protocol);
-        return Protocol::Unspecified;
+        return {};
     }
 }
+#undef NETWORK_PROTOCOL_TRANSLATE_LIST
 
 Network::PollEvents Translate(PollEvents flags) {
     Network::PollEvents result{};
@@ -259,12 +367,9 @@ PollEvents Translate(Network::PollEvents flags) {
 }
 
 Network::SockAddrIn Translate(SockAddrIn value) {
-    // Note: 6 is incorrect, but can be passed by homebrew (because libnx sets
-    // sin_len to 6 when deserializing getaddrinfo results).
-    ASSERT(value.len == 0 || value.len == sizeof(value) || value.len == 6);
-
+    // All lengths are valid, from [0 upto 256]
     return {
-        .family = Translate(static_cast<Domain>(value.family)),
+        .family = Translate(Domain(value.family)),
         .ip = value.ip,
         .portno = static_cast<u16>(value.portno >> 8 | value.portno << 8),
     };
@@ -272,7 +377,7 @@ Network::SockAddrIn Translate(SockAddrIn value) {
 
 SockAddrIn Translate(Network::SockAddrIn value) {
     return {
-        .len = sizeof(SockAddrIn),
+        .len = 16,
         .family = static_cast<u8>(Translate(value.family)),
         .portno = static_cast<u16>(value.portno >> 8 | value.portno << 8),
         .ip = value.ip,

@@ -1,13 +1,18 @@
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2022 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 #pragma once
 
 #include <array>
+#include <span>
+#include <openssl/err.h>
 
 #include "core/hle/service/nfp/nfp_types.h"
 
-struct mbedtls_md_context_t;
+typedef struct evp_mac_ctx_st EVP_MAC_CTX;
 
 namespace Service::NFP::AmiiboCrypto {
 // Byte locations in Service::NFP::NTAG215File
@@ -73,12 +78,12 @@ HashSeed GetSeed(const NTAG215File& data);
 // Middle step on the generation of derived keys
 std::vector<u8> GenerateInternalKey(const InternalKey& key, const HashSeed& seed);
 
-// Initializes mbedtls context
-void CryptoInit(CryptoCtx& ctx, mbedtls_md_context_t& hmac_ctx, const HmacKey& hmac_key,
+// Initializes OpenSSL HMAC context
+void CryptoInit(CryptoCtx& ctx, EVP_MAC_CTX* hmac_ctx, const HmacKey& hmac_key,
                 std::span<const u8> seed);
 
-// Feeds data to mbedtls context to generate the derived key
-void CryptoStep(CryptoCtx& ctx, mbedtls_md_context_t& hmac_ctx, DrgbOutput& output);
+// Feeds data to OpenSSL context to generate the derived key
+void CryptoStep(CryptoCtx& ctx, EVP_MAC_CTX* hmac_ctx, DrgbOutput& output);
 
 // Generates the derived key from amiibo data
 DerivedKeys GenerateKey(const InternalKey& key, const NTAG215File& data);

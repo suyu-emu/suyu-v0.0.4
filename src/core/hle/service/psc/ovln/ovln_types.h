@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2024 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -17,5 +20,14 @@ union MessageFlags {
     BitField<8, 8, u64> queue_type;
 };
 static_assert(sizeof(MessageFlags) == 0x8, "MessageFlags has incorrect size");
+
+struct SourceName {
+    char name[0x16];
+
+    const char* GetString() const {
+        return name;
+    }
+};
+;
 
 } // namespace Service::PSC

@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2020 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -56,10 +59,8 @@ UtilShaders::UtilShaders(ProgramManager& program_manager_)
       copy_bc4_program(MakeProgram(OPENGL_COPY_BC4_COMP)),
       convert_s8d24_program(MakeProgram(OPENGL_CONVERT_S8D24_COMP)),
       convert_ms_to_nonms_program(MakeProgram(CONVERT_MSAA_TO_NON_MSAA_COMP)),
-      convert_nonms_to_ms_program(MakeProgram(CONVERT_NON_MSAA_TO_MSAA_COMP)) {
-    const auto swizzle_table = Tegra::Texture::MakeSwizzleTable();
-    swizzle_table_buffer.Create();
-    glNamedBufferStorage(swizzle_table_buffer.handle, sizeof(swizzle_table), &swizzle_table, 0);
+      convert_nonms_to_ms_program(MakeProgram(CONVERT_NON_MSAA_TO_MSAA_COMP))
+{
 }
 
 UtilShaders::~UtilShaders() = default;
@@ -116,13 +117,11 @@ void UtilShaders::ASTCDecode(Image& image, const StagingBufferMap& map,
 void UtilShaders::BlockLinearUpload2D(Image& image, const StagingBufferMap& map,
                                       std::span<const SwizzleParameters> swizzles) {
     static constexpr Extent3D WORKGROUP_SIZE{32, 32, 1};
-    static constexpr GLuint BINDING_SWIZZLE_BUFFER = 0;
-    static constexpr GLuint BINDING_INPUT_BUFFER = 1;
+    static constexpr GLuint BINDING_INPUT_BUFFER = 0;
     static constexpr GLuint BINDING_OUTPUT_IMAGE = 0;
 
     program_manager.BindComputeProgram(block_linear_unswizzle_2d_program.handle);
     glFlushMappedNamedBufferRange(map.buffer, map.offset, image.guest_size_bytes);
-    glBindBufferBase(GL_SHADER_STORAGE_BUFFER, BINDING_SWIZZLE_BUFFER, swizzle_table_buffer.handle);
 
     const GLenum store_format = StoreFormat(BytesPerBlock(image.info.format));
     for (const SwizzleParameters& swizzle : swizzles) {
@@ -153,14 +152,11 @@ void UtilShaders::BlockLinearUpload2D(Image& image, const StagingBufferMap& map,
 void UtilShaders::BlockLinearUpload3D(Image& image, const StagingBufferMap& map,
                                       std::span<const SwizzleParameters> swizzles) {
     static constexpr Extent3D WORKGROUP_SIZE{16, 8, 8};
-
-    static constexpr GLuint BINDING_SWIZZLE_BUFFER = 0;
-    static constexpr GLuint BINDING_INPUT_BUFFER = 1;
+    static constexpr GLuint BINDING_INPUT_BUFFER = 0;
     static constexpr GLuint BINDING_OUTPUT_IMAGE = 0;
 
     glFlushMappedNamedBufferRange(map.buffer, map.offset, image.guest_size_bytes);
     program_manager.BindComputeProgram(block_linear_unswizzle_3d_program.handle);
-    glBindBufferBase(GL_SHADER_STORAGE_BUFFER, BINDING_SWIZZLE_BUFFER, swizzle_table_buffer.handle);
 
     const GLenum store_format = StoreFormat(BytesPerBlock(image.info.format));
     for (const SwizzleParameters& swizzle : swizzles) {

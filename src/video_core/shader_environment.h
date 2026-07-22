@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2021 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -11,7 +14,7 @@
 #include <optional>
 #include <span>
 #include <type_traits>
-#include <unordered_map>
+#include <ankerl/unordered_dense.h>
 #include <vector>
 
 #include "common/common_types.h"
@@ -76,20 +79,20 @@ protected:
     GPUVAddr program_base{};
 
     std::vector<u64> code;
-    std::unordered_map<u32, Shader::TextureType> texture_types;
-    std::unordered_map<u32, Shader::TexturePixelFormat> texture_pixel_formats;
-    std::unordered_map<u64, u32> cbuf_values;
-    std::unordered_map<u64, Shader::ReplaceConstant> cbuf_replacements;
+    ankerl::unordered_dense::map<u32, Shader::TextureType> texture_types;
+    ankerl::unordered_dense::map<u32, Shader::TexturePixelFormat> texture_pixel_formats;
+    ankerl::unordered_dense::map<u64, u32> cbuf_values;
+    ankerl::unordered_dense::map<u64, Shader::ReplaceConstant> cbuf_replacements;
 
     u32 local_memory_size{};
     u32 texture_bound{};
     u32 shared_memory_size{};
     std::array<u32, 3> workgroup_size{};
 
-    u32 read_lowest = std::numeric_limits<u32>::max();
+    u32 read_lowest = (std::numeric_limits<u32>::max)();
     u32 read_highest = 0;
 
-    u32 cached_lowest = std::numeric_limits<u32>::max();
+    u32 cached_lowest = (std::numeric_limits<u32>::max)();
     u32 cached_highest = 0;
     u32 initial_offset = 0;
 
@@ -198,10 +201,10 @@ public:
 
 private:
     std::vector<u64> code;
-    std::unordered_map<u32, Shader::TextureType> texture_types;
-    std::unordered_map<u32, Shader::TexturePixelFormat> texture_pixel_formats;
-    std::unordered_map<u64, u32> cbuf_values;
-    std::unordered_map<u64, Shader::ReplaceConstant> cbuf_replacements;
+    ankerl::unordered_dense::map<u32, Shader::TextureType> texture_types;
+    ankerl::unordered_dense::map<u32, Shader::TexturePixelFormat> texture_pixel_formats;
+    ankerl::unordered_dense::map<u64, u32> cbuf_values;
+    ankerl::unordered_dense::map<u64, Shader::ReplaceConstant> cbuf_replacements;
     std::array<u32, 3> workgroup_size{};
     u32 local_memory_size{};
     u32 shared_memory_size{};
@@ -216,16 +219,13 @@ void SerializePipeline(std::span<const char> key, std::span<const GenericEnviron
                        const std::filesystem::path& filename, u32 cache_version);
 
 template <typename Key, typename Envs>
-void SerializePipeline(const Key& key, const Envs& envs, const std::filesystem::path& filename,
-                       u32 cache_version) {
-    static_assert(std::is_trivially_copyable_v<Key>);
-    static_assert(std::has_unique_object_representations_v<Key>);
-    SerializePipeline(std::span(reinterpret_cast<const char*>(&key), sizeof(key)),
-                      std::span(envs.data(), envs.size()), filename, cache_version);
+    requires std::is_trivially_copyable_v<Key>
+        && std::has_unique_object_representations_v<Key>
+void SerializePipeline(const Key& key, const Envs& envs, const std::filesystem::path& filename, u32 cache_version) {
+    SerializePipeline(std::span(reinterpret_cast<const char*>(&key), sizeof(key)), std::span(envs.data(), envs.size()), filename, cache_version);
 }
 
-void LoadPipelines(
-    std::stop_token stop_loading, const std::filesystem::path& filename, u32 expected_cache_version,
+void LoadPipelines(std::stop_token stop_loading, const std::filesystem::path& filename, u32 expected_cache_version,
     Common::UniqueFunction<void, std::ifstream&, FileEnvironment> load_compute,
     Common::UniqueFunction<void, std::ifstream&, std::vector<FileEnvironment>> load_graphics);
 

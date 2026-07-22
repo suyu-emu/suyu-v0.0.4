@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2023 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -19,7 +22,7 @@ private:
     KLightSession* m_parent{};
     KThread::WaiterList m_request_list{};
     KThread* m_current_request{};
-    u64 m_server_thread_id{std::numeric_limits<u64>::max()};
+    u64 m_server_thread_id{(std::numeric_limits<u64>::max)()};
     KThread* m_server_thread{};
 
 public:
@@ -31,19 +34,19 @@ public:
         m_parent = parent;
     }
 
-    virtual void Destroy() override;
+    virtual void Destroy(KernelCore& kernel) override;
 
     constexpr const KLightSession* GetParent() const {
         return m_parent;
     }
 
-    Result OnRequest(KThread* request_thread);
-    Result ReplyAndReceive(u32* data);
+    Result OnRequest(KernelCore& kernel, KThread* request_thread);
+    Result ReplyAndReceive(KernelCore& kernel, u32* data);
 
-    void OnClientClosed();
+    void OnClientClosed(KernelCore& kernel);
 
 private:
-    void CleanupRequests();
+    void CleanupRequests(KernelCore& kernel);
 };
 
 } // namespace Kernel

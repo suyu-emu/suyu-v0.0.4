@@ -7,31 +7,35 @@
 
     <fragment
         android:id="@+id/emulationFragment"
-        android:name="dev.suyu.suyu_emu.fragments.EmulationFragment"
+        android:name="org.yuzu.yuzu_emu.fragments.EmulationFragment"
         android:label="fragment_emulation"
         tools:layout="@layout/fragment_emulation" >
         <argument
             android:name="game"
-            app:argType="dev.suyu.suyu_emu.model.Game"
+            app:argType="org.yuzu.yuzu_emu.model.Game"
             app:nullable="true"
             android:defaultValue="@null" />
         <argument
             android:name="custom"
             app:argType="boolean"
             android:defaultValue="false" />
+        <argument
+            android:name="overlayGamelessEditMode"
+            app:argType="boolean"
+            android:defaultValue="false" />
     </fragment>
 
     <activity
         android:id="@+id/settingsActivity"
-        android:name="dev.suyu.suyu_emu.features.settings.ui.SettingsActivity"
+        android:name="org.yuzu.yuzu_emu.features.settings.ui.SettingsActivity"
         android:label="SettingsActivity">
         <argument
             android:name="game"
-            app:argType="dev.suyu.suyu_emu.model.Game"
+            app:argType="org.yuzu.yuzu_emu.model.Game"
             app:nullable="true" />
         <argument
             android:name="menuTag"
-            app:argType="dev.suyu.suyu_emu.features.settings.model.Settings$MenuTag" />
+            app:argType="org.yuzu.yuzu_emu.features.settings.model.Settings$MenuTag" />
     </activity>
 
     <action

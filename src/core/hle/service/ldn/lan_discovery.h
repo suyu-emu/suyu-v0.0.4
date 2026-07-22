@@ -1,6 +1,9 @@
 // SPDX-FileCopyrightText: Copyright 2022 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 #pragma once
 
 #include <array>
@@ -12,9 +15,9 @@
 #include <random>
 #include <span>
 #include <thread>
-#include <unordered_map>
+#include <ankerl/unordered_dense.h>
 
-#include "common/logging/log.h"
+#include "common/logging.h"
 #include "common/socket_types.h"
 #include "core/hle/result.h"
 #include "core/hle/service/ldn/ldn_results.h"
@@ -47,7 +50,7 @@ class LANDiscovery {
 public:
     using LanEventFunc = std::function<void()>;
 
-    LANDiscovery(Network::RoomNetwork& room_network_);
+    LANDiscovery();
     ~LANDiscovery();
 
     State GetState() const;
@@ -109,14 +112,14 @@ protected:
     void SendPacket(const Network::LDNPacket& packet);
 
     static const LanEventFunc empty_func;
-    static constexpr Ssid fake_ssid{"SuyuFakeSsidForLdn"};
+    static constexpr Ssid fake_ssid{"YuzuFakeSsidForLdn"};
 
     bool inited{};
     std::mutex packet_mutex;
     std::array<LanStation, StationCountMax> stations;
     std::array<NodeLatestUpdate, NodeCountMax> node_changes{};
     std::array<u8, NodeCountMax> node_last_states{};
-    std::unordered_map<MacAddress, NetworkInfo, MACAddressHash> scan_results{};
+    ankerl::unordered_dense::map<MacAddress, NetworkInfo, MACAddressHash> scan_results{};
     NodeInfo node_info{};
     NetworkInfo network_info{};
     State state{State::None};
@@ -127,7 +130,5 @@ protected:
     std::optional<Ipv4Address> host_ip;
 
     LanEventFunc lan_event;
-
-    Network::RoomNetwork& room_network;
 };
 } // namespace Service::LDN

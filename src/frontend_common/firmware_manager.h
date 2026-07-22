@@ -1,8 +1,7 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-#ifndef FIRMWARE_MANAGER_H
-#define FIRMWARE_MANAGER_H
+#pragma once
 
 #include "common/common_types.h"
 #include "core/core.h"
@@ -53,21 +52,10 @@ inline constexpr bool GameRequiresFirmware(u64 program_id)
            != FIRMWARE_REQUIRED_GAMES.end();
 }
 
-
 enum FirmwareCheckResult {
     FirmwareGood,
     ErrorFirmwareMissing,
     ErrorFirmwareCorrupted,
-    ErrorFirmwareTooNew,
-};
-
-static constexpr std::array<const char *, 4> FIRMWARE_CHECK_STRINGS = {
-    "",
-    "Firmware missing. Firmware is required to run certain games and use the Home Menu. "
-    "Install dumped firmware to enable firmware-dependent titles and applets.",
-    "Firmware reported as present, but was unable to be read. Check for decryption keys and "
-    "redump firmware if necessary.",
-    "Firmware is newer than this build's verified compatibility range.",
 };
 
 /**
@@ -101,16 +89,6 @@ inline bool CheckFirmwarePresence(Core::System &system)
 FirmwareCheckResult VerifyFirmware(Core::System &system);
 
 /**
- * \brief Get a string representation of a result from CheckFirmwareVersion.
- * \param result The result code.
- * \return A string representation of the passed result code.
- */
-inline constexpr const char *GetFirmwareCheckString(FirmwareCheckResult result)
-{
-    return FIRMWARE_CHECK_STRINGS.at(static_cast<std::size_t>(result));
-}
-
-/**
  * @brief Get the currently installed firmware version.
  * @param system The system to check firmware on.
  * @return A pair of the firmware version format and result code.
@@ -128,5 +106,3 @@ inline std::pair<Service::Set::FirmwareVersionFormat, Result> GetFirmwareVersion
 
 // TODO(crueter): GET AS STRING
 }
-
-#endif

@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2021 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -6,6 +9,7 @@
 #include <array>
 
 #include <sirit/sirit.h>
+#include <ankerl/unordered_dense.h>
 
 #include "shader_recompiler/backend/bindings.h"
 #include "shader_recompiler/frontend/ir/program.h"
@@ -14,6 +18,8 @@
 #include "shader_recompiler/shader_info.h"
 
 namespace Shader::Backend::SPIRV {
+
+static std::bitset<8> clip_distance_written;
 
 using Sirit::Id;
 
@@ -36,6 +42,7 @@ struct TextureDefinition {
     Id image_type;
     u32 count;
     bool is_multisample;
+    bool is_integer;
 };
 
 struct TextureBufferDefinition {
@@ -46,6 +53,7 @@ struct TextureBufferDefinition {
 struct ImageBufferDefinition {
     Id id;
     Id image_type;
+    Id pointer_type;
     u32 count;
     bool is_integer;
 };
@@ -53,6 +61,7 @@ struct ImageBufferDefinition {
 struct ImageDefinition {
     Id id;
     Id image_type;
+    Id pointer_type;
     u32 count;
     bool is_integer;
 };
@@ -358,6 +367,9 @@ public:
     Id load_const_func_f32{};
     Id load_const_func_u32x2{};
     Id load_const_func_u32x4{};
+
+    // Sirit::Id doesn't play nice with *::set<>
+    ankerl::unordered_dense::set<u32> non_uniform_ids;
 
 private:
     void DefineCommonTypes(const Info& info);

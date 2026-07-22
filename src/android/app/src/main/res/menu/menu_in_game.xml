@@ -1,5 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
-<menu xmlns:android="http://schemas.android.com/apk/res/android">
+<menu xmlns:tools="http://schemas.android.com/tools"
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    tools:ignore="ExtraText">
 
     <item
         android:id="@+id/menu_pause_emulation"
@@ -7,9 +9,19 @@
         android:title="@string/emulation_pause" />
 
     <item
+        android:id="@+id/menu_quick_overlay"
+        android:icon="@drawable/ic_controller"
+        android:title="@string/emulation_show_overlay"/>
+
+    <item
         android:id="@+id/menu_settings"
         android:icon="@drawable/ic_settings"
         android:title="@string/preferences_settings" />
+
+    <item
+        android:id="@+id/menu_quick_settings"
+        android:icon="@drawable/ic_settings"
+        android:title="@string/quick_settings" />
 
     <item
         android:id="@+id/menu_settings_per_game"
@@ -20,6 +32,17 @@
         android:id="@+id/menu_controls"
         android:icon="@drawable/ic_controller"
         android:title="@string/preferences_controls" />
+
+    <item
+        android:id="@+id/menu_multiplayer"
+        android:icon="@drawable/ic_two_users"
+        android:title="@string/multiplayer" />
+
+    <item
+        android:id="@+id/menu_load_amiibo"
+        android:icon="@drawable/ic_nfc"
+        android:title="@string/load_amiibo" />
+
 
     <item
         android:id="@+id/menu_overlay_controls"

@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2023 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
@@ -7,7 +10,7 @@
 
 #include "video_core/query_cache/query_cache_base.h"
 #include "video_core/renderer_vulkan/vk_buffer_cache.h"
-
+#include "video_core/renderer_vulkan/vk_texture_cache.h"
 namespace VideoCore {
 class RasterizerInterface;
 }
@@ -17,7 +20,6 @@ class StreamerInterface;
 }
 
 namespace Vulkan {
-
 class Device;
 class Scheduler;
 class StagingBufferPool;
@@ -32,11 +34,11 @@ public:
                                const MemoryAllocator& memory_allocator_, Scheduler& scheduler_,
                                StagingBufferPool& staging_pool_,
                                ComputePassDescriptorQueue& compute_pass_descriptor_queue,
-                               DescriptorPool& descriptor_pool);
+                               DescriptorPool& descriptor_pool, TextureCache& texture_cache_);
     ~QueryCacheRuntime();
 
     template <typename SyncValuesType>
-    void SyncValues(std::span<SyncValuesType> values, VkBuffer base_src_buffer = nullptr);
+    void SyncValues(std::span<SyncValuesType> values, VkBuffer base_src_buffer = VkBuffer{});
 
     void Barriers(bool is_prebarrier);
 
@@ -61,7 +63,8 @@ public:
 
 private:
     void HostConditionalRenderingCompareValueImpl(VideoCommon::LookupData object, bool is_equal);
-    void HostConditionalRenderingCompareBCImpl(DAddr address, bool is_equal);
+    void HostConditionalRenderingCompareBCImpl(DAddr address, bool is_equal,
+                                               bool compare_to_zero = false);
     friend struct QueryCacheRuntimeImpl;
     std::unique_ptr<QueryCacheRuntimeImpl> impl;
 };

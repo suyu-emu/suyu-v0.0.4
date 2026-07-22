@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2023 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -9,7 +12,7 @@
 #include "common/android/android_common.h"
 #include "common/android/applets/software_keyboard.h"
 #include "common/android/id_cache.h"
-#include "common/logging/log.h"
+#include "common/logging.h"
 #include "common/string_util.h"
 #include "core/core.h"
 
@@ -240,6 +243,9 @@ void AndroidKeyboard::SubmitInlineKeyboardInput(int key_code) {
                                static_cast<s32>(m_current_text.size()));
         break;
     case KEYCODE_DEL:
+        if (m_current_text.empty()) {
+            return;
+        }
         m_current_text.pop_back();
         submit_inline_callback(Service::AM::Frontend::SwkbdReplyType::ChangedString, m_current_text,
                                static_cast<int>(m_current_text.size()));
@@ -253,19 +259,19 @@ void AndroidKeyboard::SubmitNormalText(const ResultData& data) const {
 
 void InitJNI(JNIEnv* env) {
     s_software_keyboard_class = reinterpret_cast<jclass>(
-        env->NewGlobalRef(env->FindClass("dev/suyu/suyu_emu/applets/keyboard/SoftwareKeyboard")));
+        env->NewGlobalRef(env->FindClass("org/yuzu/yuzu_emu/applets/keyboard/SoftwareKeyboard")));
     s_keyboard_config_class = reinterpret_cast<jclass>(env->NewGlobalRef(
-        env->FindClass("dev/suyu/suyu_emu/applets/keyboard/SoftwareKeyboard$KeyboardConfig")));
+        env->FindClass("org/yuzu/yuzu_emu/applets/keyboard/SoftwareKeyboard$KeyboardConfig")));
     s_keyboard_data_class = reinterpret_cast<jclass>(env->NewGlobalRef(
-        env->FindClass("dev/suyu/suyu_emu/applets/keyboard/SoftwareKeyboard$KeyboardData")));
+        env->FindClass("org/yuzu/yuzu_emu/applets/keyboard/SoftwareKeyboard$KeyboardData")));
 
     s_swkbd_execute_normal = env->GetStaticMethodID(
         s_software_keyboard_class, "executeNormal",
-        "(Ldev/suyu/suyu_emu/applets/keyboard/SoftwareKeyboard$KeyboardConfig;)Ldev/suyu/suyu_emu/"
+        "(Lorg/yuzu/yuzu_emu/applets/keyboard/SoftwareKeyboard$KeyboardConfig;)Lorg/yuzu/yuzu_emu/"
         "applets/keyboard/SoftwareKeyboard$KeyboardData;");
     s_swkbd_execute_inline = env->GetStaticMethodID(
         s_software_keyboard_class, "executeInline",
-        "(Ldev/suyu/suyu_emu/applets/keyboard/SoftwareKeyboard$KeyboardConfig;)V");
+        "(Lorg/yuzu/yuzu_emu/applets/keyboard/SoftwareKeyboard$KeyboardConfig;)V");
 }
 
 void CleanupJNI(JNIEnv* env) {

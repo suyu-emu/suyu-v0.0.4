@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2020 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -8,7 +11,7 @@
 #include <mutex>
 #include <stdexcept>
 #include <thread>
-#include <unordered_map>
+#include <ankerl/unordered_dense.h>
 #include <vector>
 
 #include <catch2/catch_test_macros.hpp>
@@ -36,7 +39,7 @@ public:
 
 private:
     mutable std::mutex mutex;
-    std::unordered_map<std::thread::id, u32> ids;
+    ankerl::unordered_dense::map<std::thread::id, u32> ids;
 };
 
 class TestControl1 {
@@ -269,45 +272,6 @@ TEST_CASE("Fibers::StartRace", "[common]") {
     REQUIRE(test_control.value1 == 1);
     REQUIRE(test_control.value2 == 1);
     REQUIRE(test_control.value3 == 1);
-}
-
-class TestControl4;
-
-class TestControl4 {
-public:
-    TestControl4() {
-        fiber1 = std::make_shared<Fiber>([this] { DoWork(); });
-        goal_reached = false;
-        rewound = false;
-    }
-
-    void Execute() {
-        thread_fiber = Fiber::ThreadToFiber();
-        Fiber::YieldTo(thread_fiber, *fiber1);
-        thread_fiber->Exit();
-    }
-
-    void DoWork() {
-        fiber1->SetRewindPoint([this] { DoWork(); });
-        if (rewound) {
-            goal_reached = true;
-            Fiber::YieldTo(fiber1, *thread_fiber);
-        }
-        rewound = true;
-        fiber1->Rewind();
-    }
-
-    std::shared_ptr<Common::Fiber> fiber1;
-    std::shared_ptr<Common::Fiber> thread_fiber;
-    bool goal_reached;
-    bool rewound;
-};
-
-TEST_CASE("Fibers::Rewind", "[common]") {
-    TestControl4 test_control{};
-    test_control.Execute();
-    REQUIRE(test_control.goal_reached);
-    REQUIRE(test_control.rewound);
 }
 
 } // namespace Common

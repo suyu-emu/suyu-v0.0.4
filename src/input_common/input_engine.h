@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2021 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -5,7 +8,7 @@
 
 #include <functional>
 #include <mutex>
-#include <unordered_map>
+#include <ankerl/unordered_dense.h>
 
 #include "common/common_types.h"
 #include "common/input.h"
@@ -267,10 +270,10 @@ protected:
 
 private:
     struct ControllerData {
-        std::unordered_map<int, bool> buttons;
-        std::unordered_map<int, u8> hat_buttons;
-        std::unordered_map<int, float> axes;
-        std::unordered_map<int, BasicMotion> motions;
+        ankerl::unordered_dense::map<int, bool> buttons;
+        ankerl::unordered_dense::map<int, u8> hat_buttons;
+        ankerl::unordered_dense::map<int, float> axes;
+        ankerl::unordered_dense::map<int, BasicMotion> motions;
         Common::Input::BatteryLevel battery{};
         Common::Input::BodyColorStatus color{};
         Common::Input::CameraStatus camera{};
@@ -298,8 +301,8 @@ private:
     bool configuring{false};
     const std::string input_engine;
     int last_callback_key = 0;
-    std::unordered_map<PadIdentifier, ControllerData> controller_list;
-    std::unordered_map<int, InputIdentifier> callback_list;
+    ankerl::unordered_dense::map<PadIdentifier, ControllerData> controller_list;
+    ankerl::unordered_dense::map<int, InputIdentifier> callback_list;
     MappingCallback mapping_callback;
 };
 

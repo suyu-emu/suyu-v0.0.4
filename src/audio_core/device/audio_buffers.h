@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2022 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -51,11 +54,10 @@ public:
      */
     void RegisterBuffers(boost::container::static_vector<AudioBuffer, N>& out_buffers) {
         std::scoped_lock l{lock};
-        const s32 to_register{std::min(std::min(appended_count, BufferAppendLimit),
+        const s32 to_register{(std::min)((std::min)(appended_count, BufferAppendLimit),
                                        BufferAppendLimit - registered_count)};
 
-        out_buffers.reserve(to_register);
-        for (s32 i = 0; i < to_register; ++i) {
+        for (s32 i = 0; i < to_register; i++) {
             s32 index{appended_index - appended_count};
             if (index < 0) {
                 index += N;
@@ -110,6 +112,8 @@ public:
             if (!force && !session.IsBufferConsumed(buffers[index])) {
                 break;
             }
+
+            session.ReleaseBuffer(buffers[index]);
 
             ReleaseBuffer(index, core_timing.GetGlobalTimeNs().count());
             buffer_released = true;
@@ -176,12 +180,11 @@ public:
         }
 
         size_t buffers_to_flush{
-            std::min(static_cast<u32>(registered_count + appended_count), max_buffers)};
+            (std::min)(static_cast<u32>(registered_count + appended_count), max_buffers)};
         if (buffers_to_flush == 0) {
             return 0;
         }
 
-        buffers_flushed.reserve(registered_count + appended_count);
         while (registered_count > 0) {
             auto index{registered_index - registered_count};
             if (index < 0) {

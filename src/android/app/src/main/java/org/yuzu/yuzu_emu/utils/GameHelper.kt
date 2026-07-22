@@ -1,16 +1,18 @@
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: 2023 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
-
-// SPDX-FileCopyrightText: 2025 Eden Emulator Project
-// SPDX-License-Identifier: GPL-3.0-or-later
 
 package org.yuzu.yuzu_emu.utils
 
 import android.content.SharedPreferences
 import android.net.Uri
+import android.provider.DocumentsContract
 import androidx.preference.PreferenceManager
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
+import java.io.File
 import org.yuzu.yuzu_emu.NativeLibrary
 import org.yuzu.yuzu_emu.YuzuApplication
 import org.yuzu.yuzu_emu.model.Game
@@ -49,15 +51,21 @@ object GameHelper {
         // Remove previous filesystem provider information so we can get up to date version info
         NativeLibrary.clearFilesystemProvider()
 
+        val mountedContainerUris = mutableSetOf<String>()
+        mountExternalContentDirectories(mountedContainerUris)
+
         val badDirs = mutableListOf<Int>()
         gameDirs.forEachIndexed { index: Int, gameDir: GameDir ->
             val gameDirUri = gameDir.uriString.toUri()
             val isValid = FileUtil.isTreeUriValid(gameDirUri)
             if (isValid) {
+                val scanDepth = if (gameDir.deepScan) 3 else 1
+
                 addGamesRecursive(
                     games,
                     FileUtil.listFiles(gameDirUri),
-                    if (gameDir.deepScan) 3 else 1
+                    scanDepth,
+                    mountedContainerUris
                 )
             } else {
                 badDirs.add(index)
@@ -88,10 +96,49 @@ object GameHelper {
         return games.toList()
     }
 
+    fun restoreContentForGame(game: Game) {
+        NativeLibrary.reloadKeys()
+
+        val mountedContainerUris = mutableSetOf<String>()
+        mountExternalContentDirectories(mountedContainerUris)
+        mountGameFolderContent(Uri.parse(game.path), mountedContainerUris)
+        NativeLibrary.addFileToFilesystemProvider(game.path)
+    }
+
+    // File extensions considered as external content, buuut should
+    // be done better imo.
+    private val externalContentExtensions = setOf("nsp", "xci")
+
+    private fun scanContentContainersRecursive(
+        files: Array<MinimalDocumentFile>,
+        depth: Int,
+        onContainerFound: (MinimalDocumentFile) -> Unit
+    ) {
+        if (depth <= 0) {
+            return
+        }
+
+        files.forEach {
+            if (it.isDirectory) {
+                scanContentContainersRecursive(
+                    FileUtil.listFiles(it.uri),
+                    depth - 1,
+                    onContainerFound
+                )
+            } else {
+                val extension = FileUtil.getExtension(it.uri).lowercase()
+                if (externalContentExtensions.contains(extension)) {
+                    onContainerFound(it)
+                }
+            }
+        }
+    }
+
     private fun addGamesRecursive(
         games: MutableList<Game>,
         files: Array<MinimalDocumentFile>,
-        depth: Int
+        depth: Int,
+        mountedContainerUris: MutableSet<String>
     ) {
         if (depth <= 0) {
             return
@@ -102,11 +149,20 @@ object GameHelper {
                 addGamesRecursive(
                     games,
                     FileUtil.listFiles(it.uri),
-                    depth - 1
+                    depth - 1,
+                    mountedContainerUris
                 )
             } else {
-                if (Game.extensions.contains(FileUtil.getExtension(it.uri))) {
-                    val game = getGame(it.uri, true)
+                val extension = FileUtil.getExtension(it.uri).lowercase()
+                val filePath = it.uri.toString()
+
+                if (externalContentExtensions.contains(extension) &&
+                    mountedContainerUris.add(filePath)) {
+                    NativeLibrary.addGameFolderFileToFilesystemProvider(filePath)
+                }
+
+                if (Game.extensions.contains(extension)) {
+                    val game = getGame(it.uri, true, false)
                     if (game != null) {
                         games.add(game)
                     }
@@ -115,14 +171,85 @@ object GameHelper {
         }
     }
 
-    fun getGame(uri: Uri, addedToLibrary: Boolean): Game? {
+    private fun mountExternalContentDirectories(mountedContainerUris: MutableSet<String>) {
+        val uniqueExternalContentDirs = linkedSetOf<String>()
+        NativeConfig.getExternalContentDirs().forEach { externalDir ->
+            if (externalDir.isNotEmpty()) {
+                uniqueExternalContentDirs.add(externalDir)
+            }
+        }
+
+        for (externalDir in uniqueExternalContentDirs) {
+            val externalDirUri = externalDir.toUri()
+            if (FileUtil.isTreeUriValid(externalDirUri)) {
+                scanContentContainersRecursive(FileUtil.listFiles(externalDirUri), 3) {
+                    val containerUri = it.uri.toString()
+                    if (mountedContainerUris.add(containerUri)) {
+                        NativeLibrary.addFileToFilesystemProvider(containerUri)
+                    }
+                }
+            }
+        }
+    }
+
+    private fun mountGameFolderContent(gameUri: Uri, mountedContainerUris: MutableSet<String>) {
+        if (gameUri.scheme == "content") {
+            val parentUri = getParentDocumentUri(gameUri) ?: return
+            scanContentContainersRecursive(FileUtil.listFiles(parentUri), 1) {
+                val containerUri = it.uri.toString()
+                if (mountedContainerUris.add(containerUri)) {
+                    NativeLibrary.addGameFolderFileToFilesystemProvider(containerUri)
+                }
+            }
+            return
+        }
+
+        val gameFile = File(gameUri.path ?: gameUri.toString())
+        val parentDir = gameFile.parentFile ?: return
+        parentDir.listFiles()?.forEach { sibling ->
+            if (!sibling.isFile) {
+                return@forEach
+            }
+
+            val extension = sibling.extension.lowercase()
+            if (externalContentExtensions.contains(extension)) {
+                val containerUri = Uri.fromFile(sibling).toString()
+                if (mountedContainerUris.add(containerUri)) {
+                    NativeLibrary.addGameFolderFileToFilesystemProvider(containerUri)
+                }
+            }
+        }
+    }
+
+    private fun getParentDocumentUri(uri: Uri): Uri? {
+        return try {
+            val documentId = DocumentsContract.getDocumentId(uri)
+            val separatorIndex = documentId.lastIndexOf('/')
+            if (separatorIndex == -1) {
+                null
+            } else {
+                val parentDocumentId = documentId.substring(0, separatorIndex)
+                DocumentsContract.buildDocumentUriUsingTree(uri, parentDocumentId)
+            }
+        } catch (_: Exception) {
+            null
+        }
+    }
+
+    fun getGame(
+        uri: Uri,
+        addedToLibrary: Boolean,
+        registerFilesystemProvider: Boolean = true
+    ): Game? {
         val filePath = uri.toString()
         if (!GameMetadata.getIsValid(filePath)) {
             return null
         }
 
-        // Needed to update installed content information
-        NativeLibrary.addFileToFilesystemProvider(filePath)
+        if (registerFilesystemProvider) {
+            // Needed to update installed content information
+            NativeLibrary.addFileToFilesystemProvider(filePath)
+        }
 
         var name = GameMetadata.getTitle(filePath)
 

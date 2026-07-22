@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2024 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -5,6 +8,7 @@
 
 #include <deque>
 #include <mutex>
+#include <stack>
 
 #include "common/math_util.h"
 #include "core/hle/service/apm/apm_controller.h"
@@ -20,6 +24,7 @@
 #include "core/hle/service/am/hid_registration.h"
 #include "core/hle/service/am/lifecycle_manager.h"
 #include "core/hle/service/am/process_holder.h"
+#include "core/hle/service/am/service/storage.h"
 
 namespace Service::AM {
 
@@ -78,6 +83,7 @@ struct Applet {
 
     // Application functions
     bool game_play_recording_supported{};
+    bool media_playback_state{};
     GamePlayRecordingState game_play_recording_state{GamePlayRecordingState::Disabled};
     bool jit_service_launched{};
     bool application_crash_report_enabled{};
@@ -90,14 +96,22 @@ struct Applet {
     bool request_exit_to_library_applet_at_execute_next_program_enabled{};
 
     // Channels
-    std::deque<std::vector<u8>> user_channel_launch_parameter{};
-    std::deque<std::vector<u8>> preselected_user_launch_parameter{};
+    std::vector<std::vector<u8>> user_channel_launch_parameter{};
+    std::vector<std::vector<u8>> preselected_user_launch_parameter{};
+    std::vector<std::vector<u8>> friend_invitation_storage_channel{};
+
+    // Context Stack
+    std::stack<SharedPointer<IStorage>> context_stack{};
 
     // Caller applet
     std::weak_ptr<Applet> caller_applet{};
     std::shared_ptr<AppletDataBroker> caller_applet_broker{};
     std::list<std::shared_ptr<Applet>> child_applets{};
     bool is_completed{};
+
+    std::shared_ptr<Applet> reserved_applet{};
+    bool unwind_after_reserved{};
+    bool is_winding{};
 
     // Self state
     bool exit_locked{};
@@ -113,13 +127,15 @@ struct Applet {
     bool is_activity_runnable{};
     bool is_interactible{true};
     bool window_visible{true};
+    bool overlay_in_foreground{false};
 
     // Events
+    Event overlay_event;
     Event gpu_error_detected_event;
     Event friend_invitation_storage_channel_event;
     Event notification_storage_channel_event;
     Event health_warning_disappeared_system_event;
-    Event unknown_application_functions_event;
+    Event unknown_event;
     Event acquired_sleep_lock_event;
     Event pop_from_general_channel_event;
     Event library_applet_launchable_event;

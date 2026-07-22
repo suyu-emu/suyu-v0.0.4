@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2021 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -124,7 +127,7 @@ public:
         this->state.data[3] = ParamTmat;
 
         {
-            const int num_init_iterations = std::max(seed_count + 1, MinimumInitIterations) - 1;
+            const int num_init_iterations = (std::max)(seed_count + 1, MinimumInitIterations) - 1;
 
             GenerateInitialValuePlus(&this->state, 0, seed_count);
 
@@ -213,12 +216,6 @@ public:
         }
 
         return t0;
-    }
-
-    u64 GenerateRandomU64() {
-        const u32 lo = this->GenerateRandomU32();
-        const u32 hi = this->GenerateRandomU32();
-        return (u64{hi} << 32) | u64{lo};
     }
 
     float GenerateRandomF32() {

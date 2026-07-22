@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2024 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
@@ -12,6 +15,7 @@ class EmulatedController;
 }
 
 namespace Kernel {
+class KernelCore;
 class KEvent;
 class KReadableEvent;
 } // namespace Kernel
@@ -30,7 +34,7 @@ class NpadAbstractPropertiesHandler;
 /// Handles Npad request from HID interfaces
 class NpadAbstractIrSensorHandler final {
 public:
-    explicit NpadAbstractIrSensorHandler();
+    explicit NpadAbstractIrSensorHandler(Kernel::KernelCore& kernel_);
     ~NpadAbstractIrSensorHandler();
 
     void SetAbstractPadHolder(NpadAbstractedPadHolder* holder);
@@ -56,5 +60,6 @@ private:
     Kernel::KEvent* ir_sensor_event{nullptr};
     Core::HID::EmulatedController* xcd_handle{};
     NpadIrSensorState sensor_state{};
+    Kernel::KernelCore& kernel;
 };
 } // namespace Service::HID

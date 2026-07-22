@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2022 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -6,10 +9,25 @@
 #include "audio_core/audio_event.h"
 #include "audio_core/audio_manager.h"
 #include "audio_core/out/audio_out_system.h"
-#include "common/logging/log.h"
+#include "common/logging.h"
 #include "core/core.h"
 #include "core/core_timing.h"
 #include "core/hle/kernel/k_event.h"
+
+// See texture_cache/util.h
+template<typename T, size_t N>
+#if BOOST_VERSION >= 108100 || __GNUC__ > 12
+[[nodiscard]] boost::container::static_vector<T, N> FixStaticVectorADL(const boost::container::static_vector<T, N>& v) {
+    return v;
+}
+#else
+[[nodiscard]] std::vector<T> FixStaticVectorADL(const boost::container::static_vector<T, N>& v) {
+    std::vector<T> u;
+    for (auto const& e : v)
+        u.push_back(e);
+    return u;
+}
+#endif
 
 namespace AudioCore::AudioOut {
 
@@ -91,7 +109,7 @@ Result System::Start() {
 
     boost::container::static_vector<AudioBuffer, BufferCount> buffers_to_flush{};
     buffers.RegisterBuffers(buffers_to_flush);
-    session->AppendBuffers(buffers_to_flush);
+    session->AppendBuffers(FixStaticVectorADL(buffers_to_flush));
     session->SetRingSize(static_cast<u32>(buffers_to_flush.size()));
 
     return ResultSuccess;
@@ -103,7 +121,7 @@ Result System::Stop() {
         session->SetVolume(0.0f);
         session->ClearBuffers();
         if (buffers.ReleaseBuffers(system.CoreTiming(), *session, true)) {
-            buffer_event->Signal();
+            buffer_event->Signal(system.Kernel());
         }
         state = State::Stopped;
     }
@@ -136,7 +154,7 @@ void System::RegisterBuffers() {
     if (state == State::Started) {
         boost::container::static_vector<AudioBuffer, BufferCount> registered_buffers{};
         buffers.RegisterBuffers(registered_buffers);
-        session->AppendBuffers(registered_buffers);
+        session->AppendBuffers(FixStaticVectorADL(registered_buffers));
     }
 }
 
@@ -144,7 +162,7 @@ void System::ReleaseBuffers() {
     bool signal{buffers.ReleaseBuffers(system.CoreTiming(), *session, false)};
     if (signal) {
         // Signal if any buffer was released, or if none are registered, we need more.
-        buffer_event->Signal();
+        buffer_event->Signal(system.Kernel());
     }
 }
 
@@ -161,7 +179,7 @@ bool System::FlushAudioOutBuffers() {
     buffers.FlushBuffers(buffers_released);
 
     if (buffers_released > 0) {
-        buffer_event->Signal();
+        buffer_event->Signal(system.Kernel());
     }
     return true;
 }

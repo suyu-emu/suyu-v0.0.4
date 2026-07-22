@@ -1,0 +1,955 @@
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
+#include <algorithm>
+#include <array>
+#include <cmath>
+#include <cstring>
+#include <string>
+
+#ifdef HAS_OPENGL
+#include <glad/glad.h>
+#endif
+
+#include <QtCore/qglobal.h>
+#include "common/settings_enums.h"
+
+#include "qt_common/config/uisettings.h"
+#include "qt_common/abstract/frontend.h"
+
+#if YUZU_USE_QT_MULTIMEDIA
+#include <QCamera>
+#include <QImageCapture>
+#include <QMediaCaptureSession>
+#include <QMediaDevices>
+
+#include "input_common/drivers/camera.h"
+
+#endif
+
+#include <QCursor>
+#include <QEvent>
+#include <QGuiApplication>
+#include <QHBoxLayout>
+#include <QKeyEvent>
+#include <QLayout>
+#include <QList>
+#include <QMessageBox>
+#include <QScreen>
+#include <QSize>
+#include <QStringLiteral>
+#include <QSurfaceFormat>
+#include <QWindow>
+#include <QtCore/qobjectdefs.h>
+
+#ifdef HAS_OPENGL
+#include <QOffscreenSurface>
+#include <QOpenGLContext>
+#endif
+
+#include "common/scm_rev.h"
+#include "common/settings.h"
+#include "common/settings_input.h"
+#include "core/core.h"
+#include "core/cpu_manager.h"
+#include "core/frontend/framebuffer_layout.h"
+#include "core/frontend/graphics_context.h"
+#include "input_common/drivers/keyboard.h"
+#include "input_common/drivers/mouse.h"
+#include "input_common/drivers/tas_input.h"
+#include "input_common/drivers/touch_screen.h"
+#include "input_common/main.h"
+#include "qt_common/qt_common.h"
+#include "video_core/gpu.h"
+#include "video_core/renderer_base.h"
+#include "yuzu/bootmanager.h"
+#include "yuzu/main_window.h"
+
+#include "qt_common/render/context.h"
+#include "qt_common/render/emu_thread.h"
+
+class QObject;
+class QPaintEngine;
+class QSurface;
+
+constexpr int default_mouse_constrain_timeout = 10;
+
+class RenderWidget : public QWidget {
+public:
+    explicit RenderWidget(GRenderWindow* parent) : QWidget(parent) {
+        setAttribute(Qt::WA_NativeWindow);
+        setAttribute(Qt::WA_PaintOnScreen);
+        if (QtCommon::GetWindowSystemType() == Core::Frontend::WindowSystemType::Wayland) {
+            setAttribute(Qt::WA_DontCreateNativeAncestors);
+        }
+    }
+
+    virtual ~RenderWidget() = default;
+
+    QPaintEngine* paintEngine() const override {
+        return nullptr;
+    }
+};
+
+struct OpenGLRenderWidget : public RenderWidget {
+    explicit OpenGLRenderWidget(GRenderWindow* parent) : RenderWidget(parent) {
+        windowHandle()->setSurfaceType(QWindow::OpenGLSurface);
+    }
+
+    void SetContext(std::unique_ptr<Core::Frontend::GraphicsContext>&& context_) {
+        context = std::move(context_);
+    }
+
+private:
+    std::unique_ptr<Core::Frontend::GraphicsContext> context;
+};
+
+struct VulkanRenderWidget : public RenderWidget {
+    explicit VulkanRenderWidget(GRenderWindow* parent) : RenderWidget(parent) {
+        windowHandle()->setSurfaceType(QWindow::VulkanSurface);
+    }
+};
+
+struct NullRenderWidget : public RenderWidget {
+    explicit NullRenderWidget(GRenderWindow* parent) : RenderWidget(parent) {}
+};
+
+GRenderWindow::GRenderWindow(MainWindow* parent,
+                             std::shared_ptr<InputCommon::InputSubsystem> input_subsystem_)
+    : QWidget(parent), input_subsystem{std::move(input_subsystem_)} {
+    setWindowTitle(QStringLiteral("Eden %1 | %2-%3")
+                       .arg(QString::fromUtf8(Common::g_build_name),
+                            QString::fromUtf8(Common::g_scm_branch),
+                            QString::fromUtf8(Common::g_scm_desc)));
+    setAttribute(Qt::WA_AcceptTouchEvents);
+    auto* layout = new QHBoxLayout(this);
+    layout->setContentsMargins(0, 0, 0, 0);
+    input_subsystem->Initialize();
+    this->setMouseTracking(true);
+
+    strict_context_required = QGuiApplication::platformName() == QStringLiteral("wayland") ||
+                              QGuiApplication::platformName() == QStringLiteral("wayland-egl");
+
+    connect(this, &GRenderWindow::FirstFrameDisplayed, parent, &MainWindow::OnLoadComplete);
+    connect(this, &GRenderWindow::ExecuteProgramSignal, parent, &MainWindow::OnExecuteProgram,
+            Qt::QueuedConnection);
+    connect(this, &GRenderWindow::ExitSignal, parent, &MainWindow::OnExit, Qt::QueuedConnection);
+    connect(this, &GRenderWindow::TasPlaybackStateChanged, parent, &MainWindow::OnTasStateChanged);
+
+    mouse_constrain_timer.setInterval(default_mouse_constrain_timeout);
+    connect(&mouse_constrain_timer, &QTimer::timeout, this, &GRenderWindow::ConstrainMouse);
+}
+
+void GRenderWindow::ExecuteProgram(std::size_t program_index) {
+    emit ExecuteProgramSignal(program_index);
+}
+
+void GRenderWindow::Exit() {
+    emit ExitSignal();
+}
+
+GRenderWindow::~GRenderWindow() {
+    input_subsystem->Shutdown();
+}
+
+void GRenderWindow::OnFrameDisplayed() {
+    input_subsystem->GetTas()->UpdateThread();
+    const InputCommon::TasInput::TasState new_tas_state =
+        std::get<0>(input_subsystem->GetTas()->GetStatus());
+
+    if (!first_frame) {
+        last_tas_state = new_tas_state;
+        first_frame = true;
+        emit FirstFrameDisplayed();
+    }
+
+    if (new_tas_state != last_tas_state) {
+        last_tas_state = new_tas_state;
+        emit TasPlaybackStateChanged();
+    }
+}
+
+bool GRenderWindow::IsShown() const {
+    return !isMinimized();
+}
+
+// On Qt 5.0+, this correctly gets the size of the framebuffer (pixels).
+//
+// Older versions get the window size (density independent pixels),
+// and hence, do not support DPI scaling ("retina" displays).
+// The result will be a viewport that is smaller than the extent of the window.
+void GRenderWindow::OnFramebufferSizeChanged() {
+    // Screen changes potentially incur a change in screen DPI, hence we should update the
+    // framebuffer size
+    const qreal pixel_ratio = windowPixelRatio();
+    const u32 width = this->width() * pixel_ratio;
+    const u32 height = this->height() * pixel_ratio;
+    UpdateCurrentFramebufferLayout(width, height);
+}
+
+void GRenderWindow::BackupGeometry() {
+    geometry = QWidget::saveGeometry();
+}
+
+void GRenderWindow::RestoreGeometry() {
+    // We don't want to back up the geometry here (obviously)
+    QWidget::restoreGeometry(geometry);
+}
+
+void GRenderWindow::restoreGeometry(const QByteArray& geometry_) {
+    // Make sure users of this class don't need to deal with backing up the geometry themselves
+    QWidget::restoreGeometry(geometry_);
+    BackupGeometry();
+}
+
+QByteArray GRenderWindow::saveGeometry() {
+    // If we are a top-level widget, store the current geometry
+    // otherwise, store the last backup
+    if (parent() == nullptr) {
+        return QWidget::saveGeometry();
+    }
+
+    return geometry;
+}
+
+qreal GRenderWindow::windowPixelRatio() const {
+    return devicePixelRatioF();
+}
+
+std::pair<u32, u32> GRenderWindow::ScaleTouch(const QPointF& pos) const {
+    const qreal pixel_ratio = windowPixelRatio();
+    return {static_cast<u32>((std::max)(std::round(pos.x() * pixel_ratio), qreal{0.0})),
+            static_cast<u32>((std::max)(std::round(pos.y() * pixel_ratio), qreal{0.0}))};
+}
+
+void GRenderWindow::closeEvent(QCloseEvent* event) {
+    emit Closed();
+    QWidget::closeEvent(event);
+}
+
+void GRenderWindow::leaveEvent(QEvent* event) {
+    if (Settings::values.mouse_panning) {
+        const QRect& rect = QWidget::geometry();
+        QPoint position = QCursor::pos();
+
+        qint32 x = qBound(rect.left(), position.x(), rect.right());
+        qint32 y = qBound(rect.top(), position.y(), rect.bottom());
+        // Only start the timer if the mouse has left the window bound.
+        // The leave event is also triggered when the window looses focus.
+        if (x != position.x() || y != position.y()) {
+            mouse_constrain_timer.start();
+        }
+        event->accept();
+    }
+}
+
+int GRenderWindow::QtKeyToSwitchKey(Qt::Key qt_key) {
+    static constexpr std::array<std::pair<Qt::Key, Settings::NativeKeyboard::Keys>, 106> key_map = {
+        std::pair<Qt::Key, Settings::NativeKeyboard::Keys>{Qt::Key_A, Settings::NativeKeyboard::A},
+        {Qt::Key_A, Settings::NativeKeyboard::A},
+        {Qt::Key_B, Settings::NativeKeyboard::B},
+        {Qt::Key_C, Settings::NativeKeyboard::C},
+        {Qt::Key_D, Settings::NativeKeyboard::D},
+        {Qt::Key_E, Settings::NativeKeyboard::E},
+        {Qt::Key_F, Settings::NativeKeyboard::F},
+        {Qt::Key_G, Settings::NativeKeyboard::G},
+        {Qt::Key_H, Settings::NativeKeyboard::H},
+        {Qt::Key_I, Settings::NativeKeyboard::I},
+        {Qt::Key_J, Settings::NativeKeyboard::J},
+        {Qt::Key_K, Settings::NativeKeyboard::K},
+        {Qt::Key_L, Settings::NativeKeyboard::L},
+        {Qt::Key_M, Settings::NativeKeyboard::M},
+        {Qt::Key_N, Settings::NativeKeyboard::N},
+        {Qt::Key_O, Settings::NativeKeyboard::O},
+        {Qt::Key_P, Settings::NativeKeyboard::P},
+        {Qt::Key_Q, Settings::NativeKeyboard::Q},
+        {Qt::Key_R, Settings::NativeKeyboard::R},
+        {Qt::Key_S, Settings::NativeKeyboard::S},
+        {Qt::Key_T, Settings::NativeKeyboard::T},
+        {Qt::Key_U, Settings::NativeKeyboard::U},
+        {Qt::Key_V, Settings::NativeKeyboard::V},
+        {Qt::Key_W, Settings::NativeKeyboard::W},
+        {Qt::Key_X, Settings::NativeKeyboard::X},
+        {Qt::Key_Y, Settings::NativeKeyboard::Y},
+        {Qt::Key_Z, Settings::NativeKeyboard::Z},
+        {Qt::Key_1, Settings::NativeKeyboard::N1},
+        {Qt::Key_2, Settings::NativeKeyboard::N2},
+        {Qt::Key_3, Settings::NativeKeyboard::N3},
+        {Qt::Key_4, Settings::NativeKeyboard::N4},
+        {Qt::Key_5, Settings::NativeKeyboard::N5},
+        {Qt::Key_6, Settings::NativeKeyboard::N6},
+        {Qt::Key_7, Settings::NativeKeyboard::N7},
+        {Qt::Key_8, Settings::NativeKeyboard::N8},
+        {Qt::Key_9, Settings::NativeKeyboard::N9},
+        {Qt::Key_0, Settings::NativeKeyboard::N0},
+        {Qt::Key_Return, Settings::NativeKeyboard::Return},
+        {Qt::Key_Escape, Settings::NativeKeyboard::Escape},
+        {Qt::Key_Backspace, Settings::NativeKeyboard::Backspace},
+        {Qt::Key_Tab, Settings::NativeKeyboard::Tab},
+        {Qt::Key_Space, Settings::NativeKeyboard::Space},
+        {Qt::Key_Minus, Settings::NativeKeyboard::Minus},
+        {Qt::Key_Plus, Settings::NativeKeyboard::Plus},
+        {Qt::Key_questiondown, Settings::NativeKeyboard::Plus},
+        {Qt::Key_BracketLeft, Settings::NativeKeyboard::OpenBracket},
+        {Qt::Key_BraceLeft, Settings::NativeKeyboard::OpenBracket},
+        {Qt::Key_BracketRight, Settings::NativeKeyboard::CloseBracket},
+        {Qt::Key_BraceRight, Settings::NativeKeyboard::CloseBracket},
+        {Qt::Key_Bar, Settings::NativeKeyboard::Pipe},
+        {Qt::Key_Dead_Tilde, Settings::NativeKeyboard::Tilde},
+        {Qt::Key_Ntilde, Settings::NativeKeyboard::Semicolon},
+        {Qt::Key_Semicolon, Settings::NativeKeyboard::Semicolon},
+        {Qt::Key_Apostrophe, Settings::NativeKeyboard::Quote},
+        {Qt::Key_Dead_Grave, Settings::NativeKeyboard::Backquote},
+        {Qt::Key_Comma, Settings::NativeKeyboard::Comma},
+        {Qt::Key_Period, Settings::NativeKeyboard::Period},
+        {Qt::Key_Slash, Settings::NativeKeyboard::Slash},
+        {Qt::Key_CapsLock, Settings::NativeKeyboard::CapsLockKey},
+        {Qt::Key_F1, Settings::NativeKeyboard::F1},
+        {Qt::Key_F2, Settings::NativeKeyboard::F2},
+        {Qt::Key_F3, Settings::NativeKeyboard::F3},
+        {Qt::Key_F4, Settings::NativeKeyboard::F4},
+        {Qt::Key_F5, Settings::NativeKeyboard::F5},
+        {Qt::Key_F6, Settings::NativeKeyboard::F6},
+        {Qt::Key_F7, Settings::NativeKeyboard::F7},
+        {Qt::Key_F8, Settings::NativeKeyboard::F8},
+        {Qt::Key_F9, Settings::NativeKeyboard::F9},
+        {Qt::Key_F10, Settings::NativeKeyboard::F10},
+        {Qt::Key_F11, Settings::NativeKeyboard::F11},
+        {Qt::Key_F12, Settings::NativeKeyboard::F12},
+        {Qt::Key_Print, Settings::NativeKeyboard::PrintScreen},
+        {Qt::Key_ScrollLock, Settings::NativeKeyboard::ScrollLockKey},
+        {Qt::Key_Pause, Settings::NativeKeyboard::Pause},
+        {Qt::Key_Insert, Settings::NativeKeyboard::Insert},
+        {Qt::Key_Home, Settings::NativeKeyboard::Home},
+        {Qt::Key_PageUp, Settings::NativeKeyboard::PageUp},
+        {Qt::Key_Delete, Settings::NativeKeyboard::Delete},
+        {Qt::Key_End, Settings::NativeKeyboard::End},
+        {Qt::Key_PageDown, Settings::NativeKeyboard::PageDown},
+        {Qt::Key_Right, Settings::NativeKeyboard::Right},
+        {Qt::Key_Left, Settings::NativeKeyboard::Left},
+        {Qt::Key_Down, Settings::NativeKeyboard::Down},
+        {Qt::Key_Up, Settings::NativeKeyboard::Up},
+        {Qt::Key_NumLock, Settings::NativeKeyboard::NumLockKey},
+        // Numpad keys are missing here
+        {Qt::Key_F13, Settings::NativeKeyboard::F13},
+        {Qt::Key_F14, Settings::NativeKeyboard::F14},
+        {Qt::Key_F15, Settings::NativeKeyboard::F15},
+        {Qt::Key_F16, Settings::NativeKeyboard::F16},
+        {Qt::Key_F17, Settings::NativeKeyboard::F17},
+        {Qt::Key_F18, Settings::NativeKeyboard::F18},
+        {Qt::Key_F19, Settings::NativeKeyboard::F19},
+        {Qt::Key_F20, Settings::NativeKeyboard::F20},
+        {Qt::Key_F21, Settings::NativeKeyboard::F21},
+        {Qt::Key_F22, Settings::NativeKeyboard::F22},
+        {Qt::Key_F23, Settings::NativeKeyboard::F23},
+        {Qt::Key_F24, Settings::NativeKeyboard::F24},
+        // {Qt::..., Settings::NativeKeyboard::KPComma},
+        // {Qt::..., Settings::NativeKeyboard::Ro},
+        {Qt::Key_Hiragana_Katakana, Settings::NativeKeyboard::KatakanaHiragana},
+        {Qt::Key_yen, Settings::NativeKeyboard::Yen},
+        {Qt::Key_Henkan, Settings::NativeKeyboard::Henkan},
+        {Qt::Key_Muhenkan, Settings::NativeKeyboard::Muhenkan},
+        // {Qt::..., Settings::NativeKeyboard::NumPadCommaPc98},
+        {Qt::Key_Hangul, Settings::NativeKeyboard::HangulEnglish},
+        {Qt::Key_Hangul_Hanja, Settings::NativeKeyboard::Hanja},
+        {Qt::Key_Katakana, Settings::NativeKeyboard::KatakanaKey},
+        {Qt::Key_Hiragana, Settings::NativeKeyboard::HiraganaKey},
+        {Qt::Key_Zenkaku_Hankaku, Settings::NativeKeyboard::ZenkakuHankaku},
+        // Modifier keys are handled by the modifier property
+    };
+
+    for (const auto& [qkey, nkey] : key_map) {
+        if (qt_key == qkey) {
+            return nkey;
+        }
+    }
+
+    return Settings::NativeKeyboard::None;
+}
+
+int GRenderWindow::QtModifierToSwitchModifier(Qt::KeyboardModifiers qt_modifiers) {
+    int modifier = 0;
+
+    if ((qt_modifiers & Qt::KeyboardModifier::ShiftModifier) != 0) {
+        modifier |= 1 << Settings::NativeKeyboard::LeftShift;
+    }
+    if ((qt_modifiers & Qt::KeyboardModifier::ControlModifier) != 0) {
+        modifier |= 1 << Settings::NativeKeyboard::LeftControl;
+    }
+    if ((qt_modifiers & Qt::KeyboardModifier::AltModifier) != 0) {
+        modifier |= 1 << Settings::NativeKeyboard::LeftAlt;
+    }
+    if ((qt_modifiers & Qt::KeyboardModifier::MetaModifier) != 0) {
+        modifier |= 1 << Settings::NativeKeyboard::LeftMeta;
+    }
+
+    // TODO: These keys can't be obtained with Qt::KeyboardModifier
+
+    // if ((qt_modifiers & 0x10) != 0) {
+    //    modifier |= 1 << Settings::NativeKeyboard::RightShift;
+    // }
+    // if ((qt_modifiers & 0x20) != 0) {
+    //    modifier |= 1 << Settings::NativeKeyboard::RightControl;
+    // }
+    // if ((qt_modifiers & 0x40) != 0) {
+    //    modifier |= 1 << Settings::NativeKeyboard::RightAlt;
+    // }
+    // if ((qt_modifiers & 0x80) != 0) {
+    //    modifier |= 1 << Settings::NativeKeyboard::RightMeta;
+    // }
+    // if ((qt_modifiers & 0x100) != 0) {
+    //    modifier |= 1 << Settings::NativeKeyboard::CapsLock;
+    // }
+    // if ((qt_modifiers & 0x200) != 0) {
+    //    modifier |= 1 << Settings::NativeKeyboard::NumLock;
+    // }
+    // if ((qt_modifiers & ???) != 0) {
+    //    modifier |= 1 << Settings::NativeKeyboard::ScrollLock;
+    // }
+    // if ((qt_modifiers & ???) != 0) {
+    //    modifier |= 1 << Settings::NativeKeyboard::Katakana;
+    // }
+    // if ((qt_modifiers & ???) != 0) {
+    //    modifier |= 1 << Settings::NativeKeyboard::Hiragana;
+    // }
+    return modifier;
+}
+
+void GRenderWindow::keyPressEvent(QKeyEvent* event) {
+    /**
+     * This feature can be enhanced with the following functions, but they do not provide
+     * cross-platform behavior.
+     *
+     * event->nativeVirtualKey() can distinguish between keys on the numpad.
+     * event->nativeModifiers() can distinguish between left and right keys and numlock,
+     * capslock, scroll lock.
+     */
+    if (!event->isAutoRepeat()) {
+        const auto modifier = QtModifierToSwitchModifier(event->modifiers());
+        const auto key = QtKeyToSwitchKey(Qt::Key(event->key()));
+        input_subsystem->GetKeyboard()->SetKeyboardModifiers(modifier);
+        input_subsystem->GetKeyboard()->PressKeyboardKey(key);
+        // This is used for gamepads that can have any key mapped
+        input_subsystem->GetKeyboard()->PressKey(event->key());
+    }
+}
+
+void GRenderWindow::keyReleaseEvent(QKeyEvent* event) {
+    /**
+     * This feature can be enhanced with the following functions, but they do not provide
+     * cross-platform behavior.
+     *
+     * event->nativeVirtualKey() can distinguish between keys on the numpad.
+     * event->nativeModifiers() can distinguish between left and right buttons and numlock,
+     * capslock, scroll lock.
+     */
+    if (!event->isAutoRepeat()) {
+        const auto modifier = QtModifierToSwitchModifier(event->modifiers());
+        const auto key = QtKeyToSwitchKey(Qt::Key(event->key()));
+        input_subsystem->GetKeyboard()->SetKeyboardModifiers(modifier);
+        input_subsystem->GetKeyboard()->ReleaseKeyboardKey(key);
+        // This is used for gamepads that can have any key mapped
+        input_subsystem->GetKeyboard()->ReleaseKey(event->key());
+    }
+}
+
+InputCommon::MouseButton GRenderWindow::QtButtonToMouseButton(Qt::MouseButton button) {
+    switch (button) {
+    case Qt::LeftButton:
+        return InputCommon::MouseButton::Left;
+    case Qt::RightButton:
+        return InputCommon::MouseButton::Right;
+    case Qt::MiddleButton:
+        return InputCommon::MouseButton::Wheel;
+    case Qt::BackButton:
+        return InputCommon::MouseButton::Backward;
+    case Qt::ForwardButton:
+        return InputCommon::MouseButton::Forward;
+    case Qt::TaskButton:
+        return InputCommon::MouseButton::Task;
+    default:
+        return InputCommon::MouseButton::Extra;
+    }
+}
+
+void GRenderWindow::mousePressEvent(QMouseEvent* event) {
+    // Touch input is handled in TouchBeginEvent
+    if (event->source() == Qt::MouseEventSynthesizedBySystem) {
+        return;
+    }
+    // Qt sometimes returns the parent coordinates. To avoid this we read the global mouse
+    // coordinates and map them to the current render area
+    const auto pos = mapFromGlobal(QCursor::pos());
+    const auto [x, y] = ScaleTouch(pos);
+    const auto [touch_x, touch_y] = MapToTouchScreen(x, y);
+    const auto button = QtButtonToMouseButton(event->button());
+
+    input_subsystem->GetMouse()->PressMouseButton(button);
+    input_subsystem->GetMouse()->PressButton(pos.x(), pos.y(), button);
+    input_subsystem->GetMouse()->PressTouchButton(touch_x, touch_y, button);
+
+    emit MouseActivity();
+}
+
+void GRenderWindow::mouseMoveEvent(QMouseEvent* event) {
+    // Touch input is handled in TouchUpdateEvent
+    if (event->source() == Qt::MouseEventSynthesizedBySystem) {
+        return;
+    }
+    // Qt sometimes returns the parent coordinates. To avoid this we read the global mouse
+    // coordinates and map them to the current render area
+    const auto pos = mapFromGlobal(QCursor::pos());
+    const auto [x, y] = ScaleTouch(pos);
+    const auto [touch_x, touch_y] = MapToTouchScreen(x, y);
+    const int center_x = width() / 2;
+    const int center_y = height() / 2;
+
+    input_subsystem->GetMouse()->MouseMove(touch_x, touch_y);
+    input_subsystem->GetMouse()->TouchMove(touch_x, touch_y);
+    input_subsystem->GetMouse()->Move(pos.x(), pos.y(), center_x, center_y);
+
+    // Center mouse for mouse panning
+    if (Settings::values.mouse_panning && !Settings::values.mouse_enabled) {
+        QCursor::setPos(mapToGlobal(QPoint{center_x, center_y}));
+    }
+
+    // Constrain mouse for mouse emulation with mouse panning
+    if (Settings::values.mouse_panning && Settings::values.mouse_enabled) {
+        const auto [clamped_mouse_x, clamped_mouse_y] = ClipToTouchScreen(x, y);
+        QCursor::setPos(mapToGlobal(
+            QPoint{static_cast<int>(clamped_mouse_x), static_cast<int>(clamped_mouse_y)}));
+    }
+
+    mouse_constrain_timer.stop();
+    emit MouseActivity();
+}
+
+void GRenderWindow::mouseReleaseEvent(QMouseEvent* event) {
+    // Touch input is handled in TouchEndEvent
+    if (event->source() == Qt::MouseEventSynthesizedBySystem) {
+        return;
+    }
+
+    const auto button = QtButtonToMouseButton(event->button());
+    input_subsystem->GetMouse()->ReleaseButton(button);
+}
+
+void GRenderWindow::ConstrainMouse() {
+    if (QtCommon::emu_thread == nullptr || !Settings::values.mouse_panning) {
+        mouse_constrain_timer.stop();
+        return;
+    }
+
+    if (!this->isActiveWindow()) {
+        mouse_constrain_timer.stop();
+        return;
+    }
+
+    if (Settings::values.mouse_enabled) {
+        const auto pos = mapFromGlobal(QCursor::pos());
+        const int new_pos_x = std::clamp(pos.x(), 0, width());
+        const int new_pos_y = std::clamp(pos.y(), 0, height());
+
+        QCursor::setPos(mapToGlobal(QPoint{new_pos_x, new_pos_y}));
+        return;
+    }
+
+    const int center_x = width() / 2;
+    const int center_y = height() / 2;
+
+    QCursor::setPos(mapToGlobal(QPoint{center_x, center_y}));
+}
+
+void GRenderWindow::wheelEvent(QWheelEvent* event) {
+    const int x = event->angleDelta().x();
+    const int y = event->angleDelta().y();
+    input_subsystem->GetMouse()->MouseWheelChange(x, y);
+}
+
+void GRenderWindow::TouchBeginEvent(const QTouchEvent* event) {
+    QList<QTouchEvent::TouchPoint> touch_points = event->points();
+    for (const auto& touch_point : touch_points) {
+        const auto [x, y] = ScaleTouch(touch_point.position());
+        const auto [touch_x, touch_y] = MapToTouchScreen(x, y);
+        input_subsystem->GetTouchScreen()->TouchPressed(touch_x, touch_y, touch_point.id());
+    }
+}
+
+void GRenderWindow::TouchUpdateEvent(const QTouchEvent* event) {
+    QList<QTouchEvent::TouchPoint> touch_points = event->points();
+    input_subsystem->GetTouchScreen()->ClearActiveFlag();
+    for (const auto& touch_point : touch_points) {
+        const auto [x, y] = ScaleTouch(touch_point.position());
+        const auto [touch_x, touch_y] = MapToTouchScreen(x, y);
+        input_subsystem->GetTouchScreen()->TouchMoved(touch_x, touch_y, touch_point.id());
+    }
+    input_subsystem->GetTouchScreen()->ReleaseInactiveTouch();
+}
+
+void GRenderWindow::TouchEndEvent() {
+    input_subsystem->GetTouchScreen()->ReleaseAllTouch();
+}
+
+void GRenderWindow::InitializeCamera() {
+#if YUZU_USE_QT_MULTIMEDIA
+    constexpr auto camera_update_ms = std::chrono::milliseconds{50}; // (50ms, 20Hz)
+    if (!Settings::values.enable_ir_sensor) {
+        return;
+    }
+
+    bool camera_found = false;
+    std::string current_device = Settings::values.ir_sensor_device.GetValue();
+#ifdef _WIN32
+    std::replace(current_device.begin(), current_device.end(), '|', '\\');
+#endif
+    const QList<QCameraDevice> cameras = QMediaDevices::videoInputs();
+    for (const QCameraDevice& cameraDevice : cameras) {
+        if (current_device == cameraDevice.id().toStdString() || current_device == "auto") {
+            if (cameraDevice.videoFormats().isEmpty()) {
+                LOG_ERROR(Frontend, "Camera doesn't provide any video formats.");
+                continue;
+            }
+            camera = std::make_unique<QCamera>(cameraDevice);
+            camera_found = true;
+            break;
+        }
+    }
+
+    if (!camera_found) {
+        return;
+    }
+
+    capture_session = std::make_unique<QMediaCaptureSession>();
+    camera_capture = std::make_unique<QImageCapture>();
+    capture_session->setCamera(camera.get());
+    capture_session->setImageCapture(camera_capture.get());
+
+    const auto camera_width = input_subsystem->GetCamera()->getImageWidth();
+    const auto camera_height = input_subsystem->GetCamera()->getImageHeight();
+    camera_data.resize(camera_width * camera_height);
+    connect(camera_capture.get(), &QImageCapture::imageCaptured, this,
+            &GRenderWindow::OnCameraCapture);
+    camera->start();
+
+    pending_camera_snapshots = 0;
+    is_virtual_camera = false;
+
+    camera_timer = std::make_unique<QTimer>();
+    connect(camera_timer.get(), &QTimer::timeout, [this] { RequestCameraCapture(); });
+    // This timer should be dependent of camera resolution 5ms for every 100 pixels
+    camera_timer->start(camera_update_ms);
+#endif
+}
+
+void GRenderWindow::FinalizeCamera() {
+#if YUZU_USE_QT_MULTIMEDIA
+    if (camera_timer) {
+        camera_timer->stop();
+    }
+    if (camera) {
+        camera->stop();
+    }
+#endif
+}
+
+void GRenderWindow::RequestCameraCapture() {
+#if YUZU_USE_QT_MULTIMEDIA
+    if (!Settings::values.enable_ir_sensor) {
+        return;
+    }
+
+    // If the camera doesn't capture, test for virtual cameras
+    if (pending_camera_snapshots > 5) {
+        is_virtual_camera = true;
+    }
+    // Virtual cameras like obs need to reset the camera every capture
+    if (is_virtual_camera) {
+        camera->stop();
+        camera->start();
+    }
+
+    pending_camera_snapshots++;
+    camera_capture->capture();
+#endif
+}
+
+void GRenderWindow::OnCameraCapture(int requestId, const QImage& img) {
+#if YUZU_USE_QT_MULTIMEDIA
+    // TODO: Capture directly in the format and resolution needed
+    const auto camera_width = input_subsystem->GetCamera()->getImageWidth();
+    const auto camera_height = input_subsystem->GetCamera()->getImageHeight();
+    const auto converted =
+        img.scaled(static_cast<int>(camera_width), static_cast<int>(camera_height),
+                   Qt::AspectRatioMode::IgnoreAspectRatio,
+                   Qt::TransformationMode::SmoothTransformation)
+            .mirrored(false, true);
+    if (camera_data.size() != camera_width * camera_height) {
+        camera_data.resize(camera_width * camera_height);
+    }
+    std::memcpy(camera_data.data(), converted.bits(), camera_width * camera_height * sizeof(u32));
+    input_subsystem->GetCamera()->SetCameraData(camera_width, camera_height, camera_data);
+    pending_camera_snapshots = 0;
+#endif
+}
+
+bool GRenderWindow::event(QEvent* event) {
+    if (event->type() == QEvent::TouchBegin) {
+        TouchBeginEvent(static_cast<QTouchEvent*>(event));
+        return true;
+    } else if (event->type() == QEvent::TouchUpdate) {
+        TouchUpdateEvent(static_cast<QTouchEvent*>(event));
+        return true;
+    } else if (event->type() == QEvent::TouchEnd || event->type() == QEvent::TouchCancel) {
+        TouchEndEvent();
+        return true;
+    }
+
+    return QWidget::event(event);
+}
+
+void GRenderWindow::focusOutEvent(QFocusEvent* event) {
+    QWidget::focusOutEvent(event);
+    input_subsystem->GetKeyboard()->ReleaseAllKeys();
+    input_subsystem->GetMouse()->ReleaseAllButtons();
+    input_subsystem->GetTouchScreen()->ReleaseAllTouch();
+}
+
+void GRenderWindow::resizeEvent(QResizeEvent* event) {
+    QWidget::resizeEvent(event);
+    OnFramebufferSizeChanged();
+}
+
+std::unique_ptr<Core::Frontend::GraphicsContext> GRenderWindow::CreateSharedContext() const {
+#ifdef HAS_OPENGL
+    if (Settings::values.renderer_backend.GetValue() == Settings::RendererBackend::OpenGL_GLSL ||
+        Settings::values.renderer_backend.GetValue() == Settings::RendererBackend::OpenGL_GLASM ||
+        Settings::values.renderer_backend.GetValue() == Settings::RendererBackend::OpenGL_SPIRV) {
+        auto c = static_cast<OpenGLSharedContext*>(main_context.get());
+        // Bind the shared contexts to the main surface in case the backend wants to take over
+        // presentation
+        return std::make_unique<OpenGLSharedContext>(c->GetShareContext(),
+                                                     child_widget->windowHandle());
+    }
+#endif
+    return std::make_unique<DummyContext>();
+}
+
+bool GRenderWindow::InitRenderTarget() {
+    ReleaseRenderTarget();
+
+    {
+        // Create a dummy render widget so that Qt
+        // places the render window at the correct position.
+        const RenderWidget dummy_widget{this};
+    }
+
+    first_frame = false;
+
+    switch (Settings::values.renderer_backend.GetValue()) {
+    case Settings::RendererBackend::OpenGL_GLSL:
+    case Settings::RendererBackend::OpenGL_GLASM:
+    case Settings::RendererBackend::OpenGL_SPIRV:
+        if (!InitializeOpenGL())
+            return false;
+        break;
+    case Settings::RendererBackend::Vulkan:
+        if (!InitializeVulkan())
+            return false;
+        break;
+    case Settings::RendererBackend::Null:
+        InitializeNull();
+        break;
+    }
+
+    // Update the Window System information with the new render target
+    window_info = QtCommon::GetWindowSystemInfo(child_widget->windowHandle());
+
+    child_widget->resize(Layout::ScreenUndocked::Width, Layout::ScreenUndocked::Height);
+    layout()->addWidget(child_widget);
+    // Reset minimum required size to avoid resizing issues on the main window after restarting.
+    setMinimumSize(1, 1);
+
+    resize(Layout::ScreenUndocked::Width, Layout::ScreenUndocked::Height);
+
+    OnMinimalClientAreaChangeRequest(GetActiveConfig().min_client_area_size);
+    OnFramebufferSizeChanged();
+    BackupGeometry();
+
+    if (Settings::values.renderer_backend.GetValue() == Settings::RendererBackend::OpenGL_GLSL ||
+        Settings::values.renderer_backend.GetValue() == Settings::RendererBackend::OpenGL_GLASM ||
+        Settings::values.renderer_backend.GetValue() == Settings::RendererBackend::OpenGL_SPIRV)
+        return LoadOpenGL();
+    return true;
+}
+
+void GRenderWindow::ReleaseRenderTarget() {
+    if (child_widget) {
+        layout()->removeWidget(child_widget);
+        child_widget->deleteLater();
+        child_widget = nullptr;
+    }
+    main_context.reset();
+}
+
+void GRenderWindow::CaptureScreenshot(const QString& screenshot_path) {
+    auto& renderer = QtCommon::system->Renderer();
+
+    if (renderer.IsScreenshotPending()) {
+        LOG_WARNING(Render,
+                    "A screenshot is already requested or in progress, ignoring the request");
+        return;
+    }
+
+    const Layout::FramebufferLayout layout{[]() {
+        u32 height = UISettings::values.screenshot_height.GetValue();
+        if (height == 0) {
+            height = Settings::IsDockedMode() ? Layout::ScreenDocked::Height
+                                              : Layout::ScreenUndocked::Height;
+            height *= Settings::values.resolution_info.up_factor;
+        }
+        const u32 width =
+            UISettings::CalculateWidth(height, Settings::values.aspect_ratio.GetValue());
+        return Layout::DefaultFrameLayout(width, height);
+    }()};
+
+    screenshot_image = QImage(QSize(layout.width, layout.height), QImage::Format_RGB32);
+    renderer.RequestScreenshot(
+        screenshot_image.bits(),
+        [=, this](bool invert_y) {
+            const std::string std_screenshot_path = screenshot_path.toStdString();
+#if QT_VERSION >= QT_VERSION_CHECK(6, 9, 0)
+            if (screenshot_image.flipped(invert_y ? Qt::Vertical : (Qt::Orientations)0)
+                    .save(screenshot_path)) {
+#else
+            if (screenshot_image.mirrored(false, invert_y).save(screenshot_path)) {
+#endif
+                LOG_INFO(Frontend, "Screenshot saved to \"{}\"", std_screenshot_path);
+            } else {
+                LOG_ERROR(Frontend, "Failed to save screenshot to \"{}\"", std_screenshot_path);
+            }
+        },
+        layout);
+}
+
+bool GRenderWindow::IsLoadingComplete() const {
+    return first_frame;
+}
+
+void GRenderWindow::OnMinimalClientAreaChangeRequest(std::pair<u32, u32> minimal_size) {
+    setMinimumSize(minimal_size.first, minimal_size.second);
+}
+
+bool GRenderWindow::InitializeOpenGL() {
+#ifdef HAS_OPENGL
+    if (!QOpenGLContext::supportsThreadedOpenGL()) {
+        QMessageBox::warning(this, tr("OpenGL not available!"),
+                             tr("OpenGL shared contexts are not supported."));
+        return false;
+    }
+
+    // TODO: One of these flags might be interesting: WA_OpaquePaintEvent, WA_NoBackground,
+    // WA_DontShowOnScreen, WA_DeleteOnClose
+    auto child = new OpenGLRenderWidget(this);
+    child_widget = child;
+    child_widget->windowHandle()->create();
+    auto context = std::make_shared<OpenGLSharedContext>(child->windowHandle());
+    main_context = context;
+    child->SetContext(
+        std::make_unique<OpenGLSharedContext>(context->GetShareContext(), child->windowHandle()));
+
+    return true;
+#else
+    QMessageBox::warning(this, tr("OpenGL not available!"),
+                         tr("Eden has not been compiled with OpenGL support."));
+    return false;
+#endif
+}
+
+bool GRenderWindow::InitializeVulkan() {
+    auto child = new VulkanRenderWidget(this);
+    child_widget = child;
+    child_widget->windowHandle()->create();
+    main_context = std::make_unique<DummyContext>();
+    return true;
+}
+
+void GRenderWindow::InitializeNull() {
+    child_widget = new NullRenderWidget(this);
+    main_context = std::make_unique<DummyContext>();
+}
+
+bool GRenderWindow::LoadOpenGL() {
+#ifdef HAS_OPENGL
+    auto context = CreateSharedContext();
+    auto scope = context->Acquire();
+    if (!gladLoadGL()) {
+        QtCommon::Frontend::Warning(
+            tr("Error while initializing OpenGL!"),
+            tr("Your GPU may not support OpenGL, or you do not have the latest graphics driver."));
+        return false;
+    }
+    // Display various warnings (but not fatal errors) for missing OpenGL extensions or lack of
+    // OpenGL 4.6 support
+    const QString renderer =
+        QString::fromUtf8(reinterpret_cast<const char*>(glGetString(GL_RENDERER)));
+    if (!GLAD_GL_VERSION_4_6) {
+        QtCommon::Frontend::Warning(
+            tr("Error while initializing OpenGL 4.6!"),
+            tr("Your GPU may not support OpenGL 4.6, or you do not have the "
+            "latest graphics driver.<br><br>GL Renderer:<br>%1")
+                .arg(renderer));
+        return false;
+    }
+    if (QStringList missing_ext = GetUnsupportedGLExtensions(); !missing_ext.empty()) {
+        QtCommon::Frontend::Warning(
+            tr("Error while initializing OpenGL!"),
+            tr("Your GPU may not support one or more required OpenGL extensions. Please ensure you "
+               "have the latest graphics driver.<br><br>GL Renderer:<br>%1<br><br>Unsupported "
+               "extensions:<br>%2")
+                .arg(renderer, missing_ext.join(QStringLiteral("<br>"))));
+        // Non fatal
+    }
+    return true;
+#else
+    QtCommon::Frontend::Warning(
+        tr("Error while initializing OpenGL!"),
+        tr("This build doesn't have OpenGL support."));
+    return false;
+#endif
+}
+
+QStringList GRenderWindow::GetUnsupportedGLExtensions() const {
+    QStringList missing_ext{};
+#ifdef HAS_OPENGL
+    // Extensions required to support some texture formats.
+    if (!GLAD_GL_EXT_texture_compression_s3tc)
+        missing_ext.append(QStringLiteral("EXT_texture_compression_s3tc"));
+    if (!GLAD_GL_ARB_texture_compression_rgtc)
+        missing_ext.append(QStringLiteral("ARB_texture_compression_rgtc"));
+    if (!missing_ext.empty())
+        LOG_ERROR(Frontend, "GPU does not support all required extensions");
+    for (const QString& ext : missing_ext)
+        LOG_ERROR(Frontend, "Unsupported GL extension: {}", ext.toStdString());
+#endif
+    return missing_ext;
+}
+
+void GRenderWindow::showEvent(QShowEvent* event) {
+    QWidget::showEvent(event);
+
+    // windowHandle() is not initialized until the Window is shown, so we connect it here.
+    connect(windowHandle(), &QWindow::screenChanged, this, &GRenderWindow::OnFramebufferSizeChanged,
+            Qt::UniqueConnection);
+}
+
+bool GRenderWindow::eventFilter(QObject* object, QEvent* event) {
+    if (event->type() == QEvent::HoverMove) {
+        if (Settings::values.mouse_panning || Settings::values.mouse_enabled) {
+            auto* hover_event = static_cast<QMouseEvent*>(event);
+            mouseMoveEvent(hover_event);
+            return false;
+        }
+        emit MouseActivity();
+    }
+    return false;
+}

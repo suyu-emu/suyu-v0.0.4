@@ -1,0 +1,181 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>PerformanceOverlay</class>
+ <widget class="QWidget" name="PerformanceOverlay">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>225</width>
+    <height>250</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>Form</string>
+  </property>
+  <layout class="QVBoxLayout" name="verticalLayout">
+   <item>
+    <layout class="QHBoxLayout" name="ft_label_layout">
+     <item>
+      <widget class="QLabel" name="label_3">
+       <property name="font">
+        <font>
+         <family>Sans Serif</family>
+         <pointsize>12</pointsize>
+         <bold>true</bold>
+        </font>
+       </property>
+       <property name="styleSheet">
+        <string notr="true">color: #0000ff;</string>
+       </property>
+       <property name="text">
+        <string>Frametime</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QLabel" name="frametime">
+       <property name="font">
+        <font>
+         <family>Sans Serif</family>
+         <pointsize>12</pointsize>
+        </font>
+       </property>
+       <property name="text">
+        <string>0 ms</string>
+       </property>
+      </widget>
+     </item>
+    </layout>
+   </item>
+   <item>
+    <layout class="QHBoxLayout" name="ft_layout">
+     <item>
+      <widget class="QLabel" name="ft_min">
+       <property name="font">
+        <font>
+         <family>Sans Serif</family>
+         <pointsize>10</pointsize>
+         <bold>false</bold>
+        </font>
+       </property>
+       <property name="text">
+        <string>Min: 0</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QLabel" name="ft_max">
+       <property name="font">
+        <font>
+         <family>Sans Serif</family>
+         <pointsize>10</pointsize>
+         <bold>false</bold>
+        </font>
+       </property>
+       <property name="text">
+        <string>Max: 0</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QLabel" name="ft_avg">
+       <property name="font">
+        <font>
+         <family>Sans Serif</family>
+         <pointsize>10</pointsize>
+         <bold>false</bold>
+        </font>
+       </property>
+       <property name="text">
+        <string>Avg: 0</string>
+       </property>
+      </widget>
+     </item>
+    </layout>
+   </item>
+   <item>
+    <layout class="QHBoxLayout" name="fps_label_layout">
+     <item>
+      <widget class="QLabel" name="label_4">
+       <property name="font">
+        <font>
+         <family>Sans Serif</family>
+         <pointsize>12</pointsize>
+         <bold>true</bold>
+        </font>
+       </property>
+       <property name="styleSheet">
+        <string notr="true">color: #ff0000;</string>
+       </property>
+       <property name="text">
+        <string>FPS</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QLabel" name="fps">
+       <property name="font">
+        <font>
+         <family>Sans Serif</family>
+         <pointsize>12</pointsize>
+        </font>
+       </property>
+       <property name="text">
+        <string>0 fps</string>
+       </property>
+      </widget>
+     </item>
+    </layout>
+   </item>
+   <item>
+    <layout class="QHBoxLayout" name="horizontalLayout">
+     <item>
+      <widget class="QLabel" name="fps_min">
+       <property name="font">
+        <font>
+         <family>Sans Serif</family>
+         <pointsize>10</pointsize>
+         <bold>false</bold>
+        </font>
+       </property>
+       <property name="text">
+        <string>Min: 0</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QLabel" name="fps_max">
+       <property name="font">
+        <font>
+         <family>Sans Serif</family>
+         <pointsize>10</pointsize>
+         <bold>false</bold>
+        </font>
+       </property>
+       <property name="text">
+        <string>Max: 0</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QLabel" name="fps_avg">
+       <property name="font">
+        <font>
+         <family>Sans Serif</family>
+         <pointsize>10</pointsize>
+         <bold>false</bold>
+        </font>
+       </property>
+       <property name="text">
+        <string>Avg: 0</string>
+       </property>
+      </widget>
+     </item>
+    </layout>
+   </item>
+  </layout>
+ </widget>
+ <resources/>
+ <connections/>
+</ui>

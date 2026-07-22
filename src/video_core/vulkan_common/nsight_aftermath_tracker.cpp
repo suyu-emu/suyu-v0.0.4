@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2020 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -10,13 +13,13 @@
 #include <utility>
 #include <vector>
 
-#include <fmt/format.h>
+#include <fmt/ranges.h>
 
 #include "common/common_types.h"
 #include "common/fs/file.h"
 #include "common/fs/fs.h"
 #include "common/fs/path_util.h"
-#include "common/logging/log.h"
+#include "common/logging.h"
 #include "common/scope_exit.h"
 #include "video_core/vulkan_common/nsight_aftermath_tracker.h"
 
@@ -47,7 +50,7 @@ NsightAftermathTracker::NsightAftermathTracker() {
         LOG_ERROR(Render_Vulkan, "Failed to load Nsight Aftermath function pointers");
         return;
     }
-    dump_dir = Common::FS::GetSuyuPath(Common::FS::SuyuPath::LogDir) / "gpucrash";
+    dump_dir = Common::FS::GetEdenPath(Common::FS::EdenPath::LogDir) / "gpucrash";
 
     Common::FS::RemoveDirRecursively(dump_dir);
     if (!Common::FS::CreateDir(dump_dir)) {
@@ -186,7 +189,7 @@ void NsightAftermathTracker::OnShaderDebugInfoCallback(const void* shader_debug_
 
 void NsightAftermathTracker::OnCrashDumpDescriptionCallback(
     PFN_GFSDK_Aftermath_AddGpuCrashDumpDescription add_description) {
-    add_description(GFSDK_Aftermath_GpuCrashDumpDescriptionKey_ApplicationName, "suyu");
+    add_description(GFSDK_Aftermath_GpuCrashDumpDescriptionKey_ApplicationName, "Eden");
 }
 
 void NsightAftermathTracker::GpuCrashDumpCallback(const void* gpu_crash_dump,

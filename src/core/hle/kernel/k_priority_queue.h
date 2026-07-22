@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2020 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -5,12 +8,13 @@
 
 #include <array>
 #include <bit>
+#include <bitset>
 #include <concepts>
+#include <cstddef>
 
+#include "common/alignment.h"
 #include "common/assert.h"
-#include "common/bit_set.h"
 #include "common/common_types.h"
-#include "common/concepts.h"
 
 namespace Kernel {
 
@@ -19,7 +23,7 @@ class KThread;
 template <typename T>
 concept KPriorityQueueAffinityMask = !
 std::is_reference_v<T>&& requires(T& t) {
-                             { t.GetAffinityMask() } -> Common::ConvertibleTo<u64>;
+                             { t.GetAffinityMask() } -> std::convertible_to<u64>;
                              { t.SetAffinityMask(0) };
 
                              { t.GetAffinity(0) } -> std::same_as<bool>;
@@ -45,9 +49,9 @@ std::is_reference_v<T>&& requires(T& t) {
                                  std::remove_cvref_t<decltype(t.GetAffinityMask())>()
                                  } -> KPriorityQueueAffinityMask;
 
-                             { t.GetActiveCore() } -> Common::ConvertibleTo<s32>;
-                             { t.GetPriority() } -> Common::ConvertibleTo<s32>;
-                             { t.IsDummyThread() } -> Common::ConvertibleTo<bool>;
+                             { t.GetActiveCore() } -> std::convertible_to<s32>;
+                             { t.GetPriority() } -> std::convertible_to<s32>;
+                             { t.IsDummyThread() } -> std::convertible_to<bool>;
                          };
 
 template <typename Member, size_t NumCores_, int LowestPriority, int HighestPriority>
@@ -159,7 +163,7 @@ public:
             }
 
             if (m_queues[priority].PushBack(core, member)) {
-                m_available_priorities[core].SetBit(priority);
+                m_available_priorities[core].set(std::size_t(priority));
             }
         }
 
@@ -172,7 +176,7 @@ public:
             }
 
             if (m_queues[priority].PushFront(core, member)) {
-                m_available_priorities[core].SetBit(priority);
+                m_available_priorities[core].set(std::size_t(priority));
             }
         }
 
@@ -185,14 +189,19 @@ public:
             }
 
             if (m_queues[priority].Remove(core, member)) {
-                m_available_priorities[core].ClearBit(priority);
+                m_available_priorities[core].reset(std::size_t(priority));
             }
         }
 
         constexpr Member* GetFront(s32 core) const {
             ASSERT(IsValidCore(core));
 
-            const s32 priority = static_cast<s32>(m_available_priorities[core].CountLeadingZero());
+            const s32 priority = s32([](auto const& e) {
+                for (size_t i = 0; i < e.size(); ++i)
+                    if (e[i])
+                        return i;
+                return e.size();
+            }(m_available_priorities[core]));
             if (priority <= LowestPriority) {
                 return m_queues[priority].GetFront(core);
             } else {
@@ -211,16 +220,22 @@ public:
             }
         }
 
+        template<size_t N>
+        constexpr size_t GetNextSet(std::bitset<N> const& bit, size_t n) const {
+            for (size_t i = n + 1; i < bit.size(); i++)
+                if (bit[i])
+                    return i;
+            return bit.size();
+        }
+
         constexpr Member* GetNext(s32 core, const Member* member) const {
             ASSERT(IsValidCore(core));
 
             Member* next = member->GetPriorityQueueEntry(core).GetNext();
             if (next == nullptr) {
-                const s32 priority = static_cast<s32>(
-                    m_available_priorities[core].GetNextSet(member->GetPriority()));
-                if (priority <= LowestPriority) {
+                s32 priority = s32(GetNextSet(m_available_priorities[core], member->GetPriority()));
+                if (priority <= LowestPriority)
                     next = m_queues[priority].GetFront(core);
-                }
             }
             return next;
         }
@@ -250,7 +265,7 @@ public:
 
     private:
         std::array<KPerCoreQueue, NumPriority> m_queues{};
-        std::array<Common::BitSet64<NumPriority>, NumCores> m_available_priorities{};
+        std::array<std::bitset<NumPriority>, NumCores> m_available_priorities{};
     };
 
 private:

@@ -1,14 +1,25 @@
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2022 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
-#include <algorithm>
 #include <mutex>
-#include <thread>
-
+#include <utility>
 #include <boost/asio.hpp>
-#include <boost/process/async_pipe.hpp>
+#include <boost/version.hpp>
 
-#include "common/logging/log.h"
+#if BOOST_VERSION > 108400 && (!defined(_WINDOWS) && !defined(__ANDROID__)) || defined(YUZU_BOOST_v1)
+#define USE_BOOST_v1
+#endif
+
+#ifdef USE_BOOST_v1
+#include <boost/process/v1/async_pipe.hpp>
+#else
+#include <boost/process/async_pipe.hpp>
+#endif
+
+#include "common/logging.h"
 #include "common/polyfill_thread.h"
 #include "common/thread.h"
 #include "core/core.h"
@@ -70,7 +81,10 @@ namespace Core {
 
 class DebuggerImpl : public DebuggerBackend {
 public:
-    explicit DebuggerImpl(Core::System& system_, u16 port) : system{system_} {
+    explicit DebuggerImpl(Core::System& system_, u16 port)
+        : system{system_}
+        , debug_process{system_.Kernel()}
+    {
         InitializeServer(port);
     }
 
@@ -110,7 +124,7 @@ public:
     }
 
     void SetActiveThread(Kernel::KThread* thread) override {
-        state->active_thread = thread;
+        state->active_thread = {system.Kernel(), thread};
     }
 
     Kernel::KThread* GetActiveThread() override {
@@ -157,14 +171,7 @@ private:
         frontend = std::make_unique<GDBStub>(*this, system, debug_process.GetPointerUnsafe());
 
         // Set the new state. This will tear down any existing state.
-        state = ConnectionState{
-            .client_socket{std::move(peer)},
-            .signal_pipe{io_context},
-            .info{},
-            .active_thread{},
-            .client_data{},
-            .pipe_data{},
-        };
+        state.emplace(std::move(peer), io_context, system.Kernel());
 
         // Set up the client signals for new data.
         AsyncReceiveInto(state->signal_pipe, state->pipe_data, [&](auto d) { PipeData(d); });
@@ -193,7 +200,7 @@ private:
             PauseEmulation();
 
             // Notify the client.
-            state->active_thread = state->info.thread;
+            state->active_thread = {system.Kernel(), state->info.thread};
             UpdateActiveThread();
 
             if (state->info.type == SignalType::Watchpoint) {
@@ -236,17 +243,19 @@ private:
             case DebuggerAction::Continue:
                 MarkResumed([&] { ResumeEmulation(); });
                 break;
-            case DebuggerAction::StepThreadUnlocked:
-                MarkResumed([&] {
-                    state->active_thread->SetStepState(Kernel::StepState::StepPending);
-                    state->active_thread->Resume(Kernel::SuspendType::Debug);
-                    ResumeEmulation(state->active_thread.GetPointerUnsafe());
+            case DebuggerAction::ContinueThreads: {
+                auto* gdb = static_cast<GDBStub*>(frontend.get());
+                MarkResumed([this, threads = std::move(gdb->resume_threads)] {
+                    ResumeThreads(threads);
                 });
                 break;
-            case DebuggerAction::StepThreadLocked: {
-                MarkResumed([&] {
+            }
+            case DebuggerAction::StepThread: {
+                auto* gdb = static_cast<GDBStub*>(frontend.get());
+                MarkResumed([this, threads = std::move(gdb->resume_threads)] {
                     state->active_thread->SetStepState(Kernel::StepState::StepPending);
-                    state->active_thread->Resume(Kernel::SuspendType::Debug);
+                    state->active_thread->Resume(system.Kernel(), Kernel::SuspendType::Debug);
+                    ResumeThreads(threads, state->active_thread.GetPointerUnsafe());
                 });
                 break;
             }
@@ -268,7 +277,7 @@ private:
 
         // Put all threads to sleep on next scheduler round.
         for (auto& thread : ThreadList()) {
-            thread.RequestSuspend(Kernel::SuspendType::Debug);
+            thread.RequestSuspend(system.Kernel(), Kernel::SuspendType::Debug);
         }
     }
 
@@ -283,7 +292,23 @@ private:
             }
 
             thread.SetStepState(Kernel::StepState::NotStepping);
-            thread.Resume(Kernel::SuspendType::Debug);
+            thread.Resume(system.Kernel(), Kernel::SuspendType::Debug);
+        }
+    }
+
+    void ResumeThreads(const std::vector<Kernel::KThread*>& threads,
+                       Kernel::KThread* except = nullptr) {
+        Kernel::KScopedLightLock ll{debug_process->GetListLock()};
+        Kernel::KScopedSchedulerLock sl{system.Kernel()};
+
+        // Wake up only the specified threads.
+        for (auto* thread : threads) {
+            if (!thread || thread == except) {
+                continue;
+            }
+
+            thread->SetStepState(Kernel::StepState::NotStepping);
+            thread->Resume(system.Kernel(), Kernel::SuspendType::Debug);
         }
     }
 
@@ -303,7 +328,7 @@ private:
                 return;
             }
         }
-        state->active_thread = std::addressof(threads.front());
+        state->active_thread = {system.Kernel(), std::addressof(threads.front())};
     }
 
 private:
@@ -325,9 +350,20 @@ private:
     std::mutex connection_lock;
 
     struct ConnectionState {
-        boost::asio::ip::tcp::socket client_socket;
-        boost::process::async_pipe signal_pipe;
+#ifdef USE_BOOST_v1
+        using async_pipe = boost::process::v1::async_pipe;
+#else
+        using async_pipe = boost::process::async_pipe;
+#endif
 
+        ConnectionState(boost::asio::ip::tcp::socket&& client_socket_, async_pipe signal_pipe_, Kernel::KernelCore& kernel)
+            : client_socket{std::move(client_socket_)}
+            , signal_pipe{signal_pipe_}
+            , active_thread{kernel, nullptr}
+        {}
+
+        boost::asio::ip::tcp::socket client_socket;
+        async_pipe signal_pipe;
         SignalInfo info;
         Kernel::KScopedAutoObject<Kernel::KThread> active_thread;
         std::array<u8, 4096> client_data;

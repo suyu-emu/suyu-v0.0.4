@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2018 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -6,9 +9,9 @@
 #include <utility>
 #include <vector>
 
-#include <fmt/format.h>
+#include <fmt/ranges.h>
 
-#include "common/microprofile.h"
+#include "common/logging.h"
 #include "common/socket_types.h"
 #include "core/core.h"
 #include "core/hle/kernel/k_thread.h"
@@ -19,9 +22,7 @@
 #include "core/internal_network/socket_proxy.h"
 #include "core/internal_network/sockets.h"
 #include "network/network.h"
-
-using Common::Expected;
-using Common::Unexpected;
+#include <common/settings.h>
 
 namespace Service::Sockets {
 
@@ -42,13 +43,13 @@ bool IsConnectionBased(Type type) {
 template <typename T>
 T GetValue(std::span<const u8> buffer) {
     T t{};
-    std::memcpy(&t, buffer.data(), std::min(sizeof(T), buffer.size()));
+    std::memcpy(&t, buffer.data(), (std::min)(sizeof(T), buffer.size()));
     return t;
 }
 
 template <typename T>
 void PutValue(std::span<u8> buffer, const T& t) {
-    std::memcpy(buffer.data(), &t, std::min(sizeof(T), buffer.size()));
+    std::memcpy(buffer.data(), &t, (std::min)(sizeof(T), buffer.size()));
 }
 
 } // Anonymous namespace
@@ -460,13 +461,22 @@ void BSD::DuplicateSocket(HLERequestContext& ctx) {
     IPC::RequestParser rp{ctx};
     auto input = rp.PopRaw<InputParameters>();
 
-    Expected<s32, Errno> res = DuplicateSocketImpl(input.fd);
     IPC::ResponseBuilder rb{ctx, 4};
     rb.Push(ResultSuccess);
-    rb.PushRaw(OutputParameters{
-        .ret = res.value_or(0),
-        .bsd_errno = res ? Errno::SUCCESS : res.error(),
-    });
+
+    auto const res_v = DuplicateSocketImpl(input.fd);
+    if (auto* res = std::get_if<s32>(&res_v)) {
+        rb.PushRaw(OutputParameters{
+            .ret = *res,
+            .bsd_errno = Errno::SUCCESS,
+        });
+    } else {
+        auto* err = std::get_if<Errno>(&res_v);
+        rb.PushRaw(OutputParameters{
+            .ret = 0,
+            .bsd_errno = *err,
+        });
+    }
 }
 
 void BSD::EventFd(HLERequestContext& ctx) {
@@ -486,6 +496,7 @@ void BSD::ExecuteWork(HLERequestContext& ctx, Work work) {
 }
 
 std::pair<s32, Errno> BSD::SocketImpl(Domain domain, Type type, Protocol protocol) {
+
     if (type == Type::SEQPACKET) {
         UNIMPLEMENTED_MSG("SOCK_SEQPACKET errno management");
     } else if (type == Type::RAW && (domain != Domain::INET || protocol != Protocol::ICMP)) {
@@ -508,15 +519,20 @@ std::pair<s32, Errno> BSD::SocketImpl(Domain domain, Type type, Protocol protoco
 
     LOG_INFO(Service, "New socket fd={}", fd);
 
-    auto room_member = room_network.GetRoomMember().lock();
+    auto room_member = Network::GetRoomMember().lock();
     if (room_member && room_member->IsConnected()) {
-        descriptor.socket = std::make_shared<Network::ProxySocket>(room_network);
+        descriptor.socket = std::make_shared<Network::ProxySocket>();
     } else {
         descriptor.socket = std::make_shared<Network::Socket>();
     }
 
     descriptor.socket->Initialize(Translate(domain), Translate(type), Translate(protocol));
     descriptor.is_connection_based = IsConnectionBased(type);
+
+    if (Settings::values.airplane_mode.GetValue() && descriptor.is_connection_based) {
+        LOG_ERROR(Service, "Airplane mode is enabled, cannot create socket");
+        return {-1, Errno::NOTCONN};
+    }
 
     return {fd, Errno::SUCCESS};
 }
@@ -569,7 +585,7 @@ std::pair<s32, Errno> BSD::PollImpl(std::vector<u8>& write_buffer, std::span<con
     }
 
     std::vector<Network::PollFD> host_pollfds(fds.size());
-    std::transform(fds.begin(), fds.end(), host_pollfds.begin(), [this](PollFD pollfd) {
+    std::transform(fds.begin(), fds.end(), host_pollfds.begin(), [](PollFD pollfd) {
         Network::PollFD result;
         result.socket = file_descriptors[pollfd.fd]->socket.get();
         result.events = Translate(pollfd.events);
@@ -620,7 +636,12 @@ Errno BSD::BindImpl(s32 fd, std::span<const u8> addr) {
     if (!IsFileDescriptorValid(fd)) {
         return Errno::BADF;
     }
-    ASSERT(addr.size() == sizeof(SockAddrIn));
+    ASSERT(addr.size() >= 16);
+    if (!file_descriptors[fd]->socket) {
+        LOG_WARNING(Service, "Uninitialized socket");
+        return Errno::BADF;
+    }
+
     auto addr_in = GetValue<SockAddrIn>(addr);
 
     return Translate(file_descriptors[fd]->socket->Bind(Translate(addr_in)));
@@ -631,14 +652,31 @@ Errno BSD::ConnectImpl(s32 fd, std::span<const u8> addr) {
         return Errno::BADF;
     }
 
-    UNIMPLEMENTED_IF(addr.size() != sizeof(SockAddrIn));
+    ASSERT(addr.size() >= 16);
+    if (!file_descriptors[fd]->socket) {
+        LOG_WARNING(Service, "Uninitialized socket");
+        return Errno::BADF;
+    }
+
     auto addr_in = GetValue<SockAddrIn>(addr);
 
-    return Translate(file_descriptors[fd]->socket->Connect(Translate(addr_in)));
+    const Errno result = Translate(file_descriptors[fd]->socket->Connect(Translate(addr_in)));
+
+    if (result == Errno::ISCONN) {
+        LOG_DEBUG(Service, "returned ISCONN - socket already connected");
+        return Errno::SUCCESS;
+    }
+
+    return result;
 }
 
 Errno BSD::GetPeerNameImpl(s32 fd, std::vector<u8>& write_buffer) {
     if (!IsFileDescriptorValid(fd)) {
+        return Errno::BADF;
+    }
+
+    if (!file_descriptors[fd]->socket) {
+        LOG_WARNING(Service, "Uninitialized socket");
         return Errno::BADF;
     }
 
@@ -659,6 +697,11 @@ Errno BSD::GetSockNameImpl(s32 fd, std::vector<u8>& write_buffer) {
         return Errno::BADF;
     }
 
+    if (!file_descriptors[fd]->socket) {
+        LOG_WARNING(Service, "Uninitialized socket");
+        return Errno::BADF;
+    }
+
     const auto [addr_in, bsd_errno] = file_descriptors[fd]->socket->GetSockName();
     if (bsd_errno != Network::Errno::SUCCESS) {
         return Translate(bsd_errno);
@@ -675,11 +718,19 @@ Errno BSD::ListenImpl(s32 fd, s32 backlog) {
     if (!IsFileDescriptorValid(fd)) {
         return Errno::BADF;
     }
+    if (!file_descriptors[fd]->socket) {
+        LOG_WARNING(Service, "Uninitialized socket");
+        return Errno::BADF;
+    }
     return Translate(file_descriptors[fd]->socket->Listen(backlog));
 }
 
 std::pair<s32, Errno> BSD::FcntlImpl(s32 fd, FcntlCmd cmd, s32 arg) {
     if (!IsFileDescriptorValid(fd)) {
+        return {-1, Errno::BADF};
+    }
+    if (!file_descriptors[fd]->socket) {
+        LOG_WARNING(Service, "Uninitialized socket");
         return {-1, Errno::BADF};
     }
 
@@ -706,6 +757,10 @@ std::pair<s32, Errno> BSD::FcntlImpl(s32 fd, FcntlCmd cmd, s32 arg) {
 
 Errno BSD::GetSockOptImpl(s32 fd, u32 level, OptName optname, std::vector<u8>& optval) {
     if (!IsFileDescriptorValid(fd)) {
+        return Errno::BADF;
+    }
+    if (!file_descriptors[fd]->socket) {
+        LOG_WARNING(Service, "Uninitialized socket");
         return Errno::BADF;
     }
 
@@ -739,9 +794,13 @@ Errno BSD::SetSockOptImpl(s32 fd, u32 level, OptName optname, std::span<const u8
     if (!IsFileDescriptorValid(fd)) {
         return Errno::BADF;
     }
+    if (!file_descriptors[fd]->socket) {
+        LOG_WARNING(Service, "Uninitialized socket");
+        return Errno::BADF;
+    }
 
     if (level != static_cast<u32>(SocketLevel::SOCKET)) {
-        UNIMPLEMENTED_MSG("Unknown setsockopt level");
+        LOG_WARNING(Service, "(STUBBED) setsockopt with level={}, optname={}", level, optname);
         return Errno::SUCCESS;
     }
 
@@ -787,6 +846,10 @@ Errno BSD::SetSockOptImpl(s32 fd, u32 level, OptName optname, std::span<const u8
 
 Errno BSD::ShutdownImpl(s32 fd, s32 how) {
     if (!IsFileDescriptorValid(fd)) {
+        return Errno::BADF;
+    }
+    if (!file_descriptors[fd]->socket) {
+        LOG_WARNING(Service, "Uninitialized socket");
         return Errno::BADF;
     }
     const Network::ShutdownHow host_how = Translate(static_cast<ShutdownHow>(how));
@@ -858,7 +921,7 @@ std::pair<s32, Errno> BSD::RecvFromImpl(s32 fd, u32 flags, std::vector<u8>& mess
         if (ret < 0) {
             addr.clear();
         } else {
-            ASSERT(addr.size() == sizeof(SockAddrIn));
+            ASSERT(addr.size() >= 16);
             const SockAddrIn result = Translate(addr_in);
             PutValue(addr, result);
         }
@@ -871,6 +934,10 @@ std::pair<s32, Errno> BSD::SendImpl(s32 fd, u32 flags, std::span<const u8> messa
     if (!IsFileDescriptorValid(fd)) {
         return {-1, Errno::BADF};
     }
+    if (!file_descriptors[fd]->socket) {
+        LOG_WARNING(Service, "Uninitialized socket");
+        return {-1, Errno::BADF};
+    }
     return Translate(file_descriptors[fd]->socket->Send(message, flags));
 }
 
@@ -879,11 +946,15 @@ std::pair<s32, Errno> BSD::SendToImpl(s32 fd, u32 flags, std::span<const u8> mes
     if (!IsFileDescriptorValid(fd)) {
         return {-1, Errno::BADF};
     }
+    if (!file_descriptors[fd]->socket) {
+        LOG_WARNING(Service, "Uninitialized socket");
+        return {-1, Errno::BADF};
+    }
 
     Network::SockAddrIn addr_in;
     Network::SockAddrIn* p_addr_in = nullptr;
     if (!addr.empty()) {
-        ASSERT(addr.size() == sizeof(SockAddrIn));
+        ASSERT(addr.size() >= 16);
         auto guest_addr_in = GetValue<SockAddrIn>(addr);
         addr_in = Translate(guest_addr_in);
         p_addr_in = &addr_in;
@@ -894,6 +965,10 @@ std::pair<s32, Errno> BSD::SendToImpl(s32 fd, u32 flags, std::span<const u8> mes
 
 Errno BSD::CloseImpl(s32 fd) {
     if (!IsFileDescriptorValid(fd)) {
+        return Errno::BADF;
+    }
+    if (!file_descriptors[fd]->socket) {
+        LOG_WARNING(Service, "Uninitialized socket");
         return Errno::BADF;
     }
 
@@ -908,23 +983,31 @@ Errno BSD::CloseImpl(s32 fd) {
     return bsd_errno;
 }
 
-Expected<s32, Errno> BSD::DuplicateSocketImpl(s32 fd) {
+std::variant<s32, Errno> BSD::DuplicateSocketImpl(s32 fd) {
     if (!IsFileDescriptorValid(fd)) {
-        return Unexpected(Errno::BADF);
+        return Errno::BADF;
     }
 
     const s32 new_fd = FindFreeFileDescriptorHandle();
     if (new_fd < 0) {
         LOG_ERROR(Service, "No more file descriptors available");
-        return Unexpected(Errno::MFILE);
+        return Errno::MFILE;
     }
 
-    file_descriptors[new_fd] = file_descriptors[fd];
+    file_descriptors[new_fd] = FileDescriptor{
+        .socket = file_descriptors[fd]->socket,
+        .flags = file_descriptors[fd]->flags,
+        .is_connection_based = file_descriptors[fd]->is_connection_based,
+    };
     return new_fd;
 }
 
 std::optional<std::shared_ptr<Network::SocketBase>> BSD::GetSocket(s32 fd) {
     if (!IsFileDescriptorValid(fd)) {
+        return std::nullopt;
+    }
+    if (!file_descriptors[fd]->socket) {
+        LOG_WARNING(Service, "Uninitialized socket");
         return std::nullopt;
     }
     return file_descriptors[fd]->socket;
@@ -970,7 +1053,7 @@ void BSD::OnProxyPacketReceived(const Network::ProxyPacket& packet) {
 }
 
 BSD::BSD(Core::System& system_, const char* name)
-    : ServiceFramework{system_, name}, room_network{system_.GetRoomNetwork()} {
+    : ServiceFramework{system_, name} {
     // clang-format off
     static const FunctionInfo functions[] = {
         {0, &BSD::RegisterClient, "RegisterClient"},
@@ -1002,17 +1085,29 @@ BSD::BSD(Core::System& system_, const char* name)
         {26, &BSD::Close, "Close"},
         {27, &BSD::DuplicateSocket, "DuplicateSocket"},
         {28, nullptr, "GetResourceStatistics"},
-        {29, nullptr, "RecvMMsg"},
-        {30, nullptr, "SendMMsg"},
-        {31, &BSD::EventFd, "EventFd"},
-        {32, nullptr, "RegisterResourceStatisticsName"},
-        {33, nullptr, "Initialize2"},
+        {29, nullptr, "RecvMMsg"}, //3.0.0+
+        {30, nullptr, "SendMMsg"}, //3.0.0+
+        {31, &BSD::EventFd, "EventFd"}, //7.0.0+
+        {32, nullptr, "RegisterResourceStatisticsName"}, //7.0.0+
+        {33, nullptr, "RegisterClientShared"}, //10.0.0+
+        {34, nullptr, "GetSocketStatistics"}, //15.0.0+
+        {35, nullptr, "NifIoctl"}, //17.0.0+
+        {36, nullptr, "Unknown36"}, //18.0.0+
+        {37, nullptr, "Unknown37"}, //18.0.0+
+        {38, nullptr, "Unknown38"}, //18.0.0+
+        {39, nullptr, "Unknown39"}, //20.0.0+
+        {40, nullptr, "Unknown40"}, //20.0.0+
+        {41, nullptr, "Unknown41"}, //21.0.0+
+        {42, nullptr, "Unknown42"}, //21.0.0+
+        {43, nullptr, "Unknown43"}, //21.0.0+
+        {200, nullptr, "SetThreadCoreMask"}, //15.0.0+
+        {201, nullptr, "GetThreadCoreMask"}, //15.0.0+
     };
     // clang-format on
 
     RegisterHandlers(functions);
 
-    if (auto room_member = room_network.GetRoomMember().lock()) {
+    if (auto room_member = Network::GetRoomMember().lock()) {
         proxy_packet_received = room_member->BindOnProxyPacketReceived(
             [this](const Network::ProxyPacket& packet) { OnProxyPacketReceived(packet); });
     } else {
@@ -1021,13 +1116,12 @@ BSD::BSD(Core::System& system_, const char* name)
 }
 
 BSD::~BSD() {
-    if (auto room_member = room_network.GetRoomMember().lock()) {
+    if (auto room_member = Network::GetRoomMember().lock()) {
         room_member->Unbind(proxy_packet_received);
     }
 }
 
-std::unique_lock<std::mutex> BSD::LockService() {
-    // Do not lock socket IClient instances.
+std::unique_lock<std::mutex> BSD::LockService() noexcept {
     return {};
 }
 

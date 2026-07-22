@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 package org.yuzu.yuzu_emu.features.settings.model
@@ -25,13 +25,18 @@ object Settings {
         SECTION_INPUT_PLAYER_SEVEN,
         SECTION_INPUT_PLAYER_EIGHT,
         SECTION_APP_SETTINGS(R.string.app_settings),
+        SECTION_CUSTOM_PATHS(R.string.preferences_custom_paths),
         SECTION_DEBUG(R.string.preferences_debug),
-        SECTION_EDEN_VEIL(R.string.eden_veil),
+        SECTION_FREEDRENO(R.string.freedreno_settings_title),
         SECTION_APPLETS(R.string.applets_menu);
     }
 
     fun getPlayerString(player: Int): String =
         YuzuApplication.appContext.getString(R.string.preferences_player, player)
+
+    fun getDebugKnobAt(index: Int): Boolean {
+        return org.yuzu.yuzu_emu.NativeLibrary.getDebugKnobAt(index)
+    }
 
     const val PREF_FIRST_APP_LAUNCH = "FirstApplicationLaunch"
     const val PREF_SHOULD_SHOW_DRIVER_WARNING = "ShouldShowDriverWarning"
@@ -99,6 +104,8 @@ object Settings {
     const val PREF_THEME_MODE = "ThemeMode"
     const val PREF_BLACK_BACKGROUNDS = "BlackBackgrounds"
     const val PREF_STATIC_THEME_COLOR = "StaticThemeColor"
+    const val PREF_APP_FULLSCREEN = "AppFullscreen"
+    const val APP_FULLSCREEN_DEFAULT = false
 
     enum class EmulationOrientation(val int: Int) {
         Unspecified(0),

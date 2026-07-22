@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2023 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -8,8 +11,8 @@
 namespace FileSys {
 
 class SparseStorage : public IndirectStorage {
-    SUYU_NON_COPYABLE(SparseStorage);
-    SUYU_NON_MOVEABLE(SparseStorage);
+    YUZU_NON_COPYABLE(SparseStorage);
+    YUZU_NON_MOVEABLE(SparseStorage);
 
 private:
     class ZeroStorage : public IReadOnlyStorage {
@@ -18,7 +21,7 @@ private:
         virtual ~ZeroStorage() {}
 
         virtual size_t GetSize() const override {
-            return std::numeric_limits<size_t>::max();
+            return (std::numeric_limits<size_t>::max)();
         }
 
         virtual size_t Read(u8* buffer, size_t size, size_t offset) const override {
@@ -62,7 +65,7 @@ public:
 
 private:
     void SetZeroStorage() {
-        return this->SetStorage(1, m_zero_storage, 0, std::numeric_limits<s64>::max());
+        return this->SetStorage(1, m_zero_storage, 0, (std::numeric_limits<s64>::max)());
     }
 
 private:

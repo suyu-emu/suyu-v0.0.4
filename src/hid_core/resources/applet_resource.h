@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2023 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
@@ -5,6 +8,7 @@
 
 #include <array>
 #include <mutex>
+#include <memory>
 
 #include "common/bit_field.h"
 #include "common/common_types.h"
@@ -119,7 +123,7 @@ private:
     std::array<AruidData, AruidIndexMax> data{};
     std::array<SharedMemoryHolder, AruidIndexMax> shared_memory_holder{};
     s32 ref_counter{};
-    u64 active_vibration_aruid;
+    u64 active_vibration_aruid = 0;
 
     Core::System& system;
 };

@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: 2021 Citra Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -15,7 +18,7 @@ namespace Kernel {
 KClientPort::KClientPort(KernelCore& kernel) : KSynchronizationObject{kernel} {}
 KClientPort::~KClientPort() = default;
 
-void KClientPort::Initialize(KPort* parent, s32 max_sessions) {
+void KClientPort::Initialize(KernelCore& kernel, KPort* parent, s32 max_sessions) {
     // Set member variables.
     m_num_sessions = 0;
     m_peak_sessions = 0;
@@ -23,48 +26,48 @@ void KClientPort::Initialize(KPort* parent, s32 max_sessions) {
     m_max_sessions = max_sessions;
 }
 
-void KClientPort::OnSessionFinalized() {
-    KScopedSchedulerLock sl{m_kernel};
+void KClientPort::OnSessionFinalized(KernelCore& kernel) {
+    KScopedSchedulerLock sl{kernel};
 
     if (const auto prev = m_num_sessions--; prev == m_max_sessions) {
-        this->NotifyAvailable();
+        this->NotifyAvailable(kernel);
     }
 }
 
-void KClientPort::OnServerClosed() {}
+void KClientPort::OnServerClosed(KernelCore& kernel) {}
 
-bool KClientPort::IsLight() const {
+bool KClientPort::IsLight(KernelCore& kernel) const {
     return this->GetParent()->IsLight();
 }
 
-bool KClientPort::IsServerClosed() const {
-    return this->GetParent()->IsServerClosed();
+bool KClientPort::IsServerClosed(KernelCore& kernel) const {
+    return this->GetParent()->IsServerClosed(kernel);
 }
 
-void KClientPort::Destroy() {
+void KClientPort::Destroy(KernelCore& kernel) {
     // Note with our parent that we're closed.
-    m_parent->OnClientClosed();
+    m_parent->OnClientClosed(kernel);
 
     // Close our reference to our parent.
-    m_parent->Close();
+    m_parent->Close(kernel);
 }
 
-bool KClientPort::IsSignaled() const {
+bool KClientPort::IsSignaled(KernelCore& kernel) const {
     return m_num_sessions.load() < m_max_sessions;
 }
 
-Result KClientPort::CreateSession(KClientSession** out) {
+Result KClientPort::CreateSession(KernelCore& kernel, KClientSession** out) {
     // Declare the session we're going to allocate.
     KSession* session{};
 
     // Reserve a new session from the resource limit.
-    KScopedResourceReservation session_reservation(GetCurrentProcessPointer(m_kernel),
+    KScopedResourceReservation session_reservation(kernel, GetCurrentProcessPointer(kernel),
                                                    LimitableResource::SessionCountMax);
     R_UNLESS(session_reservation.Succeeded(), ResultLimitReached);
 
     // Allocate a session normally.
     // TODO: Dynamic resource limits
-    session = KSession::Create(m_kernel);
+    session = KSession::Create(kernel);
 
     // Check that we successfully created a session.
     R_UNLESS(session != nullptr, ResultOutOfResource);
@@ -72,7 +75,7 @@ Result KClientPort::CreateSession(KClientSession** out) {
     // Update the session counts.
     {
         ON_RESULT_FAILURE {
-            session->Close();
+            session->Close(kernel);
         };
 
         // Atomically increment the number of sessions.
@@ -100,38 +103,37 @@ Result KClientPort::CreateSession(KClientSession** out) {
     }
 
     // Initialize the session.
-    session->Initialize(this, m_parent->GetName());
+    session->Initialize(kernel, this, m_parent->GetName());
 
     // Commit the session reservation.
     session_reservation.Commit();
 
     // Register the session.
-    KSession::Register(m_kernel, session);
+    KSession::Register(kernel, session);
     ON_RESULT_FAILURE {
-        session->GetClientSession().Close();
-        session->GetServerSession().Close();
+        session->GetClientSession().Close(kernel);
+        session->GetServerSession().Close(kernel);
     };
 
     // Enqueue the session with our parent.
-    R_TRY(m_parent->EnqueueSession(std::addressof(session->GetServerSession())));
+    R_TRY(m_parent->EnqueueSession(kernel, std::addressof(session->GetServerSession())));
 
     // We succeeded, so set the output.
     *out = std::addressof(session->GetClientSession());
     R_SUCCEED();
 }
 
-Result KClientPort::CreateLightSession(KLightClientSession** out) {
+Result KClientPort::CreateLightSession(KernelCore& kernel, KLightClientSession** out) {
     // Declare the session we're going to allocate.
     KLightSession* session{};
 
     // Reserve a new session from the resource limit.
-    KScopedResourceReservation session_reservation(GetCurrentProcessPointer(m_kernel),
-                                                   Svc::LimitableResource::SessionCountMax);
+    KScopedResourceReservation session_reservation(kernel, GetCurrentProcessPointer(kernel), Svc::LimitableResource::SessionCountMax);
     R_UNLESS(session_reservation.Succeeded(), ResultLimitReached);
 
     // Allocate a session normally.
     // TODO: Dynamic resource limits
-    session = KLightSession::Create(m_kernel);
+    session = KLightSession::Create(kernel);
 
     // Check that we successfully created a session.
     R_UNLESS(session != nullptr, ResultOutOfResource);
@@ -139,7 +141,7 @@ Result KClientPort::CreateLightSession(KLightClientSession** out) {
     // Update the session counts.
     {
         ON_RESULT_FAILURE {
-            session->Close();
+            session->Close(kernel);
         };
 
         // Atomically increment the number of sessions.
@@ -167,20 +169,20 @@ Result KClientPort::CreateLightSession(KLightClientSession** out) {
     }
 
     // Initialize the session.
-    session->Initialize(this, m_parent->GetName());
+    session->Initialize(kernel, this, m_parent->GetName());
 
     // Commit the session reservation.
     session_reservation.Commit();
 
     // Register the session.
-    KLightSession::Register(m_kernel, session);
+    KLightSession::Register(kernel, session);
     ON_RESULT_FAILURE {
-        session->GetClientSession().Close();
-        session->GetServerSession().Close();
+        session->GetClientSession().Close(kernel);
+        session->GetServerSession().Close(kernel);
     };
 
     // Enqueue the session with our parent.
-    R_TRY(m_parent->EnqueueSession(std::addressof(session->GetServerSession())));
+    R_TRY(m_parent->EnqueueSession(kernel, std::addressof(session->GetServerSession())));
 
     // We succeeded, so set the output.
     *out = std::addressof(session->GetClientSession());

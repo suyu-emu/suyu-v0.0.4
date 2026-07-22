@@ -1,9 +1,12 @@
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2018 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
 #include <algorithm>
 #include <set>
-#include <unordered_set>
+#include <ankerl/unordered_dense.h>
 #include <utility>
 #include "core/file_sys/vfs/vfs_layered.h"
 
@@ -60,7 +63,7 @@ std::string LayeredVfsDirectory::GetFullPath() const {
 
 std::vector<VirtualFile> LayeredVfsDirectory::GetFiles() const {
     std::vector<VirtualFile> out;
-    std::unordered_set<std::string> out_names;
+    ankerl::unordered_dense::set<std::string> out_names;
 
     for (const auto& layer : dirs) {
         for (auto& file : layer->GetFiles()) {
@@ -76,7 +79,7 @@ std::vector<VirtualFile> LayeredVfsDirectory::GetFiles() const {
 
 std::vector<VirtualDir> LayeredVfsDirectory::GetSubdirectories() const {
     std::vector<VirtualDir> out;
-    std::unordered_set<std::string> out_names;
+    ankerl::unordered_dense::set<std::string> out_names;
 
     for (const auto& layer : dirs) {
         for (const auto& sd : layer->GetSubdirectories()) {

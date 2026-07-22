@@ -27,10 +27,10 @@
         <androidx.constraintlayout.widget.ConstraintLayout
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:paddingTop="14dp"
-            android:paddingLeft="6dp"
-            android:paddingRight="6dp"
-            android:paddingBottom="6dp">
+            android:paddingTop="4dp"
+            android:paddingLeft="4dp"
+            android:paddingRight="4dp"
+            android:paddingBottom="2dp">
 
             <com.google.android.material.imageview.ShapeableImageView
                 android:id="@+id/image_game_screen"
@@ -48,11 +48,14 @@
                 style="@style/SynthwaveText.Body"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="8dp"
+                android:layout_marginTop="2dp"
+                android:gravity="center"
                 android:requiresFadingEdge="horizontal"
                 android:textAlignment="center"
                 android:textSize="14sp"
                 android:textStyle="bold"
+                android:maxLines="1"
+                android:ellipsize="end"
                 app:layout_constraintEnd_toEndOf="@+id/image_game_screen"
                 app:layout_constraintStart_toStartOf="@+id/image_game_screen"
                 app:layout_constraintTop_toBottomOf="@+id/image_game_screen"

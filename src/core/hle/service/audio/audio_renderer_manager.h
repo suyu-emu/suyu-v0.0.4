@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2018 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -30,7 +33,7 @@ private:
     Result GetAudioDeviceServiceWithRevisionInfo(Out<SharedPointer<IAudioDevice>> out_audio_device,
                                                  u32 revision, ClientAppletResourceUserId aruid);
 
-    std::unique_ptr<AudioCore::Renderer::Manager> impl;
+    std::optional<AudioCore::Renderer::Manager> impl;
     u32 num_audio_devices{0};
 };
 

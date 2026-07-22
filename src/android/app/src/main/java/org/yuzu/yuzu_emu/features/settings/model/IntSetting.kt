@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 // SPDX-FileCopyrightText: 2023 yuzu Emulator Project
@@ -15,10 +15,8 @@ enum class IntSetting(override val key: String) : AbstractIntSetting {
     LANGUAGE_INDEX("language_index"),
     RENDERER_BACKEND("backend"),
     RENDERER_VRAM_USAGE_MODE("vram_usage_mode"),
-    RENDERER_SHADER_BACKEND("shader_backend"),
     RENDERER_NVDEC_EMULATION("nvdec_emulation"),
     RENDERER_ASTC_DECODE_METHOD("accelerate_astc"),
-    RENDERER_ASTC_RECOMPRESSION("astc_recompression"),
     RENDERER_ACCURACY("gpu_accuracy"),
     RENDERER_RESOLUTION("resolution_setup"),
     RENDERER_VSYNC("use_vsync"),
@@ -26,12 +24,17 @@ enum class IntSetting(override val key: String) : AbstractIntSetting {
     RENDERER_ANTI_ALIASING("anti_aliasing"),
     RENDERER_SCREEN_LAYOUT("screen_layout"),
     RENDERER_ASPECT_RATIO("aspect_ratio"),
-    RENDERER_OPTIMIZE_SPIRV_OUTPUT("optimize_spirv_output"),
+
+    RENDERER_DYNA_STATE("dyna_state"),
     DMA_ACCURACY("dma_accuracy"),
+    GPU_FENCE_BEHAVIOR("gpu_fence_behavior"),
+    FRAME_PACING_MODE("frame_pacing_mode"),
     AUDIO_OUTPUT_ENGINE("output_engine"),
     MAX_ANISOTROPY("max_anisotropy"),
     THEME("theme"),
     THEME_MODE("theme_mode"),
+    STATIC_THEME_COLOR("static_theme_color"),
+    APP_LANGUAGE("app_language"),
     OVERLAY_SCALE("control_scale"),
     OVERLAY_OPACITY("control_opacity"),
     LOCK_DRAWER("lock_drawer"),
@@ -40,10 +43,13 @@ enum class IntSetting(override val key: String) : AbstractIntSetting {
     SOC_OVERLAY_POSITION("soc_overlay_position"),
     MEMORY_LAYOUT("memory_layout_mode"),
     FSR_SHARPENING_SLIDER("fsr_sharpening_slider"),
-    RENDERER_SAMPLE_SHADING_FRACTION("sample_shading_fraction"),
+    RENDERER_SAMPLE_SHADING("sample_shading_fraction"),
     FAST_CPU_TIME("fast_cpu_time"),
     CPU_TICKS("cpu_ticks"),
     FAST_GPU_TIME("fast_gpu_time"),
+    GPU_UNSWIZZLE_TEXTURE_SIZE("gpu_unswizzle_texture_size"),
+    GPU_UNSWIZZLE_STREAM_SIZE("gpu_unswizzle_stream_size"),
+    GPU_UNSWIZZLE_CHUNK_SIZE("gpu_unswizzle_chunk_size"),
     BAT_TEMPERATURE_UNIT("bat_temperature_unit"),
     CABINET_APPLET("cabinet_applet_mode"),
     CONTROLLER_APPLET("controller_applet_mode"),
@@ -60,7 +66,10 @@ enum class IntSetting(override val key: String) : AbstractIntSetting {
     LOGIN_SHARE_APPLET("login_share_applet_mode"),
     WIFI_WEB_AUTH_APPLET("wifi_web_auth_applet_mode"),
     MY_PAGE_APPLET("my_page_applet_mode"),
-    INPUT_OVERLAY_AUTO_HIDE("input_overlay_auto_hide")
+    INPUT_OVERLAY_AUTO_HIDE("input_overlay_auto_hide"),
+    OVERLAY_GRID_SIZE("overlay_grid_size"),
+    GPU_LOG_RING_BUFFER_SIZE("gpu_log_ring_buffer_size"),
+    ANDROID_PIPELINE_WORKERS("pipeline_worker_count")
     ;
 
     override fun getInt(needsGlobal: Boolean): Int = NativeConfig.getInt(key, needsGlobal)

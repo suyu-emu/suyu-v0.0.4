@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2018 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -34,10 +37,10 @@ public:
             {17, nullptr, "AcquireIrq"},
             {18, nullptr, "ReleaseIrq"},
             {19, nullptr, "SetIrqEnable"},
-            {20, nullptr, "SetAspmEnable"},
-            {21, nullptr, "SetResetUponResumeEnable"},
-            {22, nullptr, "ResetFunction"},
-            {23, nullptr, "Unknown23"},
+            {20, nullptr, "GetIrqEvent"},
+            {21, nullptr, "SetAspmEnable"},
+            {22, nullptr, "SetResetUponResumeEnable"},
+            {23, nullptr, "ResetFunction"},
         };
         // clang-format on
 

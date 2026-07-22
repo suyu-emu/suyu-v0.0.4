@@ -1,10 +1,13 @@
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2018 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
 #include <cstddef>
 #include <vector>
 
-#include "common/logging/log.h"
+#include "common/logging.h"
 #include "common/scope_exit.h"
 #include "core/file_sys/program_metadata.h"
 #include "core/file_sys/vfs/vfs.h"
@@ -137,7 +140,7 @@ void ProgramMetadata::LoadManual(bool is_64_bit, ProgramAddressSpaceType address
 }
 
 bool ProgramMetadata::Is64BitProgram() const {
-    return npdm_header.has_64_bit_instructions.As<bool>();
+    return npdm_header.has_64_bit_instructions;
 }
 
 ProgramAddressSpaceType ProgramMetadata::GetAddressSpaceType() const {
@@ -180,7 +183,7 @@ void ProgramMetadata::Print() const {
     LOG_DEBUG(Service_FS, "Magic:                  {:.4}", npdm_header.magic.data());
     LOG_DEBUG(Service_FS, "Main thread priority:   0x{:02X}", npdm_header.main_thread_priority);
     LOG_DEBUG(Service_FS, "Main thread core:       {}", npdm_header.main_thread_cpu);
-    LOG_DEBUG(Service_FS, "Main thread stack size: 0x{:X} bytes", npdm_header.main_stack_size);
+    LOG_DEBUG(Service_FS, "Main thread stack size: {:#X} bytes", npdm_header.main_stack_size);
     LOG_DEBUG(Service_FS, "Process category:       {}", npdm_header.process_category);
     LOG_DEBUG(Service_FS, "Flags:                  0x{:02X}", npdm_header.flags);
     LOG_DEBUG(Service_FS, " > 64-bit instructions: {}",

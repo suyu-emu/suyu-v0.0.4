@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 /* This file is part of the dynarmic project.
  * Copyright (c) 2018 MerryMage
  * SPDX-License-Identifier: 0BSD
@@ -47,8 +50,8 @@ public:
     /// the exclusive state for processors if their exclusive region(s)
     /// contain [address, address+size).
     template<typename T, typename Function>
+        requires std::is_trivially_copyable_v<T>
     bool DoExclusiveOperation(size_t processor_id, VAddr address, Function op) {
-        static_assert(std::is_trivially_copyable_v<T>);
         if (!CheckAndClear(processor_id, address)) {
             return false;
         }

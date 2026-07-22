@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2024 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -26,8 +29,8 @@ private:
     Result UnlockForeground();
     Result PopFromGeneralChannel(Out<SharedPointer<IStorage>> out_storage);
     Result GetPopFromGeneralChannelEvent(OutCopyHandle<Kernel::KReadableEvent> out_event);
-    Result IsSleepEnabled(Out<bool> out_is_sleep_enabled);
-    Result IsRebootEnabled(Out<bool> out_is_reboot_enabled);
+    Result IsSleepEnabled(Out<bool> out_is_sleep_enbaled);
+    Result IsRebootEnabled(Out<bool> out_is_reboot_enbaled);
     Result IsForceTerminateApplicationDisabledForDebug(
         Out<bool> out_is_force_terminate_application_disabled_for_debug);
 

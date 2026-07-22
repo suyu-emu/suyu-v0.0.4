@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2023 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -112,7 +115,7 @@ void NintendoFigurineDatabase::CleanDatabase() {
 
 void NintendoFigurineDatabase::CorruptCrc() {
     crc = GenerateDatabaseCrc();
-    crc = ~crc;
+    crc = static_cast<u16>(~crc);
 }
 
 Result NintendoFigurineDatabase::CheckIntegrity() {

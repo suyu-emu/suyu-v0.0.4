@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2024 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
@@ -27,6 +30,10 @@
 #include "hid_core/resources/vibration/n64_vibration_device.h"
 #include "hid_core/resources/vibration/vibration_device.h"
 
+namespace Kernel {
+class KernelCore;
+}
+
 namespace Service::HID {
 class AppletResource;
 class SixAxisResource;
@@ -49,7 +56,7 @@ struct HandheldConfig;
 /// Handles Npad request from HID interfaces
 class AbstractPad final {
 public:
-    explicit AbstractPad();
+    explicit AbstractPad(Kernel::KernelCore& kernel_);
     ~AbstractPad();
 
     void SetExternals(AppletResourceHolder* applet_resource,
@@ -88,17 +95,19 @@ public:
 
 private:
     AppletResourceHolder* applet_resource_holder{nullptr};
+
+    // TODO: fix
     NpadAbstractedPadHolder abstract_pad_holder{};
-    NpadAbstractPropertiesHandler properties_handler{};
-    NpadAbstractLedHandler led_handler{};
-    NpadAbstractIrSensorHandler ir_sensor_handler{};
-    NpadAbstractNfcHandler nfc_handler{};
-    NpadAbstractMcuHandler mcu_handler{};
-    NpadAbstractVibrationHandler vibration_handler{};
-    NpadAbstractSixAxisHandler sixaxis_handler{};
-    NpadAbstractButtonHandler button_handler{};
-    NpadAbstractBatteryHandler battery_handler{};
-    NpadAbstractPalmaHandler palma_handler{};
+    NpadAbstractPropertiesHandler properties_handler;
+    NpadAbstractLedHandler led_handler;
+    NpadAbstractIrSensorHandler ir_sensor_handler;
+    NpadAbstractNfcHandler nfc_handler;
+    NpadAbstractMcuHandler mcu_handler;
+    NpadAbstractVibrationHandler vibration_handler;
+    NpadAbstractSixAxisHandler sixaxis_handler;
+    NpadAbstractButtonHandler button_handler;
+    NpadAbstractBatteryHandler battery_handler;
+    NpadAbstractPalmaHandler palma_handler;
 
     NpadN64VibrationDevice vibration_n64{};
     NpadVibrationDevice vibration_left{};
@@ -114,6 +123,7 @@ private:
 
     s32 ref_counter{};
     Core::HID::NpadInterfaceType interface_type{Core::HID::NpadInterfaceType::None};
+    Kernel::KernelCore& kernel;
 };
 
 using FullAbstractPad = std::array<AbstractPad, MaxSupportedNpadIdTypes>;

@@ -1,8 +1,12 @@
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2023 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "core/core.h"
 #include "core/core_timing.h"
+#include "core/hle/kernel/k_memory_manager.h"
 #include "core/hle/kernel/k_process.h"
 #include "core/hle/kernel/k_resource_limit.h"
 #include "core/hle/kernel/svc.h"
@@ -12,7 +16,7 @@ namespace Kernel::Svc {
 /// Gets system/memory information for the current process
 Result GetInfo(Core::System& system, u64* result, InfoType info_id_type, Handle handle,
                u64 info_sub_id) {
-    LOG_TRACE(Kernel_SVC, "called info_id=0x{:X}, info_sub_id=0x{:X}, handle=0x{:08X}",
+    LOG_TRACE(Kernel_SVC, "called info_id={:#X}, info_sub_id=0x{:X}, handle=0x{:08X}",
               info_id_type, info_sub_id, handle);
 
     u32 info_id = static_cast<u32>(info_id_type);
@@ -38,11 +42,11 @@ Result GetInfo(Core::System& system, u64* result, InfoType info_id_type, Handle 
     case InfoType::UsedNonSystemMemorySize:
     case InfoType::IsApplication:
     case InfoType::FreeThreadCount:
-    case InfoType::ReservedRegionExtraSize: {
+    case InfoType::AliasRegionExtraSize: {
         R_UNLESS(info_sub_id == 0, ResultInvalidEnumValue);
 
         const auto& handle_table = GetCurrentProcess(system.Kernel()).GetHandleTable();
-        KScopedAutoObject process = handle_table.GetObject<KProcess>(handle);
+        KScopedAutoObject process = handle_table.GetObject<KProcess>(system.Kernel(), handle);
         R_UNLESS(process.IsNotNull(), ResultInvalidHandle);
 
         switch (info_id_type) {
@@ -61,7 +65,6 @@ Result GetInfo(Core::System& system, u64* result, InfoType info_id_type, Handle 
         case InfoType::AliasRegionSize:
             *result = process->GetPageTable().GetAliasRegionSize();
             R_SUCCEED();
-
         case InfoType::HeapRegionAddress:
             *result = GetInteger(process->GetPageTable().GetHeapRegionStart());
             R_SUCCEED();
@@ -87,11 +90,11 @@ Result GetInfo(Core::System& system, u64* result, InfoType info_id_type, Handle 
             R_SUCCEED();
 
         case InfoType::TotalMemorySize:
-            *result = process->GetTotalUserPhysicalMemorySize();
+            *result = process->GetTotalUserPhysicalMemorySize(system.Kernel());
             R_SUCCEED();
 
         case InfoType::UsedMemorySize:
-            *result = process->GetUsedUserPhysicalMemorySize();
+            *result = process->GetUsedUserPhysicalMemorySize(system.Kernel());
             R_SUCCEED();
 
         case InfoType::SystemResourceSizeTotal:
@@ -111,11 +114,11 @@ Result GetInfo(Core::System& system, u64* result, InfoType info_id_type, Handle 
             R_SUCCEED();
 
         case InfoType::TotalNonSystemMemorySize:
-            *result = process->GetTotalNonSystemUserPhysicalMemorySize();
+            *result = process->GetTotalNonSystemUserPhysicalMemorySize(system.Kernel());
             R_SUCCEED();
 
         case InfoType::UsedNonSystemMemorySize:
-            *result = process->GetUsedNonSystemUserPhysicalMemorySize();
+            *result = process->GetUsedNonSystemUserPhysicalMemorySize(system.Kernel());
             R_SUCCEED();
 
         case InfoType::IsApplication:
@@ -135,9 +138,16 @@ Result GetInfo(Core::System& system, u64* result, InfoType info_id_type, Handle 
             }
             R_SUCCEED();
 
-        case InfoType::ReservedRegionExtraSize:
-            *result = process->GetPageTable().GetReservedRegionExtraSize();
+        case InfoType::AliasRegionExtraSize: {
+            if (info_sub_id != 0) {
+                return ResultInvalidCombination;
+            }
+
+            KProcess* current_process = GetCurrentProcessPointer(system.Kernel());
+            *result = current_process->GetPageTable().GetAliasRegionExtraSize();
+
             R_SUCCEED();
+        }
 
         default:
             break;
@@ -165,7 +175,7 @@ Result GetInfo(Core::System& system, u64* result, InfoType info_id_type, Handle 
         }
 
         Handle resource_handle{};
-        R_TRY(handle_table.Add(std::addressof(resource_handle), resource_limit));
+        R_TRY(handle_table.Add(system.Kernel(), std::addressof(resource_handle), resource_limit));
 
         *result = resource_handle;
         R_SUCCEED();
@@ -193,8 +203,8 @@ Result GetInfo(Core::System& system, u64* result, InfoType info_id_type, Handle 
         }
 
         KScopedAutoObject thread = GetCurrentProcess(system.Kernel())
-                                       .GetHandleTable()
-                                       .GetObject<KThread>(static_cast<Handle>(handle));
+            .GetHandleTable()
+            .GetObject<KThread>(system.Kernel(), Handle(handle));
         if (thread.IsNull()) {
             LOG_ERROR(Kernel_SVC, "Thread handle does not exist, handle=0x{:08X}",
                       static_cast<Handle>(handle));
@@ -246,7 +256,7 @@ Result GetInfo(Core::System& system, u64* result, InfoType info_id_type, Handle 
 
         // Get a new handle for the current process.
         Handle tmp;
-        R_TRY(handle_table.Add(std::addressof(tmp), current_process));
+        R_TRY(handle_table.Add(system.Kernel(), std::addressof(tmp), current_process));
 
         // Set the output.
         *result = tmp;
@@ -262,8 +272,47 @@ Result GetInfo(Core::System& system, u64* result, InfoType info_id_type, Handle 
 
 Result GetSystemInfo(Core::System& system, uint64_t* out, SystemInfoType info_type, Handle handle,
                      uint64_t info_subtype) {
-    UNIMPLEMENTED();
-    R_THROW(ResultNotImplemented);
+    const u32 info_id = static_cast<u32>(info_type);
+
+    R_UNLESS(info_id <= 2, ResultInvalidEnumValue);
+
+    R_UNLESS(handle == 0, ResultInvalidHandle);
+
+    if (info_id < 2) {
+        R_UNLESS(info_subtype <= 3, ResultInvalidCombination);
+
+        auto& memory_manager = system.Kernel().MemoryManager();
+        const auto pool = static_cast<KMemoryManager::Pool>(info_subtype);
+
+        switch (info_type) {
+        case SystemInfoType::TotalPhysicalMemorySize:
+            *out = memory_manager.GetSize(pool);
+            break;
+        case SystemInfoType::UsedPhysicalMemorySize:
+            *out = memory_manager.GetSize(pool) - memory_manager.GetFreeSize(pool);
+            break;
+        default:
+            R_THROW(ResultInvalidEnumValue);
+        }
+    } else {
+        R_UNLESS(info_subtype <= 1, ResultInvalidCombination);
+
+        constexpr u64 PrivilegedProcessLowestId = 1;
+        constexpr u64 PrivilegedProcessHighestId = 8;
+
+        switch (info_subtype) {
+        case 0:
+            *out = PrivilegedProcessLowestId;
+            break;
+        case 1:
+            *out = PrivilegedProcessHighestId;
+            break;
+        default:
+            R_THROW(ResultInvalidCombination);
+        }
+    }
+
+    R_SUCCEED();
 }
 
 Result GetInfo64(Core::System& system, uint64_t* out, InfoType info_type, Handle handle,

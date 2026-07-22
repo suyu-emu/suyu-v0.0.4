@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2024 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -14,7 +17,6 @@ IAudioDevice::IAudioDevice(Core::System& system_, u64 applet_resource_user_id, u
     : ServiceFramework{system_, "IAudioDevice"}, service_context{system_, "IAudioDevice"},
       impl{std::make_unique<AudioDevice>(system_, applet_resource_user_id, revision)},
       event{service_context.CreateEvent(fmt::format("IAudioDeviceEvent-{}", device_num))} {
-    // clang-format off
     static const FunctionInfo functions[] = {
         {0, D<&IAudioDevice::ListAudioDeviceName>, "ListAudioDeviceName"},
         {1, D<&IAudioDevice::SetAudioDeviceOutputVolume>, "SetAudioDeviceOutputVolume"},
@@ -28,20 +30,19 @@ IAudioDevice::IAudioDevice(Core::System& system_, u64 applet_resource_user_id, u
         {10, D<&IAudioDevice::GetActiveAudioDeviceNameAuto>, "GetActiveAudioDeviceNameAuto"},
         {11, D<&IAudioDevice::QueryAudioDeviceInputEvent>, "QueryAudioDeviceInputEvent"},
         {12, D<&IAudioDevice::QueryAudioDeviceOutputEvent>, "QueryAudioDeviceOutputEvent"},
-        {13, D<&IAudioDevice::GetActiveAudioDeviceName>,
-         "GetActiveAudioOutputDeviceName"},                                             // 13.0.0+
-        {14, D<&IAudioDevice::ListAudioOutputDeviceName>, "ListAudioOutputDeviceName"}, // 13.0.0+
-        {15, nullptr, "AcquireAudioInputDeviceNotification"},                           // 17.0.0+
-        {16, nullptr, "ReleaseAudioInputDeviceNotification"},                           // 17.0.0+
-        {17, nullptr, "AcquireAudioOutputDeviceNotification"},                          // 17.0.0+
-        {18, nullptr, "ReleaseAudioOutputDeviceNotification"},                          // 17.0.0+
-        {19, D<&IAudioDevice::SetAudioDeviceOutputVolumeAutoTuneEnabled>, "SetAudioDeviceOutputVolumeAutoTuneEnabled"}, // 18.0.0+
-        {20, D<&IAudioDevice::IsAudioDeviceOutputVolumeAutoTuneEnabled>, "IsAudioDeviceOutputVolumeAutoTuneEnabled"}    // 18.0.0+
+        {13, D<&IAudioDevice::GetActiveAudioDeviceName>, "GetActiveAudioOutputDeviceName"},
+        {14, D<&IAudioDevice::ListAudioOutputDeviceName>, "ListAudioOutputDeviceName"},
+        {15, nullptr, "AcquireAudioInputDeviceNotification"}, //17.0.0+
+        {16, nullptr, "ReleaseAudioInputDeviceNotification"}, //17.0.0+
+        {17, nullptr, "AcquireAudioOutputDeviceNotification"}, //17.0.0+
+        {18, nullptr, "ReleaseAudioOutputDeviceNotification"}, //17.0.0+
+        {19, D<&IAudioDevice::SetAudioDeviceOutputVolumeAutoTuneEnabled>, "SetAudioDeviceOutputVolumeAutoTuneEnabled"}, //18.0.0+
+        {20, D<&IAudioDevice::IsAudioDeviceOutputVolumeAutoTuneEnabled>, "IsAudioDeviceOutputVolumeAutoTuneEnabled"}, //18.0.0+
+        {21, nullptr, "IsActiveOutputDeviceEstimatedLowLatency"} //21.0.0+
     };
-    // clang-format on
     RegisterHandlers(functions);
 
-    event->Signal();
+    event->Signal(system.Kernel());
 }
 
 IAudioDevice::~IAudioDevice() {
@@ -127,7 +128,7 @@ Result IAudioDevice::GetActiveAudioDeviceNameAuto(
 
 Result IAudioDevice::QueryAudioDeviceSystemEvent(OutCopyHandle<Kernel::KReadableEvent> out_event) {
     LOG_DEBUG(Service_Audio, "(STUBBED) called");
-    event->Signal();
+    event->Signal(system.Kernel());
     *out_event = &event->GetReadableEvent();
     R_SUCCEED();
 }

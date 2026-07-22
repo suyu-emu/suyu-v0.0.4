@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2024 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -18,10 +21,12 @@ IContentManagementInterface::IContentManagementInterface(Core::System& system_)
         {43, D<&IContentManagementInterface::CheckSdCardMountStatus>, "CheckSdCardMountStatus"},
         {47, D<&IContentManagementInterface::GetTotalSpaceSize>, "GetTotalSpaceSize"},
         {48, D<&IContentManagementInterface::GetFreeSpaceSize>, "GetFreeSpaceSize"},
+        {71, D<&IContentManagementInterface::GetUnknown71>, "Unknown71"},
         {600, nullptr, "CountApplicationContentMeta"},
         {601, nullptr, "ListApplicationContentMetaStatus"},
         {605, nullptr, "ListApplicationContentMetaStatusWithRightsCheck"},
         {607, nullptr, "IsAnyApplicationRunning"},
+        {608, nullptr, "Unknown608"}, //21.0.0+
     };
     // clang-format on
 
@@ -66,6 +71,14 @@ Result IContentManagementInterface::GetFreeSpaceSize(Out<s64> out_free_space_siz
                                                      FileSys::StorageId storage_id) {
     LOG_INFO(Service_NS, "(STUBBED) called, storage_id={}", storage_id);
     *out_free_space_size = system.GetFileSystemController().GetFreeSpaceSize(storage_id);
+    R_SUCCEED();
+}
+
+Result IContentManagementInterface::GetUnknown71(Out<u64> out_value_a, Out<u64> out_value_b,
+                                                 u8 flag) {
+    LOG_INFO(Service_NS, "(STUBBED) called, flag={:02X}", flag);
+    *out_value_a = 0;
+    *out_value_b = 0;
     R_SUCCEED();
 }
 

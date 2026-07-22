@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2024 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
@@ -9,7 +12,20 @@
 
 namespace Service::HID {
 
-AbstractPad::AbstractPad() {}
+AbstractPad::AbstractPad(Kernel::KernelCore& kernel_)
+    //: abstract_pad_holder{kernel_}
+    : properties_handler{kernel_}
+    , led_handler{kernel_}
+    , ir_sensor_handler{kernel_}
+    , nfc_handler{kernel_}
+    , mcu_handler{kernel_}
+    , vibration_handler{kernel_}
+    , sixaxis_handler{kernel_}
+    , button_handler{kernel_}
+    , battery_handler{kernel_}
+    , palma_handler{kernel_}
+    , kernel{kernel_}
+{}
 
 AbstractPad::~AbstractPad() = default;
 
@@ -68,7 +84,7 @@ void AbstractPad::SetNpadId(Core::HID::NpadIdType npad_id) {
 }
 
 Result AbstractPad::Activate() {
-    if (ref_counter == std::numeric_limits<s32>::max() - 1) {
+    if (ref_counter == (std::numeric_limits<s32>::max)() - 1) {
         return ResultNpadHandlerOverflow;
     }
 

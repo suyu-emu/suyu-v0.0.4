@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: Copyright 2018 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
-#include <fmt/format.h>
+#include <fmt/ranges.h>
 #include "common/common_types.h"
 #include "core/file_sys/system_archive/ng_word.h"
 #include "core/file_sys/vfs/vfs_vector.h"
@@ -10,7 +10,7 @@ namespace FileSys::SystemArchive {
 
 namespace NgWord1Data {
 
-[[maybe_unused]] constexpr std::size_t NUMBER_WORD_TXT_FILES = 0x10;
+constexpr std::size_t NUMBER_WORD_TXT_FILES = 0x10;
 
 // Should this archive replacement mysteriously not work on a future game, consider updating.
 constexpr std::array<u8, 4> VERSION_DAT{0x0, 0x0, 0x0, 0x20}; // 11.0.1 System Version
@@ -24,7 +24,7 @@ constexpr std::array<u8, 30> WORD_TXT{
 
 VirtualDir NgWord1() {
     std::vector<VirtualFile> files;
-    files.reserve(files.size() + 2);
+    files.reserve(NgWord1Data::NUMBER_WORD_TXT_FILES);
 
     for (std::size_t i = 0; i < files.size(); ++i) {
         files.push_back(MakeArrayFile(NgWord1Data::WORD_TXT, fmt::format("{}.txt", i)));
@@ -54,7 +54,7 @@ constexpr std::array<u8, 0x2C> AC_NX_DATA{
 
 VirtualDir NgWord2() {
     std::vector<VirtualFile> files;
-    files.reserve(NgWord2Data::NUMBER_AC_NX_FILES + 4);
+    files.reserve(NgWord2Data::NUMBER_AC_NX_FILES * 3);
 
     for (std::size_t i = 0; i < NgWord2Data::NUMBER_AC_NX_FILES; ++i) {
         files.push_back(MakeArrayFile(NgWord2Data::AC_NX_DATA, fmt::format("ac_{}_b1_nx", i)));

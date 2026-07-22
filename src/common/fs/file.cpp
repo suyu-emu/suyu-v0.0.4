@@ -1,14 +1,18 @@
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2021 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
 #include <vector>
 
+#include "common/assert.h"
 #include "common/fs/file.h"
 #include "common/fs/fs.h"
-#ifdef ANDROID
+#ifdef __ANDROID__
 #include "common/fs/fs_android.h"
 #endif
-#include "common/logging/log.h"
+#include "common/logging.h"
 
 #ifdef _WIN32
 #include <io.h>
@@ -255,7 +259,7 @@ void IOFile::Open(const fs::path& path, FileAccessMode mode, FileType type, File
     } else {
         _wfopen_s(&file, path.c_str(), AccessModeToWStr(mode, type));
     }
-#elif ANDROID
+#elif __ANDROID__
     if (Android::IsContentUri(path)) {
         ASSERT_MSG(mode == FileAccessMode::Read, "Content URI file access is for read-only!");
         const auto fd = Android::OpenContentUri(path, Android::OpenMode::Read);
@@ -392,7 +396,7 @@ u64 IOFile::GetSize() const {
     // Flush any unwritten buffered data into the file prior to retrieving the file size.
     std::fflush(file);
 
-#if ANDROID
+#ifdef __ANDROID__
     u64 file_size = 0;
     if (Android::IsContentUri(file_path)) {
         file_size = Android::GetSize(file_path);

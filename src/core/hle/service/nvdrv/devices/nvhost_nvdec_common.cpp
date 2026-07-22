@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2020 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -6,7 +9,7 @@
 
 #include "common/assert.h"
 #include "common/common_types.h"
-#include "common/logging/log.h"
+#include "common/logging.h"
 #include "core/core.h"
 #include "core/hle/kernel/k_process.h"
 #include "core/hle/service/nvdrv/core/container.h"
@@ -132,14 +135,14 @@ NvResult nvhost_nvdec_common::GetSyncpoint(IoctlGetSyncpoint& params) {
 }
 
 NvResult nvhost_nvdec_common::GetWaitbase(IoctlGetWaitbase& params) {
-    LOG_CRITICAL(Service_NVDRV, "called WAITBASE");
-    params.value = 0; // Seems to be hard coded at 0
+    LOG_DEBUG(Service_NVDRV, "called WAITBASE");
+    params.value = 0;
     return NvResult::Success;
 }
 
 NvResult nvhost_nvdec_common::MapBuffer(IoctlMapBuffer& params, std::span<MapBufferEntry> entries,
                                         DeviceFD fd) {
-    const size_t num_entries = std::min(params.num_entries, static_cast<u32>(entries.size()));
+    const size_t num_entries = (std::min)(params.num_entries, static_cast<u32>(entries.size()));
     for (size_t i = 0; i < num_entries; i++) {
         DAddr pin_address = nvmap.PinHandle(entries[i].map_handle, true);
         entries[i].map_address = static_cast<u32>(pin_address);
@@ -150,7 +153,7 @@ NvResult nvhost_nvdec_common::MapBuffer(IoctlMapBuffer& params, std::span<MapBuf
 
 NvResult nvhost_nvdec_common::UnmapBuffer(IoctlMapBuffer& params,
                                           std::span<MapBufferEntry> entries) {
-    const size_t num_entries = std::min(params.num_entries, static_cast<u32>(entries.size()));
+    const size_t num_entries = (std::min)(params.num_entries, static_cast<u32>(entries.size()));
     for (size_t i = 0; i < num_entries; i++) {
         nvmap.UnpinHandle(entries[i].map_handle);
         entries[i] = {};
@@ -162,6 +165,13 @@ NvResult nvhost_nvdec_common::UnmapBuffer(IoctlMapBuffer& params,
 
 NvResult nvhost_nvdec_common::SetSubmitTimeout(u32 timeout) {
     LOG_WARNING(Service_NVDRV, "(STUBBED) called");
+    return NvResult::Success;
+}
+
+NvResult nvhost_nvdec_common::GetClkRate(IoctlGetClkRate& params) {
+    LOG_WARNING(Service_NVDRV, "(STUBBED) called");
+    params.clk_rate = 614400000;
+    params.module_id = 0;
     return NvResult::Success;
 }
 

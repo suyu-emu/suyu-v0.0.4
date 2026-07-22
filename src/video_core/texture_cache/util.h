@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2020 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -118,5 +121,26 @@ void DeduceBlitImages(ImageInfo& dst_info, ImageInfo& src_info, const ImageBase*
                       const ImageBase* src);
 
 [[nodiscard]] u32 MapSizeBytes(const ImageBase& image);
+
+// TODO: Remove once Debian STABLE no longer has such outdated boost
+// This is a gcc bug where ADL lookup fails for range niebloids of std::span<T>
+// for any given type of the static_vector/small_vector, etc which makes a whole mess
+// for anything using std::span<T> so we just do this terrible hack on older versions of
+// GCC12 because people actually still use stable debian so... yeah
+// One may say: "This is bad for performance" - to which I say, using GCC 12 you already know
+// what kind of bs you will be dealing with anyways.
+template<typename T, size_t N>
+#if BOOST_VERSION >= 108100 || __GNUC__ > 12
+[[nodiscard]] boost::container::small_vector<T, N> FixSmallVectorADL(const boost::container::small_vector<T, N>& v) {
+    return v;
+}
+#else
+[[nodiscard]] std::vector<T> FixSmallVectorADL(const boost::container::small_vector<T, N>& v) {
+    std::vector<T> u;
+    for (auto const& e : v)
+        u.push_back(e);
+    return u;
+}
+#endif
 
 } // namespace VideoCommon

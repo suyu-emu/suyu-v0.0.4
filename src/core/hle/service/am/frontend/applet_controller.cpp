@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2020 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -5,7 +8,7 @@
 #include <cstring>
 
 #include "common/assert.h"
-#include "common/logging/log.h"
+#include "common/logging.h"
 #include "common/string_util.h"
 #include "core/core.h"
 #include "core/frontend/applets/controller.h"
@@ -31,7 +34,7 @@ static Core::Frontend::ControllerParameters ConvertToFrontendParameters(
     npad_style_set.raw = private_arg.style_set;
 
     return {
-        .min_players = std::max(s8{1}, header.player_count_min),
+        .min_players = (std::max)(s8{1}, header.player_count_min),
         .max_players = header.player_count_max,
         .keep_controllers_connected = header.enable_take_over_connection,
         .enable_single_mode = header.enable_single_mode,
@@ -131,6 +134,7 @@ void Controller::Initialize() {
             break;
         case ControllerAppletVersion::Version7:
         case ControllerAppletVersion::Version8:
+        case ControllerAppletVersion::Version9:
             ASSERT(user_arg.size() == sizeof(ControllerSupportArgNew));
             std::memcpy(&controller_user_arg_new, user_arg.data(), user_arg.size());
             break;

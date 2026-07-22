@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2024 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -10,7 +13,6 @@
 #include "core/hle/service/sm/sm.h"
 #include "core/hle/service/vi/container.h"
 #include "core/hle/service/vi/vi_results.h"
-#include "common/logging/log.h"
 
 namespace Service::VI {
 
@@ -87,7 +89,6 @@ Result Container::CloseDisplay(u64 display_id) {
 }
 
 Result Container::CreateManagedLayer(u64* out_layer_id, u64 display_id, u64 owner_aruid) {
-    LOG_INFO(Service_VI, "CreateManagedLayer display_id={} aruid={}", display_id, owner_aruid);
     std::scoped_lock lk{m_lock};
     R_RETURN(this->CreateLayerLocked(out_layer_id, display_id, owner_aruid));
 }
@@ -102,7 +103,6 @@ Result Container::DestroyManagedLayer(u64 layer_id) {
 }
 
 Result Container::OpenLayer(s32* out_producer_binder_id, u64 layer_id, u64 aruid) {
-    LOG_INFO(Service_VI, "OpenLayer layer_id={} aruid={}", layer_id, aruid);
     std::scoped_lock lk{m_lock};
     R_RETURN(this->OpenLayerLocked(out_producer_binder_id, layer_id, aruid));
 }
@@ -140,7 +140,15 @@ Result Container::SetLayerZIndex(u64 layer_id, s32 z_index) {
     auto* const layer = m_layers.GetLayerById(layer_id);
     R_UNLESS(layer != nullptr, VI::ResultNotFound);
 
-    m_surface_flinger->SetLayerZIndex(layer->GetConsumerBinderId(), z_index);
+    if (auto layer_ref = m_surface_flinger->FindLayer(layer->GetConsumerBinderId())) {
+        LOG_DEBUG(Service_VI, "called, SetLayerZIndex layer_id={} z={} (cid={})", layer_id,
+                 z_index, layer->GetConsumerBinderId());
+        layer_ref->z_index = z_index;
+    } else {
+        LOG_DEBUG(Service_VI, "called, SetLayerZIndex failed to find layer for layer_id={} (cid={})",
+                 layer_id, layer->GetConsumerBinderId());
+    }
+
     R_SUCCEED();
 }
 
@@ -150,7 +158,8 @@ Result Container::GetLayerZIndex(u64 layer_id, s32* out_z_index) {
     auto* const layer = m_layers.GetLayerById(layer_id);
     R_UNLESS(layer != nullptr, VI::ResultNotFound);
 
-    if (m_surface_flinger->GetLayerZIndex(layer->GetConsumerBinderId(), out_z_index)) {
+    if (auto layer_ref = m_surface_flinger->FindLayer(layer->GetConsumerBinderId())) {
+        *out_z_index = layer_ref->z_index;
         R_SUCCEED();
     }
 
@@ -222,27 +231,13 @@ Result Container::OpenLayerLocked(s32* out_producer_binder_id, u64 layer_id, u64
     R_UNLESS(!m_is_shut_down, VI::ResultOperationFailed);
 
     auto* const layer = m_layers.GetLayerById(layer_id);
-    if (!layer) {
-        LOG_ERROR(Service_VI, "OpenLayerLocked: layer {} not found", layer_id);
-    }
     R_UNLESS(layer != nullptr, VI::ResultNotFound);
-    if (layer->IsOpen()) {
-        LOG_ERROR(Service_VI, "OpenLayerLocked: layer {} already open", layer_id);
-    }
     R_UNLESS(!layer->IsOpen(), VI::ResultOperationFailed);
-    if (layer->GetOwnerAruid() != aruid) {
-        LOG_ERROR(Service_VI, "OpenLayerLocked: aruid mismatch layer_id={} owner={} caller={}",
-                  layer_id, layer->GetOwnerAruid(), aruid);
-    }
     R_UNLESS(layer->GetOwnerAruid() == aruid, VI::ResultPermissionDenied);
 
     layer->Open();
 
-    auto* display = layer->GetDisplay();
-    LOG_INFO(Service_VI, "OpenLayerLocked: layer {} opened, display={}, consumer_binder={}",
-             layer_id, display ? display->GetId() : 0, layer->GetConsumerBinderId());
-
-    if (display != nullptr) {
+    if (auto* display = layer->GetDisplay(); display != nullptr) {
         m_surface_flinger->AddLayerToDisplayStack(display->GetId(), layer->GetConsumerBinderId());
     }
 

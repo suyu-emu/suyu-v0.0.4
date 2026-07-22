@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2024 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
@@ -47,7 +50,7 @@ Result IDeliveryCacheStorageService::EnumerateDeliveryCacheDirectory(
     LOG_DEBUG(Service_BCAT, "called, size={:016X}", out_directories.size());
 
     *out_directory_count =
-        static_cast<s32>(std::min(out_directories.size(), entries.size() - next_read_index));
+        static_cast<s32>((std::min)(out_directories.size(), entries.size() - next_read_index));
     memcpy(out_directories.data(), entries.data() + next_read_index,
            *out_directory_count * sizeof(DirectoryName));
     next_read_index += *out_directory_count;

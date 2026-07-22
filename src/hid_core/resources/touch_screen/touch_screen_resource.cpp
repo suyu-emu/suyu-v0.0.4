@@ -1,7 +1,10 @@
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2024 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-#include "common/logging/log.h"
+#include "common/logging.h"
 #include "core/core_timing.h"
 #include "core/hle/kernel/k_event.h"
 #include "core/hle/kernel/k_shared_memory.h"
@@ -25,8 +28,8 @@ TouchResource::~TouchResource() {
 };
 
 Result TouchResource::ActivateTouch() {
-    if (global_ref_counter == std::numeric_limits<s32>::max() - 1 ||
-        touch_ref_counter == std::numeric_limits<s32>::max() - 1) {
+    if (global_ref_counter == (std::numeric_limits<s32>::max)() - 1 ||
+        touch_ref_counter == (std::numeric_limits<s32>::max)() - 1) {
         return ResultTouchOverflow;
     }
 
@@ -91,8 +94,8 @@ Result TouchResource::ActivateTouch(u64 aruid) {
 }
 
 Result TouchResource::ActivateGesture() {
-    if (global_ref_counter == std::numeric_limits<s32>::max() - 1 ||
-        gesture_ref_counter == std::numeric_limits<s32>::max() - 1) {
+    if (global_ref_counter == (std::numeric_limits<s32>::max)() - 1 ||
+        gesture_ref_counter == (std::numeric_limits<s32>::max)() - 1) {
         return ResultGestureOverflow;
     }
 
@@ -483,27 +486,17 @@ void TouchResource::ReadTouchInput() {
     SanitizeInput(current_touch_state);
 
     std::scoped_lock lock{*input_mutex};
-    if (current_touch_state.entry_count == previous_touch_state.entry_count) {
-        if (current_touch_state.entry_count < 1) {
-            return;
-        }
+    if (current_touch_state.entry_count == previous_touch_state.entry_count && current_touch_state.entry_count >= 1) {
         bool has_moved = false;
-        for (std::size_t i = 0; i < static_cast<std::size_t>(current_touch_state.entry_count);
-             i++) {
-            s32 delta_x = std::abs(static_cast<s32>(current_touch_state.states[i].position.x) -
-                                   static_cast<s32>(previous_touch_state.states[i].position.x));
-            s32 delta_y = std::abs(static_cast<s32>(current_touch_state.states[i].position.y) -
-                                   static_cast<s32>(previous_touch_state.states[i].position.y));
-            if (delta_x > 1 || delta_y > 1) {
-                has_moved = true;
-            }
+        for (std::size_t i = 0; !has_moved && i < std::size_t(current_touch_state.entry_count); i++) {
+            s32 delta_x = std::abs(s32(current_touch_state.states[i].position.x) - s32(previous_touch_state.states[i].position.x));
+            s32 delta_y = std::abs(s32(current_touch_state.states[i].position.y) - s32(previous_touch_state.states[i].position.y));
+            has_moved |= (delta_x > 1 || delta_y > 1);
         }
-        if (!has_moved) {
-            return;
+        if (has_moved) {
+            input_event->Signal(system.Kernel());
         }
     }
-
-    input_event->Signal();
 }
 
 void TouchResource::OnTouchUpdate(s64 timestamp) {
@@ -555,8 +548,7 @@ void TouchResource::OnTouchUpdate(s64 timestamp) {
             }
 
             auto& touch_shared = applet_data->shared_memory_format->touch_screen;
-            StorePreviousTouchState(previous_touch_state, data.finger_map, current_touch_state,
-                                    applet_data->flag.enable_touchscreen.As<bool>());
+            StorePreviousTouchState(previous_touch_state, data.finger_map, current_touch_state, applet_data->flag.enable_touchscreen);
             touch_shared.touch_screen_lifo.WriteNextEntry(current_touch_state);
         }
     }

@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2022 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -14,14 +17,13 @@
 #pragma warning(pop)
 #endif
 
-#include <fmt/format.h>
 #include <fmt/ranges.h>
 
 #include "common/fs/file.h"
 #include "common/fs/fs.h"
 #include "common/fs/path_util.h"
 #include "common/input.h"
-#include "common/logging/log.h"
+#include "common/logging.h"
 #include "common/string_util.h"
 #include "common/tiny_mt.h"
 #include "core/core.h"
@@ -69,13 +71,13 @@ NfcDevice::~NfcDevice() {
 void NfcDevice::NpadUpdate(Core::HID::ControllerTriggerType type) {
     if (type == Core::HID::ControllerTriggerType::Connected) {
         Initialize();
-        availability_change_event->Signal();
+        availability_change_event->Signal(system.Kernel());
         return;
     }
 
     if (type == Core::HID::ControllerTriggerType::Disconnected) {
         Finalize();
-        availability_change_event->Signal();
+        availability_change_event->Signal(system.Kernel());
         return;
     }
 
@@ -136,8 +138,8 @@ bool NfcDevice::LoadNfcTag(u8 protocol, u8 tag_type, u8 uuid_length, UniqueSeria
     };
 
     device_state = DeviceState::TagFound;
-    deactivate_event->GetReadableEvent().Clear();
-    activate_event->Signal();
+    deactivate_event->GetReadableEvent().Clear(system.Kernel());
+    activate_event->Signal(system.Kernel());
     return true;
 }
 
@@ -190,8 +192,8 @@ void NfcDevice::CloseNfcTag() {
     device_state = DeviceState::TagRemoved;
     encrypted_tag_data = {};
     tag_data = {};
-    activate_event->GetReadableEvent().Clear();
-    deactivate_event->Signal();
+    activate_event->GetReadableEvent().Clear(system.Kernel());
+    deactivate_event->Signal(system.Kernel());
 }
 
 Kernel::KReadableEvent& NfcDevice::GetActivateEvent() const {
@@ -624,7 +626,7 @@ Result NfcDevice::Restore() {
         }
     }
 
-    // Restore mii data in case is corrupted by previous instances of suyu
+    // Restore mii data in case is corrupted by previous instances of yuzu
     if (tag_data.settings.settings.amiibo_initialized && !tag_data.owner_mii.IsValid()) {
         LOG_ERROR(Service_NFP, "Regenerating mii data");
         Mii::StoreData new_mii{};
@@ -979,7 +981,7 @@ Result NfcDevice::GetApplicationArea(std::span<u8> data) const {
     }
 
     memcpy(data.data(), tag_data.application_area.data(),
-           std::min(data.size(), sizeof(NFP::ApplicationArea)));
+           (std::min)(data.size(), sizeof(NFP::ApplicationArea)));
 
     return ResultSuccess;
 }
@@ -1262,11 +1264,11 @@ Result NfcDevice::BreakTag(NFP::BreakType break_type) {
 Result NfcDevice::HasBackup(const UniqueSerialNumber& uid, std::size_t uuid_size) const {
     ASSERT_MSG(uuid_size < sizeof(UniqueSerialNumber), "Invalid UUID size");
     constexpr auto backup_dir = "backup";
-    const auto suyu_amiibo_dir = Common::FS::GetSuyuPath(Common::FS::SuyuPath::AmiiboDir);
+    const auto yuzu_amiibo_dir = Common::FS::GetEdenPath(Common::FS::EdenPath::AmiiboDir);
     const auto file_name =
         fmt::format("{0:02x}.bin", fmt::join(uid.begin(), uid.begin() + uuid_size, ""));
 
-    if (!Common::FS::Exists(suyu_amiibo_dir / backup_dir / file_name)) {
+    if (!Common::FS::Exists(yuzu_amiibo_dir / backup_dir / file_name)) {
         return ResultUnableToAccessBackupFile;
     }
 
@@ -1283,11 +1285,11 @@ Result NfcDevice::ReadBackupData(const UniqueSerialNumber& uid, std::size_t uuid
                                  std::span<u8> data) const {
     ASSERT_MSG(uuid_size < sizeof(UniqueSerialNumber), "Invalid UUID size");
     constexpr auto backup_dir = "backup";
-    const auto suyu_amiibo_dir = Common::FS::GetSuyuPath(Common::FS::SuyuPath::AmiiboDir);
+    const auto yuzu_amiibo_dir = Common::FS::GetEdenPath(Common::FS::EdenPath::AmiiboDir);
     const auto file_name =
         fmt::format("{0:02x}.bin", fmt::join(uid.begin(), uid.begin() + uuid_size, ""));
 
-    const Common::FS::IOFile keys_file{suyu_amiibo_dir / backup_dir / file_name,
+    const Common::FS::IOFile keys_file{yuzu_amiibo_dir / backup_dir / file_name,
                                        Common::FS::FileAccessMode::Read,
                                        Common::FS::FileType::BinaryFile};
 
@@ -1314,21 +1316,21 @@ Result NfcDevice::WriteBackupData(const UniqueSerialNumber& uid, std::size_t uui
                                   std::span<const u8> data) {
     ASSERT_MSG(uuid_size < sizeof(UniqueSerialNumber), "Invalid UUID size");
     constexpr auto backup_dir = "backup";
-    const auto suyu_amiibo_dir = Common::FS::GetSuyuPath(Common::FS::SuyuPath::AmiiboDir);
+    const auto yuzu_amiibo_dir = Common::FS::GetEdenPath(Common::FS::EdenPath::AmiiboDir);
     const auto file_name =
         fmt::format("{0:02x}.bin", fmt::join(uid.begin(), uid.begin() + uuid_size, ""));
 
     if (HasBackup(uid, uuid_size).IsError()) {
-        if (!Common::FS::CreateDir(suyu_amiibo_dir / backup_dir)) {
+        if (!Common::FS::CreateDir(yuzu_amiibo_dir / backup_dir)) {
             return ResultBackupPathAlreadyExist;
         }
 
-        if (!Common::FS::NewFile(suyu_amiibo_dir / backup_dir / file_name)) {
+        if (!Common::FS::NewFile(yuzu_amiibo_dir / backup_dir / file_name)) {
             return ResultBackupPathAlreadyExist;
         }
     }
 
-    const Common::FS::IOFile keys_file{suyu_amiibo_dir / backup_dir / file_name,
+    const Common::FS::IOFile keys_file{yuzu_amiibo_dir / backup_dir / file_name,
                                        Common::FS::FileAccessMode::ReadWrite,
                                        Common::FS::FileType::BinaryFile};
 

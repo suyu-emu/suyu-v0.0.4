@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2021 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -16,7 +19,7 @@
 #include <deque>
 #include <map>
 #include <span>
-#include <unordered_map>
+#include <ankerl/unordered_dense.h>
 #include <variant>
 #include <vector>
 
@@ -50,8 +53,8 @@ struct IndirectBranchVariable {
     auto operator<=>(const IndirectBranchVariable&) const noexcept = default;
 };
 
-using Variant = std::variant<IR::Reg, IR::Pred, ZeroFlagTag, SignFlagTag, CarryFlagTag,
-                             OverflowFlagTag, GotoVariable, IndirectBranchVariable>;
+using Variant = std::variant<IR::Reg, IR::Pred, ZeroFlagTag, SignFlagTag, CarryFlagTag, OverflowFlagTag, GotoVariable, IndirectBranchVariable>;
+// TODO: majority of these require stable iterators, test with XC beforehand
 using ValueMap = std::unordered_map<IR::Block*, IR::Value>;
 
 struct DefTable {
@@ -112,6 +115,7 @@ struct DefTable {
     }
 
     std::array<ValueMap, IR::NUM_USER_PREDS> preds;
+    // TODO: Requires stable iterators
     std::unordered_map<u32, ValueMap> goto_vars;
     ValueMap indirect_branch_var;
     ValueMap zero_flag;
@@ -165,7 +169,8 @@ public:
 
     template <typename Type>
     IR::Value ReadVariable(Type variable, IR::Block* root_block) {
-        boost::container::small_vector<ReadState<Type>, 64> stack{
+        // TODO: Windows commits sodoku if you use small_vector
+        std::vector<ReadState<Type>> stack{
             ReadState<Type>(nullptr),
             ReadState<Type>(root_block),
         };
@@ -295,6 +300,7 @@ private:
         return same;
     }
 
+    // TODO: Windows dies with stack exhaustion?
     std::unordered_map<IR::Block*, std::map<Variant, IR::Inst*>> incomplete_phis;
     DefTable current_def;
 };

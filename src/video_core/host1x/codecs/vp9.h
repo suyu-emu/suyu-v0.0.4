@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2020 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -11,7 +14,7 @@
 #include "common/scratch_buffer.h"
 #include "common/stream.h"
 #include "video_core/host1x/codecs/decoder.h"
-#include "video_core/host1x/codecs/vp9_types.h"
+#include "video_core/host1x/codec_types.h"
 #include "video_core/host1x/nvdec_common.h"
 
 namespace Tegra {
@@ -113,8 +116,7 @@ private:
 
 class VP9 final : public Decoder {
 public:
-    explicit VP9(Host1x::Host1x& host1x, const Host1x::NvdecCommon::NvdecRegisters& regs, s32 id,
-                 Host1x::FrameQueue& frame_queue);
+    explicit VP9(Host1x::Host1x& host1x, const Host1x::NvdecCommon::NvdecRegisters& regs, s32 id);
     ~VP9() override;
 
     VP9(const VP9&) = delete;
@@ -193,11 +195,10 @@ private:
     [[nodiscard]] std::vector<u8> ComposeCompressedHeader();
     [[nodiscard]] VpxBitStreamWriter ComposeUncompressedHeader();
 
-    Common::ScratchBuffer<u8> frame_scratch;
-
     std::array<s8, 4> loop_filter_ref_deltas{};
     std::array<s8, 2> loop_filter_mode_deltas{};
 
+    Common::ScratchBuffer<u8> frame_scratch;
     Vp9FrameContainer next_frame{};
     std::array<Vp9EntropyProbs, 4> frame_ctxs{};
     bool swap_ref_indices{};

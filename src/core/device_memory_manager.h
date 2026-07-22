@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2023 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -9,6 +12,8 @@
 #include <deque>
 #include <memory>
 #include <mutex>
+#include <vector>
+#include <span>
 
 #include "common/common_types.h"
 #include "common/range_mutex.h"
@@ -44,6 +49,7 @@ public:
     ~DeviceMemoryManager();
 
     static constexpr bool HAS_FLUSH_INVALIDATION = true;
+    static constexpr size_t AS_BITS = Traits::device_virtual_bits;
 
     void BindInterface(DeviceInterface* device_inter);
 
@@ -70,16 +76,16 @@ public:
 
     template <typename Func>
     void ApplyOpOnPAddr(PAddr address, Common::ScratchBuffer<u32>& buffer, Func&& operation) {
-        DAddr subbits = static_cast<DAddr>(address & page_mask);
+        DAddr subbits = DAddr(address & page_mask);
         const u32 base = compressed_device_addr[(address >> page_bits)];
         if ((base >> MULTI_FLAG_BITS) == 0) [[likely]] {
-            const DAddr d_address = (static_cast<DAddr>(base) << page_bits) + subbits;
+            const DAddr d_address = (DAddr(base) << page_bits) + subbits;
             operation(d_address);
             return;
         }
         InnerGatherDeviceAddresses(buffer, address);
         for (u32 value : buffer) {
-            operation((static_cast<DAddr>(value) << page_bits) + subbits);
+            operation((DAddr(value) << page_bits) + subbits);
         }
     }
 
@@ -90,12 +96,12 @@ public:
     }
 
     PAddr GetPhysicalRawAddressFromDAddr(DAddr address) const {
-        PAddr subbits = static_cast<PAddr>(address & page_mask);
-        auto paddr = compressed_physical_ptr[(address >> page_bits)];
+        PAddr subbits = PAddr(address & page_mask);
+        auto paddr = tracked_entries[(address >> page_bits)].compressed_physical_ptr;
         if (paddr == 0) {
             return 0;
         }
-        return (static_cast<PAddr>(paddr - 1) << page_bits) + subbits;
+        return (PAddr(paddr - 1) << page_bits) + subbits;
     }
 
     template <typename T>
@@ -117,7 +123,17 @@ public:
 
     void UpdatePagesCachedCount(DAddr addr, size_t size, s32 delta);
 
-    static constexpr size_t AS_BITS = Traits::device_virtual_bits;
+    // New batch API to update multiple ranges with a single lock acquisition.
+    void UpdatePagesCachedBatch(std::span<const std::pair<DAddr, size_t>> ranges, s32 delta);
+
+private:
+    struct TranslationEntry {
+        DAddr guest_page{};
+        u8* host_ptr{};
+    };
+
+    // Internal helper that performs the update assuming the caller already holds the necessary lock.
+    void UpdatePagesCachedCountNoLock(DAddr addr, size_t size, s32 delta);
 
 private:
     static constexpr size_t device_virtual_bits = Traits::device_virtual_bits;
@@ -156,9 +172,14 @@ private:
 
     const uintptr_t physical_base;
     DeviceInterface* device_inter;
-    Common::VirtualBuffer<u32> compressed_physical_ptr;
+
+    struct TrackedEntry {
+        VAddr cpu_backing_address;
+        u32 continuity_tracker;
+        u32 compressed_physical_ptr;
+    };
     Common::VirtualBuffer<u32> compressed_device_addr;
-    Common::VirtualBuffer<u32> continuity_tracker;
+    Common::VirtualBuffer<TrackedEntry> tracked_entries;
 
     // Process memory interfaces
 
@@ -173,17 +194,18 @@ private:
     static constexpr size_t asid_start_bit = guest_max_as_bits;
 
     std::pair<Asid, VAddr> ExtractCPUBacking(size_t page_index) {
-        auto content = cpu_backing_address[page_index];
+        auto content = tracked_entries[page_index].cpu_backing_address;
         const VAddr address = content & guest_mask;
         const Asid asid{static_cast<size_t>(content >> asid_start_bit)};
         return std::make_pair(asid, address);
     }
 
     void InsertCPUBacking(size_t page_index, VAddr address, Asid asid) {
-        cpu_backing_address[page_index] = address | (asid.id << asid_start_bit);
+        tracked_entries[page_index].cpu_backing_address = address | (asid.id << asid_start_bit);
     }
 
-    Common::VirtualBuffer<VAddr> cpu_backing_address;
+    std::array<TranslationEntry, 4> t_slot{};
+    u32 cache_cursor = 0;
     using CounterType = u8;
     using CounterAtomicType = std::atomic_uint8_t;
     static constexpr size_t subentries = 8 / sizeof(CounterType);
@@ -214,6 +236,8 @@ private:
     std::unique_ptr<CachedPages> cached_pages;
     Common::RangeMutex counter_guard;
     std::mutex mapping_guard;
+
+
 };
 
 } // namespace Core

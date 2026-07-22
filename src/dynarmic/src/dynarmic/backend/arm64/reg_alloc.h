@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 /* This file is part of the dynarmic project.
@@ -14,9 +14,9 @@
 #include <utility>
 #include <vector>
 
-#include "dynarmic/common/assert.h"
-#include "dynarmic/common/common_types.h"
-#include <mcl/type_traits/is_instance_of_template.hpp>
+#include "common/assert.h"
+#include "common/common_types.h"
+#include "dynarmic/mcl/is_instance_of_template.hpp"
 #include <oaknut/oaknut.hpp>
 #include <ankerl/unordered_dense.h>
 
@@ -64,18 +64,18 @@ public:
     IR::AccType GetImmediateAccType() const;
 
     // Only valid if not immediate
-    HostLoc::Kind CurrentLocationKind() const;
-    bool IsInGpr() const { return !IsImmediate() && CurrentLocationKind() == HostLoc::Kind::Gpr; }
-    bool IsInFpr() const { return !IsImmediate() && CurrentLocationKind() == HostLoc::Kind::Fpr; }
+    HostLoc::Kind CurrentLocationKind(RegAlloc& reg_alloc) const;
+    bool IsInGpr(RegAlloc& reg_alloc) const {
+        return !IsImmediate() && CurrentLocationKind(reg_alloc) == HostLoc::Kind::Gpr;
+    }
+    bool IsInFpr(RegAlloc& reg_alloc) const {
+        return !IsImmediate() && CurrentLocationKind(reg_alloc) == HostLoc::Kind::Fpr;
+    }
 
 private:
     friend class RegAlloc;
-    explicit Argument(RegAlloc& reg_alloc)
-            : reg_alloc{reg_alloc} {}
-
-    bool allocated = false;
-    RegAlloc& reg_alloc;
     IR::Value value;
+    bool allocated = false;
 };
 
 struct FlagsTag final {
@@ -141,11 +141,11 @@ private:
 
 struct HostLocInfo final {
     std::vector<const IR::Inst*> values;
-    size_t locked = 0;
+    std::size_t locked = 0;
     bool realized = false;
-    size_t uses_this_inst = 0;
-    size_t accumulated_uses = 0;
-    size_t expected_uses = 0;
+    std::size_t uses_this_inst = 0;
+    std::size_t accumulated_uses = 0;
+    std::size_t expected_uses = 0;
 
     bool Contains(const IR::Inst*) const;
     void SetupScratchLocation();
@@ -160,8 +160,12 @@ class RegAlloc final {
 public:
     using ArgumentInfo = std::array<Argument, IR::max_arg_count>;
 
-    explicit RegAlloc(oaknut::CodeGenerator& code, FpsrManager& fpsr_manager, std::vector<int> gpr_order, std::vector<int> fpr_order)
-            : code{code}, fpsr_manager{fpsr_manager}, gpr_order{gpr_order}, fpr_order{fpr_order}, rand_gen{std::random_device{}()} {}
+    explicit RegAlloc(oaknut::CodeGenerator& code, FpsrManager& fpsr_manager, std::vector<int> gpr_order, std::vector<int> fpr_order) noexcept
+        : code{code}
+        , fpsr_manager{fpsr_manager}
+        , gpr_order{gpr_order}
+        , fpr_order{fpr_order}
+    {}
 
     ArgumentInfo GetArgumentInfo(IR::Inst* inst);
     bool WasValueDefined(IR::Inst* inst) const;
@@ -175,7 +179,7 @@ public:
     auto ReadH(Argument& arg) { return RAReg<oaknut::HReg>{*this, RWType::Read, arg.value, nullptr}; }
     auto ReadB(Argument& arg) { return RAReg<oaknut::BReg>{*this, RWType::Read, arg.value, nullptr}; }
 
-    template<size_t size>
+    template<std::size_t size>
     auto ReadReg(Argument& arg) {
         if constexpr (size == 64) {
             return ReadX(arg);
@@ -186,7 +190,7 @@ public:
         }
     }
 
-    template<size_t size>
+    template<std::size_t size>
     auto ReadVec(Argument& arg) {
         if constexpr (size == 128) {
             return ReadQ(arg);
@@ -214,7 +218,7 @@ public:
 
     auto WriteFlags(IR::Inst* inst) { return RAReg<FlagsTag>{*this, RWType::Write, {}, inst}; }
 
-    template<size_t size>
+    template<std::size_t size>
     auto WriteReg(IR::Inst* inst) {
         if constexpr (size == 64) {
             return WriteX(inst);
@@ -225,7 +229,7 @@ public:
         }
     }
 
-    template<size_t size>
+    template<std::size_t size>
     auto WriteVec(IR::Inst* inst) {
         if constexpr (size == 128) {
             return WriteQ(inst);
@@ -251,7 +255,7 @@ public:
     auto ReadWriteH(Argument& arg, const IR::Inst* inst) { return RAReg<oaknut::HReg>{*this, RWType::ReadWrite, arg.value, inst}; }
     auto ReadWriteB(Argument& arg, const IR::Inst* inst) { return RAReg<oaknut::BReg>{*this, RWType::ReadWrite, arg.value, inst}; }
 
-    template<size_t size>
+    template<std::size_t size>
     auto ReadWriteReg(Argument& arg, const IR::Inst* inst) {
         if constexpr (size == 64) {
             return ReadWriteX(arg, inst);
@@ -262,7 +266,7 @@ public:
         }
     }
 
-    template<size_t size>
+    template<std::size_t size>
     auto ReadWriteVec(Argument& arg, const IR::Inst* inst) {
         if constexpr (size == 128) {
             return ReadWriteQ(arg, inst);
@@ -302,17 +306,12 @@ public:
 
 private:
     friend struct Argument;
-    template<typename>
-    friend struct RAReg;
+    template<typename> friend struct RAReg;
 
-    template<HostLoc::Kind kind>
-    int GenerateImmediate(const IR::Value& value);
-    template<HostLoc::Kind kind>
-    int RealizeReadImpl(const IR::Value& value);
-    template<HostLoc::Kind kind>
-    int RealizeWriteImpl(const IR::Inst* value);
-    template<HostLoc::Kind kind>
-    int RealizeReadWriteImpl(const IR::Value& read_value, const IR::Inst* write_value);
+    template<HostLoc::Kind kind> int GenerateImmediate(const IR::Value& value);
+    template<HostLoc::Kind kind> int RealizeReadImpl(const IR::Value& value);
+    template<HostLoc::Kind kind> int RealizeWriteImpl(const IR::Inst* value);
+    template<HostLoc::Kind kind> int RealizeReadWriteImpl(const IR::Value& read_value, const IR::Inst* write_value);
 
     int AllocateRegister(const std::array<HostLocInfo, 32>& regs, const std::vector<int>& order) const;
     void SpillGpr(int index);
@@ -336,8 +335,7 @@ private:
     HostLocInfo flags;
     std::array<HostLocInfo, SpillCount> spills;
 
-    mutable std::mt19937 rand_gen;
-
+    mutable std::size_t alloc_candidate_index = 0;
     ankerl::unordered_dense::set<const IR::Inst*> defined_insts;
 };
 
@@ -371,8 +369,9 @@ void RAReg<T>::Realize() {
     case RWType::ReadWrite:
         reg = T{reg_alloc.RealizeReadWriteImpl<kind>(read_value, write_value)};
         break;
+    default:
+        UNREACHABLE();
     }
-    UNREACHABLE();
 }
 
 }  // namespace Dynarmic::Backend::Arm64

@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 /* This file is part of the dynarmic project.
@@ -6,19 +6,25 @@
  * SPDX-License-Identifier: 0BSD
  */
 
+#include <signal.h>
+
+#include <algorithm>
+#include <bit>
 #include <cstring>
 #include <functional>
 #include <memory>
 #include <mutex>
-#include <shared_mutex>
 #include <optional>
-#include <bit>
-#include <fmt/format.h>
+#include <shared_mutex>
+
 #include <ankerl/unordered_dense.h>
+#include <fmt/format.h>
+#include <sys/mman.h>
+
+#include "common/assert.h"
+#include "common/common_types.h"
 #include "dynarmic/backend/exception_handler.h"
-#include "dynarmic/common/assert.h"
 #include "dynarmic/common/context.h"
-#include "dynarmic/common/common_types.h"
 #if defined(ARCHITECTURE_x86_64)
 #    include "dynarmic/backend/x64/block_of_code.h"
 #elif defined(ARCHITECTURE_arm64)
@@ -26,6 +32,8 @@
 #    include "dynarmic/backend/arm64/abi.h"
 #elif defined(ARCHITECTURE_riscv64)
 #    include "dynarmic/backend/riscv64/code_block.h"
+#elif defined(ARCHITECTURE_loongarch64)
+#    include "dynarmic/backend/loongarch64/code_block.h"
 #else
 #    error "Invalid architecture"
 #endif
@@ -120,15 +128,15 @@ void SigHandler::SigAction(int sig, siginfo_t* info, void* raw_context) {
 #if defined(ARCHITECTURE_x86_64)
     {
         std::shared_lock guard(sig_handler->code_block_infos_mutex);
-        if (auto const iter = sig_handler->FindCodeBlockInfo(CTX_RIP); iter != sig_handler->code_block_infos.end()) {
-            FakeCall fc = iter->second.cb(CTX_RIP);
-            CTX_RSP -= sizeof(u64);
-            *std::bit_cast<u64*>(CTX_RSP) = fc.ret_rip;
-            CTX_RIP = fc.call_rip;
+        if (auto const iter = sig_handler->FindCodeBlockInfo(CTX_PC); iter != sig_handler->code_block_infos.end()) {
+            FakeCall fc = iter->second.cb(CTX_PC);
+            CTX_SP -= sizeof(u64);
+            *std::bit_cast<u64*>(CTX_SP) = fc.ret_rip;
+            CTX_PC = fc.call_rip;
             return;
         }
     }
-    fmt::print(stderr, "Unhandled {} at rip {:#018x}\n", sig == SIGSEGV ? "SIGSEGV" : "SIGBUS", CTX_RIP);
+    fmt::print(stderr, "Unhandled {} at rip {:#018x}\n", sig == SIGSEGV ? "SIGSEGV" : "SIGBUS", CTX_PC);
 #elif defined(ARCHITECTURE_arm64)
     {
         std::shared_lock guard(sig_handler->code_block_infos_mutex);
@@ -140,7 +148,25 @@ void SigHandler::SigAction(int sig, siginfo_t* info, void* raw_context) {
     }
     fmt::print(stderr, "Unhandled {} at pc {:#018x}\n", sig == SIGSEGV ? "SIGSEGV" : "SIGBUS", CTX_PC);
 #elif defined(ARCHITECTURE_riscv64)
-    UNREACHABLE();
+    {
+        std::shared_lock guard(sig_handler->code_block_infos_mutex);
+        if (const auto iter = sig_handler->FindCodeBlockInfo(CTX_SEPC); iter != sig_handler->code_block_infos.end()) {
+            FakeCall fc = iter->second.cb(CTX_SEPC);
+            CTX_SEPC = fc.call_sepc;
+            return;
+        }
+    }
+    fmt::print(stderr, "Unhandled {} at pc {:#018x}\n", sig == SIGSEGV ? "SIGSEGV" : "SIGBUS", CTX_SEPC);
+#elif defined(ARCHITECTURE_loongarch64)
+    {
+        std::shared_lock guard(sig_handler->code_block_infos_mutex);
+        if (const auto iter = sig_handler->FindCodeBlockInfo(CTX_PC); iter != sig_handler->code_block_infos.end()) {
+            FakeCall fc = iter->second.cb(CTX_PC);
+            CTX_PC = fc.call_pc;
+            return;
+        }
+    }
+    fmt::print(stderr, "Unhandled {} at pc {:#018x}\n", sig == SIGSEGV ? "SIGSEGV" : "SIGBUS", CTX_PC);
 #else
 #    error "Invalid architecture"
 #endif
@@ -188,16 +214,20 @@ private:
 ExceptionHandler::ExceptionHandler() = default;
 ExceptionHandler::~ExceptionHandler() = default;
 
-#if defined(MCL_ARCHITECTURE_X86_64)
+#if defined(ARCHITECTURE_x86_64)
 void ExceptionHandler::Register(X64::BlockOfCode& code) {
     impl = std::make_unique<Impl>(std::bit_cast<u64>(code.getCode()), code.GetTotalCodeSize());
 }
-#elif defined(MCL_ARCHITECTURE_ARM64)
+#elif defined(ARCHITECTURE_arm64)
 void ExceptionHandler::Register(oaknut::CodeBlock& mem, std::size_t size) {
     impl = std::make_unique<Impl>(std::bit_cast<u64>(mem.ptr()), size);
 }
-#elif defined(MCL_ARCHITECTURE_RISCV)
+#elif defined(ARCHITECTURE_riscv64)
 void ExceptionHandler::Register(RV64::CodeBlock& mem, std::size_t size) {
+    impl = std::make_unique<Impl>(std::bit_cast<u64>(mem.ptr<u64>()), size);
+}
+#elif defined(ARCHITECTURE_loongarch64)
+void ExceptionHandler::Register(LoongArch64::CodeBlock& mem, std::size_t size) {
     impl = std::make_unique<Impl>(std::bit_cast<u64>(mem.ptr<u64>()), size);
 }
 #else

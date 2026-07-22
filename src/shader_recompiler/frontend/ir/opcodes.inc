@@ -296,6 +296,7 @@ OPCODE(UDiv32,                                              U32,            U32,
 OPCODE(INeg32,                                              U32,            U32,                                                                            )
 OPCODE(INeg64,                                              U64,            U64,                                                                            )
 OPCODE(IAbs32,                                              U32,            U32,                                                                            )
+OPCODE(IAbs64,                                              U64,            U64,                                                                            )
 OPCODE(ShiftLeftLogical32,                                  U32,            U32,            U32,                                                            )
 OPCODE(ShiftLeftLogical64,                                  U64,            U64,            U32,                                                            )
 OPCODE(ShiftRightLogical32,                                 U32,            U32,            U32,                                                            )
@@ -475,6 +476,12 @@ OPCODE(ConvertF64U8,                                        F64,            U32,
 OPCODE(ConvertF64U16,                                       F64,            U32,                                                                            )
 OPCODE(ConvertF64U32,                                       F64,            U32,                                                                            )
 OPCODE(ConvertF64U64,                                       F64,            U64,                                                                            )
+OPCODE(ConvertU16U32,                                       U16,            U32,                                                                            )
+OPCODE(ConvertU32U16,                                       U32,            U16,                                                                            )
+OPCODE(ConvertU8U32,                                        U8,             U32,                                                                            )
+OPCODE(ConvertU32U8,                                        U32,            U8,                                                                             )
+OPCODE(ConvertS32S8,                                        U32,            U8,                                                                             )
+OPCODE(ConvertS32S16,                                       U32,            U16,                                                                            )
 
 // Image operations
 OPCODE(BindlessImageSampleImplicitLod,                      F32x4,          U32,            Opaque,         Opaque,         Opaque,                         )

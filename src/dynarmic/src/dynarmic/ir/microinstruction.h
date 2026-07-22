@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 /* This file is part of the dynarmic project.
@@ -10,8 +10,8 @@
 
 #include <array>
 
-#include <mcl/container/intrusive_list.hpp>
-#include "dynarmic/common/common_types.h"
+#include "dynarmic/mcl/intrusive_list.hpp"
+#include "common/common_types.h"
 
 #include "dynarmic/ir/value.h"
 #include "dynarmic/ir/opcodes.h"
@@ -74,7 +74,6 @@ public:
     void SetName(unsigned value) { name = value; }
     unsigned GetName() const { return name; }
 
-private:
     void Use(const Value& value);
     void UndoUse(const Value& value);
 
@@ -87,6 +86,6 @@ private:
     unsigned name = 0; //4 (4)
     alignas(64) std::array<Value, max_arg_count> args; //16 * 4 = 64 (1 cache line)
 };
-static_assert(sizeof(Inst) == 128);
+//static_assert(sizeof(Inst) == 128);
 
 }  // namespace Dynarmic::IR

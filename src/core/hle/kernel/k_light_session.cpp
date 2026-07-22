@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2023 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -10,15 +13,18 @@
 namespace Kernel {
 
 KLightSession::KLightSession(KernelCore& kernel)
-    : KAutoObjectWithSlabHeapAndContainer(kernel), m_server(kernel), m_client(kernel) {}
+    : KAutoObjectWithSlabHeapAndContainer(kernel)
+    , m_server(kernel)
+    , m_client(kernel)
+{}
 KLightSession::~KLightSession() = default;
 
-void KLightSession::Initialize(KClientPort* client_port, uintptr_t name) {
+void KLightSession::Initialize(KernelCore& kernel, KClientPort* client_port, uintptr_t name) {
     // Increment reference count.
     // Because reference count is one on creation, this will result
     // in a reference count of two. Thus, when both server and client are closed
     // this object will be destroyed.
-    this->Open();
+    this->Open(kernel);
 
     // Create our sub sessions.
     KAutoObject::Create(std::addressof(m_server));
@@ -33,49 +39,47 @@ void KLightSession::Initialize(KClientPort* client_port, uintptr_t name) {
     m_name = name;
 
     // Set our owner process.
-    m_process = GetCurrentProcessPointer(m_kernel);
-    m_process->Open();
+    m_process = GetCurrentProcessPointer(kernel);
+    m_process->Open(kernel);
 
     // Set our port.
     m_port = client_port;
     if (m_port != nullptr) {
-        m_port->Open();
+        m_port->Open(kernel);
     }
 
     // Mark initialized.
     m_initialized = true;
 }
 
-void KLightSession::Finalize() {
+void KLightSession::Finalize(KernelCore& kernel) {
     if (m_port != nullptr) {
-        m_port->OnSessionFinalized();
-        m_port->Close();
+        m_port->OnSessionFinalized(kernel);
+        m_port->Close(kernel);
     }
 }
 
-void KLightSession::OnServerClosed() {
+void KLightSession::OnServerClosed(KernelCore& kernel) {
     if (m_state == State::Normal) {
         m_state = State::ServerClosed;
-        m_client.OnServerClosed();
+        m_client.OnServerClosed(kernel);
     }
-
-    this->Close();
+    this->Close(kernel);
 }
 
-void KLightSession::OnClientClosed() {
+void KLightSession::OnClientClosed(KernelCore& kernel) {
     if (m_state == State::Normal) {
         m_state = State::ClientClosed;
-        m_server.OnClientClosed();
+        m_server.OnClientClosed(kernel);
     }
-
-    this->Close();
+    this->Close(kernel);
 }
 
-void KLightSession::PostDestroy(uintptr_t arg) {
+void KLightSession::PostDestroy(KernelCore& kernel, uintptr_t arg) {
     // Release the session count resource the owner process holds.
     KProcess* owner = reinterpret_cast<KProcess*>(arg);
-    owner->ReleaseResource(Svc::LimitableResource::SessionCountMax, 1);
-    owner->Close();
+    owner->ReleaseResource(kernel, Svc::LimitableResource::SessionCountMax, 1);
+    owner->Close(kernel);
 }
 
 } // namespace Kernel

@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2022 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -29,7 +32,7 @@ protected:
     }
 
 public:
-    virtual void Destroy() override {
+    virtual void Destroy(KernelCore& kernel) override {
         UNREACHABLE_MSG("KSystemResource::Destroy() was called");
     }
 
@@ -93,13 +96,13 @@ public:
         this->SetSecureResource();
     }
 
-    Result Initialize(size_t size, KResourceLimit* resource_limit, KMemoryManager::Pool pool);
-    void Finalize();
+    Result Initialize(KernelCore& kernel, size_t size, KResourceLimit* resource_limit, KMemoryManager::Pool pool);
+    void Finalize(KernelCore& kernel);
 
     bool IsInitialized() const {
         return m_is_initialized;
     }
-    static void PostDestroy(uintptr_t arg) {}
+    static void PostDestroy(KernelCore& kernel, uintptr_t arg) {}
 
     size_t CalculateRequiredSecureMemorySize() const {
         return CalculateRequiredSecureMemorySize(m_resource_size, m_resource_pool);

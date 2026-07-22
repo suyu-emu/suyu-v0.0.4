@@ -1,19 +1,33 @@
-// SPDX-FileCopyrightText: Copyright 2020 suyu Emulator Project
-// SPDX-License-Identifier: GPL-2.0-or-later
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
 
 #include <string_view>
-#include "common/logging/log.h"
+#include "common/logging.h"
+#include "common/settings.h"
 #include "video_core/vulkan_common/vulkan_debug_callback.h"
+#include "video_core/gpu_logging/gpu_logging.h"
 
 namespace Vulkan {
 namespace {
+
+// Helper to get message type as string for GPU logging
+const char* GetMessageTypeName(VkDebugUtilsMessageTypeFlagsEXT type) {
+    if (type & VK_DEBUG_UTILS_MESSAGE_TYPE_VALIDATION_BIT_EXT) {
+        return "Validation";
+    } else if (type & VK_DEBUG_UTILS_MESSAGE_TYPE_PERFORMANCE_BIT_EXT) {
+        return "Performance";
+    } else {
+        return "General";
+    }
+}
+
 VkBool32 DebugUtilCallback(VkDebugUtilsMessageSeverityFlagBitsEXT severity,
                            VkDebugUtilsMessageTypeFlagsEXT type,
                            const VkDebugUtilsMessengerCallbackDataEXT* data,
                            [[maybe_unused]] void* user_data) {
     // Skip logging known false-positive validation errors
     switch (static_cast<u32>(data->messageIdNumber)) {
-#ifdef ANDROID
+#ifdef __ANDROID__
     case 0xbf9cf353u: // VUID-vkCmdBindVertexBuffers2-pBuffers-04111
     // The below are due to incorrect reporting of extendedDynamicState
     case 0x1093bebbu: // VUID-vkCmdSetCullMode-None-03384
@@ -60,6 +74,28 @@ VkBool32 DebugUtilCallback(VkDebugUtilsMessageSeverityFlagBitsEXT severity,
     } else if (severity & VK_DEBUG_UTILS_MESSAGE_SEVERITY_VERBOSE_BIT_EXT) {
         LOG_DEBUG(Render_Vulkan, "{}", message);
     }
+
+    // Route to GPU logger for tracking Vulkan validation messages
+    if (GPU::Logging::IsActive() &&
+        Settings::values.gpu_log_vulkan_calls.GetValue()) {
+        // Convert severity to result code for logging (negative = error)
+        int result_code = 0;
+        if (severity & VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT) {
+            result_code = -1;
+        } else if (severity & VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT) {
+            result_code = -2;
+        }
+
+        // Get message ID name or use generic name
+        const char* call_name = data->pMessageIdName ? data->pMessageIdName : "VulkanDebug";
+
+        GPU::Logging::GPULogger::GetInstance().LogVulkanCall(
+            call_name,
+            std::string(GetMessageTypeName(type)) + ": " + std::string(message),
+            result_code
+        );
+    }
+
     return VK_FALSE;
 }
 

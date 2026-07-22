@@ -1,6 +1,9 @@
 // SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
+// SPDX-FileCopyrightText: Copyright 2018 yuzu Emulator Project
+// SPDX-License-Identifier: GPL-2.0-or-later
+
 #include <memory>
 #include "common/alignment.h"
 #include "common/literals.h"
@@ -56,7 +59,7 @@ u64 SDMCFactory::GetSDMCFreeSpace() const {
 }
 
 u64 SDMCFactory::GetSDMCTotalSpace() const {
-    // Resize SD space automatically, always leaving around 4GiB last from next chunk block
+    // Resize the SD space automatically, always leaving around 4GiB last from next chunk block
     using namespace Common::Literals;
     auto const bytes_per_sector = 512;
     auto const size_block = (sd_dir->GetSize() + 4_GiB) / 4_GiB;

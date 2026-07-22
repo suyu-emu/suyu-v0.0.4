@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: 2016 Citra Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -23,9 +26,9 @@ public:
     explicit KClientPort(KernelCore& kernel);
     ~KClientPort() override;
 
-    void Initialize(KPort* parent, s32 max_sessions);
-    void OnSessionFinalized();
-    void OnServerClosed();
+    void Initialize(KernelCore& kernel, KPort* parent, s32 max_sessions);
+    void OnSessionFinalized(KernelCore& kernel);
+    void OnServerClosed(KernelCore& kernel);
 
     const KPort* GetParent() const {
         return m_parent;
@@ -44,15 +47,15 @@ public:
         return m_max_sessions;
     }
 
-    bool IsLight() const;
-    bool IsServerClosed() const;
+    bool IsLight(KernelCore& kernel) const;
+    bool IsServerClosed(KernelCore& kernel) const;
 
     // Overridden virtual functions.
-    void Destroy() override;
-    bool IsSignaled() const override;
+    void Destroy(KernelCore& kernel) override;
+    bool IsSignaled(KernelCore& kernel) const override;
 
-    Result CreateSession(KClientSession** out);
-    Result CreateLightSession(KLightClientSession** out);
+    Result CreateSession(KernelCore& kernel, KClientSession** out);
+    Result CreateLightSession(KernelCore& kernel, KLightClientSession** out);
 
 private:
     std::atomic<s32> m_num_sessions{};

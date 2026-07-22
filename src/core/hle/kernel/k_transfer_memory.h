@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2021 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -30,9 +33,9 @@ public:
     explicit KTransferMemory(KernelCore& kernel);
     ~KTransferMemory() override;
 
-    Result Initialize(KProcessAddress address, std::size_t size, Svc::MemoryPermission owner_perm);
+    Result Initialize(KernelCore& kernel, KProcessAddress address, std::size_t size, Svc::MemoryPermission owner_perm);
 
-    void Finalize() override;
+    void Finalize(KernelCore& kernel) override;
 
     bool IsInitialized() const override {
         return m_is_initialized;
@@ -42,7 +45,7 @@ public:
         return reinterpret_cast<uintptr_t>(m_owner);
     }
 
-    static void PostDestroy(uintptr_t arg);
+    static void PostDestroy(KernelCore& kernel, uintptr_t arg);
 
     KProcess* GetOwner() const override {
         return m_owner;
@@ -54,8 +57,8 @@ public:
 
     size_t GetSize() const;
 
-    Result Map(KProcessAddress address, size_t size, Svc::MemoryPermission map_perm);
-    Result Unmap(KProcessAddress address, size_t size);
+    Result Map(KernelCore& kernel, KProcessAddress address, size_t size, Svc::MemoryPermission map_perm);
+    Result Unmap(KernelCore& kernel, KProcessAddress address, size_t size);
 
 private:
     std::optional<KPageGroup> m_page_group{};

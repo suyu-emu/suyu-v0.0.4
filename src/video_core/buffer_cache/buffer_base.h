@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2022 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
@@ -39,7 +42,8 @@ public:
     static constexpr u64 BASE_PAGE_SIZE = 1ULL << BASE_PAGE_BITS;
 
     explicit BufferBase(VAddr cpu_addr_, u64 size_bytes_)
-        : cpu_addr{cpu_addr_}, size_bytes{size_bytes_} {}
+        : cpu_addr_cached{static_cast<DAddr>(cpu_addr_)}, cpu_addr{cpu_addr_},
+          size_bytes{size_bytes_} {}
 
     explicit BufferBase(NullBufferParams) {}
 
@@ -97,6 +101,8 @@ public:
         return cpu_addr;
     }
 
+    DAddr cpu_addr_cached = 0;
+
     /// Returns the offset relative to the given CPU address
     /// @pre IsInBounds returns true
     [[nodiscard]] u32 Offset(VAddr other_cpu_addr) const noexcept {
@@ -115,12 +121,21 @@ public:
         return size_bytes;
     }
 
+    u64 getWriteTick() const noexcept {
+        return write_tick;
+    }
+
+    void setWriteTick(u64 write_tick_) {
+        write_tick = write_tick_;
+    }
+
 private:
     VAddr cpu_addr = 0;
     BufferFlagBits flags{};
     int stream_score = 0;
     size_t lru_id = SIZE_MAX;
     size_t size_bytes = 0;
+    u64 write_tick = 0;
 };
 
 } // namespace VideoCommon

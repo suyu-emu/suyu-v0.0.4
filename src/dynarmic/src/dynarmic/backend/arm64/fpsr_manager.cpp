@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 /* This file is part of the dynarmic project.
  * Copyright (c) 2022 MerryMage
  * SPDX-License-Identifier: 0BSD
@@ -13,7 +16,7 @@ namespace Dynarmic::Backend::Arm64 {
 
 using namespace oaknut::util;
 
-FpsrManager::FpsrManager(oaknut::CodeGenerator& code, size_t state_fpsr_offset)
+FpsrManager::FpsrManager(oaknut::CodeGenerator& code, std::size_t state_fpsr_offset)
         : code{code}, state_fpsr_offset{state_fpsr_offset} {}
 
 void FpsrManager::Spill() {

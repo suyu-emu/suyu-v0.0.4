@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2024 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -11,7 +14,6 @@
 #include "core/hle/service/cmif_serialization.h"
 #include "core/hle/service/pm/pm.h"
 #include "core/hle/service/sm/sm.h"
-#include "core/hle/service/vi/vi.h"
 #include "core/hle/service/vi/vi_types.h"
 
 namespace Service::AM {
@@ -34,20 +36,20 @@ ICommonStateGetter::ICommonStateGetter(Core::System& system_, std::shared_ptr<Ap
         {11, D<&ICommonStateGetter::ReleaseSleepLock>, "ReleaseSleepLock"},
         {12, D<&ICommonStateGetter::ReleaseSleepLockTransiently>, "ReleaseSleepLockTransiently"},
         {13, D<&ICommonStateGetter::GetAcquiredSleepLockEvent>, "GetAcquiredSleepLockEvent"},
-        {14, nullptr, "GetWakeupCount"},
-        {15, nullptr, "Unknown15"},
+        {14, nullptr, "GetWakeupCount"}, //11.0.0+
+        {15, nullptr, "Unknown15"}, //19.0.0+
         {20, D<&ICommonStateGetter::PushToGeneralChannel>, "PushToGeneralChannel"},
         {30, nullptr, "GetHomeButtonReaderLockAccessor"},
-        {31, D<&ICommonStateGetter::GetReaderLockAccessorEx>, "GetReaderLockAccessorEx"},
-        {32, D<&ICommonStateGetter::GetWriterLockAccessorEx>, "GetWriterLockAccessorEx"},
-        {40, D<&ICommonStateGetter::GetCradleFwVersion>, "GetCradleFwVersion"},
-        {50, D<&ICommonStateGetter::IsVrModeEnabled>, "IsVrModeEnabled"},
-        {51, D<&ICommonStateGetter::SetVrModeEnabled>, "SetVrModeEnabled"},
-        {52, D<&ICommonStateGetter::SetLcdBacklighOffEnabled>, "SetLcdBacklighOffEnabled"},
-        {53, D<&ICommonStateGetter::BeginVrModeEx>, "BeginVrModeEx"},
-        {54, D<&ICommonStateGetter::EndVrModeEx>, "EndVrModeEx"},
-        {55, D<&ICommonStateGetter::IsInControllerFirmwareUpdateSection>, "IsInControllerFirmwareUpdateSection"},
-        {59, nullptr, "SetVrPositionForDebug"},
+        {31, D<&ICommonStateGetter::GetReaderLockAccessorEx>, "GetReaderLockAccessorEx"}, //2.0.0+
+        {32, D<&ICommonStateGetter::GetWriterLockAccessorEx>, "GetWriterLockAccessorEx"}, //7.0.0+
+        {40, nullptr, "GetCradleFwVersion"}, //2.0.0+
+        {50, D<&ICommonStateGetter::IsVrModeEnabled>, "IsVrModeEnabled"}, //3.0.0+
+        {51, D<&ICommonStateGetter::SetVrModeEnabled>, "SetVrModeEnabled"}, //3.0.0+
+        {52, D<&ICommonStateGetter::SetLcdBacklighOffEnabled>, "SetLcdBacklighOffEnabled"}, //4.0.0+
+        {53, D<&ICommonStateGetter::BeginVrModeEx>, "BeginVrModeEx"}, //7.0.0+
+        {54, D<&ICommonStateGetter::EndVrModeEx>, "EndVrModeEx"}, //7.0.0+
+        {55, D<&ICommonStateGetter::IsInControllerFirmwareUpdateSection>, "IsInControllerFirmwareUpdateSection"}, //3.0.0+
+        {59, nullptr, "SetVrPositionForDebug"}, //1.0.0+
         {60, D<&ICommonStateGetter::GetDefaultDisplayResolution>, "GetDefaultDisplayResolution"},
         {61, D<&ICommonStateGetter::GetDefaultDisplayResolutionChangeEvent>, "GetDefaultDisplayResolutionChangeEvent"},
         {62, D<&ICommonStateGetter::GetHdcpAuthenticationState>, "GetHdcpAuthenticationState"},
@@ -62,7 +64,8 @@ ICommonStateGetter::ICommonStateGetter(Core::System& system_, std::shared_ptr<Ap
         {91, nullptr, "GetCurrentPerformanceConfiguration"},
         {100, D<&ICommonStateGetter::SetHandlingHomeButtonShortPressedEnabled>, "SetHandlingHomeButtonShortPressedEnabled"},
         {110, nullptr, "OpenMyGpuErrorHandler"},
-        {120, D<&ICommonStateGetter::GetAppletLaunchedHistory>, "GetAppletLaunchedHistory"},
+        {120, D<&ICommonStateGetter::GetAppletLaunchedHistory>, "GetAppletLaunchedHistory"}, //13.0.0+
+        {130, nullptr, "Unknown130"}, //21.0.0+
         {200, D<&ICommonStateGetter::GetOperationModeSystemInfo>, "GetOperationModeSystemInfo"},
         {300, D<&ICommonStateGetter::GetSettingsPlatformRegion>, "GetSettingsPlatformRegion"},
         {400, nullptr, "ActivateMigrationService"},
@@ -71,14 +74,14 @@ ICommonStateGetter::ICommonStateGetter(Core::System& system_, std::shared_ptr<Ap
         {501, nullptr, "SuppressDisablingSleepTemporarily"},
         {502, nullptr, "IsSleepEnabled"},
         {503, nullptr, "IsDisablingSleepSuppressed"},
-        {600, nullptr, "Unknown600"},
-        {610, D<&ICommonStateGetter::Unknown610>, "Unknown610"},
-        {611, D<&ICommonStateGetter::Unknown611>, "Unknown611"},
-        {900, D<&ICommonStateGetter::SetRequestExitToLibraryAppletAtExecuteNextProgramEnabled>, "SetRequestExitToLibraryAppletAtExecuteNextProgramEnabled"},
-        {910, nullptr, "GetLaunchRequiredTick"},
-        {1000, nullptr, "BeginVrMode3d"},
-        {1001, nullptr, "EndVrMode3d"},
-        {1002, nullptr, "IsVrModeEnabled3d"},
+        {600, nullptr, "Unknown600"}, //20.0.0+
+        {610, D<&ICommonStateGetter::Unknown610>, "Unknown610"}, //21.0.0+
+        {611, D<&ICommonStateGetter::Unknown611>, "Unknown611"}, //22.0.0+
+        {900, D<&ICommonStateGetter::SetRequestExitToLibraryAppletAtExecuteNextProgramEnabled>, "SetRequestExitToLibraryAppletAtExecuteNextProgramEnabled"}, //11.0.0+
+        {910, nullptr, "GetLaunchRequiredTick"}, //17.0.0+
+        {1000, nullptr, "BeginVrMode3d"}, //19.0.0+
+        {1001, nullptr, "EndVrMode3d"}, //19.0.0+
+        {1002, nullptr, "IsVrModeEnabled3d"}, //19.0.0+
     };
     // clang-format on
 
@@ -96,13 +99,13 @@ Result ICommonStateGetter::GetEventHandle(OutCopyHandle<Kernel::KReadableEvent> 
 Result ICommonStateGetter::ReceiveMessage(Out<AppletMessage> out_applet_message) {
     LOG_DEBUG(Service_AM, "called");
 
-    if (!m_applet->lifecycle_manager.PopMessage(out_applet_message)) {
+    if (!m_applet->lifecycle_manager.PopMessage(system.Kernel(), out_applet_message)) {
         LOG_ERROR(Service_AM, "Tried to pop message but none was available!");
         R_THROW(AM::ResultNoMessages);
     }
 
     LOG_DEBUG(Service_AM, "called, returning message={} to applet_id={}",
-              static_cast<u32>(*out_applet_message), static_cast<u32>(m_applet->applet_id));
+             static_cast<u32>(*out_applet_message), static_cast<u32>(m_applet->applet_id));
 
     R_SUCCEED();
 }
@@ -120,21 +123,21 @@ Result ICommonStateGetter::RequestToAcquireSleepLock() {
     LOG_WARNING(Service_AM, "(STUBBED) called");
 
     // Sleep lock is acquired immediately.
-    m_applet->sleep_lock_event.Signal();
+    m_applet->sleep_lock_event.Signal(system.Kernel());
     R_SUCCEED();
 }
 
 Result ICommonStateGetter::ReleaseSleepLock() {
     LOG_WARNING(Service_AM, "(STUBBED) called");
 
-    m_applet->sleep_lock_event.Clear();
+    m_applet->sleep_lock_event.Clear(system.Kernel());
     R_SUCCEED();
 }
 
 Result ICommonStateGetter::ReleaseSleepLockTransiently() {
     LOG_WARNING(Service_AM, "(STUBBED) called");
 
-    m_applet->sleep_lock_event.Clear();
+    m_applet->sleep_lock_event.Clear(system.Kernel());
     R_SUCCEED();
 }
 
@@ -195,17 +198,6 @@ Result ICommonStateGetter::GetPerformanceMode(Out<APM::PerformanceMode> out_perf
 Result ICommonStateGetter::GetBootMode(Out<PM::SystemBootMode> out_boot_mode) {
     LOG_DEBUG(Service_AM, "called");
     *out_boot_mode = Service::PM::SystemBootMode::Normal;
-    R_SUCCEED();
-}
-
-Result ICommonStateGetter::GetCradleFwVersion(OutArray<uint32_t, 4> out_version) {
-    LOG_DEBUG(Service_AM, "(STUBBED) called");
-
-    out_version[0] = 0;
-    out_version[1] = 0;
-    out_version[2] = 0;
-    out_version[3] = 0;
-
     R_SUCCEED();
 }
 
@@ -289,29 +281,30 @@ Result ICommonStateGetter::PerformSystemButtonPressingIfInFocus(SystemButtonType
     switch (type) {
     case SystemButtonType::HomeButtonShortPressing:
         if (!m_applet->home_button_short_pressed_blocked) {
-            m_applet->lifecycle_manager.PushUnorderedMessage(
+            m_applet->lifecycle_manager.PushUnorderedMessage(system.Kernel(),
                 AppletMessage::DetectShortPressingHomeButton);
         }
         break;
     case SystemButtonType::HomeButtonLongPressing:
         if (!m_applet->home_button_long_pressed_blocked) {
-            m_applet->lifecycle_manager.PushUnorderedMessage(
+            m_applet->lifecycle_manager.PushUnorderedMessage(system.Kernel(),
                 AppletMessage::DetectLongPressingHomeButton);
         }
         break;
     case SystemButtonType::CaptureButtonShortPressing:
         if (m_applet->handling_capture_button_short_pressed_message_enabled_for_applet) {
-            m_applet->lifecycle_manager.PushUnorderedMessage(
+            m_applet->lifecycle_manager.PushUnorderedMessage(system.Kernel(),
                 AppletMessage::DetectShortPressingCaptureButton);
         }
         break;
     case SystemButtonType::CaptureButtonLongPressing:
         if (m_applet->handling_capture_button_long_pressed_message_enabled_for_applet) {
-            m_applet->lifecycle_manager.PushUnorderedMessage(
+            m_applet->lifecycle_manager.PushUnorderedMessage(system.Kernel(),
                 AppletMessage::DetectLongPressingCaptureButton);
         }
         break;
     default:
+        // Other buttons ignored for now
         break;
     }
 

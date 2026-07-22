@@ -1,14 +1,20 @@
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: 2021 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 #pragma once
 
+#include <ankerl/unordered_dense.h>
 #include <unordered_map>
-#include <unordered_set>
-#include <iterator>
-#include <queue>
+#include <variant>
 
 #include "common/common_types.h"
+
+// fd types?
+#include "video_core/host1x/nvdec.h"
+#include "video_core/host1x/vic.h"
 
 #include "common/address_space.h"
 #include "video_core/cdma_pusher.h"
@@ -29,120 +35,93 @@ class Nvdec;
 
 class FrameQueue {
 public:
+    struct FrameDevice {
+        std::deque<std::pair<u64, std::shared_ptr<FFmpeg::Frame>>> m_presentation_order;
+        std::unordered_map<u64, std::shared_ptr<FFmpeg::Frame>> m_decode_order;
+    };
+
     void Open(s32 fd) {
         std::scoped_lock l{m_mutex};
-        m_presentation_order.insert({fd, {}});
-        m_decode_order.insert({fd, {}});
+        m_frame_devices.insert_or_assign(fd, FrameDevice{});
     }
 
     void Close(s32 fd) {
         std::scoped_lock l{m_mutex};
-        m_presentation_order.erase(fd);
-        m_decode_order.erase(fd);
+        m_frame_devices.erase(fd);
     }
 
     s32 VicFindNvdecFdFromOffset(u64 search_offset) {
         std::scoped_lock l{m_mutex};
-        // Vic does not know which nvdec is producing frames for it, so search all the fds here for
-        // the given offset.
-        for (auto& map : m_presentation_order) {
-            for (auto& [offset, _] : map.second) {
-                if (offset == search_offset) {
-                    return map.first;
-                }
-            }
+        for (auto const& [fd, dev] : m_frame_devices) {
+            for (auto const& [offset, frame] : dev.m_presentation_order)
+                if (offset == search_offset)
+                    return fd;
+            for (auto const& [offset, frame] : dev.m_decode_order)
+                if (offset == search_offset)
+                    return fd;
         }
-
-        for (auto& map : m_decode_order) {
-            for (auto& [offset, _] : map.second) {
-                if (offset == search_offset) {
-                    return map.first;
-                }
-            }
-        }
-
         return -1;
     }
 
     void PushPresentOrder(s32 fd, u64 offset, std::shared_ptr<FFmpeg::Frame>&& frame) {
         std::scoped_lock l{m_mutex};
-        auto map = m_presentation_order.find(fd);
-        if (map == m_presentation_order.end()) {
-            return;
+        if (auto const it = m_frame_devices.find(fd); it != m_frame_devices.end()) {
+            if (it->second.m_presentation_order.size() >= MAX_PRESENT_QUEUE)
+                it->second.m_presentation_order.pop_front();
+            it->second.m_presentation_order.emplace_back(offset, std::move(frame));
         }
-
-        if (map->second.size() >= MaxPresentQueue) {
-            map->second.pop_front();
-        }
-
-        map->second.emplace_back(offset, std::move(frame));
     }
 
     void PushDecodeOrder(s32 fd, u64 offset, std::shared_ptr<FFmpeg::Frame>&& frame) {
         std::scoped_lock l{m_mutex};
-        auto map = m_decode_order.find(fd);
-        if (map == m_decode_order.end()) {
-            return;
-        }
-        map->second.insert_or_assign(offset, std::move(frame));
-
-        if (map->second.size() > MaxDecodeMap) {
-            auto it = map->second.begin();
-            std::advance(it, map->second.size() - MaxDecodeMap);
-            map->second.erase(map->second.begin(), it);
+        if (auto const it = m_frame_devices.find(fd); it != m_frame_devices.end()) {
+            it->second.m_decode_order.insert_or_assign(offset, std::move(frame));
+            if (it->second.m_decode_order.size() > MAX_DECODE_MAP) {
+                auto it2 = it->second.m_decode_order.begin();
+                std::advance(it2, it->second.m_decode_order.size() - MAX_DECODE_MAP);
+                it->second.m_decode_order.erase(it->second.m_decode_order.begin(), it2);
+            }
         }
     }
 
     std::shared_ptr<FFmpeg::Frame> GetFrame(s32 fd, u64 offset) {
-        if (fd == -1) {
-            return {};
+        if (fd != -1) {
+            std::scoped_lock l{m_mutex};
+            if (auto const it = m_frame_devices.find(fd); it != m_frame_devices.end()) {
+                if (it->second.m_presentation_order.size() > 0)
+                    return GetPresentOrderLocked(fd);
+                if (it->second.m_decode_order.size() > 0)
+                    return GetDecodeOrderLocked(fd, offset);
+            }
         }
-
-        std::scoped_lock l{m_mutex};
-        auto present_map = m_presentation_order.find(fd);
-        if (present_map != m_presentation_order.end() && present_map->second.size() > 0) {
-            return GetPresentOrderLocked(fd);
-        }
-
-        auto decode_map = m_decode_order.find(fd);
-        if (decode_map != m_decode_order.end() && decode_map->second.size() > 0) {
-            return GetDecodeOrderLocked(fd, offset);
-        }
-
         return {};
     }
 
 private:
     std::shared_ptr<FFmpeg::Frame> GetPresentOrderLocked(s32 fd) {
-        auto map = m_presentation_order.find(fd);
-        if (map == m_presentation_order.end() || map->second.size() == 0) {
-            return {};
+        if (auto const it = m_frame_devices.find(fd); it != m_frame_devices.end()) {
+            auto frame = std::move(it->second.m_presentation_order.front().second);
+            it->second.m_presentation_order.pop_front();
+            return frame;
         }
-        auto frame = std::move(map->second.front().second);
-        map->second.pop_front();
-        return frame;
+        return {};
     }
 
     std::shared_ptr<FFmpeg::Frame> GetDecodeOrderLocked(s32 fd, u64 offset) {
-        auto map = m_decode_order.find(fd);
-        if (map == m_decode_order.end() || map->second.size() == 0) {
-            return {};
+        if (auto const it = m_frame_devices.find(fd); it != m_frame_devices.end()) {
+            if (auto const it2 = it->second.m_decode_order.find(offset); it2 != it->second.m_decode_order.end()) {
+                // TODO: this "mapped" prevents us from fully embracing ankerl
+                return std::move(it->second.m_decode_order.extract(it2).mapped());
+            }
         }
-        auto it = map->second.find(offset);
-        if (it == map->second.end()) {
-            return {};
-        }
-        return std::move(map->second.extract(it).mapped());
+        return {};
     }
 
-    using FramePtr = std::shared_ptr<FFmpeg::Frame>;
-
     std::mutex m_mutex{};
-    std::unordered_map<s32, std::deque<std::pair<u64, FramePtr>>> m_presentation_order;
-    std::unordered_map<s32, std::unordered_map<u64, FramePtr>> m_decode_order;
+    ankerl::unordered_dense::map<s32, FrameDevice> m_frame_devices;
 
-    static constexpr size_t MaxPresentQueue = 100;
-    static constexpr size_t MaxDecodeMap = 200;
+    static constexpr size_t MAX_PRESENT_QUEUE = 100;
+    static constexpr size_t MAX_DECODE_MAP = 200;
 };
 
 enum class ChannelType : u32 {
@@ -181,41 +160,40 @@ public:
         return memory_manager;
     }
 
-    Tegra::MemoryManager& GMMU() {
-        return gmmu_manager;
-    }
-
-    const Tegra::MemoryManager& GMMU() const {
-        return gmmu_manager;
-    }
-
     Common::FlatAllocator<u32, 0, 32>& Allocator() {
-        return *allocator;
+        return allocator;
     }
 
     const Common::FlatAllocator<u32, 0, 32>& Allocator() const {
-        return *allocator;
+        return allocator;
     }
 
     void StartDevice(s32 fd, ChannelType type, u32 syncpt);
     void StopDevice(s32 fd, ChannelType type);
 
     void PushEntries(s32 fd, ChCommandHeaderList&& entries) {
-        auto it = devices.find(fd);
-        if (it == devices.end()) {
-            return;
+        if (auto const nvdec = std::get_if<Tegra::Host1x::Nvdec>(&devices[fd])) {
+            nvdec->PushEntries(std::move(entries));
+        } else if (auto const vic = std::get_if<Tegra::Host1x::Vic>(&devices[fd])) {
+            vic->PushEntries(std::move(entries));
         }
-        it->second->PushEntries(std::move(entries));
     }
 
-private:
     Core::System& system;
     SyncpointManager syncpoint_manager;
     Tegra::MaxwellDeviceMemoryManager memory_manager;
     Tegra::MemoryManager gmmu_manager;
-    std::unique_ptr<Common::FlatAllocator<u32, 0, 32>> allocator;
+    Common::FlatAllocator<u32, 0, 32> allocator;
     FrameQueue frame_queue;
-    std::unordered_map<s32, std::unique_ptr<CDmaPusher>> devices;
+    std::array<std::variant<
+        std::monostate,
+        Tegra::Host1x::Nvdec,
+        Tegra::Host1x::Vic
+    >, 1024> devices;
+#ifdef YUZU_LEGACY
+    std::once_flag nvdec_first_init;
+    std::once_flag vic_first_init;
+#endif
 };
 
 } // namespace Tegra::Host1x

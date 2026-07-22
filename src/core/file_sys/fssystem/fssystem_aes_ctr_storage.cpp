@@ -1,10 +1,13 @@
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2023 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
+#include <boost/container/static_vector.hpp>
 #include "common/alignment.h"
 #include "common/swap.h"
 #include "core/file_sys/fssystem/fssystem_aes_ctr_storage.h"
-#include "core/file_sys/fssystem/fssystem_pooled_buffer.h"
 #include "core/file_sys/fssystem/fssystem_utility.h"
 
 namespace FileSys {
@@ -76,49 +79,32 @@ size_t AesCtrStorage::Write(const u8* buffer, size_t size, size_t offset) {
     ASSERT(Common::IsAligned(offset, BlockSize));
     ASSERT(Common::IsAligned(size, BlockSize));
 
-    // Get a pooled buffer.
-    PooledBuffer pooled_buffer;
-    const bool use_work_buffer = true;
-    if (use_work_buffer) {
-        pooled_buffer.Allocate(size, BlockSize);
-    }
-
     // Setup the counter.
     std::array<u8, IvSize> ctr;
     std::memcpy(ctr.data(), m_iv.data(), IvSize);
     AddCounter(ctr.data(), IvSize, offset / BlockSize);
 
-    // Loop until all data is written.
+    // Loop until all data is written using a pooled buffer residing on the stack (blocksize = 0x10)
+    boost::container::static_vector<u8, BlockSize> pooled_buffer;
+    pooled_buffer.resize(BlockSize);
+
+    const u8* cur = buffer;
     size_t remaining = size;
-    s64 cur_offset = 0;
+    size_t current_offset = offset;
+
     while (remaining > 0) {
-        // Determine data we're writing and where.
-        const size_t write_size =
-            use_work_buffer ? std::min(pooled_buffer.GetSize(), remaining) : remaining;
+        const size_t write_size = std::min<std::size_t>(pooled_buffer.size(), remaining);
 
-        void* write_buf;
-        if (use_work_buffer) {
-            write_buf = pooled_buffer.GetBuffer();
-        } else {
-            write_buf = const_cast<u8*>(buffer);
-        }
-
-        // Encrypt the data.
         m_cipher->SetIV(ctr);
-        m_cipher->Transcode(buffer, write_size, reinterpret_cast<u8*>(write_buf),
-                            Core::Crypto::Op::Encrypt);
+        m_cipher->Transcode(cur, write_size, pooled_buffer.data(), Core::Crypto::Op::Encrypt);
+        m_base_storage->Write(pooled_buffer.data(), write_size, current_offset);
 
-        // Write the encrypted data.
-        m_base_storage->Write(reinterpret_cast<u8*>(write_buf), write_size, offset + cur_offset);
-
-        // Advance.
-        cur_offset += write_size;
+        cur += write_size;
+        current_offset += write_size;
         remaining -= write_size;
-        if (remaining > 0) {
+        if (remaining > 0)
             AddCounter(ctr.data(), IvSize, write_size / BlockSize);
-        }
     }
-
     return size;
 }
 

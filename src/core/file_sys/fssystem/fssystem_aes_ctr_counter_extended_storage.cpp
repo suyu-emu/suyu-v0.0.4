@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2023 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -106,7 +109,7 @@ Result AesCtrCounterExtendedStorage::GetEntryList(Entry* out_entries, s32* out_e
     R_UNLESS(out_entries != nullptr || entry_count == 0, ResultNullptrArgument);
 
     // Check that our range is valid.
-    BucketTree::Offsets table_offsets;
+    BucketTree::Offsets table_offsets{};
     R_TRY(m_table.GetOffsets(std::addressof(table_offsets)));
 
     R_UNLESS(table_offsets.IsInclude(offset, size), ResultOutOfRange);
@@ -164,7 +167,7 @@ size_t AesCtrCounterExtendedStorage::Read(u8* buffer, size_t size, size_t offset
     ASSERT(Common::IsAligned(offset, BlockSize));
     ASSERT(Common::IsAligned(size, BlockSize));
 
-    BucketTree::Offsets table_offsets;
+    BucketTree::Offsets table_offsets{};
     ASSERT(R_SUCCEEDED(m_table.GetOffsets(std::addressof(table_offsets))));
 
     ASSERT(table_offsets.IsInclude(offset, size));
@@ -213,7 +216,7 @@ size_t AesCtrCounterExtendedStorage::Read(u8* buffer, size_t size, size_t offset
 
         // Determine how much is left.
         const auto remaining_size = end_offset - cur_offset;
-        const auto cur_size = static_cast<size_t>(std::min(remaining_size, data_size));
+        const auto cur_size = static_cast<size_t>((std::min)(remaining_size, data_size));
         ASSERT(cur_size <= size);
 
         // If necessary, perform decryption.
@@ -239,11 +242,8 @@ size_t AesCtrCounterExtendedStorage::Read(u8* buffer, size_t size, size_t offset
     return size;
 }
 
-void SoftwareDecryptor::Decrypt(u8* buf, size_t buf_size,
-                                const std::array<u8, AesCtrCounterExtendedStorage::KeySize>& key,
-                                const std::array<u8, AesCtrCounterExtendedStorage::IvSize>& iv) {
-    Core::Crypto::AESCipher<Core::Crypto::Key128, AesCtrCounterExtendedStorage::KeySize> cipher(
-        key, Core::Crypto::Mode::CTR);
+void SoftwareDecryptor::Decrypt(u8* buf, size_t buf_size, const std::array<u8, AesCtrCounterExtendedStorage::KeySize>& key, const std::array<u8, AesCtrCounterExtendedStorage::IvSize>& iv) {
+    Core::Crypto::AESCipher<Core::Crypto::Key128> cipher(key, Core::Crypto::Mode::CTR);
     cipher.SetIV(iv);
     cipher.Transcode(buf, buf_size, buf, Core::Crypto::Op::Decrypt);
 }

@@ -1,10 +1,13 @@
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2018 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
 #include <algorithm>
 #include <array>
 #include <chrono>
-#include "common/logging/log.h"
+#include "common/logging.h"
 #include "common/settings.h"
 #include "core/hle/service/cmif_serialization.h"
 #include "core/hle/service/ipc_helpers.h"
@@ -101,6 +104,7 @@ ISettingsServer::ISettingsServer(Core::System& system_) : ServiceFramework{syste
         {9, C<&ISettingsServer::GetKeyCodeMap2>, "GetKeyCodeMap2"},
         {10, nullptr, "GetFirmwareVersionForDebug"},
         {11, C<&ISettingsServer::GetDeviceNickName>, "GetDeviceNickName"},
+        {12, C<&ISettingsServer::GetKeyCodeMapByPort>, "GetKeyCodeMapByPort"},
     };
     // clang-format on
 
@@ -121,8 +125,8 @@ Result ISettingsServer::GetAvailableLanguageCodes(
     Out<s32> out_count, OutArray<LanguageCode, BufferAttr_HipcPointer> out_language_codes) {
     LOG_DEBUG(Service_SET, "called");
 
-    const std::size_t max_amount = std::min(PRE_4_0_0_MAX_ENTRIES, out_language_codes.size());
-    *out_count = static_cast<s32>(std::min(available_language_codes.size(), max_amount));
+    const std::size_t max_amount = (std::min)(PRE_4_0_0_MAX_ENTRIES, out_language_codes.size());
+    *out_count = static_cast<s32>((std::min)(available_language_codes.size(), max_amount));
 
     memcpy(out_language_codes.data(), available_language_codes.data(),
            static_cast<std::size_t>(*out_count) * sizeof(LanguageCode));
@@ -158,8 +162,8 @@ Result ISettingsServer::GetAvailableLanguageCodes2(
     Out<s32> out_count, OutArray<LanguageCode, BufferAttr_HipcMapAlias> language_codes) {
     LOG_DEBUG(Service_SET, "called");
 
-    const std::size_t max_amount = std::min(POST_4_0_0_MAX_ENTRIES, language_codes.size());
-    *out_count = static_cast<s32>(std::min(available_language_codes.size(), max_amount));
+    const std::size_t max_amount = (std::min)(POST_4_0_0_MAX_ENTRIES, language_codes.size());
+    *out_count = static_cast<s32>((std::min)(available_language_codes.size(), max_amount));
 
     memcpy(language_codes.data(), available_language_codes.data(),
            static_cast<std::size_t>(*out_count) * sizeof(LanguageCode));
@@ -232,11 +236,34 @@ Result ISettingsServer::GetDeviceNickName(
     LOG_DEBUG(Service_SET, "called");
 
     const std::size_t string_size =
-        std::min(Settings::values.device_name.GetValue().size(), out_device_name->size());
+        (std::min)(Settings::values.device_name.GetValue().size(), out_device_name->size());
 
     *out_device_name = {};
     memcpy(out_device_name->data(), Settings::values.device_name.GetValue().data(), string_size);
     R_SUCCEED();
+}
+
+Result ISettingsServer::GetKeyCodeMapByPort(OutLargeData<KeyCodeMap, BufferAttr_HipcMapAlias> out_key_code_map, u32 port) {
+    LOG_DEBUG(Service_SET, "called, port={}", port);
+
+    // Similar to other key code map functions, just pass through to the main implementation
+    R_UNLESS(out_key_code_map != nullptr, ResultNullPointer);
+
+    const auto language_code =
+        available_language_codes[static_cast<s32>(Settings::values.language_index.GetValue())];
+    const auto key_code =
+        std::find_if(language_to_layout.cbegin(), language_to_layout.cend(),
+                     [=](const auto& element) { return element.first == language_code; });
+
+    if (key_code == language_to_layout.cend()) {
+        LOG_ERROR(Service_SET,
+                  "Could not find keyboard layout for language index {}, defaulting to English us",
+                  Settings::values.language_index.GetValue());
+        *out_key_code_map = KeyCodeMapEnglishUsInternational;
+        R_SUCCEED();
+    }
+
+    R_RETURN(GetKeyCodeMapImpl(*out_key_code_map, key_code->second, key_code->first));
 }
 
 } // namespace Service::Set

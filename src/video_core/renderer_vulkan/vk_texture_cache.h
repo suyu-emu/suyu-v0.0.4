@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2019 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
@@ -48,7 +51,7 @@ public:
 
     void Finish();
 
-    StagingBufferRef UploadStagingBuffer(size_t size);
+    StagingBufferRef UploadStagingBuffer(size_t size, bool deferred = false);
 
     StagingBufferRef DownloadStagingBuffer(size_t size, bool deferred = false);
 
@@ -61,6 +64,8 @@ public:
     u64 GetDeviceMemoryUsage() const;
 
     bool CanReportMemoryUsage() const;
+
+    std::optional<size_t> GetSamplerHeapBudget() const;
 
     void BlitImage(Framebuffer* dst_framebuffer, ImageView& dst, ImageView& src,
                    const Region2D& dst_region, const Region2D& src_region,
@@ -82,12 +87,12 @@ public:
     }
 
     bool CanUploadMSAA() const noexcept {
-        // TODO: Implement buffer to MSAA uploads
-        return false;
+        return msaa_copy_pass.operator bool();
     }
 
     void AccelerateImageUpload(Image&, const StagingBufferRef&,
-                               std::span<const VideoCommon::SwizzleParameters>);
+                               std::span<const VideoCommon::SwizzleParameters>,
+                               u32 z_start, u32 z_count);
 
     void InsertUploadMemoryBarrier() {}
 
@@ -111,6 +116,11 @@ public:
 
     void BarrierFeedbackLoop();
 
+    bool IsFormatDitherable(VideoCore::Surface::PixelFormat format);
+    bool IsFormatScalable(VideoCore::Surface::PixelFormat format);
+
+    VkFormat GetSupportedFormat(VkFormat requested_format, VkFormatFeatureFlags required_features) const;
+
     const Device& device;
     Scheduler& scheduler;
     MemoryAllocator& memory_allocator;
@@ -118,190 +128,14 @@ public:
     BlitImageHelper& blit_image_helper;
     RenderPassCache& render_pass_cache;
     std::optional<ASTCDecoderPass> astc_decoder_pass;
-    std::unique_ptr<MSAACopyPass> msaa_copy_pass;
+
+    std::optional<BlockLinearUnswizzle3DPass> bl3d_unswizzle_pass;
+    std::optional<MSAACopyPass> msaa_copy_pass;
     const Settings::ResolutionScalingInfo& resolution;
     std::array<std::vector<VkFormat>, VideoCore::Surface::MaxPixelFormat> view_formats;
 
     static constexpr size_t indexing_slots = 8 * sizeof(size_t);
     std::array<vk::Buffer, indexing_slots> buffers{};
-};
-
-class Image : public VideoCommon::ImageBase {
-public:
-    explicit Image(TextureCacheRuntime&, const VideoCommon::ImageInfo& info, GPUVAddr gpu_addr,
-                   VAddr cpu_addr);
-    explicit Image(const VideoCommon::NullImageParams&);
-
-    ~Image();
-
-    Image(const Image&) = delete;
-    Image& operator=(const Image&) = delete;
-
-    Image(Image&&) = default;
-    Image& operator=(Image&&) = default;
-
-    void UploadMemory(VkBuffer buffer, VkDeviceSize offset,
-                      std::span<const VideoCommon::BufferImageCopy> copies);
-
-    void UploadMemory(const StagingBufferRef& map,
-                      std::span<const VideoCommon::BufferImageCopy> copies);
-
-    void DownloadMemory(VkBuffer buffer, size_t offset,
-                        std::span<const VideoCommon::BufferImageCopy> copies);
-
-    void DownloadMemory(std::span<VkBuffer> buffers, std::span<size_t> offsets,
-                        std::span<const VideoCommon::BufferImageCopy> copies);
-
-    void DownloadMemory(const StagingBufferRef& map,
-                        std::span<const VideoCommon::BufferImageCopy> copies);
-
-    [[nodiscard]] VkImage Handle() const noexcept {
-        return *(this->*current_image);
-    }
-
-    [[nodiscard]] VkImageAspectFlags AspectMask() const noexcept {
-        return aspect_mask;
-    }
-
-    [[nodiscard]] VkImageUsageFlags UsageFlags() const noexcept {
-        return (this->*current_image).UsageFlags();
-    }
-
-    /// Returns true when the image is already initialized and mark it as initialized
-    [[nodiscard]] bool ExchangeInitialization() noexcept {
-        return std::exchange(initialized, true);
-    }
-
-    VkImageView StorageImageView(s32 level) noexcept;
-
-    bool IsRescaled() const noexcept;
-
-    bool ScaleUp(bool ignore = false);
-
-    bool ScaleDown(bool ignore = false);
-
-private:
-    bool BlitScaleHelper(bool scale_up);
-
-    bool NeedsScaleHelper() const;
-
-    Scheduler* scheduler{};
-    TextureCacheRuntime* runtime{};
-
-    vk::Image original_image;
-    vk::Image scaled_image;
-
-    // Use a pointer to field because it is relative, so that the object can be
-    // moved without breaking the reference.
-    vk::Image Image::*current_image{};
-
-    std::vector<vk::ImageView> storage_image_views;
-    VkImageAspectFlags aspect_mask = 0;
-    bool initialized = false;
-
-    std::unique_ptr<Framebuffer> scale_framebuffer;
-    std::unique_ptr<ImageView> scale_view;
-
-    std::unique_ptr<Framebuffer> normal_framebuffer;
-    std::unique_ptr<ImageView> normal_view;
-};
-
-class ImageView : public VideoCommon::ImageViewBase {
-public:
-    explicit ImageView(TextureCacheRuntime&, const VideoCommon::ImageViewInfo&, ImageId, Image&);
-    explicit ImageView(TextureCacheRuntime&, const VideoCommon::ImageViewInfo&, ImageId, Image&,
-                       const SlotVector<Image>&);
-    explicit ImageView(TextureCacheRuntime&, const VideoCommon::ImageInfo&,
-                       const VideoCommon::ImageViewInfo&, GPUVAddr);
-    explicit ImageView(TextureCacheRuntime&, const VideoCommon::NullImageViewParams&);
-
-    ~ImageView();
-
-    ImageView(const ImageView&) = delete;
-    ImageView& operator=(const ImageView&) = delete;
-
-    ImageView(ImageView&&) = default;
-    ImageView& operator=(ImageView&&) = default;
-
-    [[nodiscard]] VkImageView DepthView();
-
-    [[nodiscard]] VkImageView StencilView();
-
-    [[nodiscard]] VkImageView ColorView();
-
-    [[nodiscard]] VkImageView StorageView(Shader::TextureType texture_type,
-                                          Shader::ImageFormat image_format);
-
-    [[nodiscard]] bool IsRescaled() const noexcept;
-
-    [[nodiscard]] VkImageView Handle(Shader::TextureType texture_type) const noexcept {
-        return *image_views[static_cast<size_t>(texture_type)];
-    }
-
-    [[nodiscard]] VkImage ImageHandle() const noexcept {
-        return image_handle;
-    }
-
-    [[nodiscard]] VkImageView RenderTarget() const noexcept {
-        return render_target;
-    }
-
-    [[nodiscard]] VkSampleCountFlagBits Samples() const noexcept {
-        return samples;
-    }
-
-    [[nodiscard]] GPUVAddr GpuAddr() const noexcept {
-        return gpu_addr;
-    }
-
-    [[nodiscard]] u32 BufferSize() const noexcept {
-        return buffer_size;
-    }
-
-private:
-    struct StorageViews {
-        std::array<vk::ImageView, Shader::NUM_TEXTURE_TYPES> signeds;
-        std::array<vk::ImageView, Shader::NUM_TEXTURE_TYPES> unsigneds;
-    };
-
-    [[nodiscard]] vk::ImageView MakeView(VkFormat vk_format, VkImageAspectFlags aspect_mask);
-
-    const Device* device = nullptr;
-    const SlotVector<Image>* slot_images = nullptr;
-
-    std::array<vk::ImageView, Shader::NUM_TEXTURE_TYPES> image_views;
-    std::unique_ptr<StorageViews> storage_views;
-    vk::ImageView depth_view;
-    vk::ImageView stencil_view;
-    vk::ImageView color_view;
-    vk::Image null_image;
-    VkImage image_handle = VK_NULL_HANDLE;
-    VkImageView render_target = VK_NULL_HANDLE;
-    VkSampleCountFlagBits samples = VK_SAMPLE_COUNT_1_BIT;
-    u32 buffer_size = 0;
-};
-
-class ImageAlloc : public VideoCommon::ImageAllocBase {};
-
-class Sampler {
-public:
-    explicit Sampler(TextureCacheRuntime&, const Tegra::Texture::TSCEntry&);
-
-    [[nodiscard]] VkSampler Handle() const noexcept {
-        return *sampler;
-    }
-
-    [[nodiscard]] VkSampler HandleWithDefaultAnisotropy() const noexcept {
-        return *sampler_default_anisotropy;
-    }
-
-    [[nodiscard]] bool HasAddedAnisotropy() const noexcept {
-        return static_cast<bool>(sampler_default_anisotropy);
-    }
-
-private:
-    vk::Sampler sampler;
-    vk::Sampler sampler_default_anisotropy;
 };
 
 class Framebuffer {
@@ -385,6 +219,222 @@ private:
     bool has_depth{};
     bool has_stencil{};
     bool is_rescaled{};
+};
+
+class Image : public VideoCommon::ImageBase {
+public:
+    explicit Image(TextureCacheRuntime&, const VideoCommon::ImageInfo& info, GPUVAddr gpu_addr,
+                   VAddr cpu_addr);
+    explicit Image(const VideoCommon::NullImageParams&);
+
+    ~Image();
+
+    Image(const Image&) = delete;
+    Image& operator=(const Image&) = delete;
+
+    Image(Image&&) = default;
+    Image& operator=(Image&&) = default;
+
+    void UploadMemory(VkBuffer buffer, VkDeviceSize offset,
+                      std::span<const VideoCommon::BufferImageCopy> copies);
+
+    void UploadMemory(const StagingBufferRef& map,
+                      std::span<const VideoCommon::BufferImageCopy> copies);
+
+    void DownloadMemory(VkBuffer buffer, size_t offset,
+                        std::span<const VideoCommon::BufferImageCopy> copies);
+
+    void DownloadMemory(std::span<VkBuffer> buffers, std::span<size_t> offsets,
+                        std::span<const VideoCommon::BufferImageCopy> copies);
+
+    void DownloadMemory(const StagingBufferRef& map,
+                        std::span<const VideoCommon::BufferImageCopy> copies);
+
+    void AllocateComputeUnswizzleImage();
+
+    [[nodiscard]] VkImage Handle() const noexcept {
+        return *(this->*current_image);
+    }
+
+    [[nodiscard]] VkImageAspectFlags AspectMask() const noexcept {
+        return aspect_mask;
+    }
+
+    [[nodiscard]] VkImageUsageFlags UsageFlags() const noexcept {
+        return (this->*current_image).UsageFlags();
+    }
+
+    /// Returns true when the image is already initialized and mark it as initialized
+    [[nodiscard]] bool ExchangeInitialization() noexcept {
+        return std::exchange(initialized, true);
+    }
+
+    VkImageView StorageImageView(s32 level) noexcept;
+
+    bool IsRescaled() const noexcept;
+
+    bool ScaleUp(bool ignore = false);
+
+    bool ScaleDown(bool ignore = false);
+
+    u64 allocation_tick;
+
+    friend class BlockLinearUnswizzle3DPass;
+
+private:
+    bool BlitScaleHelper(bool scale_up);
+
+    bool NeedsScaleHelper() const;
+
+    Scheduler* scheduler{};
+    TextureCacheRuntime* runtime{};
+
+    vk::Image original_image;
+    vk::Image scaled_image;
+
+    vk::Buffer compute_unswizzle_buffer;
+    VkDeviceSize compute_unswizzle_buffer_size = 0;
+    bool has_compute_unswizzle_buffer = false;
+
+    void AllocateComputeUnswizzleBuffer(u32 max_slices);
+
+    // Use a pointer to field because it is relative, so that the object can be
+    // moved without breaking the reference.
+    vk::Image Image::*current_image{};
+
+    std::vector<vk::ImageView> storage_image_views;
+    VkImageAspectFlags aspect_mask = 0;
+    bool initialized = false;
+
+    std::optional<Framebuffer> scale_framebuffer;
+    std::optional<Framebuffer> normal_framebuffer;
+    std::unique_ptr<ImageView> scale_view;
+    std::unique_ptr<ImageView> normal_view;
+};
+
+class ImageView : public VideoCommon::ImageViewBase {
+public:
+    explicit ImageView(TextureCacheRuntime&, const VideoCommon::ImageViewInfo&, ImageId, Image&);
+    explicit ImageView(TextureCacheRuntime&, const VideoCommon::ImageViewInfo&, ImageId, Image&,
+                       const SlotVector<Image>&);
+    explicit ImageView(TextureCacheRuntime&, const VideoCommon::ImageInfo&,
+                       const VideoCommon::ImageViewInfo&, GPUVAddr);
+    explicit ImageView(TextureCacheRuntime&, const VideoCommon::NullImageViewParams&);
+
+    ~ImageView();
+
+    ImageView(const ImageView&) = delete;
+    ImageView& operator=(const ImageView&) = delete;
+
+    ImageView(ImageView&&) = default;
+    ImageView& operator=(ImageView&&) = default;
+
+    [[nodiscard]] VkImageView DepthView();
+
+    [[nodiscard]] VkImageView StencilView();
+
+    [[nodiscard]] VkImageView ColorView();
+
+    [[nodiscard]] VkImageView StorageView(Shader::TextureType texture_type,
+                                          Shader::ImageFormat image_format);
+
+    [[nodiscard]] bool IsRescaled() const noexcept;
+
+    [[nodiscard]] VkImageView Handle(Shader::TextureType texture_type) const noexcept {
+        return *image_views[static_cast<size_t>(texture_type)];
+    }
+
+    [[nodiscard]] VkImage ImageHandle() const noexcept {
+        return image_handle;
+    }
+
+    [[nodiscard]] VkImageView RenderTarget() const noexcept {
+        return render_target;
+    }
+
+    [[nodiscard]] VkSampleCountFlagBits Samples() const noexcept {
+        return samples;
+    }
+
+    [[nodiscard]] bool SupportsDepthComparison() const noexcept {
+        return supports_depth_comparison;
+    }
+
+    [[nodiscard]] GPUVAddr GpuAddr() const noexcept {
+        return gpu_addr;
+    }
+
+    [[nodiscard]] u32 BufferSize() const noexcept {
+        return buffer_size;
+    }
+
+private:
+    struct StorageViews {
+        std::array<vk::ImageView, Shader::NUM_TEXTURE_TYPES> signeds;
+        std::array<vk::ImageView, Shader::NUM_TEXTURE_TYPES> unsigneds;
+    };
+
+    [[nodiscard]] vk::ImageView MakeView(VkFormat vk_format, VkImageAspectFlags aspect_mask,
+                                         std::optional<Shader::TextureType> texture_type = std::nullopt);
+
+    const Device* device = nullptr;
+    const SlotVector<Image>* slot_images = nullptr;
+
+    std::array<vk::ImageView, Shader::NUM_TEXTURE_TYPES> image_views;
+    std::optional<StorageViews> storage_views;
+    vk::ImageView typeless_storage_view;
+    vk::ImageView depth_view;
+    vk::ImageView stencil_view;
+    vk::ImageView color_view;
+    vk::Image null_image;
+    VkImage image_handle = VK_NULL_HANDLE;
+    VkImageView render_target = VK_NULL_HANDLE;
+    VkSampleCountFlagBits samples = VK_SAMPLE_COUNT_1_BIT;
+    u32 buffer_size = 0;
+
+    bool uses_widened_astc_format = false;
+    bool supports_depth_comparison = false;
+};
+
+class ImageAlloc : public VideoCommon::ImageAllocBase {};
+
+class Sampler {
+public:
+    explicit Sampler(TextureCacheRuntime&, const Tegra::Texture::TSCEntry&);
+
+    [[nodiscard]] VkSampler Handle() const noexcept {
+        return *sampler;
+    }
+
+    [[nodiscard]] VkSampler HandleWithDefaultAnisotropy() const noexcept {
+        return *sampler_default_anisotropy;
+    }
+
+    [[nodiscard]] bool HasAddedAnisotropy() const noexcept {
+        return static_cast<bool>(sampler_default_anisotropy);
+    }
+
+    [[nodiscard]] VkSampler HandleWithNearestFilter() const noexcept {
+        return *sampler_nearest;
+    }
+
+    [[nodiscard]] bool HasLinearFiltering() const noexcept {
+        return static_cast<bool>(sampler_nearest);
+    }
+
+    [[nodiscard]] VkSampler HandleWithoutDepthComparison() const noexcept {
+        return *sampler_noncompare;
+    }
+
+    [[nodiscard]] bool HasDepthComparison() const noexcept {
+        return static_cast<bool>(sampler_noncompare);
+    }
+
+private:
+    vk::Sampler sampler;
+    vk::Sampler sampler_default_anisotropy;
+    vk::Sampler sampler_nearest;
+    vk::Sampler sampler_noncompare;
 };
 
 struct TextureCacheParams {

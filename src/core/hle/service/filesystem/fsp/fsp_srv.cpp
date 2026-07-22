@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2018 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -11,7 +14,7 @@
 #include "common/assert.h"
 #include "common/common_types.h"
 #include "common/hex_util.h"
-#include "common/logging/log.h"
+#include "common/logging.h"
 #include "common/settings.h"
 #include "common/string_util.h"
 #include "core/core.h"
@@ -53,7 +56,7 @@ FSP_SRV::FSP_SRV(Core::System& system_)
         {1, D<&FSP_SRV::SetCurrentProcess>, "SetCurrentProcess"},
         {2, nullptr, "OpenDataFileSystemByCurrentProcess"},
         {7, D<&FSP_SRV::OpenFileSystemWithPatch>, "OpenFileSystemWithPatch"},
-        {8, nullptr, "OpenFileSystemWithIdObsolete"}, // 16.0.0+, OpenFileSystemWithId 2.0.0-15.0.1
+        {8, nullptr, "OpenFileSystemWithId"},
         {9, nullptr, "OpenDataFileSystemByApplicationId"},
         {11, nullptr, "OpenBisFileSystem"},
         {12, nullptr, "OpenBisStorage"},
@@ -76,6 +79,7 @@ FSP_SRV::FSP_SRV(Core::System& system_)
         {34, D<&FSP_SRV::GetCacheStorageSize>, "GetCacheStorageSize"},
         {35, nullptr, "CreateSaveDataFileSystemByHashSalt"},
         {36, nullptr, "OpenHostFileSystemWithOption"},
+        {37, D<&FSP_SRV::CreateSaveDataFileSystemWithCreationInfo2>, "CreateSaveDataFileSystemWithCreationInfo2"},
         {51, D<&FSP_SRV::OpenSaveDataFileSystem>, "OpenSaveDataFileSystem"},
         {52, D<&FSP_SRV::OpenSaveDataFileSystemBySystemSaveDataId>, "OpenSaveDataFileSystemBySystemSaveDataId"},
         {53, D<&FSP_SRV::OpenReadOnlySaveDataFileSystem>, "OpenReadOnlySaveDataFileSystem"},
@@ -140,7 +144,7 @@ FSP_SRV::FSP_SRV(Core::System& system_)
         {617, nullptr, "UnregisterExternalKey"},
         {620, nullptr, "SetSdCardEncryptionSeed"},
         {630, nullptr, "SetSdCardAccessibility"},
-        {631, nullptr, "IsSdCardAccessible"},
+        {631, D<&FSP_SRV::IsSdCardAccessible>, "IsSdCardAccessible"},
         {640, nullptr, "IsSignedSystemPartitionOnSdCardValid"},
         {700, nullptr, "OpenAccessFailureResolver"},
         {701, nullptr, "GetAccessFailureDetectionEvent"},
@@ -169,7 +173,6 @@ FSP_SRV::FSP_SRV(Core::System& system_)
         {1018, nullptr, "SetDebugOption"},
         {1019, nullptr, "UnsetDebugOption"},
         {1100, nullptr, "OverrideSaveDataTransferTokenSignVerificationKey"},
-        {1101, nullptr, "OverrideSaveDataTransferKeyForTest"}, // 18.0.0+
         {1110, nullptr, "CorruptSaveDataFileSystemBySaveDataSpaceId2"},
         {1200, D<&FSP_SRV::OpenMultiCommitManager>, "OpenMultiCommitManager"},
         {1300, nullptr, "OpenBisWiper"},
@@ -236,14 +239,6 @@ Result FSP_SRV::CreateSaveDataFileSystem(FileSys::SaveDataCreationInfo save_crea
                                                   save_struct));
 }
 
-Result FSP_SRV::IsExFatSupported(Out<bool> out_is_supported) {
-    LOG_WARNING(Service_FS, "(STUBBED) called");
-
-    *out_is_supported = true;
-
-    R_SUCCEED();
-}
-
 Result FSP_SRV::CreateSaveDataFileSystemBySystemSaveDataId(
     FileSys::SaveDataAttribute save_struct, FileSys::SaveDataCreationInfo save_create_struct) {
     LOG_DEBUG(Service_FS, "called save_struct = {}", save_struct.DebugInfo());
@@ -251,6 +246,21 @@ Result FSP_SRV::CreateSaveDataFileSystemBySystemSaveDataId(
     FileSys::VirtualDir save_data_dir{};
     R_RETURN(save_data_controller->CreateSaveData(&save_data_dir, FileSys::SaveDataSpaceId::System,
                                                   save_struct));
+}
+
+Result FSP_SRV::CreateSaveDataFileSystemWithCreationInfo2(
+    FileSys::SaveDataCreationInfo2 save_data_creation_info) {
+    FileSys::VirtualDir save_data_dir{};
+    R_RETURN(save_data_controller->CreateSaveData(&save_data_dir, save_data_creation_info.space_id,
+                                                  save_data_creation_info.attribute));
+}
+
+Result FSP_SRV::IsExFatSupported(Out<bool> out_is_supported) {
+    LOG_WARNING(Service_FS, "(STUBBED) called");
+
+    *out_is_supported = true;
+
+    R_SUCCEED();
 }
 
 Result FSP_SRV::OpenSaveDataFileSystem(OutInterface<IFileSystem> out_interface,
@@ -274,9 +284,17 @@ Result FSP_SRV::OpenSaveDataFileSystem(OutInterface<IFileSystem> out_interface,
         id = FileSys::StorageId::NandSystem;
         break;
     case FileSys::SaveDataSpaceId::Temporary:
+        // ok this is definitely wrong. ASSERT(false) here just kills the whole game the first
+        // time it opens cache storage, and plenty of games do that (TOTK for one). there is
+        // user-space scratch storage so it belongs on user nand. map it, do not crash.
+        id = FileSys::StorageId::NandUser;
+        break;
     case FileSys::SaveDataSpaceId::ProperSystem:
     case FileSys::SaveDataSpaceId::SafeMode:
-        ASSERT(false);
+        // same deal for these two. they are system-level spaces so they go on system nand.
+        // way better than nuking the title over a save-space id we just did not list out.
+        id = FileSys::StorageId::NandSystem;
+        break;
     }
 
     *out_interface =
@@ -288,8 +306,47 @@ Result FSP_SRV::OpenSaveDataFileSystem(OutInterface<IFileSystem> out_interface,
 Result FSP_SRV::OpenSaveDataFileSystemBySystemSaveDataId(OutInterface<IFileSystem> out_interface,
                                                          FileSys::SaveDataSpaceId space_id,
                                                          FileSys::SaveDataAttribute attribute) {
-    LOG_WARNING(Service_FS, "(STUBBED) called, delegating to 51 OpenSaveDataFilesystem");
-    R_RETURN(OpenSaveDataFileSystem(out_interface, space_id, attribute));
+    LOG_INFO(Service_FS, "called, space_id={}, {}",
+             space_id, attribute.DebugInfo());
+
+    R_UNLESS(attribute.system_save_data_id != FileSys::InvalidSystemSaveDataId,
+             FileSys::ResultInvalidArgument);
+
+    if (attribute.program_id == 0) {
+        attribute.program_id = program_id;
+    }
+
+    FileSys::VirtualDir dir{};
+    R_TRY(save_data_controller->OpenSaveData(&dir, space_id, attribute));
+
+    FileSys::StorageId id{};
+    switch (space_id) {
+    case FileSys::SaveDataSpaceId::User:
+        id = FileSys::StorageId::NandUser;
+        break;
+    case FileSys::SaveDataSpaceId::SdSystem:
+    case FileSys::SaveDataSpaceId::SdUser:
+        id = FileSys::StorageId::SdCard;
+        break;
+    case FileSys::SaveDataSpaceId::System:
+        id = FileSys::StorageId::NandSystem;
+        break;
+    case FileSys::SaveDataSpaceId::Temporary:
+        // same broken switch as OpenSaveDataFileSystem above. do not ASSERT(false) and kill the
+        // game over a save-space id, just map Temporary to user nand like it should be.
+        id = FileSys::StorageId::NandUser;
+        break;
+    case FileSys::SaveDataSpaceId::ProperSystem:
+    case FileSys::SaveDataSpaceId::SafeMode:
+        // system spaces -> system nand. handled, not crashed.
+        id = FileSys::StorageId::NandSystem;
+        break;
+    }
+
+    *out_interface =
+        std::make_shared<IFileSystem>(system, std::move(dir), SizeGetter::FromStorageId(fsc, id));
+
+    R_SUCCEED();
 }
 
 Result FSP_SRV::OpenReadOnlySaveDataFileSystem(OutInterface<IFileSystem> out_interface,
@@ -477,6 +534,14 @@ Result FSP_SRV::OpenDataStorageWithProgramIndex(OutInterface<IStorage> out_inter
     }
 
     *out_interface = std::make_shared<IStorage>(system, std::move(patched_romfs));
+
+    R_SUCCEED();
+}
+
+Result FSP_SRV::IsSdCardAccessible(Out<bool> out_is_accessible) {
+    LOG_DEBUG(Service_FS, "(STUBBED) called");
+
+    *out_is_accessible = true;
 
     R_SUCCEED();
 }

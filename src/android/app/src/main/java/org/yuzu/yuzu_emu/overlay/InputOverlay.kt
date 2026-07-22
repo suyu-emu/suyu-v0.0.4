@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 package org.yuzu.yuzu_emu.overlay
@@ -8,6 +8,8 @@ import android.content.Context
 import android.content.SharedPreferences
 import android.graphics.Bitmap
 import android.graphics.Canvas
+import android.graphics.Color
+import android.graphics.Paint
 import android.graphics.Point
 import android.graphics.Rect
 import android.graphics.drawable.Drawable
@@ -15,17 +17,23 @@ import android.graphics.drawable.VectorDrawable
 import android.os.Build
 import android.os.Handler
 import android.os.Looper
+import android.text.Editable
+import android.text.InputType
 import android.util.AttributeSet
 import android.view.HapticFeedbackConstants
+import android.view.KeyEvent
 import android.view.MotionEvent
-import android.view.SurfaceView
 import android.view.View
 import android.view.View.OnTouchListener
 import android.view.WindowInsets
+import android.view.inputmethod.BaseInputConnection
+import android.view.inputmethod.EditorInfo
+import android.view.inputmethod.InputConnection
 import androidx.core.content.ContextCompat
 import androidx.window.layout.WindowMetricsCalculator
 import kotlin.math.max
 import kotlin.math.min
+import org.yuzu.yuzu_emu.NativeLibrary
 import org.yuzu.yuzu_emu.features.input.NativeInput
 import org.yuzu.yuzu_emu.R
 import org.yuzu.yuzu_emu.features.input.model.NativeAnalog
@@ -40,16 +48,18 @@ import org.yuzu.yuzu_emu.utils.NativeConfig
 
 /**
  * Draws the interactive input overlay on top of the
- * [SurfaceView] that is rendering emulation.
+ * emulation rendering surface.
  */
 class InputOverlay(context: Context, attrs: AttributeSet?) :
-    SurfaceView(context, attrs),
+    View(context, attrs),
     OnTouchListener {
     private val overlayButtons: MutableSet<InputOverlayDrawableButton> = HashSet()
     private val overlayDpads: MutableSet<InputOverlayDrawableDpad> = HashSet()
     private val overlayJoysticks: MutableSet<InputOverlayDrawableJoystick> = HashSet()
+    private val imeEditable = Editable.Factory.getInstance().newEditable("")
 
     private var inEditMode = false
+    private var gamelessMode = false
     private var buttonBeingConfigured: InputOverlayDrawableButton? = null
     private var dpadBeingConfigured: InputOverlayDrawableDpad? = null
     private var joystickBeingConfigured: InputOverlayDrawableJoystick? = null
@@ -60,9 +70,75 @@ class InputOverlay(context: Context, attrs: AttributeSet?) :
     private var hasMoved = false
     private val moveThreshold = 20f
 
+    private val gridPaint = Paint().apply {
+        color = Color.argb(60, 255, 255, 255)
+        strokeWidth = 1f
+        style = Paint.Style.STROKE
+    }
+
     private lateinit var windowInsets: WindowInsets
 
     var layout = OverlayLayout.Landscape
+
+    // External listener for EmulationFragment joypad overlay auto-hide
+    var touchEventListener: ((MotionEvent) -> Unit)? = null
+
+    override fun onCheckIsTextEditor(): Boolean = true
+
+    override fun onCreateInputConnection(outAttrs: EditorInfo): InputConnection {
+        imeEditable.clear()
+        outAttrs.inputType =
+            InputType.TYPE_CLASS_TEXT or
+                InputType.TYPE_TEXT_FLAG_NO_SUGGESTIONS or
+                InputType.TYPE_TEXT_VARIATION_VISIBLE_PASSWORD
+        outAttrs.imeOptions = EditorInfo.IME_FLAG_NO_EXTRACT_UI or EditorInfo.IME_ACTION_DONE
+        outAttrs.initialSelStart = 0
+        outAttrs.initialSelEnd = 0
+
+        return object : BaseInputConnection(this, true) {
+            override fun getEditable(): Editable = imeEditable
+
+            override fun commitText(text: CharSequence?, newCursorPosition: Int): Boolean {
+                if (!text.isNullOrEmpty()) {
+                    forwardCommittedText(text)
+                }
+                return super.commitText(text, newCursorPosition)
+            }
+
+            override fun deleteSurroundingText(beforeLength: Int, afterLength: Int): Boolean {
+                repeat(beforeLength.coerceAtLeast(0)) {
+                    NativeLibrary.submitInlineKeyboardInput(KeyEvent.KEYCODE_DEL)
+                }
+                return super.deleteSurroundingText(beforeLength, afterLength)
+            }
+
+            override fun sendKeyEvent(event: KeyEvent): Boolean {
+                if (event.action != KeyEvent.ACTION_DOWN) {
+                    return true
+                }
+
+                when (event.keyCode) {
+                    KeyEvent.KEYCODE_BACK,
+                    KeyEvent.KEYCODE_DEL,
+                    KeyEvent.KEYCODE_ENTER -> {
+                        NativeLibrary.submitInlineKeyboardInput(event.keyCode)
+                    }
+                    else -> {
+                        val textChar = event.unicodeChar
+                        if (textChar != 0) {
+                            NativeLibrary.submitInlineKeyboardText(textChar.toChar().toString())
+                        }
+                    }
+                }
+                return true
+            }
+
+            override fun performEditorAction(actionCode: Int): Boolean {
+                NativeLibrary.submitInlineKeyboardInput(KeyEvent.KEYCODE_ENTER)
+                return true
+            }
+        }
+    }
 
     override fun onLayout(changed: Boolean, left: Int, top: Int, right: Int, bottom: Int) {
         super.onLayout(changed, left, top, right, bottom)
@@ -91,6 +167,12 @@ class InputOverlay(context: Context, attrs: AttributeSet?) :
 
     override fun draw(canvas: Canvas) {
         super.draw(canvas)
+
+        // Draw grid when in edit mode and snap-to-grid is enabled
+        if (inEditMode && BooleanSetting.OVERLAY_SNAP_TO_GRID.getBoolean()) {
+            drawGrid(canvas)
+        }
+
         for (button in overlayButtons) {
             button.draw(canvas)
         }
@@ -102,7 +184,50 @@ class InputOverlay(context: Context, attrs: AttributeSet?) :
         }
     }
 
+    private fun forwardCommittedText(text: CharSequence) {
+        val builder = StringBuilder()
+        text.forEach { character ->
+            when (character) {
+                '\n' -> {
+                    if (builder.isNotEmpty()) {
+                        NativeLibrary.submitInlineKeyboardText(builder.toString())
+                        builder.clear()
+                    }
+                    NativeLibrary.submitInlineKeyboardInput(KeyEvent.KEYCODE_ENTER)
+                }
+                else -> builder.append(character)
+            }
+        }
+        if (builder.isNotEmpty()) {
+            NativeLibrary.submitInlineKeyboardText(builder.toString())
+        }
+    }
+
+    private fun drawGrid(canvas: Canvas) {
+        val gridSize = IntSetting.OVERLAY_GRID_SIZE.getInt()
+        val width = canvas.width
+        val height = canvas.height
+
+        // Draw vertical lines
+        var x = 0
+        while (x <= width) {
+            canvas.drawLine(x.toFloat(), 0f, x.toFloat(), height.toFloat(), gridPaint)
+            x += gridSize
+        }
+
+        // Draw horizontal lines
+        var y = 0
+        while (y <= height) {
+            canvas.drawLine(0f, y.toFloat(), width.toFloat(), y.toFloat(), gridPaint)
+            y += gridSize
+        }
+    }
+
     override fun onTouch(v: View, event: MotionEvent): Boolean {
+        try {
+            touchEventListener?.invoke(event)
+        } catch (e: Exception) {}
+
         if (inEditMode) {
             return onTouchWhileEditing(event)
         }
@@ -668,14 +793,19 @@ class InputOverlay(context: Context, attrs: AttributeSet?) :
         }
     }
 
-    fun refreshControls() {
+    fun refreshControls(gameless: Boolean = false) {
+        // Store gameless mode if set to true
+        if (gameless) {
+            gamelessMode = true
+        }
+
         // Remove all the overlay buttons from the HashSet.
         overlayButtons.clear()
         overlayDpads.clear()
         overlayJoysticks.clear()
 
         // Add all the enabled overlay items back to the HashSet.
-        if (BooleanSetting.SHOW_INPUT_OVERLAY.getBoolean()) {
+        if (gamelessMode || BooleanSetting.SHOW_INPUT_OVERLAY.getBoolean()) {
             addOverlayControls(layout)
         }
         invalidate()
@@ -712,8 +842,13 @@ class InputOverlay(context: Context, attrs: AttributeSet?) :
         if (!editMode) {
             scaleDialog?.dismiss()
             scaleDialog = null
+            gamelessMode = false
         }
+
+        invalidate()
     }
+
+    fun isGamelessMode(): Boolean = gamelessMode
 
     private fun showScaleDialog(
         button: InputOverlayDrawableButton?,
@@ -867,6 +1002,7 @@ class InputOverlay(context: Context, attrs: AttributeSet?) :
     }
 
     companion object {
+
         // Increase this number every time there is a breaking change to every overlay layout
         const val OVERLAY_VERSION = 1
 

@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2021 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -16,8 +19,9 @@
 
 namespace Kernel {
 
-KAddressArbiter::KAddressArbiter(Core::System& system)
-    : m_system{system}, m_kernel{system.Kernel()} {}
+KAddressArbiter::KAddressArbiter(Core::System& system_)
+    : system{system_}
+{}
 KAddressArbiter::~KAddressArbiter() = default;
 
 namespace {
@@ -112,7 +116,7 @@ public:
     explicit ThreadQueueImplForKAddressArbiter(KernelCore& kernel, KAddressArbiter::ThreadTree* t)
         : KThreadQueue(kernel), m_tree(t) {}
 
-    void CancelWait(KThread* waiting_thread, Result wait_result, bool cancel_timer_task) override {
+    void CancelWait(KernelCore& kernel, KThread* waiting_thread, Result wait_result, bool cancel_timer_task) override {
         // If the thread is waiting on an address arbiter, remove it from the tree.
         if (waiting_thread->IsWaitingForAddressArbiter()) {
             m_tree->erase(m_tree->iterator_to(*waiting_thread));
@@ -120,7 +124,7 @@ public:
         }
 
         // Invoke the base cancel wait handler.
-        KThreadQueue::CancelWait(waiting_thread, wait_result, cancel_timer_task);
+        KThreadQueue::CancelWait(kernel, waiting_thread, wait_result, cancel_timer_task);
     }
 
 private:
@@ -133,14 +137,14 @@ Result KAddressArbiter::Signal(uint64_t addr, s32 count) {
     // Perform signaling.
     s32 num_waiters{};
     {
-        KScopedSchedulerLock sl(m_kernel);
+        KScopedSchedulerLock sl(system.Kernel());
 
         auto it = m_tree.nfind_key({addr, -1});
         while ((it != m_tree.end()) && (count <= 0 || num_waiters < count) &&
                (it->GetAddressArbiterKey() == addr)) {
             // End the thread's wait.
             KThread* target_thread = std::addressof(*it);
-            target_thread->EndWait(ResultSuccess);
+            target_thread->EndWait(system.Kernel(), ResultSuccess);
 
             ASSERT(target_thread->IsWaitingForAddressArbiter());
             target_thread->ClearAddressArbiter();
@@ -156,11 +160,11 @@ Result KAddressArbiter::SignalAndIncrementIfEqual(uint64_t addr, s32 value, s32 
     // Perform signaling.
     s32 num_waiters{};
     {
-        KScopedSchedulerLock sl(m_kernel);
+        KScopedSchedulerLock sl(system.Kernel());
 
         // Check the userspace value.
         s32 user_value{};
-        R_UNLESS(UpdateIfEqual(m_kernel, std::addressof(user_value), addr, value, value + 1),
+        R_UNLESS(UpdateIfEqual(system.Kernel(), std::addressof(user_value), addr, value, value + 1),
                  ResultInvalidCurrentMemory);
         R_UNLESS(user_value == value, ResultInvalidState);
 
@@ -169,7 +173,7 @@ Result KAddressArbiter::SignalAndIncrementIfEqual(uint64_t addr, s32 value, s32 
                (it->GetAddressArbiterKey() == addr)) {
             // End the thread's wait.
             KThread* target_thread = std::addressof(*it);
-            target_thread->EndWait(ResultSuccess);
+            target_thread->EndWait(system.Kernel(), ResultSuccess);
 
             ASSERT(target_thread->IsWaitingForAddressArbiter());
             target_thread->ClearAddressArbiter();
@@ -185,7 +189,7 @@ Result KAddressArbiter::SignalAndModifyByWaitingCountIfEqual(uint64_t addr, s32 
     // Perform signaling.
     s32 num_waiters{};
     {
-        KScopedSchedulerLock sl(m_kernel);
+        KScopedSchedulerLock sl(system.Kernel());
 
         auto it = m_tree.nfind_key({addr, -1});
         // Determine the updated value.
@@ -220,9 +224,9 @@ Result KAddressArbiter::SignalAndModifyByWaitingCountIfEqual(uint64_t addr, s32 
         s32 user_value{};
         bool succeeded{};
         if (value != new_value) {
-            succeeded = UpdateIfEqual(m_kernel, std::addressof(user_value), addr, value, new_value);
+            succeeded = UpdateIfEqual(system.Kernel(), std::addressof(user_value), addr, value, new_value);
         } else {
-            succeeded = ReadFromUser(m_kernel, std::addressof(user_value), addr);
+            succeeded = ReadFromUser(system.Kernel(), std::addressof(user_value), addr);
         }
 
         R_UNLESS(succeeded, ResultInvalidCurrentMemory);
@@ -232,7 +236,7 @@ Result KAddressArbiter::SignalAndModifyByWaitingCountIfEqual(uint64_t addr, s32 
                (it->GetAddressArbiterKey() == addr)) {
             // End the thread's wait.
             KThread* target_thread = std::addressof(*it);
-            target_thread->EndWait(ResultSuccess);
+            target_thread->EndWait(system.Kernel(), ResultSuccess);
 
             ASSERT(target_thread->IsWaitingForAddressArbiter());
             target_thread->ClearAddressArbiter();
@@ -246,12 +250,12 @@ Result KAddressArbiter::SignalAndModifyByWaitingCountIfEqual(uint64_t addr, s32 
 
 Result KAddressArbiter::WaitIfLessThan(uint64_t addr, s32 value, bool decrement, s64 timeout) {
     // Prepare to wait.
-    KThread* cur_thread = GetCurrentThreadPointer(m_kernel);
+    KThread* cur_thread = GetCurrentThreadPointer(system.Kernel());
     KHardwareTimer* timer{};
-    ThreadQueueImplForKAddressArbiter wait_queue(m_kernel, std::addressof(m_tree));
+    ThreadQueueImplForKAddressArbiter wait_queue(system.Kernel(), std::addressof(m_tree));
 
     {
-        KScopedSchedulerLockAndSleep slp{m_kernel, std::addressof(timer), cur_thread, timeout};
+        KScopedSchedulerLockAndSleep slp{system.Kernel(), std::addressof(timer), cur_thread, timeout};
 
         // Check that the thread isn't terminating.
         if (cur_thread->IsTerminationRequested()) {
@@ -263,9 +267,9 @@ Result KAddressArbiter::WaitIfLessThan(uint64_t addr, s32 value, bool decrement,
         s32 user_value{};
         bool succeeded{};
         if (decrement) {
-            succeeded = DecrementIfLessThan(m_kernel, std::addressof(user_value), addr, value);
+            succeeded = DecrementIfLessThan(system.Kernel(), std::addressof(user_value), addr, value);
         } else {
-            succeeded = ReadFromUser(m_kernel, std::addressof(user_value), addr);
+            succeeded = ReadFromUser(system.Kernel(), std::addressof(user_value), addr);
         }
 
         if (!succeeded) {
@@ -291,7 +295,7 @@ Result KAddressArbiter::WaitIfLessThan(uint64_t addr, s32 value, bool decrement,
 
         // Wait for the thread to finish.
         wait_queue.SetHardwareTimer(timer);
-        cur_thread->BeginWait(std::addressof(wait_queue));
+        cur_thread->BeginWait(system.Kernel(), std::addressof(wait_queue));
         cur_thread->SetWaitReasonForDebugging(ThreadWaitReasonForDebugging::Arbitration);
     }
 
@@ -301,12 +305,12 @@ Result KAddressArbiter::WaitIfLessThan(uint64_t addr, s32 value, bool decrement,
 
 Result KAddressArbiter::WaitIfEqual(uint64_t addr, s32 value, s64 timeout) {
     // Prepare to wait.
-    KThread* cur_thread = GetCurrentThreadPointer(m_kernel);
+    KThread* cur_thread = GetCurrentThreadPointer(system.Kernel());
     KHardwareTimer* timer{};
-    ThreadQueueImplForKAddressArbiter wait_queue(m_kernel, std::addressof(m_tree));
+    ThreadQueueImplForKAddressArbiter wait_queue(system.Kernel(), std::addressof(m_tree));
 
     {
-        KScopedSchedulerLockAndSleep slp{m_kernel, std::addressof(timer), cur_thread, timeout};
+        KScopedSchedulerLockAndSleep slp{system.Kernel(), std::addressof(timer), cur_thread, timeout};
 
         // Check that the thread isn't terminating.
         if (cur_thread->IsTerminationRequested()) {
@@ -316,7 +320,7 @@ Result KAddressArbiter::WaitIfEqual(uint64_t addr, s32 value, s64 timeout) {
 
         // Read the value from userspace.
         s32 user_value{};
-        if (!ReadFromUser(m_kernel, std::addressof(user_value), addr)) {
+        if (!ReadFromUser(system.Kernel(), std::addressof(user_value), addr)) {
             slp.CancelSleep();
             R_THROW(ResultInvalidCurrentMemory);
         }
@@ -339,7 +343,7 @@ Result KAddressArbiter::WaitIfEqual(uint64_t addr, s32 value, s64 timeout) {
 
         // Wait for the thread to finish.
         wait_queue.SetHardwareTimer(timer);
-        cur_thread->BeginWait(std::addressof(wait_queue));
+        cur_thread->BeginWait(system.Kernel(), std::addressof(wait_queue));
         cur_thread->SetWaitReasonForDebugging(ThreadWaitReasonForDebugging::Arbitration);
     }
 

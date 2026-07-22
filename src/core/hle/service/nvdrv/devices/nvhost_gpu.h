@@ -1,11 +1,12 @@
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2018 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
 #pragma once
 
-#include <array>
 #include <memory>
-#include <optional>
 #include <vector>
 #include "common/bit_field.h"
 #include "common/common_funcs.h"
@@ -140,9 +141,9 @@ private:
         u32_le num_jobs{};    // in
         u32_le flags{};       // in
         NvFence fence_out{};  // out
-        std::array<u32_le, 3> reserved{}; // in and ignored for now
+        std::array<u32_le, 3> reserved{};   // in and ingored (for now) according to switch brew
     };
-    static_assert(sizeof(IoctlAllocGpfifoEx) == 32, "IoctlAllocGpfifoEx is incorrect size");
+    static_assert(sizeof(IoctlAllocGpfifoEx) == 32, "IoctlAllocGpfifoEx2 is incorrect size");
 
     struct IoctlAllocObjCtx {
         u32_le class_num{}; // 0x902D=2d, 0xB197=3d, 0xB1C0=compute, 0xA140=kepler, 0xB0B5=DMA,
@@ -189,10 +190,12 @@ private:
     NvResult SetChannelPriority(IoctlChannelSetPriority& params);
     NvResult AllocGPFIFOEx(IoctlAllocGpfifoEx& params, DeviceFD fd);
     NvResult AllocGPFIFOEx2(IoctlAllocGpfifoEx& params, DeviceFD fd);
+
     s32_le GetObjectContextClassNumberIndex(CtxClasses class_number);
     NvResult AllocateObjectContext(IoctlAllocObjCtx& params);
 
     NvResult SubmitGPFIFOImpl(IoctlSubmitGpfifo& params, Tegra::CommandList&& entries);
+
     NvResult SubmitGPFIFOBase1(IoctlSubmitGpfifo& params,
                                std::span<Tegra::CommandListHeader> commands, bool kickoff = false);
     NvResult SubmitGPFIFOBase2(IoctlSubmitGpfifo& params,
@@ -207,7 +210,7 @@ private:
     NvCore::SyncpointManager& syncpoint_manager;
     NvCore::NvMap& nvmap;
     std::shared_ptr<Tegra::Control::ChannelState> channel_state;
-    std::unordered_map<DeviceFD, NvCore::SessionId> sessions;
+    ankerl::unordered_dense::map<DeviceFD, NvCore::SessionId> sessions;
     u32 channel_syncpoint;
     std::mutex channel_mutex;
 

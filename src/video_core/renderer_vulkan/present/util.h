@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2024 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -54,6 +57,7 @@ VkWriteDescriptorSet CreateWriteDescriptorSet(std::vector<VkDescriptorImageInfo>
                                               VkDescriptorSet set, u32 binding);
 vk::Sampler CreateBilinearSampler(const Device& device);
 vk::Sampler CreateNearestNeighborSampler(const Device& device);
+vk::Sampler CreateCubicSampler(const Device& device, VkCubicFilterWeightsQCOM qcom_weights);
 
 void BeginRenderPass(vk::CommandBuffer& cmdbuf, VkRenderPass render_pass, VkFramebuffer framebuffer,
                      VkExtent2D extent);

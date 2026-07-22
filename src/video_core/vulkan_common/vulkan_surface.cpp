@@ -1,7 +1,10 @@
-// SPDX-FileCopyrightText: Copyright 2020 suyu Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
+// SPDX-FileCopyrightText: Copyright 2020 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
-#include "common/logging/log.h"
+#include "common/logging.h"
 #include "core/frontend/emu_window.h"
 #include "video_core/vulkan_common/vulkan_surface.h"
 #include "video_core/vulkan_common/vulkan_wrapper.h"
@@ -12,7 +15,7 @@ vk::SurfaceKHR CreateSurface(
     const vk::Instance& instance,
     [[maybe_unused]] const Core::Frontend::EmuWindow::WindowSystemInfo& window_info) {
     [[maybe_unused]] const vk::InstanceDispatch& dld = instance.Dispatch();
-    VkSurfaceKHR unsafe_surface = nullptr;
+    VkSurfaceKHR unsafe_surface = VkSurfaceKHR{};
 
 #ifdef _WIN32
     if (window_info.type == Core::Frontend::WindowSystemType::Windows) {
@@ -29,13 +32,15 @@ vk::SurfaceKHR CreateSurface(
     }
 #elif defined(__APPLE__)
     if (window_info.type == Core::Frontend::WindowSystemType::Cocoa) {
-        const VkMetalSurfaceCreateInfoEXT macos_ci = {
+        const VkMetalSurfaceCreateInfoEXT metal_ci = {
+            .sType = VK_STRUCTURE_TYPE_METAL_SURFACE_CREATE_INFO_EXT,
+            .pNext = nullptr,
+            .flags = 0,
             .pLayer = static_cast<const CAMetalLayer*>(window_info.render_surface),
         };
-        const auto vkCreateMetalSurfaceEXT = reinterpret_cast<PFN_vkCreateMetalSurfaceEXT>(
-            dld.vkGetInstanceProcAddr(*instance, "vkCreateMetalSurfaceEXT"));
+        const auto vkCreateMetalSurfaceEXT = reinterpret_cast<PFN_vkCreateMetalSurfaceEXT>(dld.vkGetInstanceProcAddr(*instance, "vkCreateMetalSurfaceEXT"));
         if (!vkCreateMetalSurfaceEXT ||
-            vkCreateMetalSurfaceEXT(*instance, &macos_ci, nullptr, &unsafe_surface) != VK_SUCCESS) {
+            vkCreateMetalSurfaceEXT(*instance, &metal_ci, nullptr, &unsafe_surface) != VK_SUCCESS) {
             LOG_ERROR(Render_Vulkan, "Failed to initialize Metal surface");
             throw vk::Exception(VK_ERROR_INITIALIZATION_FAILED);
         }
@@ -51,6 +56,23 @@ vk::SurfaceKHR CreateSurface(
             vkCreateAndroidSurfaceKHR(*instance, &android_ci, nullptr, &unsafe_surface) !=
                 VK_SUCCESS) {
             LOG_ERROR(Render_Vulkan, "Failed to initialize Android surface");
+            throw vk::Exception(VK_ERROR_INITIALIZATION_FAILED);
+        }
+    }
+#elif defined(__HAIKU__)
+    if (window_info.type == Core::Frontend::WindowSystemType::Xcb) {
+        const VkXcbSurfaceCreateInfoKHR xcb_ci{
+            .sType = VK_STRUCTURE_TYPE_XCB_SURFACE_CREATE_INFO_KHR,
+            .pNext = nullptr,
+            .flags = 0,
+            .connection = static_cast<xcb_connection_t*>(window_info.display_connection),
+            .window = xcb_window_t(uintptr_t(window_info.render_surface))
+        };
+        const auto vkCreateXcbSurfaceKHR = reinterpret_cast<PFN_vkCreateXcbSurfaceKHR>(
+            dld.vkGetInstanceProcAddr(*instance, "vkCreateXcbSurfaceKHR"));
+        if (!vkCreateXcbSurfaceKHR ||
+            vkCreateXcbSurfaceKHR(*instance, &xcb_ci, nullptr, &unsafe_surface) != VK_SUCCESS) {
+            LOG_ERROR(Render_Vulkan, "Failed to initialize Xcb surface");
             throw vk::Exception(VK_ERROR_INITIALIZATION_FAILED);
         }
     }

@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 /* This file is part of the dynarmic project.
  * Copyright (c) 2022 MerryMage
  * SPDX-License-Identifier: 0BSD
@@ -8,7 +11,6 @@
 #include <fmt/ostream.h>
 #include <oaknut/oaknut.hpp>
 
-#include "dynarmic/backend/arm64/a32_jitstate.h"
 #include "dynarmic/backend/arm64/abi.h"
 #include "dynarmic/backend/arm64/emit_arm64.h"
 #include "dynarmic/backend/arm64/emit_context.h"
@@ -21,7 +23,7 @@ namespace Dynarmic::Backend::Arm64 {
 
 using namespace oaknut::util;
 
-template<size_t bitsize, typename EmitFn>
+template<std::size_t bitsize, typename EmitFn>
 static void EmitTwoOp(oaknut::CodeGenerator&, EmitContext& ctx, IR::Inst* inst, EmitFn emit) {
     auto args = ctx.reg_alloc.GetArgumentInfo(inst);
 
@@ -32,7 +34,7 @@ static void EmitTwoOp(oaknut::CodeGenerator&, EmitContext& ctx, IR::Inst* inst, 
     emit(Rresult, Roperand);
 }
 
-template<size_t bitsize, typename EmitFn>
+template<std::size_t bitsize, typename EmitFn>
 static void EmitThreeOp(oaknut::CodeGenerator&, EmitContext& ctx, IR::Inst* inst, EmitFn emit) {
     auto args = ctx.reg_alloc.GetArgumentInfo(inst);
 
@@ -60,7 +62,7 @@ void EmitIR<IR::Opcode::Pack2x32To1x64>(oaknut::CodeGenerator& code, EmitContext
 template<>
 void EmitIR<IR::Opcode::Pack2x64To1x128>(oaknut::CodeGenerator& code, EmitContext& ctx, IR::Inst* inst) {
     auto args = ctx.reg_alloc.GetArgumentInfo(inst);
-    bool const args_in_gpr[] = { args[0].IsInGpr(), args[1].IsInGpr() };
+    bool const args_in_gpr[] = { args[0].IsInGpr(ctx.reg_alloc), args[1].IsInGpr(ctx.reg_alloc) };
     if (args_in_gpr[0] && args_in_gpr[1]) {
         auto Xlo = ctx.reg_alloc.ReadX(args[0]);
         auto Xhi = ctx.reg_alloc.ReadX(args[1]);
@@ -639,7 +641,7 @@ void EmitIR<IR::Opcode::ArithmeticShiftRight64>(oaknut::CodeGenerator& code, Emi
 }
 
 template<>
-void EmitIR<IR::Opcode::RotateRight32>(oaknut::CodeGenerator& code, EmitContext& ctx, IR::Inst* inst) {
+void EmitIR<IR::Opcode::BitRotateRight32>(oaknut::CodeGenerator& code, EmitContext& ctx, IR::Inst* inst) {
     const auto carry_inst = inst->GetAssociatedPseudoOperation(IR::Opcode::GetCarryFromOp);
 
     auto args = ctx.reg_alloc.GetArgumentInfo(inst);
@@ -705,7 +707,7 @@ void EmitIR<IR::Opcode::RotateRight32>(oaknut::CodeGenerator& code, EmitContext&
 }
 
 template<>
-void EmitIR<IR::Opcode::RotateRight64>(oaknut::CodeGenerator& code, EmitContext& ctx, IR::Inst* inst) {
+void EmitIR<IR::Opcode::BitRotateRight64>(oaknut::CodeGenerator& code, EmitContext& ctx, IR::Inst* inst) {
     auto args = ctx.reg_alloc.GetArgumentInfo(inst);
     auto& operand_arg = args[0];
     auto& shift_arg = args[1];
@@ -865,7 +867,7 @@ void EmitIR<IR::Opcode::RotateRightMasked64>(oaknut::CodeGenerator& code, EmitCo
         [&](auto& Xresult, auto& Xoperand, auto& Xshift) { code.ROR(Xresult, Xoperand, Xshift); });
 }
 
-template<size_t bitsize, typename EmitFn>
+template<std::size_t bitsize, typename EmitFn>
 static void MaybeAddSubImm(oaknut::CodeGenerator& code, u64 imm, EmitFn emit_fn) {
     static_assert(bitsize == 32 || bitsize == 64);
     if constexpr (bitsize == 32) {
@@ -879,7 +881,7 @@ static void MaybeAddSubImm(oaknut::CodeGenerator& code, u64 imm, EmitFn emit_fn)
     }
 }
 
-template<size_t bitsize, bool sub>
+template<std::size_t bitsize, bool sub>
 static void EmitAddSub(oaknut::CodeGenerator& code, EmitContext& ctx, IR::Inst* inst) {
     const auto nzcv_inst = inst->GetAssociatedPseudoOperation(IR::Opcode::GetNZCVFromOp);
     const auto overflow_inst = inst->GetAssociatedPseudoOperation(IR::Opcode::GetOverflowFromOp);
@@ -1099,7 +1101,7 @@ void EmitIR<IR::Opcode::SignedDiv64>(oaknut::CodeGenerator& code, EmitContext& c
         [&](auto& Xresult, auto& Xa, auto& Xb) { code.SDIV(Xresult, Xa, Xb); });
 }
 
-template<size_t bitsize>
+template<std::size_t bitsize>
 static bool IsValidBitImm(u64 imm) {
     static_assert(bitsize == 32 || bitsize == 64);
     if constexpr (bitsize == 32) {
@@ -1109,7 +1111,7 @@ static bool IsValidBitImm(u64 imm) {
     }
 }
 
-template<size_t bitsize, typename EmitFn>
+template<std::size_t bitsize, typename EmitFn>
 static void MaybeBitImm(oaknut::CodeGenerator& code, u64 imm, EmitFn emit_fn) {
     static_assert(bitsize == 32 || bitsize == 64);
     if constexpr (bitsize == 32) {
@@ -1123,7 +1125,7 @@ static void MaybeBitImm(oaknut::CodeGenerator& code, u64 imm, EmitFn emit_fn) {
     }
 }
 
-template<size_t bitsize, typename EmitFn1, typename EmitFn2 = std::nullptr_t>
+template<std::size_t bitsize, typename EmitFn1, typename EmitFn2 = std::nullptr_t>
 static void EmitBitOp(oaknut::CodeGenerator& code, EmitContext& ctx, IR::Inst* inst, EmitFn1 emit_without_flags, EmitFn2 emit_with_flags = nullptr) {
     auto args = ctx.reg_alloc.GetArgumentInfo(inst);
     auto Rresult = ctx.reg_alloc.WriteReg<bitsize>(inst);
@@ -1165,7 +1167,7 @@ static void EmitBitOp(oaknut::CodeGenerator& code, EmitContext& ctx, IR::Inst* i
     }
 }
 
-template<size_t bitsize>
+template<std::size_t bitsize>
 static void EmitAndNot(oaknut::CodeGenerator& code, EmitContext& ctx, IR::Inst* inst) {
     const auto nz_inst = inst->GetAssociatedPseudoOperation(IR::Opcode::GetNZFromOp);
     const auto nzcv_inst = inst->GetAssociatedPseudoOperation(IR::Opcode::GetNZCVFromOp);

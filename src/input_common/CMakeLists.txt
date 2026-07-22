@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+# SPDX-License-Identifier: GPL-3.0-or-later
+
 # SPDX-FileCopyrightText: 2018 yuzu Emulator Project
 # SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -32,7 +35,6 @@ add_library(input_common STATIC
     input_poller.h
     main.cpp
     main.h
-    precompiled_headers.h
 )
 
 if (MSVC)
@@ -42,12 +44,16 @@ if (MSVC)
         /we4800 # Implicit conversion from 'type' to bool. Possible information loss
     )
 else()
-    target_compile_options(input_common PRIVATE
-        -Werror=conversion
-    )
+    target_compile_options(input_common PRIVATE $<$<COMPILE_LANGUAGE:C,CXX>:-Werror=conversion>)
 endif()
 
-if (ENABLE_SDL2)
+if (ANDROID)
+    target_sources(input_common PRIVATE
+        drivers/android.cpp
+        drivers/android.h)
+
+    target_link_libraries(input_common PRIVATE android)
+else()
     target_sources(input_common PRIVATE
         drivers/joycon.cpp
         drivers/joycon.h
@@ -71,32 +77,20 @@ if (ENABLE_SDL2)
         helpers/joycon_protocol/ringcon.cpp
         helpers/joycon_protocol/ringcon.h
         helpers/joycon_protocol/rumble.cpp
-        helpers/joycon_protocol/rumble.h
-    )
-    target_link_libraries(input_common PRIVATE SDL2::SDL2)
-    target_compile_definitions(input_common PRIVATE HAVE_SDL2)
+        helpers/joycon_protocol/rumble.h)
+
+    target_link_libraries(input_common PRIVATE SDL3::SDL3)
+    target_compile_definitions(input_common PRIVATE HAVE_SDL3)
 endif()
 
 if (ENABLE_LIBUSB)
     target_sources(input_common PRIVATE
         drivers/gc_adapter.cpp
-        drivers/gc_adapter.h
-    )
+        drivers/gc_adapter.h)
+
     target_link_libraries(input_common PRIVATE libusb::usb)
-    target_compile_definitions(input_common PRIVATE HAVE_LIBUSB)
+    target_compile_definitions(input_common PRIVATE ENABLE_LIBUSB)
 endif()
 
 create_target_directory_groups(input_common)
 target_link_libraries(input_common PUBLIC hid_core PRIVATE common Boost::headers)
-
-if (SUYU_USE_PRECOMPILED_HEADERS)
-    target_precompile_headers(input_common PRIVATE precompiled_headers.h)
-endif()
-
-if (ANDROID)
-    target_sources(input_common PRIVATE
-        drivers/android.cpp
-        drivers/android.h
-    )
-    target_link_libraries(input_common PRIVATE android)
-endif()

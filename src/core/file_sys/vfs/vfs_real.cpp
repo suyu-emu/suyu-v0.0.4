@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2018 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -9,7 +12,7 @@
 #include "common/fs/file.h"
 #include "common/fs/fs.h"
 #include "common/fs/path_util.h"
-#include "common/logging/log.h"
+#include "common/logging.h"
 #include "core/file_sys/vfs/vfs.h"
 #include "core/file_sys/vfs/vfs_real.h"
 
@@ -20,7 +23,7 @@
 #define stat _stat64
 #endif
 
-#ifdef ANDROID
+#ifdef __ANDROID__
 #include "common/fs/fs_android.h"
 #endif
 
@@ -30,7 +33,7 @@ namespace FS = Common::FS;
 
 namespace {
 
-constexpr size_t MaxOpenFiles = 512;
+constexpr size_t MaxOpenFiles = 8192;
 
 constexpr FS::FileAccessMode ModeFlagsToFileAccessMode(OpenMode mode) {
     switch (mode) {
@@ -49,7 +52,9 @@ constexpr FS::FileAccessMode ModeFlagsToFileAccessMode(OpenMode mode) {
 } // Anonymous namespace
 
 RealVfsFilesystem::RealVfsFilesystem() : VfsFilesystem(nullptr) {}
-RealVfsFilesystem::~RealVfsFilesystem() = default;
+RealVfsFilesystem::~RealVfsFilesystem() {
+    in_dtor = true;
+}
 
 std::string RealVfsFilesystem::GetName() const {
     return "Real";
@@ -221,6 +226,9 @@ std::unique_lock<std::mutex> RealVfsFilesystem::RefreshReference(const std::stri
 }
 
 void RealVfsFilesystem::DropReference(std::unique_ptr<FileReference>&& reference) {
+    if (in_dtor)
+        return;
+
     std::scoped_lock lk{list_lock};
 
     // Remove from list.
@@ -280,7 +288,7 @@ RealVfsFile::~RealVfsFile() {
 }
 
 std::string RealVfsFile::GetName() const {
-#ifdef ANDROID
+#ifdef __ANDROID__
     if (path[0] != '/') {
         return FS::Android::GetFilename(path);
     }
@@ -442,11 +450,12 @@ std::vector<VirtualFile> RealVfsDirectory::GetFiles() const {
 FileTimeStampRaw RealVfsDirectory::GetFileTimeStamp(std::string_view path_) const {
     const auto full_path = FS::SanitizePath(path + '/' + std::string(path_));
     const auto fs_path = std::filesystem::path{FS::ToU8String(full_path)};
-    struct stat file_status;
 
 #ifdef _WIN32
+    struct _stat64 file_status;
     const auto stat_result = _wstat64(fs_path.c_str(), &file_status);
 #else
+    struct stat file_status;
     const auto stat_result = stat(fs_path.c_str(), &file_status);
 #endif
 

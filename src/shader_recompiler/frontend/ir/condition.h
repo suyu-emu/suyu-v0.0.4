@@ -5,7 +5,7 @@
 
 #include <string>
 
-#include <fmt/format.h>
+#include <fmt/ranges.h>
 
 #include "common/common_types.h"
 #include "shader_recompiler/frontend/ir/flow_test.h"

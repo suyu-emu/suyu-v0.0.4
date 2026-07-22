@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2018 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -8,6 +11,7 @@
 
 #include "common/swap.h"
 #include "core/hle/service/am/applet.h"
+#include "core/frontend/applets/net_connect.h"
 
 union Result;
 
@@ -90,13 +94,14 @@ struct FrontendAppletSet {
     using ProfileSelect = std::unique_ptr<Core::Frontend::ProfileSelectApplet>;
     using SoftwareKeyboard = std::unique_ptr<Core::Frontend::SoftwareKeyboardApplet>;
     using WebBrowser = std::unique_ptr<Core::Frontend::WebBrowserApplet>;
+    using NetConnect = std::unique_ptr<Core::Frontend::NetConnectApplet>;
 
     FrontendAppletSet();
     FrontendAppletSet(CabinetApplet cabinet_applet, ControllerApplet controller_applet,
                       ErrorApplet error_applet, MiiEdit mii_edit_,
                       ParentalControlsApplet parental_controls_applet, PhotoViewer photo_viewer_,
                       ProfileSelect profile_select_, SoftwareKeyboard software_keyboard_,
-                      WebBrowser web_browser_);
+                      WebBrowser web_browser_, NetConnect net_connect_);
     ~FrontendAppletSet();
 
     FrontendAppletSet(const FrontendAppletSet&) = delete;
@@ -114,6 +119,7 @@ struct FrontendAppletSet {
     ProfileSelect profile_select;
     SoftwareKeyboard software_keyboard;
     WebBrowser web_browser;
+    NetConnect net_connect;
 };
 
 class FrontendAppletHolder {

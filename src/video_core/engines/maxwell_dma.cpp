@@ -1,11 +1,13 @@
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2018 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "common/algorithm.h"
 #include "common/assert.h"
-#include "common/logging/log.h"
-#include "common/microprofile.h"
-#include "common/polyfill_ranges.h"
+#include "common/logging.h"
+#include <ranges>
 #include "common/settings.h"
 #include "core/core.h"
 #include "video_core/engines/maxwell_3d.h"
@@ -15,21 +17,13 @@
 #include "video_core/renderer_base.h"
 #include "video_core/textures/decoders.h"
 
-MICROPROFILE_DECLARE(GPU_DMAEngine);
-MICROPROFILE_DECLARE(GPU_DMAEngineBL);
-MICROPROFILE_DECLARE(GPU_DMAEngineLB);
-MICROPROFILE_DECLARE(GPU_DMAEngineBB);
-MICROPROFILE_DEFINE(GPU_DMAEngine, "GPU", "DMA Engine", MP_RGB(224, 224, 128));
-MICROPROFILE_DEFINE(GPU_DMAEngineBL, "GPU", "DMA Engine Block - Linear", MP_RGB(224, 224, 128));
-MICROPROFILE_DEFINE(GPU_DMAEngineLB, "GPU", "DMA Engine Linear - Block", MP_RGB(224, 224, 128));
-MICROPROFILE_DEFINE(GPU_DMAEngineBB, "GPU", "DMA Engine Block - Block", MP_RGB(224, 224, 128));
-
 namespace Tegra::Engines {
 
 using namespace Texture;
 
-MaxwellDMA::MaxwellDMA(Core::System& system_, MemoryManager& memory_manager_)
-    : system{system_}, memory_manager{memory_manager_} {
+MaxwellDMA::MaxwellDMA(MemoryManager& memory_manager_)
+    : memory_manager{memory_manager_}
+{
     execution_mask.reset();
     execution_mask[offsetof(Regs, launch_dma) / sizeof(u32)] = true;
 }
@@ -40,14 +34,14 @@ void MaxwellDMA::BindRasterizer(VideoCore::RasterizerInterface* rasterizer_) {
     rasterizer = rasterizer_;
 }
 
-void MaxwellDMA::ConsumeSinkImpl() {
+void MaxwellDMA::ConsumeSinkImpl(Core::System& system) {
     for (auto [method, value] : method_sink) {
         regs.reg_array[method] = value;
     }
     method_sink.clear();
 }
 
-void MaxwellDMA::CallMethod(u32 method, u32 method_argument, bool is_last_call) {
+void MaxwellDMA::CallMethod(Core::System& system, u32 method, u32 method_argument, bool is_last_call) {
     ASSERT_MSG(method < NUM_REGS, "Invalid MaxwellDMA register");
 
     regs.reg_array[method] = method_argument;
@@ -57,22 +51,18 @@ void MaxwellDMA::CallMethod(u32 method, u32 method_argument, bool is_last_call) 
     }
 }
 
-void MaxwellDMA::CallMultiMethod(u32 method, const u32* base_start, u32 amount,
-                                 u32 methods_pending) {
+void MaxwellDMA::CallMultiMethod(Core::System& system, u32 method, const u32* base_start, u32 amount, u32 methods_pending) {
     for (u32 i = 0; i < amount; ++i) {
-        CallMethod(method, base_start[i], methods_pending - i <= 1);
+        CallMethod(system, method, base_start[i], methods_pending - i <= 1);
     }
 }
 
 void MaxwellDMA::Launch() {
-    MICROPROFILE_SCOPE(GPU_DMAEngine);
-    LOG_TRACE(Render_OpenGL, "DMA copy 0x{:x} -> 0x{:x}", static_cast<GPUVAddr>(regs.offset_in),
-              static_cast<GPUVAddr>(regs.offset_out));
+    LOG_TRACE(Render_OpenGL, "DMA copy 0x{:x} -> 0x{:x}", static_cast<GPUVAddr>(regs.offset_in), GPUVAddr(regs.offset_out));
 
     // TODO(Subv): Perform more research and implement all features of this engine.
     const LaunchDMA& launch = regs.launch_dma;
     ASSERT(launch.interrupt_type == LaunchDMA::InterruptType::NONE);
-    ASSERT(launch.data_transfer_type == LaunchDMA::DataTransferType::NON_PIPELINED);
 
     if (launch.multi_line_enable) {
         const bool is_src_pitch = launch.src_memory_layout == LaunchDMA::MemoryLayout::PITCH;
@@ -80,7 +70,6 @@ void MaxwellDMA::Launch() {
         memory_manager.FlushCaching();
         if (!is_src_pitch && !is_dst_pitch) {
             // If both the source and the destination are in block layout, assert.
-            MICROPROFILE_SCOPE(GPU_DMAEngineBB);
             CopyBlockLinearToBlockLinear();
             ReleaseSemaphore();
             return;
@@ -96,10 +85,8 @@ void MaxwellDMA::Launch() {
             }
         } else {
             if (!is_src_pitch && is_dst_pitch) {
-                MICROPROFILE_SCOPE(GPU_DMAEngineBL);
                 CopyBlockLinearToPitch();
             } else {
-                MICROPROFILE_SCOPE(GPU_DMAEngineLB);
                 CopyPitchToBlockLinear();
             }
         }
@@ -108,15 +95,14 @@ void MaxwellDMA::Launch() {
         auto& accelerate = rasterizer->AccessAccelerateDMA();
         const bool is_const_a_dst = regs.remap_const.dst_x == RemapConst::Swizzle::CONST_A;
         if (regs.launch_dma.remap_enable != 0 && is_const_a_dst) {
-            ASSERT(regs.remap_const.component_size_minus_one == 3);
-            accelerate.BufferClear(regs.offset_out, regs.line_length_in,
-                                   regs.remap_const.remap_consta_value);
+            const u32 component_size = regs.remap_const.component_size_minus_one + 1;
+            ASSERT(component_size == 1 || component_size == 2 || component_size == 4);
+            if (component_size == 4) {
+                accelerate.BufferClear(regs.offset_out, regs.line_length_in, regs.remap_const.remap_consta_value);
+            }
             read_buffer.resize_destructive(regs.line_length_in * sizeof(u32));
-            std::span<u32> span(reinterpret_cast<u32*>(read_buffer.data()), regs.line_length_in);
-            std::ranges::fill(span, regs.remap_const.remap_consta_value);
-            memory_manager.WriteBlockUnsafe(regs.offset_out,
-                                            reinterpret_cast<u8*>(read_buffer.data()),
-                                            regs.line_length_in * sizeof(u32));
+            std::ranges::fill(std::span<u32>(reinterpret_cast<u32*>(read_buffer.data()), regs.line_length_in), regs.remap_const.remap_consta_value);
+            memory_manager.WriteBlockUnsafe(regs.offset_out, reinterpret_cast<u8*>(read_buffer.data()), static_cast<size_t>(regs.line_length_in) * component_size);
         } else {
             memory_manager.FlushCaching();
             const auto convert_linear_2_blocklinear_addr = [](u64 address) {
@@ -168,7 +154,7 @@ void MaxwellDMA::Launch() {
 }
 
 void MaxwellDMA::CopyBlockLinearToPitch() {
-    UNIMPLEMENTED_IF(regs.launch_dma.remap_enable != 0);
+   
 
     u32 bytes_per_pixel = 1;
     DMA::ImageOperand src_operand;
@@ -209,7 +195,7 @@ void MaxwellDMA::CopyBlockLinearToPitch() {
     u32 bpp_shift = 0U;
     if (!is_remapping) {
         bpp_shift = Common::FoldRight(
-            4U, [](u32 x, u32 y) { return std::min(x, static_cast<u32>(std::countr_zero(y))); },
+            4U, [](u32 x, u32 y) { return (std::min)(x, static_cast<u32>(std::countr_zero(y))); },
             width, x_elements, x_offset, static_cast<u32>(regs.offset_in));
         width >>= bpp_shift;
         x_elements >>= bpp_shift;
@@ -272,7 +258,7 @@ void MaxwellDMA::CopyPitchToBlockLinear() {
     u32 bpp_shift = 0U;
     if (!is_remapping) {
         bpp_shift = Common::FoldRight(
-            4U, [](u32 x, u32 y) { return std::min(x, static_cast<u32>(std::countr_zero(y))); },
+            4U, [](u32 x, u32 y) { return (std::min)(x, static_cast<u32>(std::countr_zero(y))); },
             width, x_elements, x_offset, static_cast<u32>(regs.offset_out));
         width >>= bpp_shift;
         x_elements >>= bpp_shift;
@@ -323,7 +309,7 @@ void MaxwellDMA::CopyBlockLinearToBlockLinear() {
     u32 bpp_shift = 0U;
     if (!is_remapping) {
         bpp_shift = Common::FoldRight(
-            4U, [](u32 x, u32 y) { return std::min(x, static_cast<u32>(std::countr_zero(y))); },
+            4U, [](u32 x, u32 y) { return (std::min)(x, static_cast<u32>(std::countr_zero(y))); },
             src_width, dst_width, x_elements, src_x_offset, dst_x_offset,
             static_cast<u32>(regs.offset_in), static_cast<u32>(regs.offset_out));
         src_width >>= bpp_shift;

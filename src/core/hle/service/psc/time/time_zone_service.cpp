@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2023 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -12,9 +15,11 @@ namespace Service::PSC::Time {
 
 TimeZoneService::TimeZoneService(Core::System& system_, StandardSteadyClockCore& clock_core,
                                  TimeZone& time_zone, bool can_write_timezone_device_location)
-    : ServiceFramework{system_, "ITimeZoneService"}, m_system{system}, m_clock_core{clock_core},
-      m_time_zone{time_zone}, m_can_write_timezone_device_location{
-                                  can_write_timezone_device_location} {
+    : ServiceFramework{system_, "ITimeZoneService"}
+    , m_clock_core{clock_core}
+    , m_time_zone{time_zone}
+    , m_can_write_timezone_device_location{can_write_timezone_device_location}
+{
     // clang-format off
     static const FunctionInfo functions[] = {
         {0,   D<&TimeZoneService::GetDeviceLocationName>, "GetDeviceLocationName"},
@@ -148,7 +153,8 @@ Result TimeZoneService::ToPosixTime(Out<u32> out_count,
     SCOPE_EXIT {
         LOG_DEBUG(Service_Time,
                   "called. calendar_time={} out_count={} out_times[0]={} out_times[1]={} ",
-                  calendar_time, *out_count, out_times[0], out_times[1]);
+                  calendar_time, *out_count, out_times.size() > 0 ? out_times[0] : s64{0},
+                  out_times.size() > 1 ? out_times[1] : s64{0});
     };
 
     R_RETURN(
@@ -161,7 +167,8 @@ Result TimeZoneService::ToPosixTimeWithMyRule(Out<u32> out_count,
     SCOPE_EXIT {
         LOG_DEBUG(Service_Time,
                   "called. calendar_time={} out_count={} out_times[0]={} out_times[1]={} ",
-                  calendar_time, *out_count, out_times[0], out_times[1]);
+                  calendar_time, *out_count, out_times.size() > 0 ? out_times[0] : s64{0},
+                  out_times.size() > 1 ? out_times[1] : s64{0});
     };
 
     R_RETURN(

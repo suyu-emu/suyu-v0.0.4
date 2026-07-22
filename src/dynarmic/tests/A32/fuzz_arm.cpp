@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 /* This file is part of the dynarmic project.
@@ -15,20 +15,17 @@
 #include <vector>
 
 #include <catch2/catch_test_macros.hpp>
-#include <mcl/bit/bit_count.hpp>
-#include <mcl/bit/swap.hpp>
-#include <mcl/scope_exit.hpp>
-#include "dynarmic/common/common_types.h"
+#include "dynarmic/mcl/bit.hpp"
+#include "common/common_types.h"
 
-#include "../fuzz_util.h"
-#include "../rand_int.h"
-#include "../unicorn_emu/a32_unicorn.h"
-#include "./testenv.h"
-#include "../native/testenv.h"
+#include "dynarmic/tests/fuzz_util.h"
+#include "dynarmic/tests/rand_int.h"
+#include "dynarmic/tests/unicorn_emu/a32_unicorn.h"
+#include "dynarmic/tests/A32/testenv.h"
+#include "dynarmic/tests/native/testenv.h"
 #include "dynarmic/common/fp/fpcr.h"
 #include "dynarmic/common/fp/fpsr.h"
 #include "dynarmic/common/llvm_disassemble.h"
-#include "dynarmic/common/variant_util.h"
 #include "dynarmic/frontend/A32/ITState.h"
 #include "dynarmic/frontend/A32/a32_location_descriptor.h"
 #include "dynarmic/frontend/A32/a32_types.h"
@@ -59,8 +56,6 @@ bool AnyLocationDescriptorForTerminalHas(IR::Terminal terminal, Fn fn) {
             return fn(t.next);
         } else if constexpr (std::is_same_v<T, IR::Term::PopRSBHint>) {
             return false;
-        } else if constexpr (std::is_same_v<T, IR::Term::Interpret>) {
-            return fn(t.next);
         } else if constexpr (std::is_same_v<T, IR::Term::FastDispatchHint>) {
             return false;
         } else if constexpr (std::is_same_v<T, IR::Term::If>) {
@@ -85,15 +80,11 @@ bool ShouldTestInst(u32 instruction, u32 pc, bool is_thumb, bool is_last_inst, A
         return false;
     }
 
-    if (auto terminal = block.GetTerminal(); boost::get<IR::Term::Interpret>(&terminal)) {
-        return false;
-    }
-
     if (AnyLocationDescriptorForTerminalHas(block.GetTerminal(), [&](IR::LocationDescriptor ld) { return A32::LocationDescriptor{ld}.PC() <= pc; })) {
         return false;
     }
 
-    for (const auto& ir_inst : block) {
+    for (const auto& ir_inst : block.instructions) {
         switch (ir_inst.GetOpcode()) {
         case IR::Opcode::A32ExceptionRaised:
         case IR::Opcode::A32CallSupervisor:
@@ -363,67 +354,67 @@ static void RunTestInstance(Dynarmic::A32::Jit& jit,
     uni_env.ticks_left = instructions.size();  // Unicorn counts thumb instructions weirdly.
     uni.Run();
 
-    SCOPE_FAIL {
-        fmt::print("Instruction Listing:\n");
-        fmt::print("{}\n", Common::DisassembleAArch32(std::is_same_v<TestEnv, ThumbTestEnv>, initial_pc, (const u8*)instructions.data(), instructions.size() * sizeof(instructions[0])));
+    // SCOPE_FAIL {
+    //     fmt::print("Instruction Listing:\n");
+    //     fmt::print("{}\n", Common::DisassembleAArch32(std::is_same_v<TestEnv, ThumbTestEnv>, initial_pc, (const u8*)instructions.data(), instructions.size() * sizeof(instructions[0])));
 
-        fmt::print("Initial register listing:\n");
-        for (size_t i = 0; i < regs.size(); ++i) {
-            fmt::print("{:3s}: {:08x}\n", static_cast<A32::Reg>(i), regs[i]);
-        }
-        for (size_t i = 0; i < vecs.size(); ++i) {
-            fmt::print("{:3s}: {:08x}\n", static_cast<A32::ExtReg>(i), vecs[i]);
-        }
-        fmt::print("cpsr {:08x}\n", cpsr);
-        fmt::print("fpcr {:08x}\n", fpscr);
-        fmt::print("fpcr.AHP   {}\n", FP::FPCR{fpscr}.AHP());
-        fmt::print("fpcr.DN    {}\n", FP::FPCR{fpscr}.DN());
-        fmt::print("fpcr.FZ    {}\n", FP::FPCR{fpscr}.FZ());
-        fmt::print("fpcr.RMode {}\n", static_cast<size_t>(FP::FPCR{fpscr}.RMode()));
-        fmt::print("fpcr.FZ16  {}\n", FP::FPCR{fpscr}.FZ16());
-        fmt::print("\n");
+    //     fmt::print("Initial register listing:\n");
+    //     for (size_t i = 0; i < regs.size(); ++i) {
+    //         fmt::print("{:3s}: {:08x}\n", static_cast<A32::Reg>(i), regs[i]);
+    //     }
+    //     for (size_t i = 0; i < vecs.size(); ++i) {
+    //         fmt::print("{:3s}: {:08x}\n", static_cast<A32::ExtReg>(i), vecs[i]);
+    //     }
+    //     fmt::print("cpsr {:08x}\n", cpsr);
+    //     fmt::print("fpcr {:08x}\n", fpscr);
+    //     fmt::print("fpcr.AHP   {}\n", FP::FPCR{fpscr}.AHP());
+    //     fmt::print("fpcr.DN    {}\n", FP::FPCR{fpscr}.DN());
+    //     fmt::print("fpcr.FZ    {}\n", FP::FPCR{fpscr}.FZ());
+    //     fmt::print("fpcr.RMode {}\n", static_cast<size_t>(FP::FPCR{fpscr}.RMode()));
+    //     fmt::print("fpcr.FZ16  {}\n", FP::FPCR{fpscr}.FZ16());
+    //     fmt::print("\n");
 
-        fmt::print("Final register listing:\n");
-        fmt::print("     unicorn  dynarmic\n");
-        const auto uni_regs = uni.GetRegisters();
-        for (size_t i = 0; i < regs.size(); ++i) {
-            fmt::print("{:3s}: {:08x} {:08x} {}\n", static_cast<A32::Reg>(i), uni_regs[i], jit.Regs()[i], uni_regs[i] != jit.Regs()[i] ? "*" : "");
-        }
-        const auto uni_ext_regs = uni.GetExtRegs();
-        for (size_t i = 0; i < vecs.size(); ++i) {
-            fmt::print("s{:2d}: {:08x} {:08x} {}\n", static_cast<size_t>(i), uni_ext_regs[i], jit.ExtRegs()[i], uni_ext_regs[i] != jit.ExtRegs()[i] ? "*" : "");
-        }
-        fmt::print("cpsr {:08x} {:08x} {}\n", uni.GetCpsr(), jit.Cpsr(), uni.GetCpsr() != jit.Cpsr() ? "*" : "");
-        fmt::print("fpsr {:08x} {:08x} {}\n", uni.GetFpscr(), jit.Fpscr(), (uni.GetFpscr() & 0xF0000000) != (jit.Fpscr() & 0xF0000000) ? "*" : "");
-        fmt::print("\n");
+    //     fmt::print("Final register listing:\n");
+    //     fmt::print("     unicorn  dynarmic\n");
+    //     const auto uni_regs = uni.GetRegisters();
+    //     for (size_t i = 0; i < regs.size(); ++i) {
+    //         fmt::print("{:3s}: {:08x} {:08x} {}\n", static_cast<A32::Reg>(i), uni_regs[i], jit.Regs()[i], uni_regs[i] != jit.Regs()[i] ? "*" : "");
+    //     }
+    //     const auto uni_ext_regs = uni.GetExtRegs();
+    //     for (size_t i = 0; i < vecs.size(); ++i) {
+    //         fmt::print("s{:2d}: {:08x} {:08x} {}\n", static_cast<size_t>(i), uni_ext_regs[i], jit.ExtRegs()[i], uni_ext_regs[i] != jit.ExtRegs()[i] ? "*" : "");
+    //     }
+    //     fmt::print("cpsr {:08x} {:08x} {}\n", uni.GetCpsr(), jit.Cpsr(), uni.GetCpsr() != jit.Cpsr() ? "*" : "");
+    //     fmt::print("fpsr {:08x} {:08x} {}\n", uni.GetFpscr(), jit.Fpscr(), (uni.GetFpscr() & 0xF0000000) != (jit.Fpscr() & 0xF0000000) ? "*" : "");
+    //     fmt::print("\n");
 
-        fmt::print("Modified memory:\n");
-        fmt::print("                 uni dyn\n");
-        auto uni_iter = uni_env.modified_memory.begin();
-        auto jit_iter = jit_env.modified_memory.begin();
-        while (uni_iter != uni_env.modified_memory.end() || jit_iter != jit_env.modified_memory.end()) {
-            if (uni_iter == uni_env.modified_memory.end() || (jit_iter != jit_env.modified_memory.end() && uni_iter->first > jit_iter->first)) {
-                fmt::print("{:08x}:    {:02x} *\n", jit_iter->first, jit_iter->second);
-                jit_iter++;
-            } else if (jit_iter == jit_env.modified_memory.end() || jit_iter->first > uni_iter->first) {
-                fmt::print("{:08x}: {:02x}    *\n", uni_iter->first, uni_iter->second);
-                uni_iter++;
-            } else if (uni_iter->first == jit_iter->first) {
-                fmt::print("{:08x}: {:02x} {:02x} {}\n", uni_iter->first, uni_iter->second, jit_iter->second, uni_iter->second != jit_iter->second ? "*" : "");
-                uni_iter++;
-                jit_iter++;
-            }
-        }
-        fmt::print("\n");
+    //     fmt::print("Modified memory:\n");
+    //     fmt::print("                 uni dyn\n");
+    //     auto uni_iter = uni_env.modified_memory.begin();
+    //     auto jit_iter = jit_env.modified_memory.begin();
+    //     while (uni_iter != uni_env.modified_memory.end() || jit_iter != jit_env.modified_memory.end()) {
+    //         if (uni_iter == uni_env.modified_memory.end() || (jit_iter != jit_env.modified_memory.end() && uni_iter->first > jit_iter->first)) {
+    //             fmt::print("{:08x}:    {:02x} *\n", jit_iter->first, jit_iter->second);
+    //             jit_iter++;
+    //         } else if (jit_iter == jit_env.modified_memory.end() || jit_iter->first > uni_iter->first) {
+    //             fmt::print("{:08x}: {:02x}    *\n", uni_iter->first, uni_iter->second);
+    //             uni_iter++;
+    //         } else if (uni_iter->first == jit_iter->first) {
+    //             fmt::print("{:08x}: {:02x} {:02x} {}\n", uni_iter->first, uni_iter->second, jit_iter->second, uni_iter->second != jit_iter->second ? "*" : "");
+    //             uni_iter++;
+    //             jit_iter++;
+    //         }
+    //     }
+    //     fmt::print("\n");
 
-        fmt::print("x86_64:\n");
-        fmt::print("{}", jit.Disassemble());
+    //     fmt::print("x86_64:\n");
+    //     fmt::print("{}", jit.Disassemble());
 
-        fmt::print("Interrupts:\n");
-        for (const auto& i : uni_env.interrupts) {
-            std::puts(i.c_str());
-        }
-    };
+    //     fmt::print("Interrupts:\n");
+    //     for (const auto& i : uni_env.interrupts) {
+    //         std::puts(i.c_str());
+    //     }
+    // };
 
     REQUIRE(uni_env.code_mem_modified_by_guest == jit_env.code_mem_modified_by_guest);
     if (uni_env.code_mem_modified_by_guest) {
@@ -674,7 +665,7 @@ TEST_CASE("A32: Test thumb IT instruction", "[thumb]") {
         A32::ITState it_state = [&] {
             while (true) {
                 const u16 imm8 = RandInt<u16>(0, 0xFF);
-                if (mcl::bit::get_bits<0, 3>(imm8) == 0b0000 || mcl::bit::get_bits<4, 7>(imm8) == 0b1111 || (mcl::bit::get_bits<4, 7>(imm8) == 0b1110 && mcl::bit::count_ones(mcl::bit::get_bits<0, 3>(imm8)) != 1)) {
+                if (mcl::bit::get_bits<0, 3>(imm8) == 0b0000 || mcl::bit::get_bits<4, 7>(imm8) == 0b1111 || (mcl::bit::get_bits<4, 7>(imm8) == 0b1110 && std::popcount(mcl::bit::get_bits<0, 3>(imm8)) != 1)) {
                     continue;
                 }
                 instructions.push_back(0b1011111100000000 | imm8);

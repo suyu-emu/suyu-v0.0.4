@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2018 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -5,7 +8,7 @@
 #include <cstdlib>
 #include <ctime>
 #include <vector>
-#include "common/logging/log.h"
+#include "common/logging.h"
 #include "common/settings.h"
 #include "core/hle/api_version.h"
 #include "core/hle/service/ipc_helpers.h"
@@ -68,7 +71,7 @@ void Module::Interface::GenerateRandomBytes(HLERequestContext& ctx) {
 
     const std::size_t size = ctx.GetWriteBufferSize();
 
-    std::uniform_int_distribution<u16> distribution(0, std::numeric_limits<u8>::max());
+    std::uniform_int_distribution<u16> distribution(0, (std::numeric_limits<u8>::max)());
     std::vector<u8> data(size);
     std::generate(data.begin(), data.end(), [&] { return static_cast<u8>(distribution(rng)); });
 
@@ -175,7 +178,7 @@ void LoopProcess(Core::System& system) {
     auto module = std::make_shared<Module>();
 
     server_manager->RegisterNamedService("csrng", std::make_shared<CSRNG>(system, module));
-    server_manager->RegisterNamedService("spl", std::make_shared<SPL>(system, module));
+    server_manager->RegisterNamedService("spl:", std::make_shared<SPL>(system, module));
     server_manager->RegisterNamedService("spl:mig", std::make_shared<SPL_MIG>(system, module));
     server_manager->RegisterNamedService("spl:fs", std::make_shared<SPL_FS>(system, module));
     server_manager->RegisterNamedService("spl:ssl", std::make_shared<SPL_SSL>(system, module));

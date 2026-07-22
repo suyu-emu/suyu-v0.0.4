@@ -6,6 +6,6 @@
 #extension GL_GOOGLE_include_directive : enable
 
 #define VERSION 2
-#define SUYU_USE_FP16
+#define YUZU_USE_FP16
 
 #include "opengl_present_scaleforce.frag"

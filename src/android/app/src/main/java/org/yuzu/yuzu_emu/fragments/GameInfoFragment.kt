@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 package org.yuzu.yuzu_emu.fragments
@@ -18,7 +18,6 @@ import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.updatePadding
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
-import androidx.navigation.findNavController
 import androidx.navigation.fragment.navArgs
 import com.google.android.material.transition.MaterialSharedAxis
 import org.yuzu.yuzu_emu.NativeLibrary
@@ -64,7 +63,7 @@ class GameInfoFragment : Fragment() {
         binding.apply {
             toolbarInfo.title = args.game.title
             toolbarInfo.setNavigationOnClickListener {
-                view.findNavController().popBackStack()
+                requireActivity().onBackPressedDispatcher.onBackPressed()
             }
 
             val pathString = Uri.parse(args.game.path).path ?: ""

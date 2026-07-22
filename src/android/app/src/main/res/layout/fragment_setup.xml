@@ -23,17 +23,17 @@
 
         <com.google.android.material.button.MaterialButton
             android:id="@+id/button_next"
-            style="@style/Widget.Material3.Button.TextButton"
+            style="@style/EdenButton.Primary"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="@string/next"
-            android:visibility="invisible"
+            android:visibility="visible"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent" />
 
         <com.google.android.material.button.MaterialButton
             android:id="@+id/button_back"
-            style="@style/Widget.Material3.Button.TextButton"
+            style="@style/EdenButton.Secondary"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="@string/back"

@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2020 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -66,20 +69,29 @@ float TSCEntry::MaxAnisotropy() const noexcept {
     const bool has_regular_lods = min_lod_clamp == 0 && max_lod_clamp >= 256;
     const bool is_bilinear_filter = min_filter == TextureFilter::Linear &&
                                     reduction_filter == SamplerReduction::WeightedAverage;
-    if (max_anisotropy == 0 && (!is_suitable_mipmap_filter || !has_regular_lods ||
-                                !is_bilinear_filter || depth_compare_enabled)) {
+    if (max_anisotropy == 0 && (!is_suitable_mipmap_filter || !has_regular_lods || !is_bilinear_filter || depth_compare_enabled))
         return 1.0f;
-    }
-    const auto anisotropic_settings = Settings::values.max_anisotropy.GetValue();
+
     s32 added_anisotropic{};
-    if (anisotropic_settings == Settings::AnisotropyMode::Automatic) {
-        added_anisotropic = Settings::values.resolution_info.up_scale >>
-                            Settings::values.resolution_info.down_shift;
-        added_anisotropic = std::max(added_anisotropic - 1, 0);
-    } else {
-        added_anisotropic = static_cast<u32>(Settings::values.max_anisotropy.GetValue()) - 1U;
+    auto const anisotropic_settings = Settings::values.max_anisotropy.GetValue();
+    switch (anisotropic_settings) {
+    case Settings::AnisotropyMode::Default:
+    case Settings::AnisotropyMode::X2:
+    case Settings::AnisotropyMode::X4:
+    case Settings::AnisotropyMode::X8:
+    case Settings::AnisotropyMode::X16:
+    case Settings::AnisotropyMode::X32:
+    case Settings::AnisotropyMode::X64:
+        added_anisotropic = u32(anisotropic_settings) - 1U;
+        break;
+    case Settings::AnisotropyMode::Automatic:
+        added_anisotropic = Settings::values.resolution_info.up_scale >> Settings::values.resolution_info.down_shift;
+        added_anisotropic = (std::max)(added_anisotropic - 1U, 0U);
+        break;
+    case Settings::AnisotropyMode::None:
+        return 1.0f; //No use of anisotropy
     }
-    return static_cast<float>(1U << (max_anisotropy + added_anisotropic));
+    return float(1U << (max_anisotropy + added_anisotropic));
 }
 
 } // namespace Tegra::Texture

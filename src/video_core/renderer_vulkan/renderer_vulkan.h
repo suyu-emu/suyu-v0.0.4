@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2018 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -20,10 +23,6 @@
 #include "video_core/vulkan_common/vulkan_device.h"
 #include "video_core/vulkan_common/vulkan_memory_allocator.h"
 #include "video_core/vulkan_common/vulkan_wrapper.h"
-
-namespace Core {
-class TelemetrySession;
-}
 
 namespace Core::Memory {
 class Memory;
@@ -53,15 +52,20 @@ public:
         return &rasterizer;
     }
 
-    VideoCore::OptimizedRasterizer* ReadOptimizedRasterizer() override {
-        return &rasterizer;
-    }
-
     [[nodiscard]] std::string GetDeviceVendor() const override {
         return device.GetDriverName();
     }
 
+    // Enhanced platform-specific initialization
+    void InitializePlatformSpecific();
+
 private:
+    void InterpolateFrames(Frame* prev_frame, Frame* curr_frame);
+    Frame* previous_frame = nullptr;  // Store the previous frame for interpolation
+    VkCommandBuffer BeginSingleTimeCommands();
+    void EndSingleTimeCommands(VkCommandBuffer command_buffer);
+    void Report() const;
+
     vk::Buffer RenderToBuffer(std::span<const Tegra::FramebufferConfig> framebuffers,
                               const Layout::FramebufferLayout& layout, VkFormat format,
                               VkDeviceSize buffer_size);
@@ -74,8 +78,11 @@ private:
     std::shared_ptr<Common::DynamicLibrary> library;
     vk::InstanceDispatch dld;
 
+    // Keep original handles for compatibility with existing code
     vk::Instance instance;
+
     vk::DebugUtilsMessenger debug_messenger;
+
     vk::SurfaceKHR surface;
 
     Device device;

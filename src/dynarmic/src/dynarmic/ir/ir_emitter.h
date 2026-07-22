@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 /* This file is part of the dynarmic project.
@@ -10,9 +10,9 @@
 
 #include <vector>
 
-#include "dynarmic/common/common_types.h"
-#include "dynarmic/common/assert.h"
-#include <mcl/bit_cast.hpp>
+#include "common/common_types.h"
+#include "common/assert.h"
+#include "dynarmic/mcl/bit.hpp"
 
 #include "dynarmic/ir/opcodes.h"
 #include "dynarmic/ir/acc_type.h"
@@ -65,15 +65,12 @@ enum class MemOp {
     PREFETCH,
 };
 
-/**
- * Convenience class to construct a basic block of the intermediate representation.
- * `block` is the resulting block.
- * The user of this class updates `current_location` as appropriate.
- */
+/// @brief Convenience class to construct a basic block of the intermediate representation.
+/// `block` is the resulting block.
+/// The user of this class updates `current_location` as appropriate.
 class IREmitter {
 public:
-    explicit IREmitter(Block& block)
-            : block(block), insertion_point(block.end()) {}
+    explicit IREmitter(Block& block) : block(block), insertion_point(block.instructions.end()) {}
 
     Block& block;
 
@@ -231,7 +228,7 @@ public:
     }
 
     ResultAndCarry<U32> RotateRight(const U32& value_in, const U8& shift_amount, const U1& carry_in) {
-        const auto result = Inst<U32>(Opcode::RotateRight32, value_in, shift_amount, carry_in);
+        const auto result = Inst<U32>(Opcode::BitRotateRight32, value_in, shift_amount, carry_in);
         const auto carry_out = Inst<U1>(Opcode::GetCarryFromOp, result);
         return {result, carry_out};
     }
@@ -268,9 +265,9 @@ public:
 
     U32U64 RotateRight(const U32U64& value_in, const U8& shift_amount) {
         if (value_in.GetType() == Type::U32) {
-            return Inst<U32>(Opcode::RotateRight32, value_in, shift_amount, Imm1(0));
+            return Inst<U32>(Opcode::BitRotateRight32, value_in, shift_amount, Imm1(0));
         } else {
-            return Inst<U64>(Opcode::RotateRight64, value_in, shift_amount);
+            return Inst<U64>(Opcode::BitRotateRight64, value_in, shift_amount);
         }
     }
 

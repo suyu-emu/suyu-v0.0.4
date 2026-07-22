@@ -1,8 +1,11 @@
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: 2021 yuzu Emulator Project
 // SPDX-FileCopyrightText: 2021 Skyline Team and Contributors
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-#include "common/logging/log.h"
+#include "common/logging.h"
 #include "common/scope_exit.h"
 #include "common/string_util.h"
 #include "core/core.h"
@@ -56,8 +59,7 @@ void NVDRV::Ioctl1(HLERequestContext& ctx) {
     IPC::RequestParser rp{ctx};
     const auto fd = rp.Pop<DeviceFD>();
     const auto command = rp.PopRaw<Ioctl>();
-    LOG_DEBUG(Service_NVDRV, "Ioctl1 fd={}, ioctl=0x{:08X} group={} cmd={}", fd, command.raw,
-              command.group, command.cmd);
+    LOG_DEBUG(Service_NVDRV, "called fd={}, ioctl=0x{:08X}", fd, command.raw);
 
     if (!is_initialized) {
         ServiceError(ctx, NvResult::NotInitialized);
@@ -83,8 +85,7 @@ void NVDRV::Ioctl2(HLERequestContext& ctx) {
     IPC::RequestParser rp{ctx};
     const auto fd = rp.Pop<DeviceFD>();
     const auto command = rp.PopRaw<Ioctl>();
-    LOG_DEBUG(Service_NVDRV, "Ioctl2 fd={}, ioctl=0x{:08X} group={} cmd={}", fd, command.raw,
-              command.group, command.cmd);
+    LOG_DEBUG(Service_NVDRV, "called fd={}, ioctl=0x{:08X}", fd, command.raw);
 
     if (!is_initialized) {
         ServiceError(ctx, NvResult::NotInitialized);
@@ -111,8 +112,7 @@ void NVDRV::Ioctl3(HLERequestContext& ctx) {
     IPC::RequestParser rp{ctx};
     const auto fd = rp.Pop<DeviceFD>();
     const auto command = rp.PopRaw<Ioctl>();
-    LOG_DEBUG(Service_NVDRV, "Ioctl3 fd={}, ioctl=0x{:08X} group={} cmd={}", fd, command.raw,
-              command.group, command.cmd);
+    LOG_DEBUG(Service_NVDRV, "called fd={}, ioctl=0x{:08X}", fd, command.raw);
 
     if (!is_initialized) {
         ServiceError(ctx, NvResult::NotInitialized);
@@ -155,7 +155,7 @@ void NVDRV::Close(HLERequestContext& ctx) {
 }
 
 void NVDRV::Initialize(HLERequestContext& ctx) {
-    LOG_DEBUG(Service_NVDRV, "called");
+    LOG_WARNING(Service_NVDRV, "(STUBBED) called");
     IPC::ResponseBuilder rb{ctx, 3};
     SCOPE_EXIT {
         rb.Push(ResultSuccess);
@@ -199,7 +199,7 @@ void NVDRV::QueryEvent(HLERequestContext& ctx) {
         IPC::ResponseBuilder rb{ctx, 3, 1};
         rb.Push(ResultSuccess);
         auto& readable_event = event->GetReadableEvent();
-        rb.PushCopyObjects(readable_event);
+        rb.PushCopyObjects(ctx, readable_event);
         rb.PushEnum(NvResult::Success);
     } else {
         LOG_ERROR(Service_NVDRV, "Invalid event request!");
@@ -212,7 +212,7 @@ void NVDRV::QueryEvent(HLERequestContext& ctx) {
 void NVDRV::SetAruid(HLERequestContext& ctx) {
     IPC::RequestParser rp{ctx};
     pid = rp.Pop<u64>();
-    LOG_WARNING(Service_NVDRV, "(STUBBED) called, pid=0x{:X}", pid);
+    LOG_WARNING(Service_NVDRV, "(STUBBED) called, pid={:#X}", pid);
 
     IPC::ResponseBuilder rb{ctx, 3};
     rb.Push(ResultSuccess);

@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: 2017 Citra Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -9,7 +12,7 @@
 #include <sstream>
 #include <thread>
 #include <fmt/chrono.h>
-#include <fmt/format.h>
+#include <fmt/ranges.h>
 #include "common/fs/file.h"
 #include "common/fs/fs.h"
 #include "common/fs/path_util.h"
@@ -39,9 +42,16 @@ PerfStats::~PerfStats() {
     std::copy(perf_history.begin() + IgnoreFrames, perf_history.begin() + current_index,
               std::ostream_iterator<double>(stream, "\n"));
 
-    const auto path = Common::FS::GetSuyuPath(Common::FS::SuyuPath::LogDir);
+    const auto path = Common::FS::GetEdenPath(Common::FS::EdenPath::LogDir);
     // %F Date format expanded is "%Y-%m-%d"
-    const auto filename = fmt::format("{:%F-%H-%M}_{:016X}.csv", *std::localtime(&t), title_id);
+    const auto filename = fmt::format("{}_{:016X}.csv",
+        [&] {
+            std::ostringstream oss;
+            oss << std::put_time(std::localtime(&t), "%F-%H-%M");
+            return oss.str();
+        }(),
+        title_id);
+
     const auto filepath = path / filename;
 
     if (Common::FS::CreateParentDir(filepath)) {
@@ -133,7 +143,7 @@ void SpeedLimiter::DoSpeedLimiting(microseconds current_system_time_us) {
 
     auto now = Clock::now();
 
-    const double sleep_scale = Settings::values.speed_limit.GetValue() / 100.0;
+    const double sleep_scale = Settings::SpeedLimit() / 100.0;
 
     // Max lag caused by slow frames. Shouldn't be more than the length of a frame at the current
     // speed percent or it will clamp too much and prevent this from properly limiting to that

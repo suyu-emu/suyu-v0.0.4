@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2019 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -553,7 +556,7 @@ void TextureCacheRuntime::Finish() {
     glFinish();
 }
 
-StagingBufferMap TextureCacheRuntime::UploadStagingBuffer(size_t size) {
+StagingBufferMap TextureCacheRuntime::UploadStagingBuffer(size_t size, bool deferred) {
     return staging_buffer_pool.RequestUploadBuffer(size);
 }
 
@@ -648,7 +651,8 @@ void TextureCacheRuntime::BlitFramebuffer(Framebuffer* dst, Framebuffer* src,
 }
 
 void TextureCacheRuntime::AccelerateImageUpload(Image& image, const StagingBufferMap& map,
-                                                std::span<const SwizzleParameters> swizzles) {
+                                                std::span<const SwizzleParameters> swizzles,
+                                                u32 z_start, u32 z_count) {
     switch (image.info.type) {
     case ImageType::e2D:
         if (IsPixelFormatASTC(image.info.format)) {
@@ -717,7 +721,7 @@ Image::Image(TextureCacheRuntime& runtime_, const VideoCommon::ImageInfo& info_,
         gl_type = tuple.type;
     }
     const int max_host_mip_levels = std::bit_width(info.size.width);
-    gl_num_levels = std::min(info.resources.levels, max_host_mip_levels);
+    gl_num_levels = (std::min)(info.resources.levels, max_host_mip_levels);
     texture = MakeImage(info, gl_internal_format, gl_num_levels);
     current_texture = texture.handle;
     if (runtime->device.HasDebuggingToolAttached()) {
@@ -742,8 +746,8 @@ void Image::UploadMemory(GLuint buffer_handle, size_t buffer_offset,
 
     glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
 
-    u32 current_row_length = std::numeric_limits<u32>::max();
-    u32 current_image_height = std::numeric_limits<u32>::max();
+    u32 current_row_length = (std::numeric_limits<u32>::max)();
+    u32 current_image_height = (std::numeric_limits<u32>::max)();
 
     for (const VideoCommon::BufferImageCopy& copy : copies) {
         if (copy.image_subresource.base_level >= gl_num_levels) {
@@ -788,8 +792,8 @@ void Image::DownloadMemory(std::span<GLuint> buffer_handles, std::span<size_t> b
         glBindBuffer(GL_PIXEL_PACK_BUFFER, buffer_handle);
         glPixelStorei(GL_PACK_ALIGNMENT, 1);
 
-        u32 current_row_length = std::numeric_limits<u32>::max();
-        u32 current_image_height = std::numeric_limits<u32>::max();
+        u32 current_row_length = (std::numeric_limits<u32>::max)();
+        u32 current_image_height = (std::numeric_limits<u32>::max)();
 
         for (const VideoCommon::BufferImageCopy& copy : copies) {
             if (copy.image_subresource.base_level >= gl_num_levels) {
@@ -1033,10 +1037,10 @@ void Image::Scale(bool up_scale) {
     const GLuint draw_fbo = runtime->rescale_draw_fbos[fbo_index].handle;
     for (s32 layer = 0; layer < info.resources.layers; ++layer) {
         for (s32 level = 0; level < info.resources.levels; ++level) {
-            const u32 src_level_width = std::max(1u, src_width >> level);
-            const u32 src_level_height = std::max(1u, src_height >> level);
-            const u32 dst_level_width = std::max(1u, dst_width >> level);
-            const u32 dst_level_height = std::max(1u, dst_height >> level);
+            const u32 src_level_width = (std::max)(1u, src_width >> level);
+            const u32 src_level_height = (std::max)(1u, src_height >> level);
+            const u32 dst_level_width = (std::max)(1u, dst_width >> level);
+            const u32 dst_level_height = (std::max)(1u, dst_height >> level);
 
             glNamedFramebufferTextureLayer(read_fbo, attachment, src_handle, level, layer);
             glNamedFramebufferTextureLayer(draw_fbo, attachment, dst_handle, level, layer);
@@ -1210,19 +1214,16 @@ ImageView::ImageView(TextureCacheRuntime& runtime, const VideoCommon::NullImageV
 ImageView::~ImageView() = default;
 
 GLuint ImageView::StorageView(Shader::TextureType texture_type, Shader::ImageFormat image_format) {
-    if (image_format == Shader::ImageFormat::Typeless) {
+    if (image_format == Shader::ImageFormat::Typeless)
         return Handle(texture_type);
-    }
-    const bool is_signed{image_format == Shader::ImageFormat::R8_SINT ||
-                         image_format == Shader::ImageFormat::R16_SINT};
-    if (!storage_views) {
-        storage_views = std::make_unique<StorageViews>();
-    }
+    const bool is_signed = image_format == Shader::ImageFormat::R8_SINT
+        || image_format == Shader::ImageFormat::R16_SINT;
+    if (!storage_views)
+        storage_views = {OpenGL::ImageView::StorageViews{}};
     auto& type_views{is_signed ? storage_views->signeds : storage_views->unsigneds};
-    GLuint& view{type_views[static_cast<size_t>(texture_type)]};
-    if (view == 0) {
+    GLuint& view{type_views[size_t(texture_type)]};
+    if (view == 0)
         view = MakeView(texture_type, ShaderFormat(image_format));
-    }
     return view;
 }
 

@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2018 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -19,13 +22,12 @@ private:
         LowPowerCharger = 2,
         Unknown = 3,
     };
-
     void GetBatteryChargePercentage(HLERequestContext& ctx);
     void GetChargerType(HLERequestContext& ctx);
     void OpenSession(HLERequestContext& ctx);
-
-    u32 battery_charge_percentage{100};
-    ChargerType charger_type{ChargerType::RegularCharger};
+    void GetBatteryVoltageState(HLERequestContext& ctx);
+    void GetBatteryAgePercentage(HLERequestContext& ctx);
+    void GetBatteryChargeInfoFields(HLERequestContext& ctx);
 };
 
 } // namespace Service::PTM

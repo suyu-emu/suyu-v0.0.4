@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2019 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -160,15 +163,15 @@ u32 KIP::GetMainThreadCpuCore() const {
     return header.default_core;
 }
 
-const std::vector<u8>& KIP::GetTextSection() const {
+std::span<const u8> KIP::GetTextSection() const {
     return decompressed_sections[0];
 }
 
-const std::vector<u8>& KIP::GetRODataSection() const {
+std::span<const u8> KIP::GetRODataSection() const {
     return decompressed_sections[1];
 }
 
-const std::vector<u8>& KIP::GetDataSection() const {
+std::span<const u8> KIP::GetDataSection() const {
     return decompressed_sections[2];
 }
 

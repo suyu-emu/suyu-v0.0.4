@@ -1,17 +1,22 @@
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2021 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
 #include <algorithm>
+#include <iostream>
 #include <sstream>
-#include <unordered_map>
+#include <ankerl/unordered_dense.h>
 
+#include "common/assert.h"
 #include "common/fs/fs.h"
-#ifdef ANDROID
+#ifdef __ANDROID__
 #include "common/fs/fs_android.h"
 #endif
 #include "common/fs/fs_paths.h"
 #include "common/fs/path_util.h"
-#include "common/logging/log.h"
+#include "common/logging.h"
 
 #ifdef _WIN32
 #include <shlobj.h> // Used in GetExeDirectory()
@@ -56,10 +61,10 @@ namespace fs = std::filesystem;
 
 /**
  * The PathManagerImpl is a singleton allowing to manage the mapping of
- * SuyuPath enums to real filesystem paths.
- * This class provides 2 functions: GetSuyuPathImpl and SetSuyuPathImpl.
- * These are used by GetSuyuPath and SetSuyuPath respectively to get or modify
- * the path mapped by the SuyuPath enum.
+ * EdenPath enums to real filesystem paths.
+ * This class provides 2 functions: GetEdenPathImpl and SetEdenPathImpl.
+ * These are used by GetEdenPath and SetEdenPath respectively to get or modify
+ * the path mapped by the EdenPath enum.
  */
 class PathManagerImpl {
 public:
@@ -75,63 +80,103 @@ public:
     PathManagerImpl(PathManagerImpl&&) = delete;
     PathManagerImpl& operator=(PathManagerImpl&&) = delete;
 
-    [[nodiscard]] const fs::path& GetSuyuPathImpl(SuyuPath suyu_path) {
-        return suyu_paths.at(suyu_path);
+    [[nodiscard]] const fs::path& GetEdenPathImpl(EdenPath eden_path) {
+        return eden_paths.at(eden_path);
     }
 
-    void SetSuyuPathImpl(SuyuPath suyu_path, const fs::path& new_path) {
-        suyu_paths.insert_or_assign(suyu_path, new_path);
+    [[nodiscard]] const fs::path& GetLegacyPathImpl(EmuPath legacy_path) {
+        return legacy_paths.at(legacy_path);
     }
 
-    void Reinitialize(fs::path suyu_path = {}) {
-        fs::path suyu_path_cache;
-        fs::path suyu_path_config;
+    void CreateEdenPaths() {
+        std::for_each(eden_paths.begin(), eden_paths.end(), [](auto &path) {
+            void(FS::CreateDirs(path.second));
+        });
+    }
 
+    void SetEdenPathImpl(EdenPath eden_path, const fs::path& new_path) {
+        eden_paths.insert_or_assign(eden_path, new_path);
+    }
+
+    void SetLegacyPathImpl(EmuPath legacy_path, const fs::path& new_path) {
+        legacy_paths.insert_or_assign(legacy_path, new_path);
+    }
+
+    /// In non-android devices, the current directory will first search for "user"
+    /// if such directory (and it must be a directory) is found, that takes priority
+    /// over the global configuration directory (in other words, portable directories
+    /// take priority over the global ones, always)
+    /// On Android, the behaviour is to look for the current directory only.
+    void Reinitialize(fs::path eden_path = {}) {
+        fs::path eden_path_cache;
+        fs::path eden_path_config;
 #ifdef _WIN32
-#ifdef SUYU_ENABLE_PORTABLE
-        suyu_path = GetExeDirectory() / PORTABLE_DIR;
-#endif
-        if (!IsDir(suyu_path)) {
-            suyu_path = GetAppDataRoamingDirectory() / SUYU_DIR;
+        // User directory takes priority over global %AppData% directory
+        eden_path = GetExeDirectory() / PORTABLE_DIR;
+        if (!Exists(eden_path) || !IsDir(eden_path)) {
+            eden_path = GetAppDataRoamingDirectory() / EDEN_DIR;
         }
-
-        suyu_path_cache = suyu_path / CACHE_DIR;
-        suyu_path_config = suyu_path / CONFIG_DIR;
-#elif ANDROID
-        ASSERT(!suyu_path.empty());
-        suyu_path_cache = suyu_path / CACHE_DIR;
-        suyu_path_config = suyu_path / CONFIG_DIR;
+        eden_path_cache = eden_path / CACHE_DIR;
+        eden_path_config = eden_path / CONFIG_DIR;
+#define LEGACY_PATH(titleName, upperName) GenerateLegacyPath(EmuPath::titleName##Dir, GetAppDataRoamingDirectory() / upperName##_DIR); \
+        GenerateLegacyPath(EmuPath::titleName##ConfigDir, GetAppDataRoamingDirectory() / upperName##_DIR / CONFIG_DIR); \
+        GenerateLegacyPath(EmuPath::titleName##CacheDir, GetAppDataRoamingDirectory() / upperName##_DIR / CACHE_DIR);
+        LEGACY_PATH(Citron, CITRON)
+        LEGACY_PATH(Sudachi, SUDACHI)
+        LEGACY_PATH(Yuzu, YUZU)
+        LEGACY_PATH(Suyu, SUYU)
+#undef LEGACY_PATH
+#elif __ANDROID__
+        ASSERT(!eden_path.empty());
+        eden_path_cache = eden_path / CACHE_DIR;
+        eden_path_config = eden_path / CONFIG_DIR;
 #else
-#ifdef SUYU_ENABLE_PORTABLE
-        suyu_path = GetCurrentDir() / PORTABLE_DIR;
-#endif
-        if (Exists(suyu_path) && IsDir(suyu_path)) {
-            suyu_path_cache = suyu_path / CACHE_DIR;
-            suyu_path_config = suyu_path / CONFIG_DIR;
+        eden_path = GetCurrentDir() / PORTABLE_DIR;
+        if (!Exists(eden_path) || !IsDir(eden_path)) {
+            eden_path = GetDataDirectory("XDG_DATA_HOME") / EDEN_DIR;
+            eden_path_cache = GetDataDirectory("XDG_CACHE_HOME") / EDEN_DIR;
+            eden_path_config = GetDataDirectory("XDG_CONFIG_HOME") / EDEN_DIR;
         } else {
-            suyu_path = GetDataDirectory("XDG_DATA_HOME") / SUYU_DIR;
-            suyu_path_cache = GetDataDirectory("XDG_CACHE_HOME") / SUYU_DIR;
-            suyu_path_config = GetDataDirectory("XDG_CONFIG_HOME") / SUYU_DIR;
+            eden_path_cache = eden_path / CACHE_DIR;
+            eden_path_config = eden_path / CONFIG_DIR;
         }
+#define LEGACY_PATH(titleName, upperName) GenerateLegacyPath(EmuPath::titleName##Dir, GetDataDirectory("XDG_DATA_HOME") / upperName##_DIR); \
+        GenerateLegacyPath(EmuPath::titleName##ConfigDir, GetDataDirectory("XDG_CONFIG_HOME") / upperName##_DIR); \
+        GenerateLegacyPath(EmuPath::titleName##CacheDir, GetDataDirectory("XDG_CACHE_HOME") / upperName##_DIR);
+        LEGACY_PATH(Citron, CITRON)
+        LEGACY_PATH(Sudachi, SUDACHI)
+        LEGACY_PATH(Yuzu, YUZU)
+        LEGACY_PATH(Suyu, SUYU)
+#undef LEGACY_PATH
+#endif
+        // data
+        GenerateEdenPath(EdenPath::EdenDir, eden_path);
+        GenerateEdenPath(EdenPath::AmiiboDir, eden_path / AMIIBO_DIR);
+        GenerateEdenPath(EdenPath::CrashDumpsDir, eden_path / CRASH_DUMPS_DIR);
+        GenerateEdenPath(EdenPath::DumpDir, eden_path / DUMP_DIR);
+        GenerateEdenPath(EdenPath::KeysDir, eden_path / KEYS_DIR);
+        GenerateEdenPath(EdenPath::LoadDir, eden_path / LOAD_DIR);
+        GenerateEdenPath(EdenPath::LogDir, eden_path / LOG_DIR);
+        GenerateEdenPath(EdenPath::NANDDir, eden_path / NAND_DIR);
+        GenerateEdenPath(EdenPath::PlayTimeDir, eden_path / PLAY_TIME_DIR);
+        GenerateEdenPath(EdenPath::SaveDir, eden_path / NAND_DIR);
+        GenerateEdenPath(EdenPath::ScreenshotsDir, eden_path / SCREENSHOTS_DIR);
+        GenerateEdenPath(EdenPath::SDMCDir, eden_path / SDMC_DIR);
+        GenerateEdenPath(EdenPath::TASDir, eden_path / TAS_DIR);
+        GenerateEdenPath(EdenPath::IconsDir, eden_path / ICONS_DIR);
+        // config
+        GenerateEdenPath(EdenPath::ConfigDir, eden_path_config);
+        // cache
+        GenerateEdenPath(EdenPath::CacheDir, eden_path_cache);
+        GenerateEdenPath(EdenPath::ShaderDir, eden_path_cache / SHADER_DIR);
+#ifdef _WIN32
+        GenerateLegacyPath(EmuPath::RyujinxDir, GetAppDataRoamingDirectory() / RYUJINX_DIR);
+#else
+        // In Ryujinx's infinite wisdom, it places EVERYTHING in the config directory on UNIX
+        // This is incredibly stupid and violates a million XDG standards, but whatever
+        GenerateLegacyPath(EmuPath::RyujinxDir, GetDataDirectory("XDG_CONFIG_HOME") / RYUJINX_DIR);
 #endif
 
-        GenerateSuyuPath(SuyuPath::SuyuDir, suyu_path);
-        GenerateSuyuPath(SuyuPath::AmiiboDir, suyu_path / AMIIBO_DIR);
-        GenerateSuyuPath(SuyuPath::CacheDir, suyu_path_cache);
-        GenerateSuyuPath(SuyuPath::ConfigDir, suyu_path_config);
-        GenerateSuyuPath(SuyuPath::CrashDumpsDir, suyu_path / CRASH_DUMPS_DIR);
-        GenerateSuyuPath(SuyuPath::DumpDir, suyu_path / DUMP_DIR);
-        GenerateSuyuPath(SuyuPath::IconsDir, suyu_path / ICONS_DIR);
-        GenerateSuyuPath(SuyuPath::KeysDir, suyu_path / KEYS_DIR);
-        GenerateSuyuPath(SuyuPath::LoadDir, suyu_path / LOAD_DIR);
-        GenerateSuyuPath(SuyuPath::LogDir, suyu_path / LOG_DIR);
-        GenerateSuyuPath(SuyuPath::NANDDir, suyu_path / NAND_DIR);
-        GenerateSuyuPath(SuyuPath::PlayTimeDir, suyu_path / PLAY_TIME_DIR);
-        GenerateSuyuPath(SuyuPath::ScreenshotsDir, suyu_path / SCREENSHOTS_DIR);
-        GenerateSuyuPath(SuyuPath::SDMCDir, suyu_path / SDMC_DIR);
-        GenerateSuyuPath(SuyuPath::ShaderDir, suyu_path / SHADER_DIR);
-        GenerateSuyuPath(SuyuPath::TASDir, suyu_path / TAS_DIR);
-        GenerateSuyuPath(SuyuPath::ThemesDir, suyu_path / THEMES_DIR);
     }
 
 private:
@@ -141,13 +186,17 @@ private:
 
     ~PathManagerImpl() = default;
 
-    void GenerateSuyuPath(SuyuPath suyu_path, const fs::path& new_path) {
-        void(FS::CreateDir(new_path));
-
-        SetSuyuPathImpl(suyu_path, new_path);
+    void GenerateEdenPath(EdenPath eden_path, const fs::path& new_path) {
+        // Defer path creation
+        SetEdenPathImpl(eden_path, new_path);
     }
 
-    std::unordered_map<SuyuPath, fs::path> suyu_paths;
+    void GenerateLegacyPath(EmuPath legacy_path, const fs::path& new_path) {
+        SetLegacyPathImpl(legacy_path, new_path);
+    }
+
+    ankerl::unordered_dense::map<EdenPath, fs::path> eden_paths;
+    ankerl::unordered_dense::map<EmuPath, fs::path> legacy_paths;
 };
 
 bool ValidatePath(const fs::path& path) {
@@ -231,22 +280,33 @@ void SetAppDirectory(const std::string& app_directory) {
     PathManagerImpl::GetInstance().Reinitialize(app_directory);
 }
 
-const fs::path& GetSuyuPath(SuyuPath suyu_path) {
-    return PathManagerImpl::GetInstance().GetSuyuPathImpl(suyu_path);
+const fs::path& GetEdenPath(EdenPath eden_path) {
+    return PathManagerImpl::GetInstance().GetEdenPathImpl(eden_path);
 }
 
-std::string GetSuyuPathString(SuyuPath suyu_path) {
-    return PathToUTF8String(GetSuyuPath(suyu_path));
+const std::filesystem::path& GetLegacyPath(EmuPath legacy_path) {
+    return PathManagerImpl::GetInstance().GetLegacyPathImpl(legacy_path);
 }
 
-void SetSuyuPath(SuyuPath suyu_path, const fs::path& new_path) {
-    if (!FS::IsDir(new_path)) {
-        LOG_ERROR(Common_Filesystem, "Filesystem object at new_path={} is not a directory",
-                  PathToUTF8String(new_path));
-        return;
+std::string GetEdenPathString(EdenPath eden_path) {
+    return PathToUTF8String(GetEdenPath(eden_path));
+}
+
+std::string GetLegacyPathString(EmuPath legacy_path) {
+    return PathToUTF8String(GetLegacyPath(legacy_path));
+}
+
+void SetEdenPath(EdenPath eden_path, const fs::path& new_path) {
+    auto& instance = PathManagerImpl::GetInstance();
+    if (FS::IsDir(new_path)) {
+        instance.SetEdenPathImpl(eden_path, new_path);
+    } else {
+        LOG_ERROR(Common_Filesystem, "Filesystem object at new_path={} is not a directory", PathToUTF8String(new_path));
     }
+}
 
-    PathManagerImpl::GetInstance().SetSuyuPathImpl(suyu_path, new_path);
+void CreateEdenPaths() {
+    PathManagerImpl::GetInstance().CreateEdenPaths();
 }
 
 #ifdef _WIN32
@@ -389,11 +449,11 @@ std::vector<std::string> SplitPathComponentsCopy(std::string_view filename) {
 
 std::string SanitizePath(std::string_view path_, DirectorySeparator directory_separator) {
     std::string path(path_);
-#ifdef ANDROID
+#ifdef __ANDROID__
     if (Android::IsContentUri(path)) {
         return path;
     }
-#endif // ANDROID
+#endif // __ANDROID__
 
     char type1 = directory_separator == DirectorySeparator::BackwardSlash ? '/' : '\\';
     char type2 = directory_separator == DirectorySeparator::BackwardSlash ? '\\' : '/';
@@ -424,7 +484,7 @@ std::string GetParentPath(std::string_view path) {
         return std::string(path);
     }
 
-#ifdef ANDROID
+#ifdef __ANDROID__
     if (path[0] != '/') {
         std::string path_string{path};
         return FS::Android::GetParentDirectory(path_string);
@@ -435,9 +495,9 @@ std::string GetParentPath(std::string_view path) {
     std::size_t name_index;
 
     if (name_bck_index == std::string_view::npos || name_fwd_index == std::string_view::npos) {
-        name_index = std::min(name_bck_index, name_fwd_index);
+        name_index = (std::min)(name_bck_index, name_fwd_index);
     } else {
-        name_index = std::max(name_bck_index, name_fwd_index);
+        name_index = (std::max)(name_bck_index, name_fwd_index);
     }
 
     return std::string(path.substr(0, name_index));
@@ -457,27 +517,7 @@ std::string_view GetPathWithoutTop(std::string_view path) {
 
     const auto name_bck_index = path.find('\\');
     const auto name_fwd_index = path.find('/');
-    return path.substr(std::min(name_bck_index, name_fwd_index) + 1);
-}
-
-std::string_view GetFilename(std::string_view path) {
-    const auto name_index = path.find_last_of("\\/");
-
-    if (name_index == std::string_view::npos) {
-        return {};
-    }
-
-    return path.substr(name_index + 1);
-}
-
-std::string_view GetExtensionFromFilename(std::string_view name) {
-    const std::size_t index = name.rfind('.');
-
-    if (index == std::string_view::npos) {
-        return {};
-    }
-
-    return name.substr(index + 1);
+    return path.substr((std::min)(name_bck_index, name_fwd_index) + 1);
 }
 
 } // namespace Common::FS

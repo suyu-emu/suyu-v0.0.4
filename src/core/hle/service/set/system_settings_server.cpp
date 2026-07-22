@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2018 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -7,7 +10,7 @@
 #include "common/fs/file.h"
 #include "common/fs/fs.h"
 #include "common/fs/path_util.h"
-#include "common/logging/log.h"
+#include "common/logging.h"
 #include "common/settings.h"
 #include "common/string_util.h"
 #include "core/core.h"
@@ -33,6 +36,29 @@ struct SettingsHeader {
     u32 version;
     u32 reserved;
 };
+
+void SyncGlobalLanguageFromCode(LanguageCode language_code) {
+    const auto it = std::find_if(available_language_codes.begin(), available_language_codes.end(),
+                                 [language_code](LanguageCode code) { return code == language_code; });
+    if (it == available_language_codes.end()) {
+        return;
+    }
+
+    const std::size_t index = static_cast<std::size_t>(std::distance(available_language_codes.begin(), it));
+    if (index >= static_cast<std::size_t>(Settings::values.language_index.GetValue())) {
+        Settings::values.language_index.SetValue(static_cast<Settings::Language>(index));
+    }
+}
+
+void SyncGlobalRegionFromCode(SystemRegionCode region_code) {
+    const auto region_index = static_cast<std::size_t>(region_code);
+    if (region_index > static_cast<std::size_t>(Settings::Region::Taiwan)) {
+        return;
+    }
+
+    Settings::values.region_index.SetValue(static_cast<Settings::Region>(region_index));
+}
+
 } // Anonymous namespace
 
 Result GetFirmwareVersionImpl(FirmwareVersionFormat& out_firmware, Core::System& system,
@@ -116,10 +142,10 @@ ISystemSettingsServer::ISystemSettingsServer(Core::System& system_)
         {22, C<&ISystemSettingsServer::SetEulaVersions>, "SetEulaVersions"},
         {23, C<&ISystemSettingsServer::GetColorSetId>, "GetColorSetId"},
         {24, C<&ISystemSettingsServer::SetColorSetId>, "SetColorSetId"},
-        {25, nullptr, "GetConsoleInformationUploadFlag"},
-        {26, nullptr, "SetConsoleInformationUploadFlag"},
-        {27, nullptr, "GetAutomaticApplicationDownloadFlag"},
-        {28, nullptr, "SetAutomaticApplicationDownloadFlag"},
+        {25, C<&ISystemSettingsServer::GetConsoleInformationUploadFlag>, "GetConsoleInformationUploadFlag"},
+        {26, C<&ISystemSettingsServer::SetConsoleInformationUploadFlag>, "SetConsoleInformationUploadFlag"},
+        {27, C<&ISystemSettingsServer::GetAutomaticApplicationDownloadFlag>, "GetAutomaticApplicationDownloadFlag"},
+        {28, C<&ISystemSettingsServer::SetAutomaticApplicationDownloadFlag>, "SetAutomaticApplicationDownloadFlag"},
         {29, C<&ISystemSettingsServer::GetNotificationSettings>, "GetNotificationSettings"},
         {30, C<&ISystemSettingsServer::SetNotificationSettings>, "SetNotificationSettings"},
         {31, C<&ISystemSettingsServer::GetAccountNotificationSettings>, "GetAccountNotificationSettings"},
@@ -134,8 +160,8 @@ ISystemSettingsServer::ISystemSettingsServer(Core::System& system_)
         {42, nullptr, "SetEdid"},
         {43, C<&ISystemSettingsServer::GetAudioOutputMode>, "GetAudioOutputMode"},
         {44, C<&ISystemSettingsServer::SetAudioOutputMode>, "SetAudioOutputMode"},
-        {45, C<&ISystemSettingsServer::GetSpeakerAutoMuteFlag> , "GetSpeakerAutoMuteFlag"},
-        {46, C<&ISystemSettingsServer::SetSpeakerAutoMuteFlag> , "SetSpeakerAutoMuteFlag"},
+        {45, C<&ISystemSettingsServer::GetSpeakerAutoMuteFlag>, "GetSpeakerAutoMuteFlag"},
+        {46, C<&ISystemSettingsServer::SetSpeakerAutoMuteFlag>, "SetSpeakerAutoMuteFlag"},
         {47, C<&ISystemSettingsServer::GetQuestFlag>, "GetQuestFlag"},
         {48, C<&ISystemSettingsServer::SetQuestFlag>, "SetQuestFlag"},
         {49, nullptr, "GetDataDeletionSettings"},
@@ -154,8 +180,8 @@ ISystemSettingsServer::ISystemSettingsServer(Core::System& system_)
         {62, C<&ISystemSettingsServer::GetDebugModeFlag>, "GetDebugModeFlag"},
         {63, C<&ISystemSettingsServer::GetPrimaryAlbumStorage>, "GetPrimaryAlbumStorage"},
         {64, C<&ISystemSettingsServer::SetPrimaryAlbumStorage>, "SetPrimaryAlbumStorage"},
-        {65, nullptr, "GetUsb30EnableFlag"},
-        {66, nullptr, "SetUsb30EnableFlag"},
+        {65, C<&ISystemSettingsServer::GetUsb30EnableFlag>, "GetUsb30EnableFlag"},
+        {66, C<&ISystemSettingsServer::SetUsb30EnableFlag>, "SetUsb30EnableFlag"},
         {67, C<&ISystemSettingsServer::GetBatteryLot>, "GetBatteryLot"},
         {68, C<&ISystemSettingsServer::GetSerialNumber>, "GetSerialNumber"},
         {69, C<&ISystemSettingsServer::GetNfcEnableFlag>, "GetNfcEnableFlag"},
@@ -300,6 +326,23 @@ ISystemSettingsServer::ISystemSettingsServer(Core::System& system_)
         {208, nullptr, "SetHearingProtectionSafeguardFlag"},
         {209, nullptr, "GetHearingProtectionSafeguardRemainingTime"},
         {210, nullptr, "SetHearingProtectionSafeguardRemainingTime"},
+        {221, nullptr, "GetForceMonauralOutputFlag"}, //17.0.0+
+        {222, nullptr, "SetForceMonauralOutputFlag"}, //17.0.0+
+        {251, nullptr, "GetAccountIdentificationSettings"}, //18.0.0+
+        {252, nullptr, "SetAccountIdentificationSettings"}, //18.0.0+
+        {263, nullptr, "AcquireVphymDirtyFlagEventHandle"}, //20.0.0+
+        {264, nullptr, "GetVphymDirtyFlags"}, //20.0.0+
+        {282, nullptr, "ConvertToProductModel"}, //20.0.0+
+        {283, nullptr, "ConvertToProductModelName"}, //20.0.0+
+        {289, nullptr, "GetDefaultAccountIdentificationFlagSet"}, //20.0.0+
+        {300, nullptr, "AcquirePushNotificationDirtyFlagEventHandle"}, //20.0.0+
+        {301, nullptr, "GetPushNotificationDirtyFlags"}, //20.0.0+
+        {306, nullptr, "GetPinCodeReregistrationGuideAccounts"}, //20.0.0+
+        {307, nullptr, "SetPinCodeReregistrationGuideAccounts"}, //20.0.0+
+        {315, C<&ISystemSettingsServer::GetHttpAuthConfigs>, "GetHttpAuthConfigs"}, //21.0.0+
+        {319, C<&ISystemSettingsServer::GetAccountUserSettings>, "GetAccountUserSettings"}, //21.0.0+
+        {320, nullptr, "SetAccountUserSettings"}, //21.0.0+
+        {321, C<&ISystemSettingsServer::GetDefaultAccountUserSettings>, "GetDefaultAccountUserSettings"}, //21.0.0+
     };
     // clang-format on
 
@@ -319,14 +362,10 @@ ISystemSettingsServer::ISystemSettingsServer(Core::System& system_)
     };
     m_system_settings.eula_versions[0] = eula_version;
     m_system_settings.eula_version_count = 1;
-
-    m_save_thread =
-        std::jthread([this](std::stop_token stop_token) { StoreSettingsThreadFunc(stop_token); });
 }
 
 ISystemSettingsServer::~ISystemSettingsServer() {
     SetSaveNeeded();
-    m_save_thread.request_stop();
 }
 
 bool ISystemSettingsServer::LoadSettingsFile(std::filesystem::path& path, auto&& default_func) {
@@ -441,6 +480,7 @@ Result ISystemSettingsServer::SetLanguageCode(LanguageCode language_code) {
     LOG_INFO(Service_SET, "called, language_code={}", language_code);
 
     m_system_settings.language_code = language_code;
+    SyncGlobalLanguageFromCode(language_code);
     SetSaveNeeded();
     R_SUCCEED();
 }
@@ -476,7 +516,6 @@ Result ISystemSettingsServer::SetLockScreenFlag(bool lock_screen_flag) {
 
 Result ISystemSettingsServer::GetExternalSteadyClockSourceId(
     Out<Common::UUID> out_clock_source_id) {
-    std::scoped_lock l{m_settings_mutex};
     LOG_INFO(Service_SET, "called, clock_source_id={}",
              m_private_settings.external_clock_source_id.FormattedString());
 
@@ -485,7 +524,6 @@ Result ISystemSettingsServer::GetExternalSteadyClockSourceId(
 }
 
 Result ISystemSettingsServer::SetExternalSteadyClockSourceId(const Common::UUID& clock_source_id) {
-    std::scoped_lock l{m_settings_mutex};
     LOG_INFO(Service_SET, "called, clock_source_id={}", clock_source_id.FormattedString());
 
     m_private_settings.external_clock_source_id = clock_source_id;
@@ -495,7 +533,6 @@ Result ISystemSettingsServer::SetExternalSteadyClockSourceId(const Common::UUID&
 
 Result ISystemSettingsServer::GetUserSystemClockContext(
     Out<Service::PSC::Time::SystemClockContext> out_clock_context) {
-    std::scoped_lock l{m_settings_mutex};
     LOG_INFO(Service_SET, "called");
 
     *out_clock_context = m_system_settings.user_system_clock_context;
@@ -504,7 +541,6 @@ Result ISystemSettingsServer::GetUserSystemClockContext(
 
 Result ISystemSettingsServer::SetUserSystemClockContext(
     const Service::PSC::Time::SystemClockContext& clock_context) {
-    std::scoped_lock l{m_settings_mutex};
     LOG_INFO(Service_SET, "called");
 
     m_system_settings.user_system_clock_context = clock_context;
@@ -533,7 +569,7 @@ Result ISystemSettingsServer::GetEulaVersions(
     LOG_INFO(Service_SET, "called, elements={}", m_system_settings.eula_version_count);
 
     *out_count =
-        std::min(m_system_settings.eula_version_count, static_cast<s32>(out_eula_versions.size()));
+        (std::min)(m_system_settings.eula_version_count, static_cast<s32>(out_eula_versions.size()));
     memcpy(out_eula_versions.data(), m_system_settings.eula_versions.data(),
            static_cast<std::size_t>(*out_count) * sizeof(EulaVersion));
     R_SUCCEED();
@@ -599,7 +635,7 @@ Result ISystemSettingsServer::GetAccountNotificationSettings(
     LOG_INFO(Service_SET, "called, elements={}",
              m_system_settings.account_notification_settings_count);
 
-    *out_count = std::min(m_system_settings.account_notification_settings_count,
+    *out_count = (std::min)(m_system_settings.account_notification_settings_count,
                           static_cast<s32>(out_account_notification_settings.size()));
     memcpy(out_account_notification_settings.data(),
            m_system_settings.account_notification_settings.data(),
@@ -846,9 +882,18 @@ Result ISystemSettingsServer::SetQuestFlag(QuestFlag quest_flag) {
     R_SUCCEED();
 }
 
+Result ISystemSettingsServer::GetRebootlessSystemUpdateVersion(
+    Out<RebootlessSystemUpdateVersion> out_rebootless_system_update) {
+    LOG_INFO(Service_SET, "(STUBBED) called");
+
+    out_rebootless_system_update->version = 0;
+    strcpy(out_rebootless_system_update->display_version, "0.0.0");
+
+    R_SUCCEED();
+}
+
 Result ISystemSettingsServer::GetDeviceTimeZoneLocationName(
     Out<Service::PSC::Time::LocationName> out_name) {
-    std::scoped_lock l{m_settings_mutex};
     LOG_INFO(Service_SET, "called");
 
     *out_name = m_system_settings.device_time_zone_location_name;
@@ -857,7 +902,6 @@ Result ISystemSettingsServer::GetDeviceTimeZoneLocationName(
 
 Result ISystemSettingsServer::SetDeviceTimeZoneLocationName(
     const Service::PSC::Time::LocationName& name) {
-    std::scoped_lock l{m_settings_mutex};
     LOG_INFO(Service_SET, "called");
 
     m_system_settings.device_time_zone_location_name = name;
@@ -869,13 +913,13 @@ Result ISystemSettingsServer::SetRegionCode(SystemRegionCode region_code) {
     LOG_INFO(Service_SET, "called, region_code={}", region_code);
 
     m_system_settings.region_code = region_code;
+    SyncGlobalRegionFromCode(region_code);
     SetSaveNeeded();
     R_SUCCEED();
 }
 
 Result ISystemSettingsServer::GetNetworkSystemClockContext(
     Out<Service::PSC::Time::SystemClockContext> out_context) {
-    std::scoped_lock l{m_settings_mutex};
     LOG_INFO(Service_SET, "called");
 
     *out_context = m_system_settings.network_system_clock_context;
@@ -884,7 +928,6 @@ Result ISystemSettingsServer::GetNetworkSystemClockContext(
 
 Result ISystemSettingsServer::SetNetworkSystemClockContext(
     const Service::PSC::Time::SystemClockContext& context) {
-    std::scoped_lock l{m_settings_mutex};
     LOG_INFO(Service_SET, "called");
 
     m_system_settings.network_system_clock_context = context;
@@ -894,7 +937,6 @@ Result ISystemSettingsServer::SetNetworkSystemClockContext(
 
 Result ISystemSettingsServer::IsUserSystemClockAutomaticCorrectionEnabled(
     Out<bool> out_automatic_correction_enabled) {
-    std::scoped_lock l{m_settings_mutex};
     LOG_INFO(Service_SET, "called, out_automatic_correction_enabled={}",
              m_system_settings.user_system_clock_automatic_correction_enabled);
 
@@ -905,7 +947,6 @@ Result ISystemSettingsServer::IsUserSystemClockAutomaticCorrectionEnabled(
 
 Result ISystemSettingsServer::SetUserSystemClockAutomaticCorrectionEnabled(
     bool automatic_correction_enabled) {
-    std::scoped_lock l{m_settings_mutex};
     LOG_INFO(Service_SET, "called, out_automatic_correction_enabled={}",
              automatic_correction_enabled);
 
@@ -939,17 +980,82 @@ Result ISystemSettingsServer::SetPrimaryAlbumStorage(PrimaryAlbumStorage primary
     R_SUCCEED();
 }
 
+static void Fill3DS_CRC(u32 d, char* data) {
+    std::array<u8, 10> digits = {
+        u8((d / 1000000000) % 100),
+        u8((d / 100000000) % 10),
+        u8((d / 10000000) % 10),
+        u8((d / 1000000) % 10),
+        u8((d / 100000) % 10),
+        u8((d / 10000) % 10),
+        u8((d / 1000) % 10),
+        u8((d / 100) % 10),
+        u8((d / 10) % 10),
+        u8(d % 10),
+    };
+    // Normalize to retail values
+    std::array<u8, 4> retail_digits = { 1, 4, 5, 7 };
+    digits[0] = retail_digits[(d % 10) % 4];
+    digits[1] = 0;
+    //
+    for (size_t i = 0; i < sizeof(digits); ++i)
+        data[i] = char(digits[i] + '0');
+    u8 sum_odd = 0, sum_even = 0;
+    for (size_t i = 0; i < sizeof(digits); i += 2) {
+        sum_odd += digits[i + 0];
+        sum_even += digits[i + 1];
+    }
+    u8 sum_digit = u8(((sum_even * 3) + sum_odd) % 10);
+    if (sum_digit != 0)
+        sum_digit = 10 - sum_digit;
+    data[sizeof(digits)] = char(sum_digit + '0');
+}
+
 Result ISystemSettingsServer::GetBatteryLot(Out<BatteryLot> out_battery_lot) {
     LOG_INFO(Service_SET, "called");
-
-    *out_battery_lot = BatteryLot{"SUYU0EMULATOR14022024"};
+    *out_battery_lot = []{
+        u32 d = ::Settings::values.serial_battery.GetValue();
+        BatteryLot c{};
+        c.lot_number[0] = 'B';
+        c.lot_number[1] = 'H';
+        c.lot_number[2] = 'A';
+        c.lot_number[3] = 'C';
+        // TODO: I have no fucking idea what the letters mean
+        c.lot_number[4] = 'H';
+        c.lot_number[5] = 'Z';
+        c.lot_number[6] = 'Z';
+        c.lot_number[7] = 'A';
+        c.lot_number[8] = 'D';
+        c.lot_number[9] = char(((d / 100000) % 26) + 'A');
+        Fill3DS_CRC(d, c.lot_number.data() + 10);
+        return c;
+    }();
     R_SUCCEED();
 }
 
 Result ISystemSettingsServer::GetSerialNumber(Out<SerialNumber> out_console_serial) {
     LOG_INFO(Service_SET, "called");
-
-    *out_console_serial = SerialNumber{"SUY10000000001"};
+    *out_console_serial = []{
+        u32 d = ::Settings::values.serial_unit.GetValue();
+        SerialNumber c{};
+        c.serial_number[0] = 'X';
+        c.serial_number[1] = 'A';
+        c.serial_number[2] = [] {
+            // Adding another setting would be tedious so... let's just reuse region_index :)
+            switch (::Settings::values.region_index.GetValue()) {
+            case ::Settings::Region::Japan: return 'J';
+            case ::Settings::Region::Usa: return 'W';
+            case ::Settings::Region::Europe: return 'E';
+            case ::Settings::Region::Australia: return 'M'; //pretend its Malaysia
+            case ::Settings::Region::China:
+            case ::Settings::Region::Taiwan: return 'C';
+            case ::Settings::Region::Korea: return 'K';
+            default: return 'W';
+            }
+        }();
+        Fill3DS_CRC(d, c.serial_number.data() + 3);
+        return c;
+    }();
     R_SUCCEED();
 }
 
@@ -964,6 +1070,45 @@ Result ISystemSettingsServer::SetNfcEnableFlag(bool nfc_enable_flag) {
     LOG_INFO(Service_SET, "called, nfc_enable_flag={}", nfc_enable_flag);
 
     m_system_settings.nfc_enable_flag = nfc_enable_flag;
+    SetSaveNeeded();
+    R_SUCCEED();
+}
+
+Result ISystemSettingsServer::GetConsoleInformationUploadFlag(Out<bool> out_flag) {
+    LOG_INFO(Service_SET, "called {}", m_system_settings.console_information_upload_flag);
+    *out_flag = m_system_settings.console_information_upload_flag;
+    R_SUCCEED();
+}
+
+Result ISystemSettingsServer::SetConsoleInformationUploadFlag(bool flag) {
+    LOG_INFO(Service_SET, "called {}", flag);
+    m_system_settings.usb_30_enable_flag = flag;
+    SetSaveNeeded();
+    R_SUCCEED();
+}
+
+Result ISystemSettingsServer::GetAutomaticApplicationDownloadFlag(Out<bool> out_flag) {
+    LOG_INFO(Service_SET, "called {}", m_system_settings.usb_30_enable_flag);
+    *out_flag = m_system_settings.automatic_application_download_flag;
+    R_SUCCEED();
+}
+
+Result ISystemSettingsServer::SetAutomaticApplicationDownloadFlag(bool flag) {
+    LOG_INFO(Service_SET, "called {}", flag);
+    m_system_settings.automatic_application_download_flag = flag;
+    SetSaveNeeded();
+    R_SUCCEED();
+}
+
+Result ISystemSettingsServer::GetUsb30EnableFlag(Out<bool> out_usb30_enable_flag) {
+    LOG_INFO(Service_SET, "called, usb30_enable_flag={}", m_system_settings.usb_30_enable_flag);
+    *out_usb30_enable_flag = m_system_settings.usb_30_enable_flag;
+    R_SUCCEED();
+}
+
+Result ISystemSettingsServer::SetUsb30EnableFlag(bool usb30_enable_flag) {
+    LOG_INFO(Service_SET, "called, usb30_enable_flag={}", usb30_enable_flag);
+    m_system_settings.usb_30_enable_flag = usb30_enable_flag;
     SetSaveNeeded();
     R_SUCCEED();
 }
@@ -1051,10 +1196,9 @@ Result ISystemSettingsServer::SetDeviceNickName(
 }
 
 Result ISystemSettingsServer::GetProductModel(Out<u32> out_product_model) {
-    const u32 product_model = 1;
-
+    // Most certainly should be 1 -- definitely should not be 2, but it's worth tinkering with anyways
+    u32 const product_model = 1;
     LOG_WARNING(Service_SET, "(STUBBED) called, product_model={}", product_model);
-
     *out_product_model = product_model;
     R_SUCCEED();
 }
@@ -1120,7 +1264,6 @@ Result ISystemSettingsServer::SetBatteryPercentageFlag(bool battery_percentage_f
 }
 
 Result ISystemSettingsServer::SetExternalSteadyClockInternalOffset(s64 offset) {
-    std::scoped_lock l{m_settings_mutex};
     LOG_DEBUG(Service_SET, "called, external_steady_clock_internal_offset={}", offset);
 
     m_private_settings.external_steady_clock_internal_offset = offset;
@@ -1129,7 +1272,6 @@ Result ISystemSettingsServer::SetExternalSteadyClockInternalOffset(s64 offset) {
 }
 
 Result ISystemSettingsServer::GetExternalSteadyClockInternalOffset(Out<s64> out_offset) {
-    std::scoped_lock l{m_settings_mutex};
     LOG_DEBUG(Service_SET, "called, external_steady_clock_internal_offset={}",
               m_private_settings.external_steady_clock_internal_offset);
 
@@ -1203,22 +1345,12 @@ Result ISystemSettingsServer::SetKeyboardLayout(KeyboardLayout keyboard_layout) 
     LOG_INFO(Service_SET, "called, keyboard_layout={}", keyboard_layout);
 
     m_system_settings.keyboard_layout = keyboard_layout;
-    R_SUCCEED();
-}
-
-Result ISystemSettingsServer::GetRebootlessSystemUpdateVersion(
-    Out<RebootlessSystemUpdateVersion> out_rebootless_system_update) {
-    LOG_INFO(Service_SET, "(STUBBED) called");
-
-    out_rebootless_system_update->version = 0;
-    strcpy(out_rebootless_system_update->display_version, "0.0.0");
-
+    SetSaveNeeded();
     R_SUCCEED();
 }
 
 Result ISystemSettingsServer::GetDeviceTimeZoneLocationUpdatedTime(
     Out<Service::PSC::Time::SteadyClockTimePoint> out_time_point) {
-    std::scoped_lock l{m_settings_mutex};
     LOG_INFO(Service_SET, "called");
 
     *out_time_point = m_system_settings.device_time_zone_location_updated_time;
@@ -1227,7 +1359,6 @@ Result ISystemSettingsServer::GetDeviceTimeZoneLocationUpdatedTime(
 
 Result ISystemSettingsServer::SetDeviceTimeZoneLocationUpdatedTime(
     const Service::PSC::Time::SteadyClockTimePoint& time_point) {
-    std::scoped_lock l{m_settings_mutex};
     LOG_INFO(Service_SET, "called");
 
     m_system_settings.device_time_zone_location_updated_time = time_point;
@@ -1237,7 +1368,6 @@ Result ISystemSettingsServer::SetDeviceTimeZoneLocationUpdatedTime(
 
 Result ISystemSettingsServer::GetUserSystemClockAutomaticCorrectionUpdatedTime(
     Out<Service::PSC::Time::SteadyClockTimePoint> out_time_point) {
-    std::scoped_lock l{m_settings_mutex};
     LOG_INFO(Service_SET, "called");
 
     *out_time_point = m_system_settings.user_system_clock_automatic_correction_updated_time_point;
@@ -1246,11 +1376,10 @@ Result ISystemSettingsServer::GetUserSystemClockAutomaticCorrectionUpdatedTime(
 
 Result ISystemSettingsServer::SetUserSystemClockAutomaticCorrectionUpdatedTime(
     const Service::PSC::Time::SteadyClockTimePoint& out_time_point) {
-    std::scoped_lock l{m_settings_mutex};
-    // Avoid persisting this boot-time update until the underlying crash in the
-    // system settings save path is resolved. Returning success keeps the guest
-    // moving without destabilizing launch.
+    LOG_INFO(Service_SET, "called");
+
     m_system_settings.user_system_clock_automatic_correction_updated_time_point = out_time_point;
+    SetSaveNeeded();
     R_SUCCEED();
 }
 
@@ -1332,74 +1461,76 @@ Result ISystemSettingsServer::SetPanelCrcMode(s32 panel_crc_mode) {
     R_SUCCEED();
 }
 
+Result ISystemSettingsServer::GetHttpAuthConfigs(Out<s32> out_count, OutBuffer<BufferAttr_HipcMapAlias> out_configs) {
+    LOG_WARNING(Service_SET, "(STUBBED) called, buffer_size={}", out_configs.size());
+    *out_count = 0;
+    R_SUCCEED();
+}
+
+Result ISystemSettingsServer::GetAccountUserSettings(
+    Out<u32> out_count,
+    OutLargeData<AccountUserSettings, BufferAttr_HipcMapAlias> out_settings) {
+    LOG_WARNING(Service_SET, "(STUBBED) called");
+
+    *out_count = 0;
+    *out_settings = {};
+    R_SUCCEED();
+}
+
+Result ISystemSettingsServer::GetDefaultAccountUserSettings(Out<AccountUserSettings> out_settings) {
+    LOG_WARNING(Service_SET, "(STUBBED) called");
+
+    *out_settings = {};
+    R_SUCCEED();
+}
+
 void ISystemSettingsServer::SetupSettings() {
-    auto system_dir =
-        Common::FS::GetSuyuPath(Common::FS::SuyuPath::NANDDir) / "system/save/8000000000000050";
+    auto system_dir = Common::FS::GetEdenPath(Common::FS::EdenPath::NANDDir) / "system/save/8000000000000050";
     if (!LoadSettingsFile(system_dir, []() { return DefaultSystemSettings(); })) {
         ASSERT(false);
     }
 
-    auto private_dir =
-        Common::FS::GetSuyuPath(Common::FS::SuyuPath::NANDDir) / "system/save/8000000000000052";
+    auto private_dir = Common::FS::GetEdenPath(Common::FS::EdenPath::NANDDir) / "system/save/8000000000000052";
     if (!LoadSettingsFile(private_dir, []() { return DefaultPrivateSettings(); })) {
         ASSERT(false);
     }
 
-    auto device_dir =
-        Common::FS::GetSuyuPath(Common::FS::SuyuPath::NANDDir) / "system/save/8000000000000053";
+    auto device_dir = Common::FS::GetEdenPath(Common::FS::EdenPath::NANDDir) / "system/save/8000000000000053";
     if (!LoadSettingsFile(device_dir, []() { return DefaultDeviceSettings(); })) {
         ASSERT(false);
     }
 
-    auto appln_dir =
-        Common::FS::GetSuyuPath(Common::FS::SuyuPath::NANDDir) / "system/save/8000000000000054";
+    auto appln_dir = Common::FS::GetEdenPath(Common::FS::EdenPath::NANDDir) / "system/save/8000000000000054";
     if (!LoadSettingsFile(appln_dir, []() { return DefaultApplnSettings(); })) {
         ASSERT(false);
     }
 }
 
 void ISystemSettingsServer::StoreSettings() {
-    std::scoped_lock l{m_settings_mutex};
-    auto system_dir =
-        Common::FS::GetSuyuPath(Common::FS::SuyuPath::NANDDir) / "system/save/8000000000000050";
+    auto system_dir = Common::FS::GetEdenPath(Common::FS::EdenPath::NANDDir) / "system/save/8000000000000050";
     if (!StoreSettingsFile(system_dir, m_system_settings)) {
         LOG_ERROR(Service_SET, "Failed to store System settings");
     }
 
-    auto private_dir =
-        Common::FS::GetSuyuPath(Common::FS::SuyuPath::NANDDir) / "system/save/8000000000000052";
+    auto private_dir = Common::FS::GetEdenPath(Common::FS::EdenPath::NANDDir) / "system/save/8000000000000052";
     if (!StoreSettingsFile(private_dir, m_private_settings)) {
         LOG_ERROR(Service_SET, "Failed to store Private settings");
     }
 
-    auto device_dir =
-        Common::FS::GetSuyuPath(Common::FS::SuyuPath::NANDDir) / "system/save/8000000000000053";
+    auto device_dir = Common::FS::GetEdenPath(Common::FS::EdenPath::NANDDir) / "system/save/8000000000000053";
     if (!StoreSettingsFile(device_dir, m_device_settings)) {
         LOG_ERROR(Service_SET, "Failed to store Device settings");
     }
 
-    auto appln_dir =
-        Common::FS::GetSuyuPath(Common::FS::SuyuPath::NANDDir) / "system/save/8000000000000054";
+    auto appln_dir = Common::FS::GetEdenPath(Common::FS::EdenPath::NANDDir) / "system/save/8000000000000054";
     if (!StoreSettingsFile(appln_dir, m_appln_settings)) {
         LOG_ERROR(Service_SET, "Failed to store ApplLn settings");
     }
 }
 
-void ISystemSettingsServer::StoreSettingsThreadFunc(std::stop_token stop_token) {
-    Common::SetCurrentThreadName("SettingsStore");
-
-    while (Common::StoppableTimedWait(stop_token, std::chrono::minutes(1))) {
-        std::scoped_lock l{m_save_needed_mutex};
-        if (!std::exchange(m_save_needed, false)) {
-            continue;
-        }
-        StoreSettings();
-    }
-}
-
 void ISystemSettingsServer::SetSaveNeeded() {
     std::scoped_lock l{m_save_needed_mutex};
-    m_save_needed = true;
+    StoreSettings();
 }
 
 Result ISystemSettingsServer::GetSettingsItemValueImpl(std::span<u8> out_value, u64& out_size,

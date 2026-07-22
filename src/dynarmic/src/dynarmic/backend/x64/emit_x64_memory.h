@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 /* This file is part of the dynarmic project.
@@ -6,8 +6,10 @@
  * SPDX-License-Identifier: 0BSD
  */
 
+#pragma once
+
 #include <bit>
-#include <xbyak/xbyak.h>
+#include "dynarmic/backend/x64/xbyak.h"
 
 #include "dynarmic/backend/x64/a32_emit_x64.h"
 #include "dynarmic/backend/x64/a64_emit_x64.h"
@@ -22,9 +24,9 @@ namespace {
 
 using namespace Xbyak::util;
 
-constexpr size_t page_bits = 12;
-constexpr size_t page_size = 1 << page_bits;
-constexpr size_t page_mask = (1 << page_bits) - 1;
+constexpr size_t page_table_const_bits = 12;
+constexpr size_t page_table_const_size = 1 << page_table_const_bits;
+constexpr size_t page_table_const_mask = (1 << page_table_const_bits) - 1;
 
 template<typename EmitContext>
 void EmitDetectMisalignedVAddr(BlockOfCode& code, EmitContext& ctx, size_t bitsize, Xbyak::Label& abort, Xbyak::Reg64 vaddr, Xbyak::Reg64 tmp) {
@@ -50,9 +52,9 @@ void EmitDetectMisalignedVAddr(BlockOfCode& code, EmitContext& ctx, size_t bitsi
     code.test(vaddr, align_mask);
 
     if (ctx.conf.only_detect_misalignment_via_page_table_on_page_boundary) {
-        const u32 page_align_mask = static_cast<u32>(page_size - 1) & ~align_mask;
+        const u32 page_align_mask = static_cast<u32>(page_table_const_size - 1) & ~align_mask;
 
-        SharedLabel detect_boundary = GenSharedLabel(), resume = GenSharedLabel();
+        SharedLabel detect_boundary = ctx.GenSharedLabel(), resume = ctx.GenSharedLabel();
 
         code.jnz(*detect_boundary, code.T_NEAR);
         code.L(*resume);
@@ -75,17 +77,17 @@ Xbyak::RegExp EmitVAddrLookup(BlockOfCode& code, EmitContext& ctx, size_t bitsiz
 
 template<>
 [[maybe_unused]] Xbyak::RegExp EmitVAddrLookup<A32EmitContext>(BlockOfCode& code, A32EmitContext& ctx, size_t bitsize, Xbyak::Label& abort, Xbyak::Reg64 vaddr) {
-    const Xbyak::Reg64 page = ctx.reg_alloc.ScratchGpr();
-    const Xbyak::Reg32 tmp = ctx.conf.absolute_offset_page_table ? page.cvt32() : ctx.reg_alloc.ScratchGpr().cvt32();
+    const Xbyak::Reg64 page = ctx.reg_alloc.ScratchGpr(code);
+    const Xbyak::Reg32 tmp = ctx.conf.absolute_offset_page_table ? page.cvt32() : ctx.reg_alloc.ScratchGpr(code).cvt32();
 
     EmitDetectMisalignedVAddr(code, ctx, bitsize, abort, vaddr, tmp.cvt64());
 
     // TODO: This code assumes vaddr has been zext from 32-bits to 64-bits.
 
     code.mov(tmp, vaddr.cvt32());
-    code.shr(tmp, static_cast<int>(page_bits));
-
-    code.mov(page, qword[r14 + tmp.cvt64() * sizeof(void*)]);
+    code.shr(tmp, int(page_table_const_bits));
+    code.shl(tmp, int(ctx.conf.page_table_log2_stride));
+    code.mov(page, qword[r14 + tmp.cvt64()]);
     if (ctx.conf.page_table_pointer_mask_bits == 0) {
         code.test(page, page);
     } else {
@@ -96,49 +98,51 @@ template<>
         return page + vaddr;
     }
     code.mov(tmp, vaddr.cvt32());
-    code.and_(tmp, static_cast<u32>(page_mask));
+    code.and_(tmp, static_cast<u32>(page_table_const_mask));
     return page + tmp.cvt64();
 }
 
 template<>
 [[maybe_unused]] Xbyak::RegExp EmitVAddrLookup<A64EmitContext>(BlockOfCode& code, A64EmitContext& ctx, size_t bitsize, Xbyak::Label& abort, Xbyak::Reg64 vaddr) {
-    const size_t valid_page_index_bits = ctx.conf.page_table_address_space_bits - page_bits;
+    const size_t valid_page_index_bits = ctx.conf.page_table_address_space_bits - page_table_const_bits;
     const size_t unused_top_bits = 64 - ctx.conf.page_table_address_space_bits;
 
-    const Xbyak::Reg64 page = ctx.reg_alloc.ScratchGpr();
-    const Xbyak::Reg64 tmp = ctx.conf.absolute_offset_page_table ? page : ctx.reg_alloc.ScratchGpr();
+    const Xbyak::Reg64 page = ctx.reg_alloc.ScratchGpr(code);
+    const Xbyak::Reg64 tmp = ctx.conf.absolute_offset_page_table ? page : ctx.reg_alloc.ScratchGpr(code);
 
     EmitDetectMisalignedVAddr(code, ctx, bitsize, abort, vaddr, tmp);
 
     if (unused_top_bits == 0) {
         code.mov(tmp, vaddr);
-        code.shr(tmp, int(page_bits));
+        code.shr(tmp, int(page_table_const_bits));
     } else if (ctx.conf.silently_mirror_page_table) {
         if (valid_page_index_bits >= 32) {
             if (code.HasHostFeature(HostFeature::BMI2)) {
-                const Xbyak::Reg64 bit_count = ctx.reg_alloc.ScratchGpr();
+                const Xbyak::Reg64 bit_count = ctx.reg_alloc.ScratchGpr(code);
                 code.mov(bit_count, unused_top_bits);
                 code.bzhi(tmp, vaddr, bit_count);
-                code.shr(tmp, int(page_bits));
+                code.shr(tmp, int(page_table_const_bits));
                 ctx.reg_alloc.Release(bit_count);
             } else {
                 code.mov(tmp, vaddr);
                 code.shl(tmp, int(unused_top_bits));
-                code.shr(tmp, int(unused_top_bits + page_bits));
+                code.shr(tmp, int(unused_top_bits + page_table_const_bits));
             }
         } else {
             code.mov(tmp, vaddr);
-            code.shr(tmp, int(page_bits));
+            code.shr(tmp, int(page_table_const_bits));
             code.and_(tmp, u32((1 << valid_page_index_bits) - 1));
         }
     } else {
         ASSERT(valid_page_index_bits < 32);
         code.mov(tmp, vaddr);
-        code.shr(tmp, int(page_bits));
+        code.shr(tmp, int(page_table_const_bits));
         code.test(tmp, u32(-(1 << valid_page_index_bits)));
         code.jnz(abort, code.T_NEAR);
     }
-    code.mov(page, qword[r14 + tmp * sizeof(void*)]);
+
+    code.shl(tmp, int(ctx.conf.page_table_log2_stride));
+    code.mov(page, qword[r14 + tmp]);
     if (ctx.conf.page_table_pointer_mask_bits == 0) {
         code.test(page, page);
     } else {
@@ -149,7 +153,7 @@ template<>
         return page + vaddr;
     }
     code.mov(tmp, vaddr);
-    code.and_(tmp, static_cast<u32>(page_mask));
+    code.and_(tmp, static_cast<u32>(page_table_const_mask));
     return page + tmp;
 }
 
@@ -168,7 +172,7 @@ template<>
         return r13 + vaddr;
     } else if (ctx.conf.silently_mirror_fastmem) {
         if (!tmp) {
-            tmp = ctx.reg_alloc.ScratchGpr();
+            tmp = ctx.reg_alloc.ScratchGpr(code);
         }
         if (unused_top_bits < 32) {
             code.mov(*tmp, vaddr);
@@ -189,7 +193,7 @@ template<>
         } else {
             // TODO: Consider having TEST as above but coalesce 64-bit constant in register allocator
             if (!tmp) {
-                tmp = ctx.reg_alloc.ScratchGpr();
+                tmp = ctx.reg_alloc.ScratchGpr(code);
             }
             code.mov(*tmp, vaddr);
             code.shr(*tmp, int(ctx.conf.fastmem_address_space_bits));
@@ -346,7 +350,7 @@ void EmitExclusiveLock(BlockOfCode& code, const UserConfig& conf, Xbyak::Reg64 p
     }
 
     code.mov(pointer, std::bit_cast<u64>(GetExclusiveMonitorLockPointer(conf.global_monitor)));
-    EmitSpinLockLock(code, pointer, tmp);
+    EmitSpinLockLock(code, pointer, tmp, code.HasHostFeature(HostFeature::WAITPKG));
 }
 
 template<typename UserConfig>

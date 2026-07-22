@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2023 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -45,8 +48,8 @@ void BlitImageHelper::BlitColor(GLuint dst_framebuffer, GLuint src_image_view, G
                        static_cast<float>(src_region.start.x) / static_cast<float>(src_size.width),
                        static_cast<float>(src_region.start.y) /
                            static_cast<float>(src_size.height));
-    glViewport(std::min(dst_region.start.x, dst_region.end.x),
-               std::min(dst_region.start.y, dst_region.end.y),
+    glViewport((std::min)(dst_region.start.x, dst_region.end.x),
+               (std::min)(dst_region.start.y, dst_region.end.y),
                std::abs(dst_region.end.x - dst_region.start.x),
                std::abs(dst_region.end.y - dst_region.start.y));
     glBindFramebuffer(GL_DRAW_FRAMEBUFFER, dst_framebuffer);

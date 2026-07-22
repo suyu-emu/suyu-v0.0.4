@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2021 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -91,6 +94,17 @@ void AlphaTest(EmitContext& ctx) {
 } // Anonymous namespace
 
 void EmitPrologue(EmitContext& ctx) {
+    if (ctx.stage == Stage::Fragment && ctx.runtime_info.dual_source_blend) {
+        // Initialize dual-source blending outputs - prevents MoltenVK crash.
+        const Id zero{ctx.Const(0.0f)};
+        const Id one{ctx.Const(1.0f)};
+        const Id default_color{ctx.ConstantComposite(ctx.F32[4], zero, zero, zero, one)};
+        for (u32 i = 0; i < 2; ++i) {
+            if (Sirit::ValidId(ctx.frag_color[i])) {
+                ctx.OpStore(ctx.frag_color[i], default_color);
+            }
+        }
+    }
     if (ctx.stage == Stage::VertexB) {
         const Id zero{ctx.Const(0.0f)};
         const Id one{ctx.Const(1.0f)};
@@ -107,6 +121,16 @@ void EmitPrologue(EmitContext& ctx) {
                 const Id value{DefaultVarying(ctx, num, element, zero, one, default_vector)};
                 ctx.OpStore(element_info.id, value);
                 element += num;
+            }
+        }
+
+        if (Sirit::ValidId(ctx.clip_distances)) {
+            for (u32 i = 0; i < ctx.profile.max_user_clip_distances; ++i) {
+                if (!clip_distance_written.test(i)) {
+                    const Id idx = ctx.Const(i);
+                    const Id element = ctx.OpAccessChain(ctx.output_f32, ctx.clip_distances, idx);
+                    ctx.OpStore(element, ctx.Const(0.0f));
+                }
             }
         }
     }

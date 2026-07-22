@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2018 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -6,8 +9,8 @@
 #include <optional>
 #include <utility>
 
-#include "common/logging/log.h"
-#include "common/polyfill_ranges.h"
+#include "common/logging.h"
+#include <ranges>
 #include "core/crypto/aes_util.h"
 #include "core/crypto/ctr_encryption_layer.h"
 #include "core/crypto/key_manager.h"
@@ -34,29 +37,20 @@ NCA::NCA(VirtualFile file_, const NCA* base_nca)
     }
 
     reader = std::make_shared<NcaReader>();
-    if (Result rc =
-            reader->Initialize(file, GetCryptoConfiguration(), GetNcaCompressionConfiguration());
-        R_FAILED(rc)) {
-        if (rc != ResultInvalidNcaSignature) {
-            LOG_ERROR(Loader, "File reader errored out during header read: {:#x}",
-                      rc.GetInnerValue());
-        }
+    if (Result rc = reader->Initialize(file, GetCryptoConfiguration(), GetNcaCompressionConfiguration()); R_FAILED(rc)) {
         status = Loader::ResultStatus::ErrorBadNCAHeader;
+        return;
+    }
+
+    // Ensure we have the proper key area keys to continue.
+    const u8 master_key_id = MasterKeyIdForKeyGeneration(reader->GetKeyGeneration());
+    if (!keys.HasKey(Core::Crypto::S128KeyType::KeyArea, master_key_id, reader->GetKeyIndex())) {
+        status = Loader::ResultStatus::ErrorMissingKeyAreaKey;
         return;
     }
 
     RightsId rights_id{};
     reader->GetRightsId(rights_id.data(), rights_id.size());
-    const u8 master_key_id = MasterKeyIdForKeyGeneration(reader->GetKeyGeneration());
-    const bool has_rights_id = rights_id != RightsId{};
-
-    // Key area keys are only required for NCAs that do not use rights-ID titlekey encryption.
-    if (!has_rights_id &&
-        !keys.HasKey(Core::Crypto::S128KeyType::KeyArea, master_key_id, reader->GetKeyIndex())) {
-        status = Loader::ResultStatus::ErrorMissingKeyAreaKey;
-        return;
-    }
-
     if (rights_id != RightsId{}) {
         // External decryption key required; provide it here.
         u128 rights_id_u128;
@@ -87,10 +81,7 @@ NCA::NCA(VirtualFile file_, const NCA* base_nca)
     std::vector<VirtualFile> filesystems(fs_count);
     for (s32 i = 0; i < fs_count; i++) {
         NcaFsHeaderReader header_reader;
-        const Result rc = fs.OpenStorage(&filesystems[i], &header_reader, i);
-        if (R_FAILED(rc)) {
-            LOG_ERROR(Loader, "File reader errored out during read of section {}: {:#x}", i,
-                      rc.GetInnerValue());
+        if (Result rc = fs.OpenStorage(&filesystems[i], &header_reader, i); R_FAILED(rc)) {
             status = Loader::ResultStatus::ErrorBadNCAHeader;
             return;
         }

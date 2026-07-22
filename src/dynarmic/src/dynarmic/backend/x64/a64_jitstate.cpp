@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 /* This file is part of the dynarmic project.
  * Copyright (c) 2016 MerryMage
  * SPDX-License-Identifier: 0BSD
@@ -5,7 +8,7 @@
 
 #include "dynarmic/backend/x64/a64_jitstate.h"
 
-#include <mcl/bit/bit_field.hpp>
+#include "dynarmic/mcl/bit.hpp"
 
 #include "dynarmic/frontend/A64/a64_location_descriptor.h"
 

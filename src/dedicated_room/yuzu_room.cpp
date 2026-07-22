@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 // SPDX-FileCopyrightText: Copyright 2017 Citra Emulator Project
@@ -22,14 +22,12 @@
 #include <shellapi.h>
 #endif
 
-#include <mbedtls/base64.h>
+#include <openssl/evp.h>
 #include "common/common_types.h"
-#include "common/detached_tasks.h"
 #include "common/fs/file.h"
 #include "common/fs/fs.h"
 #include "common/fs/path_util.h"
-#include "common/logging/backend.h"
-#include "common/logging/log.h"
+#include "common/logging.h"
 #include "common/scm_rev.h"
 #include "common/settings.h"
 #include "common/string_util.h"
@@ -84,15 +82,11 @@ static constexpr char BanListMagic[] = "YuzuRoom-BanList-1";
 static constexpr char token_delimiter{':'};
 
 static void PadToken(std::string& token) {
-    std::size_t outlen = 0;
-
     std::array<unsigned char, 512> output{};
     std::array<unsigned char, 2048> roundtrip{};
     for (size_t i = 0; i < 3; i++) {
-        mbedtls_base64_decode(output.data(), output.size(), &outlen,
-                              reinterpret_cast<const unsigned char*>(token.c_str()),
-                              token.length());
-        mbedtls_base64_encode(roundtrip.data(), roundtrip.size(), &outlen, output.data(), outlen);
+        EVP_DecodeBlock(output.data(), reinterpret_cast<const unsigned char*>(token.c_str()), token.size());
+        EVP_EncodeBlock(output.data(), roundtrip.data(), roundtrip.size());
         if (memcmp(roundtrip.data(), token.data(), token.size()) == 0) {
             break;
         }
@@ -101,23 +95,17 @@ static void PadToken(std::string& token) {
 }
 
 static std::string UsernameFromDisplayToken(const std::string& display_token) {
-    std::size_t outlen;
-
+    std::size_t outlen = 4 * ((display_token.length() + 2) / 3);
     std::array<unsigned char, 512> output{};
-    mbedtls_base64_decode(output.data(), output.size(), &outlen,
-                          reinterpret_cast<const unsigned char*>(display_token.c_str()),
-                          display_token.length());
+    EVP_DecodeBlock(output.data(), reinterpret_cast<const unsigned char*>(display_token.c_str()), display_token.length());
     std::string decoded_display_token(reinterpret_cast<char*>(&output), outlen);
     return decoded_display_token.substr(0, decoded_display_token.find(token_delimiter));
 }
 
 static std::string TokenFromDisplayToken(const std::string& display_token) {
-    std::size_t outlen;
-
+    std::size_t outlen = 4 * ((display_token.length() + 2) / 3);
     std::array<unsigned char, 512> output{};
-    mbedtls_base64_decode(output.data(), output.size(), &outlen,
-                          reinterpret_cast<const unsigned char*>(display_token.c_str()),
-                          display_token.length());
+    EVP_DecodeBlock(output.data(), reinterpret_cast<const unsigned char*>(display_token.c_str()), display_token.length());
     std::string decoded_display_token(reinterpret_cast<char*>(&output), outlen);
     return decoded_display_token.substr(decoded_display_token.find(token_delimiter) + 1);
 }
@@ -182,16 +170,8 @@ static void SaveBanList(const Network::Room::BanList& ban_list, const std::strin
     }
 }
 
-static void InitializeLogging(const std::string& log_file) {
-    Common::Log::Initialize();
-    Common::Log::SetColorConsoleBackendEnabled(true);
-    Common::Log::Start();
-}
-
 /// Application entry point
-void LaunchRoom(int argc, char** argv, bool called_by_option)
-{
-    Common::DetachedTasks detached_tasks;
+void LaunchRoom(int argc, char** argv, bool called_by_option) {
     int option_index = 0;
     char* endarg;
 
@@ -235,7 +215,9 @@ void LaunchRoom(int argc, char** argv, bool called_by_option)
         {0, 0, 0, 0},
     };
 
-    InitializeLogging(log_file);
+    Common::Log::Initialize();
+    Common::Log::SetColorConsoleBackendEnabled(true);
+    Common::Log::Start();
 
     while (optind < argc) {
         int arg = getopt_long(argc, argv, "n:d:s:p:m:w:g:u:t:a:i:l:hv", long_options, &option_index);
@@ -408,6 +390,5 @@ void LaunchRoom(int argc, char** argv, bool called_by_option)
         room->Destroy();
     }
     Network::Shutdown();
-    detached_tasks.WaitForAllTasks();
     std::exit(0);
 }

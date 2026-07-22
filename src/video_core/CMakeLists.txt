@@ -1,15 +1,19 @@
+# SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+# SPDX-License-Identifier: GPL-3.0-or-later
+
 # SPDX-FileCopyrightText: 2018 yuzu Emulator Project
 # SPDX-License-Identifier: GPL-2.0-or-later
 
 add_subdirectory(host_shaders)
+add_subdirectory(gpu_logging)
 
 if(LIBVA_FOUND)
-    set_source_files_properties(host1x/ffmpeg/ffmpeg.cpp
+    set_source_files_properties(host1x/ffmpeg.cpp
         PROPERTIES COMPILE_DEFINITIONS LIBVA_FOUND=1)
     list(APPEND FFmpeg_LIBRARIES ${LIBVA_LIBRARIES})
 endif()
 
-set(sources
+add_library(video_core STATIC
     buffer_cache/buffer_base.h
     buffer_cache/buffer_cache_base.h
     buffer_cache/buffer_cache.cpp
@@ -40,7 +44,6 @@ set(sources
     engines/sw_blitter/converter.h
     engines/const_buffer_info.h
     engines/draw_manager.cpp
-    engines/draw_manager.h
     engines/engine_interface.h
     engines/engine_upload.cpp
     engines/engine_upload.h
@@ -68,9 +71,9 @@ set(sources
     host1x/codecs/vp8.h
     host1x/codecs/vp9.cpp
     host1x/codecs/vp9.h
-    host1x/codecs/vp9_types.h
-    host1x/ffmpeg/ffmpeg.cpp
-    host1x/ffmpeg/ffmpeg.h
+    host1x/codec_types.h
+    host1x/ffmpeg.cpp
+    host1x/ffmpeg.h
     host1x/control.cpp
     host1x/control.h
     host1x/gpu_device_memory_manager.cpp
@@ -84,12 +87,8 @@ set(sources
     host1x/syncpoint_manager.h
     host1x/vic.cpp
     host1x/vic.h
-    macro/macro.cpp
-    macro/macro.h
-    macro/macro_hle.cpp
-    macro/macro_hle.h
-    macro/macro_interpreter.cpp
-    macro/macro_interpreter.h
+    macro.cpp
+    macro.h
     fence_manager.h
     gpu.cpp
     gpu.h
@@ -99,7 +98,6 @@ set(sources
     invalidation_accumulator.h
     memory_manager.cpp
     memory_manager.h
-    precompiled_headers.h
     present.h
     pte_kind.h
     query_cache/bank_base.h
@@ -112,64 +110,14 @@ set(sources
     rasterizer_interface.h
     renderer_base.cpp
     renderer_base.h
+
+    # Null
     renderer_null/null_rasterizer.cpp
     renderer_null/null_rasterizer.h
     renderer_null/renderer_null.cpp
     renderer_null/renderer_null.h
-    renderer_opengl/present/filters.cpp
-    renderer_opengl/present/filters.h
-    renderer_opengl/present/fsr.cpp
-    renderer_opengl/present/fsr.h
-    renderer_opengl/present/fxaa.cpp
-    renderer_opengl/present/fxaa.h
-    renderer_opengl/present/layer.cpp
-    renderer_opengl/present/layer.h
-    renderer_opengl/present/present_uniforms.h
-    renderer_opengl/present/smaa.cpp
-    renderer_opengl/present/smaa.h
-    renderer_opengl/present/util.h
-    renderer_opengl/present/window_adapt_pass.cpp
-    renderer_opengl/present/window_adapt_pass.h
-    renderer_opengl/blit_image.cpp
-    renderer_opengl/blit_image.h
-    renderer_opengl/gl_blit_screen.cpp
-    renderer_opengl/gl_blit_screen.h
-    renderer_opengl/gl_buffer_cache_base.cpp
-    renderer_opengl/gl_buffer_cache.cpp
-    renderer_opengl/gl_buffer_cache.h
-    renderer_opengl/gl_compute_pipeline.cpp
-    renderer_opengl/gl_compute_pipeline.h
-    renderer_opengl/gl_device.cpp
-    renderer_opengl/gl_device.h
-    renderer_opengl/gl_fence_manager.cpp
-    renderer_opengl/gl_fence_manager.h
-    renderer_opengl/gl_graphics_pipeline.cpp
-    renderer_opengl/gl_graphics_pipeline.h
-    renderer_opengl/gl_rasterizer.cpp
-    renderer_opengl/gl_rasterizer.h
-    renderer_opengl/gl_resource_manager.cpp
-    renderer_opengl/gl_resource_manager.h
-    renderer_opengl/gl_shader_cache.cpp
-    renderer_opengl/gl_shader_cache.h
-    renderer_opengl/gl_shader_manager.cpp
-    renderer_opengl/gl_shader_manager.h
-    renderer_opengl/gl_shader_context.h
-    renderer_opengl/gl_shader_util.cpp
-    renderer_opengl/gl_shader_util.h
-    renderer_opengl/gl_state_tracker.cpp
-    renderer_opengl/gl_state_tracker.h
-    renderer_opengl/gl_staging_buffer_pool.cpp
-    renderer_opengl/gl_staging_buffer_pool.h
-    renderer_opengl/gl_texture_cache.cpp
-    renderer_opengl/gl_texture_cache.h
-    renderer_opengl/gl_texture_cache_base.cpp
-    renderer_opengl/gl_query_cache.cpp
-    renderer_opengl/gl_query_cache.h
-    renderer_opengl/maxwell_to_gl.h
-    renderer_opengl/renderer_opengl.cpp
-    renderer_opengl/renderer_opengl.h
-    renderer_opengl/util_shaders.cpp
-    renderer_opengl/util_shaders.h
+
+    # Vulkan
     renderer_vulkan/present/anti_alias_pass.h
     renderer_vulkan/present/filters.cpp
     renderer_vulkan/present/filters.h
@@ -182,6 +130,8 @@ set(sources
     renderer_vulkan/present/present_push_constants.h
     renderer_vulkan/present/smaa.cpp
     renderer_vulkan/present/smaa.h
+    renderer_vulkan/present/sgsr.cpp
+    renderer_vulkan/present/sgsr.h
     renderer_vulkan/present/util.cpp
     renderer_vulkan/present/util.h
     renderer_vulkan/present/window_adapt_pass.cpp
@@ -245,6 +195,25 @@ set(sources
     renderer_vulkan/vk_turbo_mode.h
     renderer_vulkan/vk_update_descriptor.cpp
     renderer_vulkan/vk_update_descriptor.h
+    vulkan_common/vulkan_debug_callback.cpp
+    vulkan_common/vulkan_debug_callback.h
+    vulkan_common/vulkan_device.cpp
+    vulkan_common/vulkan_device.h
+    vulkan_common/vulkan_instance.cpp
+    vulkan_common/vulkan_instance.h
+    vulkan_common/vulkan_library.cpp
+    vulkan_common/vulkan_library.h
+    vulkan_common/vulkan_memory_allocator.cpp
+    vulkan_common/vulkan_memory_allocator.h
+    vulkan_common/vulkan_surface.cpp
+    vulkan_common/vulkan_surface.h
+    vulkan_common/vulkan_wrapper.cpp
+    vulkan_common/vulkan_wrapper.h
+    vulkan_common/nsight_aftermath_tracker.cpp
+    vulkan_common/nsight_aftermath_tracker.h
+    vulkan_common/vma.h
+    vulkan_common/vulkan.h
+
     shader_cache.cpp
     shader_cache.h
     shader_environment.cpp
@@ -294,29 +263,10 @@ set(sources
     transform_feedback.h
     video_core.cpp
     video_core.h
-    vulkan_common/vulkan_debug_callback.cpp
-    vulkan_common/vulkan_debug_callback.h
-    vulkan_common/vulkan_device.cpp
-    vulkan_common/vulkan_device.h
-    vulkan_common/vulkan_instance.cpp
-    vulkan_common/vulkan_instance.h
-    vulkan_common/vulkan_library.cpp
-    vulkan_common/vulkan_library.h
-    vulkan_common/vulkan_memory_allocator.cpp
-    vulkan_common/vulkan_memory_allocator.h
-    vulkan_common/vulkan_surface.cpp
-    vulkan_common/vulkan_surface.h
-    vulkan_common/vulkan_wrapper.cpp
-    vulkan_common/vulkan_wrapper.h
-    vulkan_common/nsight_aftermath_tracker.cpp
-    vulkan_common/nsight_aftermath_tracker.h
-    vulkan_common/vma.cpp
-    vulkan_common/vma.h
-    vulkan_common/vulkan.h
 )
 
-if (APPLE)
-    list(REMOVE_ITEM sources
+if (ENABLE_OPENGL)
+    target_sources(video_core PRIVATE
         renderer_opengl/present/filters.cpp
         renderer_opengl/present/filters.h
         renderer_opengl/present/fsr.cpp
@@ -372,58 +322,30 @@ if (APPLE)
         renderer_opengl/util_shaders.cpp
         renderer_opengl/util_shaders.h
     )
-
-    list(APPEND sources
-        renderer_metal/maxwell_to_mtl.cpp
-        renderer_metal/maxwell_to_mtl.h
-        renderer_metal/metal_cpp_impl.cpp
-        renderer_metal/mtl_buffer_cache.cpp
-        renderer_metal/mtl_buffer_cache.h
-        renderer_metal/mtl_buffer_cache_base.cpp
-        renderer_metal/mtl_command_recorder.cpp
-        renderer_metal/mtl_command_recorder.h
-        renderer_metal/mtl_compute_pipeline.cpp
-        renderer_metal/mtl_compute_pipeline.h
-        renderer_metal/mtl_device.cpp
-        renderer_metal/mtl_device.h
-        renderer_metal/mtl_graphics_pipeline.cpp
-        renderer_metal/mtl_graphics_pipeline.h
-        renderer_metal/mtl_pipeline_cache.cpp
-        renderer_metal/mtl_pipeline_cache.h
-        renderer_metal/mtl_rasterizer.cpp
-        renderer_metal/mtl_rasterizer.h
-        renderer_metal/mtl_staging_buffer_pool.cpp
-        renderer_metal/mtl_staging_buffer_pool.h
-        renderer_metal/mtl_swap_chain.cpp
-        renderer_metal/mtl_swap_chain.h
-        renderer_metal/mtl_texture_cache.cpp
-        renderer_metal/mtl_texture_cache.h
-        renderer_metal/mtl_texture_cache_base.cpp
-        renderer_metal/renderer_metal.cpp
-        renderer_metal/renderer_metal.h
-    )
 endif()
 
-add_library(video_core STATIC ${sources})
-
 target_link_libraries(video_core PUBLIC common core)
-target_link_libraries(video_core PUBLIC glad shader_recompiler stb bc_decoder)
+target_link_libraries(video_core PUBLIC shader_recompiler stb bc_decoder gpu_logging)
+if (ENABLE_OPENGL)
+    target_link_libraries(video_core PUBLIC glad)
+endif()
 
-if (SUYU_USE_BUNDLED_FFMPEG AND NOT (WIN32 OR ANDROID))
+if (YUZU_USE_EXTERNAL_FFMPEG)
     add_dependencies(video_core ffmpeg-build)
 endif()
 
-target_include_directories(video_core PRIVATE ${FFmpeg_INCLUDE_DIR})
+target_include_directories(video_core PUBLIC ${FFmpeg_INCLUDE_DIR})
+
 target_link_libraries(video_core PRIVATE ${FFmpeg_LIBRARIES})
 target_link_options(video_core PRIVATE ${FFmpeg_LDFLAGS})
 
 add_dependencies(video_core host_shaders)
 target_include_directories(video_core PRIVATE ${HOST_SHADERS_INCLUDE})
-target_link_libraries(video_core PRIVATE sirit Vulkan::Headers Vulkan::UtilityHeaders GPUOpen::VulkanMemoryAllocator)
 
-if (APPLE)
-    target_link_libraries(video_core PRIVATE metal-cpp)
-endif()
+target_link_libraries(video_core PRIVATE sirit::sirit)
+
+# Header-only stuff needed by all dependent targets
+target_link_libraries(video_core PUBLIC Vulkan::Headers Vulkan::UtilityHeaders GPUOpen::VulkanMemoryAllocator)
 
 if (ENABLE_NSIGHT_AFTERMATH)
     if (NOT DEFINED ENV{NSIGHT_AFTERMATH_SDK})
@@ -442,60 +364,41 @@ if (MSVC)
         /we4244 # 'conversion': conversion from 'type1' to 'type2', possible loss of data
     )
 else()
-    if (APPLE OR ARCHITECTURE_arm64)
+    if (APPLE)
         # error: declaration shadows a typedef in 'interval_base_set<SubType, DomainT, Compare, Interval, Alloc>'
         # error: implicit conversion loses integer precision: 'int' to 'boost::icl::bound_type' (aka 'unsigned char')
-        target_compile_options(video_core PRIVATE -Wno-shadow -Wno-unused-local-typedef)
+        target_compile_options(video_core PRIVATE
+            $<$<COMPILE_LANGUAGE:C,CXX>:-Wno-shadow>
+            $<$<COMPILE_LANGUAGE:C,CXX>:-Wno-unused-local-typedef>)
     else()
-        target_compile_options(video_core PRIVATE -Werror=conversion)
+        target_compile_options(video_core PRIVATE $<$<COMPILE_LANGUAGE:C,CXX>:-Werror=conversion>)
     endif()
 
-    target_compile_options(video_core PRIVATE
-        -Wno-sign-conversion
-    )
+    target_compile_options(video_core PRIVATE $<$<COMPILE_LANGUAGE:C,CXX>:-Wno-sign-conversion>)
 
     # xbyak
     set_source_files_properties(macro/macro_jit_x64.cpp PROPERTIES COMPILE_OPTIONS "-Wno-conversion;-Wno-shadow")
 
-    # VMA
-    set_source_files_properties(vulkan_common/vma.cpp PROPERTIES COMPILE_OPTIONS "-Wno-conversion;-Wno-unused-variable;-Wno-unused-parameter;-Wno-missing-field-initializers")
-
     # Get around GCC failing with intrinsics in Debug
-    if (CMAKE_CXX_COMPILER_ID STREQUAL "GNU" AND CMAKE_BUILD_TYPE MATCHES "Debug")
+    if (CXX_GCC AND CMAKE_BUILD_TYPE MATCHES "Debug")
         set_source_files_properties(host1x/vic.cpp PROPERTIES COMPILE_OPTIONS "-O2")
     endif()
 endif()
 
-if (ARCHITECTURE_x86_64)
-    target_sources(video_core PRIVATE
-        macro/macro_jit_x64.cpp
-        macro/macro_jit_x64.h
-    )
-    target_link_libraries(video_core PUBLIC xbyak::xbyak)
+if (ENABLE_OPENGL)
+    target_compile_definitions(video_core PUBLIC HAS_OPENGL)
+endif()
 
-    if (NOT MSVC)
-        target_compile_options(video_core PRIVATE -msse4.1)
-    endif()
+if (ARCHITECTURE_x86_64)
+    target_link_libraries(video_core PUBLIC xbyak::xbyak)
 endif()
 
 if (ARCHITECTURE_x86_64 OR ARCHITECTURE_arm64)
     target_link_libraries(video_core PRIVATE dynarmic::dynarmic)
 endif()
 
-if (SUYU_USE_PRECOMPILED_HEADERS)
-    target_precompile_headers(video_core PRIVATE precompiled_headers.h)
-endif()
-
-if (SUYU_ENABLE_LTO)
-  set_property(TARGET video_core PROPERTY INTERPROCEDURAL_OPTIMIZATION TRUE)
-endif()
-
 if (ANDROID AND ARCHITECTURE_arm64)
     target_link_libraries(video_core PRIVATE adrenotools)
-endif()
-
-if (ARCHITECTURE_arm64)
-    target_link_libraries(video_core PRIVATE sse2neon)
 endif()
 
 create_target_directory_groups(video_core)

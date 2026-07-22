@@ -1,9 +1,16 @@
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
+// SPDX-FileCopyrightText: Copyright 2024 Torzu Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2023 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
 #pragma once
 
 #include <string>
+#include <string_view>
 #include <utility>
 #include <vector>
 #include "common/common_types.h"
@@ -12,8 +19,10 @@ namespace Settings {
 
 template <typename T>
 struct EnumMetadata {
-    static std::vector<std::pair<std::string, T>> Canonicalizations();
+    static std::vector<std::pair<std::string_view, T>> Canonicalizations();
     static u32 Index();
+    static T GetFirst();
+    static T GetLast();
 };
 
 #define PAIR_45(N, X, ...) {#X, N::X} __VA_OPT__(, PAIR_46(N, __VA_ARGS__))
@@ -63,123 +72,111 @@ struct EnumMetadata {
 #define PAIR_1(N, X, ...) {#X, N::X} __VA_OPT__(, PAIR_2(N, __VA_ARGS__))
 #define PAIR(N, X, ...) {#X, N::X} __VA_OPT__(, PAIR_1(N, __VA_ARGS__))
 
-#define ENUM(NAME, ...)                                                                            \
-    enum class NAME : u32 { __VA_ARGS__ };                                                         \
-    template <>                                                                                    \
-    inline std::vector<std::pair<std::string, NAME>> EnumMetadata<NAME>::Canonicalizations() {     \
-        return {PAIR(NAME, __VA_ARGS__)};                                                          \
-    }                                                                                              \
-    template <>                                                                                    \
-    inline u32 EnumMetadata<NAME>::Index() {                                                       \
-        return __COUNTER__;                                                                        \
+#define PP_HEAD(A, ...) A
+
+#define ENUM(NAME, ...) \
+    enum class NAME : u32 { __VA_ARGS__ }; \
+    template<> inline std::vector<std::pair<std::string_view, NAME>> EnumMetadata<NAME>::Canonicalizations() { \
+        return {PAIR(NAME, __VA_ARGS__)}; \
+    } \
+    template<> inline u32 EnumMetadata<NAME>::Index() { \
+        return __COUNTER__; \
+    } \
+    template<> inline NAME EnumMetadata<NAME>::GetFirst() { \
+        return NAME::PP_HEAD(__VA_ARGS__); \
+    } \
+    template<> inline NAME EnumMetadata<NAME>::GetLast() { \
+        return (std::vector<std::pair<std::string_view, NAME>>{PAIR(NAME, __VA_ARGS__)}).back().second; \
     }
 
 // AudioEngine must be specified discretely due to having existing but slightly different
 // canonicalizations
 // TODO (lat9nq): Remove explicit definition of AudioEngine/sink_id
-enum class AudioEngine : u32 {
-    Auto,
-    Cubeb,
-    Sdl2,
-    Null,
-    Oboe,
-};
-
-template <>
-inline std::vector<std::pair<std::string, AudioEngine>>
-EnumMetadata<AudioEngine>::Canonicalizations() {
+enum class AudioEngine : u32 { Auto, Cubeb, Sdl3, Null, Oboe, };
+template<>
+inline std::vector<std::pair<std::string_view, AudioEngine>> EnumMetadata<AudioEngine>::Canonicalizations() {
     return {
-        {"auto", AudioEngine::Auto}, {"cubeb", AudioEngine::Cubeb}, {"sdl2", AudioEngine::Sdl2},
+        {"auto", AudioEngine::Auto},
+        {"cubeb", AudioEngine::Cubeb},
+        {"sdl3", AudioEngine::Sdl3},
         {"null", AudioEngine::Null}, {"oboe", AudioEngine::Oboe},
     };
 }
-
-template <>
+/// @brief This is just a sufficiently large number that is more than the number of other enums declared here
+template<>
 inline u32 EnumMetadata<AudioEngine>::Index() {
-    // This is just a sufficiently large number that is more than the number of other enums declared
-    // here
     return 100;
+}
+template<>
+inline AudioEngine EnumMetadata<AudioEngine>::GetFirst() {
+    return AudioEngine::Auto;
+}
+template<>
+inline AudioEngine EnumMetadata<AudioEngine>::GetLast() {
+    return AudioEngine::Oboe;
 }
 
 ENUM(AudioMode, Mono, Stereo, Surround);
+//static_assert(EnumMetadata<AudioMode>::GetFirst() == AudioMode::Mono);
+//static_assert(EnumMetadata<AudioMode>::GetLast() == AudioMode::Surround);
 
 ENUM(Language, Japanese, EnglishAmerican, French, German, Italian, Spanish, Chinese, Korean, Dutch,
      Portuguese, Russian, Taiwanese, EnglishBritish, FrenchCanadian, SpanishLatin,
-     ChineseSimplified, ChineseTraditional, PortugueseBrazilian);
-
+     ChineseSimplified, ChineseTraditional, PortugueseBrazilian, Polish, Thai);
 ENUM(Region, Japan, Usa, Europe, Australia, China, Korea, Taiwan);
-
 ENUM(TimeZone, Auto, Default, Cet, Cst6Cdt, Cuba, Eet, Egypt, Eire, Est, Est5Edt, Gb, GbEire, Gmt,
-     GmtPlusZero, GmtMinusZero, GmtZero, Greenwich, Hongkong, Hst, Iceland, Iran, Israel, Jamaica,
-     Japan, Kwajalein, Libya, Met, Mst, Mst7Mdt, Navajo, Nz, NzChat, Poland, Portugal, Prc, Pst8Pdt,
-     Roc, Rok, Singapore, Turkey, Uct, Universal, Utc, WSu, Wet, Zulu);
-
-ENUM(AnisotropyMode, Automatic, Default, X2, X4, X8, X16);
-
+    GmtPlusZero, GmtMinusZero, GmtZero, Greenwich, Hongkong, Hst, Iceland, Iran, Israel, Jamaica,
+    Japan, Kwajalein, Libya, Met, Mst, Mst7Mdt, Navajo, Nz, NzChat, Poland, Portugal, Prc, Pst8Pdt,
+    Roc, Rok, Singapore, Turkey, Uct, Universal, Utc, WSu, Wet, Zulu);
+ENUM(AnisotropyMode, Automatic, Default, X2, X4, X8, X16, X32, X64, None);
 ENUM(AstcDecodeMode, Cpu, Gpu, CpuAsynchronous);
-
 ENUM(AstcRecompression, Uncompressed, Bc1, Bc3);
-
+ENUM(FramePacingMode, Target_Auto, Target_30, Target_60, Target_90, Target_120);
 ENUM(VSyncMode, Immediate, Mailbox, Fifo, FifoRelaxed);
-
 ENUM(VramUsageMode, Conservative, Aggressive);
-
-ENUM(RendererBackend, OpenGL, Vulkan, Metal, Null);
-
-ENUM(ShaderBackend, Glsl, Glasm, SpirV);
-
-ENUM(GpuAccuracy, Normal, High, Extreme);
-
-// Legacy combined backend enum kept for config migration.
-ENUM(CpuBackend, Dynarmic, Nce, Ballistic, Rem);
-ENUM(CpuCoreProvider, Builtin, RemExperimental);
-ENUM(CpuExecutionPath, Jit, Nce);
-ENUM(CpuRecompilerEngine, Dynarmic, BallisticExperimental);
-
-ENUM(CpuAccuracy, Auto, Accurate, Unsafe, Paranoid);
-
-ENUM(MemoryLayout, Memory_4Gb, Memory_6Gb, Memory_8Gb, Memory_12Gb);
-
+ENUM(RendererBackend, OpenGL_GLSL, Vulkan, Null, OpenGL_GLASM, OpenGL_SPIRV);
+ENUM(GpuAccuracy, Low, High);
+ENUM(DmaAccuracy, Default, Unsafe, Safe);
+ENUM(GpuFenceBehavior, Default, Immediate, Balanced, Accurate, Strict);
+ENUM(CpuBackend, Dynarmic, Nce);
+ENUM(CpuAccuracy, Auto, Accurate, Unsafe, Paranoid, Debugging);
+ENUM(CpuClock, Off, Boost, Fast)
+ENUM(MemoryLayout, Memory_4Gb, Memory_6Gb, Memory_8Gb, Memory_10Gb, Memory_12Gb);
 ENUM(ConfirmStop, Ask_Always, Ask_Based_On_Game, Ask_Never);
-
 ENUM(FullscreenMode, Borderless, Exclusive);
-
 ENUM(NvdecEmulation, Off, Cpu, Gpu);
-
-ENUM(ResolutionSetup, Res1_2X, Res3_4X, Res1X, Res3_2X, Res2X, Res3X, Res4X, Res5X, Res6X, Res7X,
-     Res8X);
-
-ENUM(ScalingFilter, NearestNeighbor, Bilinear, Bicubic, Gaussian, ScaleForce, Fsr, Area, MaxEnum);
-
-ENUM(AntiAliasing, None, Fxaa, Smaa, MaxEnum);
-
-ENUM(AspectRatio, R16_9, R4_3, R21_9, R16_10, R32_9, Stretch);
-
+ENUM(ResolutionSetup, Res1_4X, Res1_2X, Res3_4X, Res1X, Res5_4X, Res3_2X, Res2X, Res3X, Res4X, Res5X, Res6X, Res7X, Res8X);
+ENUM(ScalingFilter, NearestNeighbor, Bilinear, Bicubic, Gaussian, Lanczos, ScaleForce, Fsr, Area, ZeroTangent, BSpline, Mitchell, Spline1, Mmpx, Sgsr, SgsrEdge);
+ENUM(AntiAliasing, None, Fxaa, Smaa);
+ENUM(AspectRatio, R16_9, R4_3, R21_9, R16_10, Stretch);
 ENUM(ConsoleMode, Handheld, Docked);
-
 ENUM(AppletMode, HLE, LLE);
-
-ENUM(DarkModeState, Off, On, Auto);
+ENUM(SpirvOptimizeMode, Never, OnLoad, Always);
+ENUM(GpuOverclock, Normal, Medium, High)
+ENUM(GpuUnswizzleSize, VerySmall, Small, Normal, Large, VeryLarge)
+ENUM(GpuUnswizzle, VeryLow, Low, Normal, Medium, High)
+ENUM(GpuUnswizzleChunk, VeryLow, Low, Normal, Medium, High)
+ENUM(TemperatureUnits, Celsius, Fahrenheit)
+ENUM(ExtendedDynamicState, Disabled, EDS1, EDS2, EDS3);
+ENUM(GpuLogLevel, Off, Errors, Standard, Verbose, All)
+ENUM(GameListMode, TreeView, GridView, CarouselView);
+ENUM(SpeedMode, Standard, Turbo, Slow);
 
 template <typename Type>
-inline std::string CanonicalizeEnum(Type id) {
+inline std::string_view CanonicalizeEnum(Type id) {
     const auto group = EnumMetadata<Type>::Canonicalizations();
-    for (auto& [name, value] : group) {
-        if (value == id) {
+    for (auto& [name, value] : group)
+        if (value == id)
             return name;
-        }
-    }
     return "unknown";
 }
 
 template <typename Type>
 inline Type ToEnum(const std::string& canonicalization) {
     const auto group = EnumMetadata<Type>::Canonicalizations();
-    for (auto& [name, value] : group) {
-        if (name == canonicalization) {
+    for (auto& [name, value] : group)
+        if (name == canonicalization)
             return value;
-        }
-    }
     return {};
 }
 } // namespace Settings

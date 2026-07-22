@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 package org.yuzu.yuzu_emu.model
@@ -56,7 +56,7 @@ class GamesViewModel : ViewModel() {
         // Ensure keys are loaded so that ROM metadata can be decrypted.
         NativeLibrary.reloadKeys()
 
-        getGameDirs()
+        getGameDirsAndExternalContent()
         reloadGames(directoriesChanged = false, firstStartup = true)
     }
 
@@ -100,42 +100,45 @@ class GamesViewModel : ViewModel() {
 
         viewModelScope.launch {
             withContext(Dispatchers.IO) {
-                if (firstStartup) {
-                    // Retrieve list of cached games
-                    val storedGames =
-                        PreferenceManager.getDefaultSharedPreferences(YuzuApplication.appContext)
-                            .getStringSet(GameHelper.KEY_GAMES, emptySet())
-                    if (storedGames!!.isNotEmpty()) {
-                        val deserializedGames = mutableSetOf<Game>()
-                        storedGames.forEach {
-                            val game: Game
-                            try {
-                                game = Json.decodeFromString(it)
-                            } catch (e: Exception) {
-                                // We don't care about any errors related to parsing the game cache
-                                return@forEach
-                            }
+                try {
+                    if (firstStartup) {
+                        // Retrieve list of cached games
+                        val storedGames =
+                            PreferenceManager.getDefaultSharedPreferences(YuzuApplication.appContext)
+                                .getStringSet(GameHelper.KEY_GAMES, emptySet())
+                        if (storedGames!!.isNotEmpty()) {
+                            val deserializedGames = mutableSetOf<Game>()
+                            storedGames.forEach {
+                                val game: Game
+                                try {
+                                    game = Json.decodeFromString(it)
+                                } catch (e: Exception) {
+                                    // We don't care about any errors related to parsing the game cache
+                                    return@forEach
+                                }
 
-                            val gameExists =
-                                DocumentFile.fromSingleUri(
-                                    YuzuApplication.appContext,
-                                    Uri.parse(game.path)
-                                )?.exists()
-                            if (gameExists == true) {
-                                deserializedGames.add(game)
+                                val gameExists =
+                                    DocumentFile.fromSingleUri(
+                                        YuzuApplication.appContext,
+                                        Uri.parse(game.path)
+                                    )?.exists()
+                                if (gameExists == true) {
+                                    deserializedGames.add(game)
+                                }
                             }
+                            setGames(deserializedGames.toList())
                         }
-                        setGames(deserializedGames.toList())
                     }
-                }
 
-                setGames(GameHelper.getGames())
-                reloading.set(false)
-                _isReloading.value = false
-                _shouldScrollAfterReload.value = true
+                    setGames(GameHelper.getGames())
+                    _shouldScrollAfterReload.value = true
 
-                if (directoriesChanged) {
-                    setShouldSwapData(true)
+                    if (directoriesChanged) {
+                        setShouldSwapData(true)
+                    }
+                } finally {
+                    reloading.set(false)
+                    _isReloading.value = false
                 }
             }
         }
@@ -144,8 +147,19 @@ class GamesViewModel : ViewModel() {
     fun addFolder(gameDir: GameDir, savedFromGameFragment: Boolean) =
         viewModelScope.launch {
             withContext(Dispatchers.IO) {
-                NativeConfig.addGameDir(gameDir)
-                getGameDirs(true)
+                when (gameDir.type) {
+                    DirectoryType.GAME -> {
+                        NativeConfig.addGameDir(gameDir)
+                        val isFirstTimeSetup = PreferenceManager.getDefaultSharedPreferences(YuzuApplication.appContext)
+                            .getBoolean(org.yuzu.yuzu_emu.features.settings.model.Settings.PREF_FIRST_APP_LAUNCH, true)
+                        getGameDirsAndExternalContent(!isFirstTimeSetup)
+                    }
+                    DirectoryType.EXTERNAL_CONTENT -> {
+                        addExternalContentDir(gameDir.uriString)
+                        NativeConfig.saveGlobalConfig()
+                        getGameDirsAndExternalContent()
+                    }
+                }
             }
 
             if (savedFromGameFragment) {
@@ -165,8 +179,15 @@ class GamesViewModel : ViewModel() {
                 val removedDirIndex = gameDirs.indexOf(gameDir)
                 if (removedDirIndex != -1) {
                     gameDirs.removeAt(removedDirIndex)
-                    NativeConfig.setGameDirs(gameDirs.toTypedArray())
-                    getGameDirs()
+                    when (gameDir.type) {
+                        DirectoryType.GAME -> {
+                            NativeConfig.setGameDirs(gameDirs.filter { it.type == DirectoryType.GAME }.toTypedArray())
+                        }
+                        DirectoryType.EXTERNAL_CONTENT -> {
+                            removeExternalContentDir(gameDir.uriString)
+                        }
+                    }
+                    getGameDirsAndExternalContent()
                 }
             }
         }
@@ -174,15 +195,16 @@ class GamesViewModel : ViewModel() {
     fun updateGameDirs() =
         viewModelScope.launch {
             withContext(Dispatchers.IO) {
-                NativeConfig.setGameDirs(_folders.value.toTypedArray())
-                getGameDirs()
+                val gameDirs = _folders.value.filter { it.type == DirectoryType.GAME }
+                NativeConfig.setGameDirs(gameDirs.toTypedArray())
+                getGameDirsAndExternalContent()
             }
         }
 
     fun onOpenGameFoldersFragment() =
         viewModelScope.launch {
             withContext(Dispatchers.IO) {
-                getGameDirs()
+                getGameDirsAndExternalContent()
             }
         }
 
@@ -190,16 +212,36 @@ class GamesViewModel : ViewModel() {
         NativeConfig.saveGlobalConfig()
         viewModelScope.launch {
             withContext(Dispatchers.IO) {
-                getGameDirs(true)
+                getGameDirsAndExternalContent(true)
             }
         }
     }
 
-    private fun getGameDirs(reloadList: Boolean = false) {
-        val gameDirs = NativeConfig.getGameDirs()
-        _folders.value = gameDirs.toMutableList()
+    private fun getGameDirsAndExternalContent(reloadList: Boolean = false) {
+        val gameDirs = NativeConfig.getGameDirs().toMutableList()
+        val externalContentDirs = NativeConfig.getExternalContentDirs().map {
+            GameDir(it, false, DirectoryType.EXTERNAL_CONTENT)
+        }
+        gameDirs.addAll(externalContentDirs)
+        _folders.value = gameDirs
         if (reloadList) {
             reloadGames(true)
         }
+    }
+
+    private fun addExternalContentDir(path: String) {
+        val currentDirs = NativeConfig.getExternalContentDirs().toMutableList()
+        if (!currentDirs.contains(path)) {
+            currentDirs.add(path)
+            NativeConfig.setExternalContentDirs(currentDirs.toTypedArray())
+            NativeConfig.saveGlobalConfig()
+        }
+    }
+
+    private fun removeExternalContentDir(path: String) {
+        val currentDirs = NativeConfig.getExternalContentDirs().toMutableList()
+        currentDirs.remove(path)
+        NativeConfig.setExternalContentDirs(currentDirs.toTypedArray())
+        NativeConfig.saveGlobalConfig()
     }
 }

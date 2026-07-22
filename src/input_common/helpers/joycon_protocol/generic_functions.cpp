@@ -1,8 +1,11 @@
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2022 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "common/input.h"
-#include "common/logging/log.h"
+#include "common/logging.h"
 #include "input_common/helpers/joycon_protocol/generic_functions.h"
 
 namespace InputCommon::Joycon {

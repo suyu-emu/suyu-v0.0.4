@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2020 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -47,8 +50,8 @@ public:
                         if (requests.empty()) {
                             wait_condition.notify_all();
                         }
-                        Common::CondvarWait(condition, lock, stop_token,
-                                            [this] { return !requests.empty(); });
+                        condition.wait(lock, stop_token,
+                                       [this] { return !requests.empty(); });
                         if (stop_token.stop_requested()) {
                             break;
                         }

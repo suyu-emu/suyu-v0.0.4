@@ -1,9 +1,12 @@
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: 2018 Citra Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
 #include <cstddef>
 #include <cstring>
-#include "common/logging/log.h"
+#include "common/logging.h"
 #include "input_common/helpers/udp_protocol.h"
 
 namespace InputCommon::CemuhookUDP {

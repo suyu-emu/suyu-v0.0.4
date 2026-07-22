@@ -1,9 +1,10 @@
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2019 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "common/assert.h"
-#include "common/logging/log.h"
-#include "common/microprofile.h"
 #include "common/scope_exit.h"
 #include "common/settings.h"
 #include "common/thread.h"
@@ -15,113 +16,85 @@
 #include "video_core/gpu_thread.h"
 #include "video_core/host1x/host1x.h"
 #include "video_core/renderer_base.h"
-#include "video_core/vulkan_common/vulkan_wrapper.h"
 
 namespace VideoCommon::GPUThread {
 
-/// Runs the GPU thread
-static void RunThread(std::stop_token stop_token, Core::System& system,
-                      VideoCore::RendererBase& renderer, Core::Frontend::GraphicsContext& context,
-                      Tegra::Control::Scheduler& scheduler, SynchState& state) {
-    std::string name = "GPU";
-    MicroProfileOnThreadCreate(name.c_str());
-    SCOPE_EXIT {
-        MicroProfileOnThreadExit();
-    };
-
-    Common::SetCurrentThreadName(name.c_str());
-    Common::SetCurrentThreadPriority(Common::ThreadPriority::Critical);
-    system.RegisterHostThread();
-
-    auto current_context = context.Acquire();
-    VideoCore::RasterizerInterface* const rasterizer = renderer.ReadRasterizer();
-
-    CommandDataContainer next;
-
-    while (!stop_token.stop_requested()) {
-        state.queue.PopWait(next, stop_token);
-        if (stop_token.stop_requested()) {
-            break;
-        }
-        try {
-            if (auto* submit_list = std::get_if<SubmitListCommand>(&next.data)) {
-                scheduler.Push(submit_list->channel, std::move(submit_list->entries));
-            } else if (std::holds_alternative<GPUTickCommand>(next.data)) {
-                system.GPU().TickWork();
-            } else if (const auto* flush = std::get_if<FlushRegionCommand>(&next.data)) {
-                rasterizer->FlushRegion(flush->addr, flush->size);
-            } else if (const auto* invalidate =
-                           std::get_if<InvalidateRegionCommand>(&next.data)) {
-                rasterizer->OnCacheInvalidation(invalidate->addr, invalidate->size);
-            } else {
-                ASSERT(false);
-            }
-        } catch (const Vulkan::vk::Exception& e) {
-            LOG_CRITICAL(HW_GPU, "GPU thread Vulkan exception: {} (VkResult {})",
-                         e.what(), static_cast<s32>(e.GetResult()));
-            if (e.GetResult() == VK_ERROR_DEVICE_LOST) {
-                LOG_CRITICAL(HW_GPU, "Device lost — GPU thread exiting");
-                break;
-            }
-        } catch (const std::exception& e) {
-            LOG_CRITICAL(HW_GPU, "GPU thread exception: {}", e.what());
-        }
-        state.signaled_fence.store(next.fence);
-        if (next.block) {
-            // We have to lock the write_lock to ensure that the condition_variable wait not get a
-            // race between the check and the lock itself.
-            std::scoped_lock lk{state.write_lock};
-            state.cv.notify_all();
-        }
-    }
-}
-
-ThreadManager::ThreadManager(Core::System& system_, bool is_async_)
-    : system{system_}, is_async{is_async_} {}
+ThreadManager::ThreadManager(Core::System& system_)
+    : system{system_}
+{}
 
 ThreadManager::~ThreadManager() = default;
 
-void ThreadManager::StartThread(VideoCore::RendererBase& renderer,
-                                Core::Frontend::GraphicsContext& context,
-                                Tegra::Control::Scheduler& scheduler) {
+void ThreadManager::StartThread(VideoCore::RendererBase& renderer, Core::Frontend::GraphicsContext& context, Tegra::Control::Scheduler& scheduler) {
     rasterizer = renderer.ReadRasterizer();
-    thread = std::jthread(RunThread, std::ref(system), std::ref(renderer), std::ref(context),
-                          std::ref(scheduler), std::ref(state));
+    thread = std::jthread([&](std::stop_token stop_token) {
+        Common::SetCurrentThreadName("GPU");
+        Common::SetCurrentThreadPriority(Common::ThreadPriority::Critical);
+        system.RegisterHostThread();
+
+        auto current_context = context.Acquire();
+        CommandDataContainer next;
+        while (!stop_token.stop_requested()) {
+            state.queue.PopWait(next, stop_token);
+            if (stop_token.stop_requested()) {
+                break;
+            }
+            if (auto* submit_list = std::get_if<SubmitListCommand>(&next.data)) {
+                scheduler.Push(system.GPU(), submit_list->channel, std::move(submit_list->entries));
+            } else if (std::holds_alternative<GPUTickCommand>(next.data)) {
+                system.GPU().TickWork();
+            } else if (const auto* flush = std::get_if<FlushRegionCommand>(&next.data)) {
+                renderer.ReadRasterizer()->FlushRegion(flush->addr, flush->size);
+            } else if (const auto* invalidate = std::get_if<InvalidateRegionCommand>(&next.data)) {
+                renderer.ReadRasterizer()->OnCacheInvalidation(invalidate->addr, invalidate->size);
+            } else {
+                ASSERT(false);
+            }
+            state.signaled_fence.store(next.fence);
+            if (next.block) {
+                // We have to lock the write_lock to ensure that the condition_variable wait not get a
+                // race between the check and the lock itself.
+                std::scoped_lock lk{state.write_lock};
+                state.cv.notify_all();
+            }
+        }
+    });
 }
 
-void ThreadManager::SubmitList(s32 channel, Tegra::CommandList&& entries) {
-    PushCommand(SubmitListCommand(channel, std::move(entries)));
+void ThreadManager::SubmitList(s32 channel, Tegra::CommandList&& entries, bool is_async) {
+    PushCommand(SubmitListCommand(channel, std::move(entries)), false, is_async);
 }
 
-void ThreadManager::FlushRegion(DAddr addr, u64 size) {
+void ThreadManager::FlushRegion(DAddr addr, u64 size, bool is_async) {
     if (!is_async) {
         // Always flush with synchronous GPU mode
-        PushCommand(FlushRegionCommand(addr, size));
-        return;
+        PushCommand(FlushRegionCommand(addr, size), false, is_async);
     }
-    if (!Settings::IsGPULevelExtreme()) {
-        return;
-    }
-    auto& gpu = system.GPU();
-    u64 fence = gpu.RequestFlush(addr, size);
-    TickGPU();
-    gpu.WaitForSyncOperation(fence);
 }
 
-void ThreadManager::TickGPU() {
-    PushCommand(GPUTickCommand());
+void ThreadManager::TickGPU(bool is_async) {
+    PushCommand(GPUTickCommand(), false, is_async);
 }
 
 void ThreadManager::InvalidateRegion(DAddr addr, u64 size) {
     rasterizer->OnCacheInvalidation(addr, size);
 }
 
-void ThreadManager::FlushAndInvalidateRegion(DAddr addr, u64 size) {
-    // Skip flush on asynch mode, as FlushAndInvalidateRegion is not used for anything too important
+void ThreadManager::FlushAndInvalidateRegion(DAddr addr, u64 size, bool is_async) {
+    if (Settings::IsGPULevelHigh()) {
+        if (!is_async) {
+            PushCommand(FlushRegionCommand(addr, size), false, is_async);
+        } else {
+            auto& gpu = system.GPU();
+            const u64 fence = gpu.RequestFlush(addr, size);
+            TickGPU(is_async);
+            gpu.WaitForSyncOperation(fence);
+        }
+    }
     rasterizer->OnCacheInvalidation(addr, size);
 }
 
-u64 ThreadManager::PushCommand(CommandData&& command_data, bool block) {
+u64 ThreadManager::PushCommand(CommandData&& command_data, bool block, bool is_async) {
     if (!is_async) {
         // In synchronous GPU mode, block the caller until the command has executed
         block = true;
@@ -132,7 +105,7 @@ u64 ThreadManager::PushCommand(CommandData&& command_data, bool block) {
     state.queue.EmplaceWait(std::move(command_data), fence, block);
 
     if (block) {
-        Common::CondvarWait(state.cv, lk, thread.get_stop_token(), [this, fence] {
+        state.cv.wait(lk, thread.get_stop_token(), [this, fence] {
             return fence <= state.signaled_fence.load(std::memory_order_relaxed);
         });
     }

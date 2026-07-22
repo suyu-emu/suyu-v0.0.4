@@ -1,7 +1,12 @@
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2019 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
 #pragma once
+
+#include <limits>
 
 #include "video_core/buffer_cache/buffer_cache_base.h"
 #include "video_core/buffer_cache/memory_tracker_base.h"
@@ -38,12 +43,14 @@ public:
         return tracker.IsUsed(offset, size);
     }
 
-    void MarkUsage(u64 offset, u64 size) noexcept {
-        tracker.Track(offset, size);
-    }
+    void MarkUsage(u64 offset, u64 size) noexcept;
 
     void ResetUsageTracking() noexcept {
         tracker.Reset();
+    }
+
+    [[nodiscard]] u64 LastUsageTick() const noexcept {
+        return last_usage_tick;
     }
 
     operator VkBuffer() const noexcept {
@@ -59,9 +66,11 @@ private:
     };
 
     const Device* device{};
+    Scheduler* scheduler{};
     vk::Buffer buffer;
     std::vector<BufferView> views;
     VideoCommon::UsageTracker tracker;
+    u64 last_usage_tick{};
     bool is_null{};
 };
 
@@ -83,6 +92,12 @@ public:
 
     void TickFrame(Common::SlotVector<Buffer>& slot_buffers) noexcept;
 
+    u64 CurrentTick();
+
+    u64 KnownGpuTick();
+
+    void Wait(u64 buffer_tick);
+
     void Finish();
 
     u64 GetDeviceLocalMemory() const;
@@ -90,6 +105,8 @@ public:
     u64 GetDeviceMemoryUsage() const;
 
     bool CanReportMemoryUsage() const;
+
+    u32 GetUniformBufferAlignment() const;
 
     u32 GetStorageBufferAlignment() const;
 
@@ -125,7 +142,8 @@ public:
     void BindTransformFeedbackBuffers(VideoCommon::HostBindings<Buffer>& bindings);
 
     std::span<u8> BindMappedUniformBuffer([[maybe_unused]] size_t stage,
-                                          [[maybe_unused]] u32 binding_index, u32 size) {
+                                          [[maybe_unused]] u32 binding_index,
+                                          u32 size) {
         const StagingBufferRef ref = staging_pool.Request(size, MemoryUsage::Upload);
         BindBuffer(ref.buffer, static_cast<u32>(ref.offset), size);
         return ref.mapped_span;
@@ -145,9 +163,21 @@ public:
         guest_descriptor_queue.AddTexelBuffer(buffer.View(offset, size, format));
     }
 
+    bool ShouldLimitDynamicStorageBuffers() const {
+        return limit_dynamic_storage_buffers;
+    }
+
+    u32 GetMaxDynamicStorageBuffers() const {
+        return max_dynamic_storage_buffers;
+    }
+
 private:
     void BindBuffer(VkBuffer buffer, u32 offset, u32 size) {
-        guest_descriptor_queue.AddBuffer(buffer, offset, size);
+        if (buffer == VK_NULL_HANDLE) {
+            guest_descriptor_queue.AddBuffer(buffer, 0, VK_WHOLE_SIZE);
+        } else {
+            guest_descriptor_queue.AddBuffer(buffer, offset, size);
+        }
     }
 
     void ReserveNullBuffer();
@@ -166,6 +196,9 @@ private:
 
     std::unique_ptr<Uint8Pass> uint8_pass;
     QuadIndexedPass quad_index_pass;
+
+    bool limit_dynamic_storage_buffers = false;
+    u32 max_dynamic_storage_buffers = (std::numeric_limits<u32>::max)();
 };
 
 struct BufferCacheParams {

@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2021 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -26,29 +29,29 @@ public:
     explicit KServerPort(KernelCore& kernel);
     ~KServerPort() override;
 
-    void Initialize(KPort* parent);
+    void Initialize(KernelCore& kernel, KPort* parent);
 
-    void EnqueueSession(KServerSession* session);
-    void EnqueueSession(KLightServerSession* session);
+    void EnqueueSession(KernelCore& kernel, KServerSession* session);
+    void EnqueueSession(KernelCore& kernel, KLightServerSession* session);
 
-    KServerSession* AcceptSession();
-    KLightServerSession* AcceptLightSession();
+    KServerSession* AcceptSession(KernelCore& kernel);
+    KLightServerSession* AcceptLightSession(KernelCore& kernel);
 
     const KPort* GetParent() const {
         return m_parent;
     }
 
-    bool IsLight() const;
+    bool IsLight(KernelCore& kernel) const;
 
     // Overridden virtual functions.
-    void Destroy() override;
-    bool IsSignaled() const override;
+    void Destroy(KernelCore& kernel) override;
+    bool IsSignaled(KernelCore& kernel) const override;
 
 private:
     using SessionList = Common::IntrusiveListBaseTraits<KServerSession>::ListType;
     using LightSessionList = Common::IntrusiveListBaseTraits<KLightServerSession>::ListType;
 
-    void CleanupSessions();
+    void CleanupSessions(KernelCore& kernel);
 
     SessionList m_session_list{};
     LightSessionList m_light_session_list{};

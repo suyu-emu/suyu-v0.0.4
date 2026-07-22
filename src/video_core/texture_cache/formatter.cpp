@@ -1,10 +1,13 @@
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2020 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
 #include <algorithm>
 #include <string>
 
-#include "common/polyfill_ranges.h"
+#include <ranges>
 #include "video_core/texture_cache/formatter.h"
 #include "video_core/texture_cache/image_base.h"
 #include "video_core/texture_cache/image_info.h"
@@ -60,25 +63,25 @@ std::string Name(const ImageViewBase& image_view, GPUVAddr addr) {
     const std::string level = num_levels > 1 ? fmt::format(":{}", num_levels) : "";
     switch (image_view.type) {
     case ImageViewType::e1D:
-        return fmt::format("ImageView 1D 0x{:X} {}{}", addr, width, level);
+        return fmt::format("ImageView 1D {:#X} {}{}", addr, width, level);
     case ImageViewType::e2D:
-        return fmt::format("ImageView 2D 0x{:X} {}x{}{}", addr, width, height, level);
+        return fmt::format("ImageView 2D {:#X} {}x{}{}", addr, width, height, level);
     case ImageViewType::Cube:
-        return fmt::format("ImageView Cube 0x{:X} {}x{}{}", addr, width, height, level);
+        return fmt::format("ImageView Cube {:#X} {}x{}{}", addr, width, height, level);
     case ImageViewType::e3D:
-        return fmt::format("ImageView 3D 0x{:X} {}x{}x{}{}", addr, width, height, depth, level);
+        return fmt::format("ImageView 3D {:#X} {}x{}x{}{}", addr, width, height, depth, level);
     case ImageViewType::e1DArray:
-        return fmt::format("ImageView 1DArray 0x{:X} {}{}|{}", addr, width, level, num_layers);
+        return fmt::format("ImageView 1DArray {:#X} {}{}|{}", addr, width, level, num_layers);
     case ImageViewType::e2DArray:
-        return fmt::format("ImageView 2DArray 0x{:X} {}x{}{}|{}", addr, width, height, level,
+        return fmt::format("ImageView 2DArray {:#X} {}x{}{}|{}", addr, width, height, level,
                            num_layers);
     case ImageViewType::CubeArray:
-        return fmt::format("ImageView CubeArray 0x{:X} {}x{}{}|{}", addr, width, height, level,
+        return fmt::format("ImageView CubeArray {:#X} {}x{}{}|{}", addr, width, height, level,
                            num_layers);
     case ImageViewType::Rect:
-        return fmt::format("ImageView Rect 0x{:X} {}x{}{}", addr, width, height, level);
+        return fmt::format("ImageView Rect {:#X} {}x{}{}", addr, width, height, level);
     case ImageViewType::Buffer:
-        return fmt::format("BufferView 0x{:X} {}", addr, width);
+        return fmt::format("BufferView {:#X} {}", addr, width);
     }
     return "Invalid";
 }

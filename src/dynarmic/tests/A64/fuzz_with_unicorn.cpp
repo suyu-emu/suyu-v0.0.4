@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 /* This file is part of the dynarmic project.
@@ -12,14 +12,13 @@
 #include <vector>
 
 #include <catch2/catch_test_macros.hpp>
-#include <mcl/scope_exit.hpp>
-#include "dynarmic/common/common_types.h"
+#include "common/common_types.h"
 
-#include "../fuzz_util.h"
-#include "../rand_int.h"
-#include "../unicorn_emu/a64_unicorn.h"
-#include "./testenv.h"
-#include "../native/testenv.h"
+#include "dynarmic/tests/fuzz_util.h"
+#include "dynarmic/tests/rand_int.h"
+#include "dynarmic/tests/unicorn_emu/a64_unicorn.h"
+#include "dynarmic/tests/A64/testenv.h"
+#include "dynarmic/tests/native/testenv.h"
 #include "dynarmic/common/fp/fpcr.h"
 #include "dynarmic/common/fp/fpsr.h"
 #include "dynarmic/common/llvm_disassemble.h"
@@ -43,9 +42,7 @@ static bool ShouldTestInst(u32 instruction, u64 pc, bool is_last_inst) {
     bool should_continue = A64::TranslateSingleInstruction(block, location, instruction);
     if (!should_continue && !is_last_inst)
         return false;
-    if (auto terminal = block.GetTerminal(); boost::get<IR::Term::Interpret>(&terminal))
-        return false;
-    for (const auto& ir_inst : block) {
+    for (const auto& ir_inst : block.instructions) {
         switch (ir_inst.GetOpcode()) {
         case IR::Opcode::A64ExceptionRaised:
         case IR::Opcode::A64CallSupervisor:
@@ -170,7 +167,7 @@ static Dynarmic::A64::UserConfig GetUserConfig(A64TestEnv& jit_env) {
     return jit_user_config;
 }
 
-static void RunTestInstance(Dynarmic::A64::Jit& jit, A64Unicorn& uni, A64TestEnv& jit_env, A64TestEnv& uni_env, const A64Unicorn::RegisterArray& regs, const A64Unicorn::VectorArray& vecs, const size_t instructions_start, const std::vector<u32>& instructions, const u32 pstate, const u32 fpcr) {
+static void RunTestInstance(Dynarmic::A64::Jit& jit, A64Unicorn& uni, A64TestEnv& jit_env, A64TestEnv& uni_env, Dynarmic::A64::UserConfig& conf, const A64Unicorn::RegisterArray& regs, const A64Unicorn::VectorArray& vecs, const size_t instructions_start, const std::vector<u32>& instructions, const u32 pstate, const u32 fpcr) {
     jit_env.code_mem = instructions;
     uni_env.code_mem = instructions;
     jit_env.code_mem.emplace_back(0x14000000);  // B .
@@ -207,85 +204,82 @@ static void RunTestInstance(Dynarmic::A64::Jit& jit, A64Unicorn& uni, A64TestEnv
     uni_env.ticks_left = instructions.size() * 4;
     uni.Run();
 
-    SCOPE_FAIL {
-        fmt::print("Instruction Listing:\n");
-        for (u32 instruction : instructions) {
-            fmt::print("{:08x} {}\n", instruction, Common::DisassembleAArch64(instruction));
-        }
-        fmt::print("\n");
+    // SCOPE_FAIL {
+    //     fmt::print("Instruction Listing:\n");
+    //     for (u32 instruction : instructions) {
+    //         fmt::print("{:08x} {}\n", instruction, Common::DisassembleAArch64(instruction));
+    //     }
+    //     fmt::print("\n");
 
-        fmt::print("Initial register listing:\n");
-        for (size_t i = 0; i < regs.size(); ++i) {
-            fmt::print("{:3s}: {:016x}\n", A64::RegToString(static_cast<A64::Reg>(i)), regs[i]);
-        }
-        for (size_t i = 0; i < vecs.size(); ++i) {
-            fmt::print("{:3s}: {:016x}{:016x}\n", A64::VecToString(static_cast<A64::Vec>(i)), vecs[i][1], vecs[i][0]);
-        }
-        fmt::print("sp : {:016x}\n", initial_sp);
-        fmt::print("pc : {:016x}\n", instructions_start);
-        fmt::print("p  : {:08x}\n", pstate);
-        fmt::print("fpcr {:08x}\n", fpcr);
-        fmt::print("fpcr.AHP   {}\n", FP::FPCR{fpcr}.AHP());
-        fmt::print("fpcr.DN    {}\n", FP::FPCR{fpcr}.DN());
-        fmt::print("fpcr.FZ    {}\n", FP::FPCR{fpcr}.FZ());
-        fmt::print("fpcr.RMode {}\n", static_cast<size_t>(FP::FPCR{fpcr}.RMode()));
-        fmt::print("fpcr.FZ16  {}\n", FP::FPCR{fpcr}.FZ16());
-        fmt::print("\n");
+    //     fmt::print("Initial register listing:\n");
+    //     for (size_t i = 0; i < regs.size(); ++i) {
+    //         fmt::print("{:3s}: {:016x}\n", A64::RegToString(static_cast<A64::Reg>(i)), regs[i]);
+    //     }
+    //     for (size_t i = 0; i < vecs.size(); ++i) {
+    //         fmt::print("{:3s}: {:016x}{:016x}\n", A64::VecToString(static_cast<A64::Vec>(i)), vecs[i][1], vecs[i][0]);
+    //     }
+    //     fmt::print("sp : {:016x}\n", initial_sp);
+    //     fmt::print("pc : {:016x}\n", instructions_start);
+    //     fmt::print("p  : {:08x}\n", pstate);
+    //     fmt::print("fpcr {:08x}\n", fpcr);
+    //     fmt::print("fpcr.AHP   {}\n", FP::FPCR{fpcr}.AHP());
+    //     fmt::print("fpcr.DN    {}\n", FP::FPCR{fpcr}.DN());
+    //     fmt::print("fpcr.FZ    {}\n", FP::FPCR{fpcr}.FZ());
+    //     fmt::print("fpcr.RMode {}\n", static_cast<size_t>(FP::FPCR{fpcr}.RMode()));
+    //     fmt::print("fpcr.FZ16  {}\n", FP::FPCR{fpcr}.FZ16());
+    //     fmt::print("\n");
 
-        fmt::print("Final register listing:\n");
-        fmt::print("     unicorn          dynarmic\n");
-        const auto uni_regs = uni.GetRegisters();
-        for (size_t i = 0; i < regs.size(); ++i) {
-            fmt::print("{:3s}: {:016x} {:016x} {}\n", A64::RegToString(static_cast<A64::Reg>(i)), uni_regs[i], jit.GetRegisters()[i], uni_regs[i] != jit.GetRegisters()[i] ? "*" : "");
-        }
-        const auto uni_vecs = uni.GetVectors();
-        for (size_t i = 0; i < vecs.size(); ++i) {
-            fmt::print("{:3s}: {:016x}{:016x} {:016x}{:016x} {}\n", A64::VecToString(static_cast<A64::Vec>(i)),
-                       uni_vecs[i][1], uni_vecs[i][0],
-                       jit.GetVectors()[i][1], jit.GetVectors()[i][0],
-                       uni_vecs[i] != jit.GetVectors()[i] ? "*" : "");
-        }
-        fmt::print("sp : {:016x} {:016x} {}\n", uni.GetSP(), jit.GetSP(), uni.GetSP() != jit.GetSP() ? "*" : "");
-        fmt::print("pc : {:016x} {:016x} {}\n", uni.GetPC(), jit.GetPC(), uni.GetPC() != jit.GetPC() ? "*" : "");
-        fmt::print("p  : {:08x} {:08x} {}\n", uni.GetPstate(), jit.GetPstate(), (uni.GetPstate() & 0xF0000000) != (jit.GetPstate() & 0xF0000000) ? "*" : "");
-        fmt::print("qc : {:08x} {:08x} {}\n", uni.GetFpsr(), jit.GetFpsr(), FP::FPSR{uni.GetFpsr()}.QC() != FP::FPSR{jit.GetFpsr()}.QC() ? "*" : "");
-        fmt::print("\n");
+    //     fmt::print("Final register listing:\n");
+    //     fmt::print("     unicorn          dynarmic\n");
+    //     const auto uni_regs = uni.GetRegisters();
+    //     for (size_t i = 0; i < regs.size(); ++i) {
+    //         fmt::print("{:3s}: {:016x} {:016x} {}\n", A64::RegToString(static_cast<A64::Reg>(i)), uni_regs[i], jit.GetRegisters()[i], uni_regs[i] != jit.GetRegisters()[i] ? "*" : "");
+    //     }
+    //     const auto uni_vecs = uni.GetVectors();
+    //     for (size_t i = 0; i < vecs.size(); ++i) {
+    //         fmt::print("{:3s}: {:016x}{:016x} {:016x}{:016x} {}\n", A64::VecToString(static_cast<A64::Vec>(i)),
+    //                    uni_vecs[i][1], uni_vecs[i][0],
+    //                    jit.GetVectors()[i][1], jit.GetVectors()[i][0],
+    //                    uni_vecs[i] != jit.GetVectors()[i] ? "*" : "");
+    //     }
+    //     fmt::print("sp : {:016x} {:016x} {}\n", uni.GetSP(), jit.GetSP(), uni.GetSP() != jit.GetSP() ? "*" : "");
+    //     fmt::print("pc : {:016x} {:016x} {}\n", uni.GetPC(), jit.GetPC(), uni.GetPC() != jit.GetPC() ? "*" : "");
+    //     fmt::print("p  : {:08x} {:08x} {}\n", uni.GetPstate(), jit.GetPstate(), (uni.GetPstate() & 0xF0000000) != (jit.GetPstate() & 0xF0000000) ? "*" : "");
+    //     fmt::print("qc : {:08x} {:08x} {}\n", uni.GetFpsr(), jit.GetFpsr(), FP::FPSR{uni.GetFpsr()}.QC() != FP::FPSR{jit.GetFpsr()}.QC() ? "*" : "");
+    //     fmt::print("\n");
 
-        fmt::print("Modified memory:\n");
-        fmt::print("                 uni dyn\n");
-        auto uni_iter = uni_env.modified_memory.begin();
-        auto jit_iter = jit_env.modified_memory.begin();
-        while (uni_iter != uni_env.modified_memory.end() || jit_iter != jit_env.modified_memory.end()) {
-            if (uni_iter == uni_env.modified_memory.end() || (jit_iter != jit_env.modified_memory.end() && uni_iter->first > jit_iter->first)) {
-                fmt::print("{:016x}:    {:02x} *\n", jit_iter->first, jit_iter->second);
-                jit_iter++;
-            } else if (jit_iter == jit_env.modified_memory.end() || jit_iter->first > uni_iter->first) {
-                fmt::print("{:016x}: {:02x}    *\n", uni_iter->first, uni_iter->second);
-                uni_iter++;
-            } else if (uni_iter->first == jit_iter->first) {
-                fmt::print("{:016x}: {:02x} {:02x} {}\n", uni_iter->first, uni_iter->second, jit_iter->second, uni_iter->second != jit_iter->second ? "*" : "");
-                uni_iter++;
-                jit_iter++;
-            }
-        }
-        fmt::print("\n");
+    //     fmt::print("Modified memory:\n");
+    //     fmt::print("                 uni dyn\n");
+    //     auto uni_iter = uni_env.modified_memory.begin();
+    //     auto jit_iter = jit_env.modified_memory.begin();
+    //     while (uni_iter != uni_env.modified_memory.end() || jit_iter != jit_env.modified_memory.end()) {
+    //         if (uni_iter == uni_env.modified_memory.end() || (jit_iter != jit_env.modified_memory.end() && uni_iter->first > jit_iter->first)) {
+    //             fmt::print("{:016x}:    {:02x} *\n", jit_iter->first, jit_iter->second);
+    //             jit_iter++;
+    //         } else if (jit_iter == jit_env.modified_memory.end() || jit_iter->first > uni_iter->first) {
+    //             fmt::print("{:016x}: {:02x}    *\n", uni_iter->first, uni_iter->second);
+    //             uni_iter++;
+    //         } else if (uni_iter->first == jit_iter->first) {
+    //             fmt::print("{:016x}: {:02x} {:02x} {}\n", uni_iter->first, uni_iter->second, jit_iter->second, uni_iter->second != jit_iter->second ? "*" : "");
+    //             uni_iter++;
+    //             jit_iter++;
+    //         }
+    //     }
+    //     fmt::print("\n");
 
-        const auto get_code = [&jit_env](u64 vaddr) { return jit_env.MemoryReadCode(vaddr); };
-        IR::Block ir_block = A64::Translate({instructions_start, FP::FPCR{fpcr}}, get_code, {});
-        fmt::print("IR:\n");
-        fmt::print("{}\n", IR::DumpBlock(ir_block));
-        Optimization::Optimize(ir_block, conf, {});
-        fmt::print("Optimized IR:\n");
-        fmt::print("{}\n", IR::DumpBlock(ir_block));
-
-        fmt::print("x86_64:\n");
-        fmt::print("{}", jit.Disassemble());
-
-        fmt::print("Interrupts:\n");
-        for (auto& i : uni_env.interrupts) {
-            puts(i.c_str());
-        }
-    };
+    //     const auto get_code = [&jit_env](u64 vaddr) { return jit_env.MemoryReadCode(vaddr); };
+    //     const A64::LocationDescriptor location{instructions_start, FP::FPCR{fpcr}};
+    //     IR::Block ir_block{location};
+    //     A64::Translate(ir_block, location, get_code, {});
+    //     fmt::print("IR:\n{}\n", IR::DumpBlock(ir_block));
+    //     Optimization::Optimize(ir_block, conf, {});
+    //     fmt::print("Optimized IR:\n{}\n", IR::DumpBlock(ir_block));
+    //     fmt::print("x86_64:\n{}", jit.Disassemble());
+    //     fmt::print("Interrupts:\n");
+    //     for (auto& i : uni_env.interrupts) {
+    //         puts(i.c_str());
+    //     }
+    // };
 
     REQUIRE(uni_env.code_mem_modified_by_guest == jit_env.code_mem_modified_by_guest);
     if (uni_env.code_mem_modified_by_guest) {
@@ -306,7 +300,8 @@ TEST_CASE("A64: Single random instruction", "[a64][unicorn]") {
     A64TestEnv jit_env{};
     A64TestEnv uni_env{};
 
-    Dynarmic::A64::Jit jit{GetUserConfig(jit_env)};
+    Dynarmic::A64::UserConfig conf{GetUserConfig(jit_env)};
+    Dynarmic::A64::Jit jit{conf};
     A64Unicorn uni{uni_env};
 
     A64Unicorn::RegisterArray regs;
@@ -325,7 +320,7 @@ TEST_CASE("A64: Single random instruction", "[a64][unicorn]") {
 
         INFO("Instruction: 0x" << std::hex << instructions[0]);
 
-        RunTestInstance(jit, uni, jit_env, uni_env, regs, vecs, start_address, instructions, pstate, fpcr);
+        RunTestInstance(jit, uni, jit_env, uni_env, conf, regs, vecs, start_address, instructions, pstate, fpcr);
     }
 }
 
@@ -333,7 +328,8 @@ TEST_CASE("A64: Floating point instructions", "[a64][unicorn]") {
     A64TestEnv jit_env{};
     A64TestEnv uni_env{};
 
-    Dynarmic::A64::Jit jit{GetUserConfig(jit_env)};
+    Dynarmic::A64::UserConfig conf{GetUserConfig(jit_env)};
+    Dynarmic::A64::Jit jit{conf};
     A64Unicorn uni{uni_env};
 
     static constexpr std::array<u64, 80> float_numbers{
@@ -450,7 +446,7 @@ TEST_CASE("A64: Floating point instructions", "[a64][unicorn]") {
 
         INFO("Instruction: 0x" << std::hex << instructions[0]);
 
-        RunTestInstance(jit, uni, jit_env, uni_env, regs, vecs, start_address, instructions, pstate, fpcr);
+        RunTestInstance(jit, uni, jit_env, uni_env, conf, regs, vecs, start_address, instructions, pstate, fpcr);
     }
 }
 
@@ -458,7 +454,8 @@ TEST_CASE("A64: Small random block", "[a64][unicorn]") {
     A64TestEnv jit_env{};
     A64TestEnv uni_env{};
 
-    Dynarmic::A64::Jit jit{GetUserConfig(jit_env)};
+    Dynarmic::A64::UserConfig conf{GetUserConfig(jit_env)};
+    Dynarmic::A64::Jit jit{conf};
     A64Unicorn uni{uni_env};
 
     A64Unicorn::RegisterArray regs;
@@ -485,7 +482,7 @@ TEST_CASE("A64: Small random block", "[a64][unicorn]") {
         INFO("Instruction 4: 0x" << std::hex << instructions[3]);
         INFO("Instruction 5: 0x" << std::hex << instructions[4]);
 
-        RunTestInstance(jit, uni, jit_env, uni_env, regs, vecs, start_address, instructions, pstate, fpcr);
+        RunTestInstance(jit, uni, jit_env, uni_env, conf, regs, vecs, start_address, instructions, pstate, fpcr);
     }
 }
 
@@ -493,7 +490,8 @@ TEST_CASE("A64: Large random block", "[a64][unicorn]") {
     A64TestEnv jit_env{};
     A64TestEnv uni_env{};
 
-    Dynarmic::A64::Jit jit{GetUserConfig(jit_env)};
+    Dynarmic::A64::UserConfig conf{GetUserConfig(jit_env)};
+    Dynarmic::A64::Jit jit{conf};
     A64Unicorn uni{uni_env};
 
     A64Unicorn::RegisterArray regs;
@@ -514,6 +512,6 @@ TEST_CASE("A64: Large random block", "[a64][unicorn]") {
         const u32 pstate = RandInt<u32>(0, 0xF) << 28;
         const u32 fpcr = RandomFpcr();
 
-        RunTestInstance(jit, uni, jit_env, uni_env, regs, vecs, start_address, instructions, pstate, fpcr);
+        RunTestInstance(jit, uni, jit_env, uni_env, conf, regs, vecs, start_address, instructions, pstate, fpcr);
     }
 }

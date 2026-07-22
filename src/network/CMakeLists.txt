@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+# SPDX-License-Identifier: GPL-3.0-or-later
+
 # SPDX-FileCopyrightText: 2022 yuzu Emulator Project
 # SPDX-License-Identifier: GPL-3.0-or-later
 
@@ -8,7 +11,6 @@ add_library(network STATIC
     network.h
     packet.cpp
     packet.h
-    precompiled_headers.h
     room.cpp
     room.h
     room_member.cpp
@@ -21,10 +23,11 @@ create_target_directory_groups(network)
 
 target_link_libraries(network PRIVATE common enet::enet Boost::headers)
 if (ENABLE_WEB_SERVICE)
-    target_compile_definitions(network PRIVATE -DENABLE_WEB_SERVICE)
+    target_compile_definitions(network PRIVATE ENABLE_WEB_SERVICE)
     target_link_libraries(network PRIVATE web_service)
 endif()
 
-if (SUYU_USE_PRECOMPILED_HEADERS)
-    target_precompile_headers(network PRIVATE precompiled_headers.h)
+# Solaris uses /lib/amd64/libsocket.so and /lib/amd64/libnsl.so
+if (PLATFORM_SUN)
+    target_link_libraries(network PRIVATE socket nsl)
 endif()

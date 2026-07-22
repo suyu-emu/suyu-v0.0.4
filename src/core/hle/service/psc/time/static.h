@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2023 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -68,8 +71,6 @@ private:
     Result GetClockSnapshotImpl(OutClockSnapshot out_snapshot,
                                 const SystemClockContext& user_context,
                                 const SystemClockContext& network_context, TimeType type);
-
-    Core::System& m_system;
     StaticServiceSetupInfo m_setup_info;
     std::shared_ptr<TimeManager> m_time;
     StandardLocalSystemClockCore& m_local_system_clock;

@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2024 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
@@ -6,6 +9,10 @@
 #include "common/common_types.h"
 #include "core/hle/result.h"
 #include "hid_core/hid_types.h"
+
+namespace Kernel {
+class KernelCore;
+}
 
 namespace Service::HID {
 struct IAbstractedPad;
@@ -28,7 +35,7 @@ static_assert(sizeof(NpadMcuHolder) == 0x10, "NpadMcuHolder is an invalid size")
 /// Handles Npad request from HID interfaces
 class NpadAbstractMcuHandler final {
 public:
-    explicit NpadAbstractMcuHandler();
+    explicit NpadAbstractMcuHandler(Kernel::KernelCore& kernel_);
     ~NpadAbstractMcuHandler();
 
     void SetAbstractPadHolder(NpadAbstractedPadHolder* holder);
@@ -48,5 +55,6 @@ private:
 
     s32 ref_counter{};
     std::array<NpadMcuHolder, 2> mcu_holder{};
+    Kernel::KernelCore& kernel;
 };
 } // namespace Service::HID

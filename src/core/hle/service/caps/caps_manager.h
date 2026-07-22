@@ -1,9 +1,12 @@
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2023 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
 #pragma once
 
-#include <unordered_map>
+#include <ankerl/unordered_dense.h>
 
 #include "common/fs/fs.h"
 #include "core/hle/result.h"
@@ -85,7 +88,7 @@ private:
     AlbumFileDateTime ConvertToAlbumDateTime(u64 posix_time) const;
 
     bool is_mounted{};
-    std::unordered_map<AlbumFileId, std::filesystem::path> album_files;
+    ankerl::unordered_dense::map<AlbumFileId, std::filesystem::path> album_files;
 
     Core::System& system;
 };

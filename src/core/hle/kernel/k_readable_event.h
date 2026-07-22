@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2021 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -20,19 +23,17 @@ public:
     explicit KReadableEvent(KernelCore& kernel);
     ~KReadableEvent() override;
 
-    void Initialize(KEvent* parent);
+    void Initialize(KernelCore& kernel, KEvent* parent);
 
     KEvent* GetParent() const {
         return m_parent;
     }
 
-    Result Signal();
-    Result Clear();
-
-    bool IsSignaled() const override;
-    void Destroy() override;
-
-    Result Reset();
+    Result Signal(KernelCore& kernel);
+    Result Clear(KernelCore& kernel);
+    bool IsSignaled(KernelCore& kernel) const override;
+    void Destroy(KernelCore& kernel) override;
+    Result Reset(KernelCore& kernel);
 
 private:
     bool m_is_signaled{};

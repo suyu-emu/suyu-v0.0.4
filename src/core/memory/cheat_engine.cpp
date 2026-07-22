@@ -1,9 +1,11 @@
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2018 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
 #include <locale>
 #include "common/hex_util.h"
-#include "common/microprofile.h"
 #include "common/swap.h"
 #include "core/arm/debug.h"
 #include "core/core.h"
@@ -89,17 +91,15 @@ u64 StandardVmCallbacks::HidKeysDown() {
 }
 
 void StandardVmCallbacks::PauseProcess() {
-    if (system.ApplicationProcess()->IsSuspended()) {
-        return;
+    if (!system.ApplicationProcess()->IsSuspended()) {
+        system.ApplicationProcess()->SetActivity(system.Kernel(), Kernel::Svc::ProcessActivity::Paused);
     }
-    system.ApplicationProcess()->SetActivity(Kernel::Svc::ProcessActivity::Paused);
 }
 
 void StandardVmCallbacks::ResumeProcess() {
-    if (!system.ApplicationProcess()->IsSuspended()) {
-        return;
+    if (system.ApplicationProcess()->IsSuspended()) {
+        system.ApplicationProcess()->SetActivity(system.Kernel(), Kernel::Svc::ProcessActivity::Runnable);
     }
-    system.ApplicationProcess()->SetActivity(Kernel::Svc::ProcessActivity::Runnable);
 }
 
 void StandardVmCallbacks::DebugLog(u8 id, u64 value) {
@@ -224,14 +224,16 @@ CheatEngine::CheatEngine(System& system_, std::vector<CheatEntry> cheats_,
 }
 
 CheatEngine::~CheatEngine() {
-    core_timing.UnscheduleEvent(event);
+    if (event)
+        core_timing.UnscheduleEvent(event);
+    else
+        LOG_ERROR(CheatEngine, "~CheatEngine before event was registered");
 }
 
 void CheatEngine::Initialize() {
     event = Core::Timing::CreateEvent(
         "CheatEngine::FrameCallback::" + Common::HexToString(metadata.main_nso_build_id),
-        [this](s64 time,
-               std::chrono::nanoseconds ns_late) -> std::optional<std::chrono::nanoseconds> {
+        [this](s64 time, std::chrono::nanoseconds ns_late) -> std::optional<std::chrono::nanoseconds> {
             FrameCallback(ns_late);
             return std::nullopt;
         });
@@ -269,8 +271,6 @@ void CheatEngine::Reload(std::vector<CheatEntry> reload_cheats) {
     is_pending_reload.exchange(true);
 }
 
-MICROPROFILE_DEFINE(Cheat_Engine, "Add-Ons", "Cheat Engine", MP_RGB(70, 200, 70));
-
 void CheatEngine::FrameCallback(std::chrono::nanoseconds ns_late) {
     if (is_pending_reload.exchange(false)) {
         vm.LoadProgram(cheats);
@@ -279,8 +279,6 @@ void CheatEngine::FrameCallback(std::chrono::nanoseconds ns_late) {
     if (vm.GetProgramSize() == 0) {
         return;
     }
-
-    MICROPROFILE_SCOPE(Cheat_Engine);
 
     vm.Execute(metadata);
 }

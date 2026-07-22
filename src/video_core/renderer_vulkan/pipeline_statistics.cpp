@@ -1,12 +1,15 @@
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2021 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
 #include <string_view>
 
-#include <fmt/format.h>
+#include <fmt/ranges.h>
 
 #include "common/common_types.h"
-#include "common/logging/log.h"
+#include "common/logging.h"
 #include "video_core/renderer_vulkan/pipeline_statistics.h"
 #include "video_core/vulkan_common/vulkan_device.h"
 #include "video_core/vulkan_common/vulkan_wrapper.h"
@@ -28,14 +31,13 @@ static u64 GetUint64(const VkPipelineExecutableStatisticKHR& statistic) {
     }
 }
 
-PipelineStatistics::PipelineStatistics(const Device& device_) : device{device_} {}
+PipelineStatistics::PipelineStatistics(const Device& device_) {}
 
-void PipelineStatistics::Collect(VkPipeline pipeline) {
-    const auto& dev{device.GetLogical()};
-    const std::vector properties{dev.GetPipelineExecutablePropertiesKHR(pipeline)};
+void PipelineStatistics::Collect(const Device& device, VkPipeline pipeline) {
+    const std::vector properties{device.GetLogical().GetPipelineExecutablePropertiesKHR(pipeline)};
     const u32 num_executables{static_cast<u32>(properties.size())};
     for (u32 executable = 0; executable < num_executables; ++executable) {
-        const auto statistics{dev.GetPipelineExecutableStatisticsKHR(pipeline, executable)};
+        const auto statistics{device.GetLogical().GetPipelineExecutableStatisticsKHR(pipeline, executable)};
         if (statistics.empty()) {
             continue;
         }

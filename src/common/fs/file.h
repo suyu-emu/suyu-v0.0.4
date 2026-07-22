@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2021 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -183,18 +186,18 @@ public:
               FileType type = FileType::BinaryFile,
               FileShareFlag flag = FileShareFlag::ShareReadOnly);
 
-#ifdef _WIN32
-    template <typename Path>
-    void Open(const Path& path, FileAccessMode mode, FileType type = FileType::BinaryFile,
-              FileShareFlag flag = FileShareFlag::ShareReadOnly) {
-        using ValueType = typename Path::value_type;
-        if constexpr (IsChar<ValueType>) {
-            Open(ToU8String(path), mode, type, flag);
-        } else {
-            Open(std::filesystem::path{path}, mode, type, flag);
-        }
-    }
-#endif
+// #ifdef _WIN32
+//     template <typename Path>
+//     void Open(const Path& path, FileAccessMode mode, FileType type = FileType::BinaryFile,
+//               FileShareFlag flag = FileShareFlag::ShareReadOnly) {
+//         using ValueType = typename Path::value_type;
+//         if constexpr (IsChar<ValueType>) {
+//             Open(ToU8String(path), mode, type, flag);
+//         } else {
+//             Open(std::filesystem::path{path}, mode, type, flag);
+//         }
+//     }
+// #endif
 
     /// Closes the file if it is opened.
     void Close();
@@ -277,13 +280,11 @@ public:
      * @returns Count of T data successfully read.
      */
     template <typename T>
+        requires std::is_trivially_copyable_v<T>
     [[nodiscard]] size_t ReadSpan(std::span<T> data) const {
-        static_assert(std::is_trivially_copyable_v<T>, "Data type must be trivially copyable.");
-
         if (!IsOpen()) {
             return 0;
         }
-
         return std::fread(data.data(), sizeof(T), data.size(), file);
     }
 

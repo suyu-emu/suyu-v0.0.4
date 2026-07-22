@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 // Copyright Citra Emulator Project / Azahar Emulator Project
@@ -8,9 +8,10 @@
 #pragma once
 
 #include <optional>
-#include <string>
+#include "common/net/net.h"
 
 namespace UpdateChecker {
-std::optional<std::string> GetResponse(std::string url, std::string path);
-std::optional<std::string> GetLatestRelease(bool include_prereleases);
+
+std::optional<Common::Net::Release> GetUpdate();
+
 } // namespace UpdateChecker

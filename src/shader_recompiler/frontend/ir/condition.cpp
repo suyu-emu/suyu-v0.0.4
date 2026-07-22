@@ -3,7 +3,7 @@
 
 #include <string>
 
-#include <fmt/format.h>
+#include <fmt/ranges.h>
 
 #include "shader_recompiler/frontend/ir/condition.h"
 

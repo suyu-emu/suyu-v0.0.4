@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2022 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -73,9 +76,9 @@ constexpr s32 HighestVoicePriority = 0;
 constexpr u32 BufferAlignment = 0x40;
 constexpr u32 WorkbufferAlignment = 0x1000;
 constexpr s32 FinalMixId = 0;
-constexpr s32 InvalidDistanceFromFinalMix = std::numeric_limits<s32>::min();
+constexpr s32 InvalidDistanceFromFinalMix = (std::numeric_limits<s32>::min)();
 constexpr s32 UnusedSplitterId = -1;
-constexpr s32 UnusedMixId = std::numeric_limits<s32>::max();
+constexpr s32 UnusedMixId = (std::numeric_limits<s32>::max)();
 constexpr u32 InvalidNodeId = 0xF0000000;
 constexpr s32 InvalidProcessOrder = -1;
 constexpr u32 MaxBiquadFilters = 2;

@@ -1,8 +1,12 @@
-// SPDX-FileCopyrightText: Copyright 2020 suyu Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
+// SPDX-FileCopyrightText: Copyright 2020 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
 #pragma once
 
+#include <array>
 #include <exception>
 #include <limits>
 #include <memory>
@@ -11,6 +15,8 @@
 #include <type_traits>
 #include <utility>
 #include <vector>
+#include <vulkan/vulkan_core.h>
+#include <string>
 
 #include "common/common_types.h"
 #include "video_core/vulkan_common/vulkan.h"
@@ -141,6 +147,18 @@ inline VkResult Filter(VkResult result) {
     return result;
 }
 
+inline constexpr VkPipelineStageFlags PIPELINE_STAGE_GRAPHICS_COMPUTE =
+    VK_PIPELINE_STAGE_ALL_GRAPHICS_BIT | VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT;
+
+inline constexpr VkPipelineStageFlags PIPELINE_STAGE_GRAPHICS_COMPUTE_TRANSFER =
+    PIPELINE_STAGE_GRAPHICS_COMPUTE | VK_PIPELINE_STAGE_TRANSFER_BIT;
+
+inline constexpr VkPipelineStageFlags PIPELINE_STAGE_GRAPHICS_COMPUTE_TRANSFER_HOST =
+    PIPELINE_STAGE_GRAPHICS_COMPUTE_TRANSFER | VK_PIPELINE_STAGE_HOST_BIT;
+
+inline constexpr VkPipelineStageFlags PIPELINE_STAGE_HOST = VK_PIPELINE_STAGE_HOST_BIT;
+
+
 /// Table holding Vulkan instance function pointers.
 struct InstanceDispatch {
     PFN_vkGetInstanceProcAddr vkGetInstanceProcAddr{};
@@ -162,6 +180,7 @@ struct InstanceDispatch {
     PFN_vkGetDeviceProcAddr vkGetDeviceProcAddr{};
     PFN_vkGetPhysicalDeviceFeatures2 vkGetPhysicalDeviceFeatures2{};
     PFN_vkGetPhysicalDeviceFormatProperties vkGetPhysicalDeviceFormatProperties{};
+    PFN_vkGetPhysicalDeviceFormatProperties2 vkGetPhysicalDeviceFormatProperties2{};
     PFN_vkGetPhysicalDeviceMemoryProperties vkGetPhysicalDeviceMemoryProperties{};
     PFN_vkGetPhysicalDeviceMemoryProperties2 vkGetPhysicalDeviceMemoryProperties2{};
     PFN_vkGetPhysicalDeviceProperties vkGetPhysicalDeviceProperties{};
@@ -220,8 +239,10 @@ struct DeviceDispatch : InstanceDispatch {
     PFN_vkCmdEndTransformFeedbackEXT vkCmdEndTransformFeedbackEXT{};
     PFN_vkCmdFillBuffer vkCmdFillBuffer{};
     PFN_vkCmdPipelineBarrier vkCmdPipelineBarrier{};
+    PFN_vkCmdPipelineBarrier2 vkCmdPipelineBarrier2{};
     PFN_vkCmdPushConstants vkCmdPushConstants{};
     PFN_vkCmdPushDescriptorSetWithTemplateKHR vkCmdPushDescriptorSetWithTemplateKHR{};
+    PFN_vkCmdResetQueryPool vkCmdResetQueryPool{};
     PFN_vkCmdResolveImage vkCmdResolveImage{};
     PFN_vkCmdSetBlendConstants vkCmdSetBlendConstants{};
     PFN_vkCmdSetCullModeEXT vkCmdSetCullModeEXT{};
@@ -234,6 +255,12 @@ struct DeviceDispatch : InstanceDispatch {
     PFN_vkCmdSetDepthWriteEnableEXT vkCmdSetDepthWriteEnableEXT{};
     PFN_vkCmdSetPrimitiveRestartEnableEXT vkCmdSetPrimitiveRestartEnableEXT{};
     PFN_vkCmdSetRasterizerDiscardEnableEXT vkCmdSetRasterizerDiscardEnableEXT{};
+    PFN_vkCmdSetAlphaToCoverageEnableEXT vkCmdSetAlphaToCoverageEnableEXT{};
+    PFN_vkCmdSetAlphaToOneEnableEXT vkCmdSetAlphaToOneEnableEXT{};
+    PFN_vkCmdSetConservativeRasterizationModeEXT vkCmdSetConservativeRasterizationModeEXT{};
+    PFN_vkCmdSetLineRasterizationModeEXT vkCmdSetLineRasterizationModeEXT{};
+    PFN_vkCmdSetLineStippleEnableEXT vkCmdSetLineStippleEnableEXT{};
+    PFN_vkCmdSetLineStippleEXT vkCmdSetLineStippleEXT{};
     PFN_vkCmdSetDepthBiasEnableEXT vkCmdSetDepthBiasEnableEXT{};
     PFN_vkCmdSetLogicOpEnableEXT vkCmdSetLogicOpEnableEXT{};
     PFN_vkCmdSetDepthClampEnableEXT vkCmdSetDepthClampEnableEXT{};
@@ -252,6 +279,7 @@ struct DeviceDispatch : InstanceDispatch {
     PFN_vkCmdSetVertexInputEXT vkCmdSetVertexInputEXT{};
     PFN_vkCmdSetViewport vkCmdSetViewport{};
     PFN_vkCmdSetColorWriteMaskEXT vkCmdSetColorWriteMaskEXT{};
+    PFN_vkCmdSetColorWriteEnableEXT vkCmdSetColorWriteEnableEXT{};
     PFN_vkCmdSetColorBlendEnableEXT vkCmdSetColorBlendEnableEXT{};
     PFN_vkCmdSetColorBlendEquationEXT vkCmdSetColorBlendEquationEXT{};
     PFN_vkCmdWaitEvents vkCmdWaitEvents{};
@@ -317,6 +345,7 @@ struct DeviceDispatch : InstanceDispatch {
     PFN_vkGetSemaphoreCounterValue vkGetSemaphoreCounterValue{};
     PFN_vkMapMemory vkMapMemory{};
     PFN_vkQueueSubmit vkQueueSubmit{};
+    PFN_vkQueueSubmit2 vkQueueSubmit2{};
     PFN_vkResetFences vkResetFences{};
     PFN_vkResetQueryPool vkResetQueryPool{};
     PFN_vkSetDebugUtilsObjectNameEXT vkSetDebugUtilsObjectNameEXT{};
@@ -391,13 +420,13 @@ public:
 
     /// Construct a handle transferring the ownership from another handle.
     Handle(Handle&& rhs) noexcept
-        : handle{std::exchange(rhs.handle, nullptr)}, owner{rhs.owner}, dld{rhs.dld} {}
+        : handle{std::exchange(rhs.handle, Type{})}, owner{rhs.owner}, dld{rhs.dld} {}
 
     /// Assign the current handle transferring the ownership from another handle.
     /// Destroys any previously held object.
     Handle& operator=(Handle&& rhs) noexcept {
         Release();
-        handle = std::exchange(rhs.handle, nullptr);
+        handle = std::exchange(rhs.handle, Type{});
         owner = rhs.owner;
         dld = rhs.dld;
         return *this;
@@ -411,7 +440,7 @@ public:
     /// Destroys any held object.
     void reset() noexcept {
         Release();
-        handle = nullptr;
+        handle = Type{};
     }
 
     /// Returns the address of the held object.
@@ -427,11 +456,22 @@ public:
 
     /// Returns true when there's a held object.
     explicit operator bool() const noexcept {
-        return handle != nullptr;
+        return handle != Type{};
     }
 
+#ifndef __ANDROID__
+    /**
+     * Releases ownership of the managed handle.
+     * The caller is responsible for managing the lifetime of the returned handle.
+     * The Handle object becomes invalid after this call.
+     */
+    Type release() noexcept {
+        return std::exchange(handle, nullptr);
+    }
+#endif
+
 protected:
-    Type handle = nullptr;
+    Type handle{};
     OwnerType owner = nullptr;
     const Dispatch* dld = nullptr;
 
@@ -439,7 +479,7 @@ private:
     /// Destroys the held object if it exists.
     void Release() noexcept {
         if (handle) {
-            Destroy(owner, handle, *dld);
+            Destroy(OwnerType(owner), Type(handle), *dld);
         }
     }
 };
@@ -482,7 +522,7 @@ public:
     /// Destroys any held object.
     void reset() noexcept {
         Release();
-        handle = nullptr;
+        handle = {};
     }
 
     /// Returns the address of the held object.
@@ -497,12 +537,23 @@ public:
     }
 
     /// Returns true when there's a held object.
-    operator bool() const noexcept {
-        return handle != nullptr;
+    explicit operator bool() const noexcept {
+        return handle != Type{};
     }
 
+#ifndef __ANDROID__
+    /**
+     * Releases ownership of the managed handle.
+     * The caller is responsible for managing the lifetime of the returned handle.
+     * The Handle object becomes invalid after this call.
+     */
+    Type release() noexcept {
+        return std::exchange(handle, nullptr);
+    }
+#endif
+
 protected:
-    Type handle = nullptr;
+    Type handle{};
     const Dispatch* dld = nullptr;
 
 private:
@@ -572,7 +623,7 @@ private:
     std::unique_ptr<AllocationType[]> allocations;
     std::size_t num = 0;
     VkDevice device = nullptr;
-    PoolType pool = nullptr;
+    PoolType pool{};
     const DeviceDispatch* dld = nullptr;
 };
 
@@ -597,7 +648,7 @@ class Instance : public Handle<VkInstance, NoOwner, InstanceDispatch> {
 public:
     /// Creates a Vulkan instance.
     /// @throw Exception on initialization error.
-    static Instance Create(u32 version, Span<const char*> layers, Span<const char*> extensions,
+    [[nodiscard]] static Instance Create(u32 version, Span<const char*> layers, Span<const char*> extensions,
                            InstanceDispatch& dispatch);
 
     /// Enumerates physical devices.
@@ -607,12 +658,12 @@ public:
 
     /// Creates a debug callback messenger.
     /// @throw Exception on creation failure.
-    DebugUtilsMessenger CreateDebugUtilsMessenger(
+    [[nodiscard]] DebugUtilsMessenger CreateDebugUtilsMessenger(
         const VkDebugUtilsMessengerCreateInfoEXT& create_info) const;
 
     /// Creates a debug report callback.
     /// @throw Exception on creation failure.
-    DebugReportCallback CreateDebugReportCallback(
+    [[nodiscard]] DebugReportCallback CreateDebugReportCallback(
         const VkDebugReportCallbackCreateInfoEXT& create_info) const;
 
     /// Returns dispatch table.
@@ -634,12 +685,12 @@ public:
     Image& operator=(const Image&) = delete;
 
     Image(Image&& rhs) noexcept
-        : handle{std::exchange(rhs.handle, nullptr)}, usage{rhs.usage}, owner{rhs.owner},
+        : handle{std::exchange(rhs.handle, VkImage{})}, usage{rhs.usage}, owner{rhs.owner},
           allocator{rhs.allocator}, allocation{rhs.allocation}, dld{rhs.dld} {}
 
     Image& operator=(Image&& rhs) noexcept {
         Release();
-        handle = std::exchange(rhs.handle, nullptr);
+        handle = std::exchange(rhs.handle, VkImage{});
         usage = rhs.usage;
         owner = rhs.owner;
         allocator = rhs.allocator;
@@ -658,11 +709,11 @@ public:
 
     void reset() noexcept {
         Release();
-        handle = nullptr;
+        handle = VkImage{};
     }
 
     explicit operator bool() const noexcept {
-        return handle != nullptr;
+        return handle != VkImage{};
     }
 
     void SetObjectNameEXT(const char* name) const;
@@ -674,7 +725,7 @@ public:
 private:
     void Release() const noexcept;
 
-    VkImage handle = nullptr;
+    VkImage handle{};
     VkImageUsageFlags usage{};
     VkDevice owner = nullptr;
     VmaAllocator allocator = nullptr;
@@ -695,13 +746,13 @@ public:
     Buffer& operator=(const Buffer&) = delete;
 
     Buffer(Buffer&& rhs) noexcept
-        : handle{std::exchange(rhs.handle, nullptr)}, owner{rhs.owner}, allocator{rhs.allocator},
+        : handle{std::exchange(rhs.handle, VkBuffer{})}, owner{rhs.owner}, allocator{rhs.allocator},
           allocation{rhs.allocation}, mapped{rhs.mapped},
           is_coherent{rhs.is_coherent}, dld{rhs.dld} {}
 
     Buffer& operator=(Buffer&& rhs) noexcept {
         Release();
-        handle = std::exchange(rhs.handle, nullptr);
+        handle = std::exchange(rhs.handle, VkBuffer{});
         owner = rhs.owner;
         allocator = rhs.allocator;
         allocation = rhs.allocation;
@@ -721,11 +772,11 @@ public:
 
     void reset() noexcept {
         Release();
-        handle = nullptr;
+        handle = VkBuffer{};
     }
 
     explicit operator bool() const noexcept {
-        return handle != nullptr;
+        return handle != VkBuffer{};
     }
 
     /// Returns the host mapped memory, an empty span otherwise.
@@ -751,7 +802,7 @@ public:
 private:
     void Release() const noexcept;
 
-    VkBuffer handle = nullptr;
+    VkBuffer handle{};
     VkDevice owner = nullptr;
     VmaAllocator allocator = nullptr;
     VmaAllocation allocation = nullptr;
@@ -772,6 +823,12 @@ public:
     VkResult Submit(Span<VkSubmitInfo> submit_infos,
                     VkFence fence = VK_NULL_HANDLE) const noexcept {
         return dld->vkQueueSubmit(queue, submit_infos.size(), submit_infos.data(), fence);
+    }
+
+    /// Submits using VK_KHR_synchronization2 / Vulkan 1.3 vkQueueSubmit2.
+    VkResult Submit2(Span<VkSubmitInfo2> submit_infos,
+                     VkFence fence = VK_NULL_HANDLE) const noexcept {
+        return dld->vkQueueSubmit2(queue, submit_infos.size(), submit_infos.data(), fence);
     }
 
     VkResult Present(const VkPresentInfoKHR& present_info) const noexcept {
@@ -956,58 +1013,60 @@ class Device : public Handle<VkDevice, NoOwner, DeviceDispatch> {
     using Handle<VkDevice, NoOwner, DeviceDispatch>::Handle;
 
 public:
-    static Device Create(VkPhysicalDevice physical_device, Span<VkDeviceQueueCreateInfo> queues_ci,
-                         Span<const char*> enabled_extensions, const void* next,
-                         DeviceDispatch& dispatch);
+    [[nodiscard]] static Device Create(VkPhysicalDevice physical_device,
+                                       Span<VkDeviceQueueCreateInfo> queues_ci,
+                                       Span<const char*> enabled_extensions, const void* next,
+                                       DeviceDispatch& dispatch);
 
-    Queue GetQueue(u32 family_index) const noexcept;
+    [[nodiscard]] Queue GetQueue(u32 family_index) const noexcept;
 
-    BufferView CreateBufferView(const VkBufferViewCreateInfo& ci) const;
+    [[nodiscard]] BufferView CreateBufferView(const VkBufferViewCreateInfo& ci) const;
 
-    ImageView CreateImageView(const VkImageViewCreateInfo& ci) const;
+    [[nodiscard]] ImageView CreateImageView(const VkImageViewCreateInfo& ci) const;
 
-    Semaphore CreateSemaphore() const;
+    [[nodiscard]] Semaphore CreateSemaphore() const;
 
-    Semaphore CreateSemaphore(const VkSemaphoreCreateInfo& ci) const;
+    [[nodiscard]] Semaphore CreateSemaphore(const VkSemaphoreCreateInfo& ci) const;
 
-    Fence CreateFence(const VkFenceCreateInfo& ci) const;
+    [[nodiscard]] Fence CreateFence(const VkFenceCreateInfo& ci) const;
 
-    DescriptorPool CreateDescriptorPool(const VkDescriptorPoolCreateInfo& ci) const;
+    [[nodiscard]] DescriptorPool CreateDescriptorPool(const VkDescriptorPoolCreateInfo& ci) const;
 
-    RenderPass CreateRenderPass(const VkRenderPassCreateInfo& ci) const;
+    [[nodiscard]] RenderPass CreateRenderPass(const VkRenderPassCreateInfo& ci) const;
 
-    DescriptorSetLayout CreateDescriptorSetLayout(const VkDescriptorSetLayoutCreateInfo& ci) const;
+    [[nodiscard]] DescriptorSetLayout CreateDescriptorSetLayout(
+        const VkDescriptorSetLayoutCreateInfo& ci) const;
 
-    PipelineCache CreatePipelineCache(const VkPipelineCacheCreateInfo& ci) const;
+    [[nodiscard]] PipelineCache CreatePipelineCache(const VkPipelineCacheCreateInfo& ci) const;
 
-    PipelineLayout CreatePipelineLayout(const VkPipelineLayoutCreateInfo& ci) const;
+    [[nodiscard]] PipelineLayout CreatePipelineLayout(const VkPipelineLayoutCreateInfo& ci) const;
 
-    Pipeline CreateGraphicsPipeline(const VkGraphicsPipelineCreateInfo& ci,
-                                    VkPipelineCache cache = nullptr) const;
+    [[nodiscard]] Pipeline CreateGraphicsPipeline(const VkGraphicsPipelineCreateInfo& ci,
+                                                  VkPipelineCache cache = {}) const;
 
-    Pipeline CreateComputePipeline(const VkComputePipelineCreateInfo& ci,
-                                   VkPipelineCache cache = nullptr) const;
+    [[nodiscard]] Pipeline CreateComputePipeline(const VkComputePipelineCreateInfo& ci,
+                                                 VkPipelineCache cache = {}) const;
 
-    Sampler CreateSampler(const VkSamplerCreateInfo& ci) const;
+    [[nodiscard]] Sampler CreateSampler(const VkSamplerCreateInfo& ci) const;
 
-    Framebuffer CreateFramebuffer(const VkFramebufferCreateInfo& ci) const;
+    [[nodiscard]] Framebuffer CreateFramebuffer(const VkFramebufferCreateInfo& ci) const;
 
-    CommandPool CreateCommandPool(const VkCommandPoolCreateInfo& ci) const;
+    [[nodiscard]] CommandPool CreateCommandPool(const VkCommandPoolCreateInfo& ci) const;
 
-    DescriptorUpdateTemplate CreateDescriptorUpdateTemplate(
+    [[nodiscard]] DescriptorUpdateTemplate CreateDescriptorUpdateTemplate(
         const VkDescriptorUpdateTemplateCreateInfo& ci) const;
 
-    QueryPool CreateQueryPool(const VkQueryPoolCreateInfo& ci) const;
+    [[nodiscard]] QueryPool CreateQueryPool(const VkQueryPoolCreateInfo& ci) const;
 
-    ShaderModule CreateShaderModule(const VkShaderModuleCreateInfo& ci) const;
+    [[nodiscard]] ShaderModule CreateShaderModule(const VkShaderModuleCreateInfo& ci) const;
 
-    Event CreateEvent() const;
+    [[nodiscard]] Event CreateEvent() const;
 
-    SwapchainKHR CreateSwapchainKHR(const VkSwapchainCreateInfoKHR& ci) const;
+    [[nodiscard]] SwapchainKHR CreateSwapchainKHR(const VkSwapchainCreateInfoKHR& ci) const;
 
-    DeviceMemory TryAllocateMemory(const VkMemoryAllocateInfo& ai) const noexcept;
+    [[nodiscard]] DeviceMemory TryAllocateMemory(const VkMemoryAllocateInfo& ai) const noexcept;
 
-    DeviceMemory AllocateMemory(const VkMemoryAllocateInfo& ai) const;
+    [[nodiscard]] DeviceMemory AllocateMemory(const VkMemoryAllocateInfo& ai) const;
 
     VkMemoryRequirements GetBufferMemoryRequirements(VkBuffer buffer,
                                                      void* pnext = nullptr) const noexcept;
@@ -1072,6 +1131,8 @@ public:
 
     VkFormatProperties GetFormatProperties(VkFormat) const noexcept;
 
+    VkFormatProperties3 GetFormatProperties3(VkFormat) const noexcept;
+
     std::vector<VkExtensionProperties> EnumerateDeviceExtensionProperties() const;
 
     std::vector<VkQueueFamilyProperties> GetQueueFamilyProperties() const;
@@ -1108,7 +1169,6 @@ public:
     VkCommandBuffer operator*() const noexcept {
         return handle;
     }
-
     void Begin(const VkCommandBufferBeginInfo& begin_info) const {
         Check(dld->vkBeginCommandBuffer(handle, &begin_info));
     }
@@ -1132,6 +1192,10 @@ public:
 
     void EndQuery(VkQueryPool query_pool, u32 query) const noexcept {
         dld->vkCmdEndQuery(handle, query_pool, query);
+    }
+
+    void ResetQueryPool(VkQueryPool query_pool, u32 first, u32 count) const noexcept {
+        dld->vkCmdResetQueryPool(handle, query_pool, first, count);
     }
 
     void BindDescriptorSets(VkPipelineBindPoint bind_point, VkPipelineLayout layout, u32 first,
@@ -1241,6 +1305,72 @@ public:
                          VkDependencyFlags dependency_flags, Span<VkMemoryBarrier> memory_barriers,
                          Span<VkBufferMemoryBarrier> buffer_barriers,
                          Span<VkImageMemoryBarrier> image_barriers) const noexcept {
+        static constexpr u32 MaxBarriers = 16;
+        if (dld->vkCmdPipelineBarrier2 && memory_barriers.size() <= MaxBarriers &&
+            buffer_barriers.size() <= MaxBarriers && image_barriers.size() <= MaxBarriers) {
+            const auto src_stage_mask2 = static_cast<VkPipelineStageFlags2>(src_stage_mask);
+            const auto dst_stage_mask2 = static_cast<VkPipelineStageFlags2>(dst_stage_mask);
+
+            std::array<VkMemoryBarrier2, MaxBarriers> memory_barriers2;
+            for (u32 i = 0; i < memory_barriers.size(); ++i) {
+                memory_barriers2[i] = VkMemoryBarrier2{
+                    .sType = VK_STRUCTURE_TYPE_MEMORY_BARRIER_2,
+                    .pNext = nullptr,
+                    .srcStageMask = src_stage_mask2,
+                    .srcAccessMask = static_cast<VkAccessFlags2>(memory_barriers[i].srcAccessMask),
+                    .dstStageMask = dst_stage_mask2,
+                    .dstAccessMask = static_cast<VkAccessFlags2>(memory_barriers[i].dstAccessMask),
+                };
+            }
+            std::array<VkBufferMemoryBarrier2, MaxBarriers> buffer_barriers2;
+            for (u32 i = 0; i < buffer_barriers.size(); ++i) {
+                const auto& barrier = buffer_barriers[i];
+                buffer_barriers2[i] = VkBufferMemoryBarrier2{
+                    .sType = VK_STRUCTURE_TYPE_BUFFER_MEMORY_BARRIER_2,
+                    .pNext = nullptr,
+                    .srcStageMask = src_stage_mask2,
+                    .srcAccessMask = static_cast<VkAccessFlags2>(barrier.srcAccessMask),
+                    .dstStageMask = dst_stage_mask2,
+                    .dstAccessMask = static_cast<VkAccessFlags2>(barrier.dstAccessMask),
+                    .srcQueueFamilyIndex = barrier.srcQueueFamilyIndex,
+                    .dstQueueFamilyIndex = barrier.dstQueueFamilyIndex,
+                    .buffer = barrier.buffer,
+                    .offset = barrier.offset,
+                    .size = barrier.size,
+                };
+            }
+            std::array<VkImageMemoryBarrier2, MaxBarriers> image_barriers2;
+            for (u32 i = 0; i < image_barriers.size(); ++i) {
+                const auto& barrier = image_barriers[i];
+                image_barriers2[i] = VkImageMemoryBarrier2{
+                    .sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER_2,
+                    .pNext = nullptr,
+                    .srcStageMask = src_stage_mask2,
+                    .srcAccessMask = static_cast<VkAccessFlags2>(barrier.srcAccessMask),
+                    .dstStageMask = dst_stage_mask2,
+                    .dstAccessMask = static_cast<VkAccessFlags2>(barrier.dstAccessMask),
+                    .oldLayout = barrier.oldLayout,
+                    .newLayout = barrier.newLayout,
+                    .srcQueueFamilyIndex = barrier.srcQueueFamilyIndex,
+                    .dstQueueFamilyIndex = barrier.dstQueueFamilyIndex,
+                    .image = barrier.image,
+                    .subresourceRange = barrier.subresourceRange,
+                };
+            }
+            const VkDependencyInfo dependency_info{
+                .sType = VK_STRUCTURE_TYPE_DEPENDENCY_INFO,
+                .pNext = nullptr,
+                .dependencyFlags = dependency_flags,
+                .memoryBarrierCount = memory_barriers.size(),
+                .pMemoryBarriers = memory_barriers2.data(),
+                .bufferMemoryBarrierCount = buffer_barriers.size(),
+                .pBufferMemoryBarriers = buffer_barriers2.data(),
+                .imageMemoryBarrierCount = image_barriers.size(),
+                .pImageMemoryBarriers = image_barriers2.data(),
+            };
+            dld->vkCmdPipelineBarrier2(handle, &dependency_info);
+            return;
+        }
         dld->vkCmdPipelineBarrier(handle, src_stage_mask, dst_stage_mask, dependency_flags,
                                   memory_barriers.size(), memory_barriers.data(),
                                   buffer_barriers.size(), buffer_barriers.data(),
@@ -1311,10 +1441,9 @@ public:
     }
 
     template <typename T>
-    void PushConstants(VkPipelineLayout layout, VkShaderStageFlags flags,
-                       const T& data) const noexcept {
-        static_assert(std::is_trivially_copyable_v<T>, "<data> is not trivially copyable");
-        dld->vkCmdPushConstants(handle, layout, flags, 0, static_cast<u32>(sizeof(T)), &data);
+        requires std::is_trivially_copyable_v<T>
+    void PushConstants(VkPipelineLayout layout, VkShaderStageFlags flags, const T& data) const noexcept {
+        dld->vkCmdPushConstants(handle, layout, flags, 0, u32(sizeof(T)), std::addressof(data));
     }
 
     void SetViewport(u32 first, Span<VkViewport> viewports) const noexcept {
@@ -1409,12 +1538,40 @@ public:
         dld->vkCmdSetRasterizerDiscardEnableEXT(handle, enable ? VK_TRUE : VK_FALSE);
     }
 
+    void SetConservativeRasterizationModeEXT(VkConservativeRasterizationModeEXT mode) const noexcept
+    {
+        dld->vkCmdSetConservativeRasterizationModeEXT(handle, mode);
+    }
+
+    void SetLineRasterizationModeEXT(VkLineRasterizationModeEXT mode) const noexcept
+    {
+        dld->vkCmdSetLineRasterizationModeEXT(handle, mode);
+    }
+
+    void SetLineStippleEnableEXT(bool enable) const noexcept
+    {
+        dld->vkCmdSetLineStippleEnableEXT(handle, enable ? VK_TRUE : VK_FALSE);
+    }
+
+    void SetLineStippleEXT(u32 factor, u16 pattern) const noexcept
+    {
+        dld->vkCmdSetLineStippleEXT(handle, factor, pattern);
+    }
+
     void SetDepthBiasEnableEXT(bool enable) const noexcept {
         dld->vkCmdSetDepthBiasEnableEXT(handle, enable ? VK_TRUE : VK_FALSE);
     }
 
     void SetLogicOpEnableEXT(bool enable) const noexcept {
         dld->vkCmdSetLogicOpEnableEXT(handle, enable ? VK_TRUE : VK_FALSE);
+    }
+
+    void SetAlphaToCoverageEnableEXT(bool enable) const noexcept {
+        dld->vkCmdSetAlphaToCoverageEnableEXT(handle, enable ? VK_TRUE : VK_FALSE);
+    }
+
+    void SetAlphaToOneEnableEXT(bool enable) const noexcept {
+        dld->vkCmdSetAlphaToOneEnableEXT(handle, enable ? VK_TRUE : VK_FALSE);
     }
 
     void SetDepthClampEnableEXT(bool enable) const noexcept {
@@ -1435,6 +1592,10 @@ public:
 
     void SetColorWriteMaskEXT(u32 first, Span<VkColorComponentFlags> masks) const noexcept {
         dld->vkCmdSetColorWriteMaskEXT(handle, first, masks.size(), masks.data());
+    }
+
+    void SetColorWriteEnableEXT(Span<VkBool32> enables) const noexcept {
+        dld->vkCmdSetColorWriteEnableEXT(handle, enables.size(), enables.data());
     }
 
     void SetColorBlendEnableEXT(u32 first, Span<VkBool32> enables) const noexcept {
@@ -1525,5 +1686,7 @@ std::optional<std::vector<VkExtensionProperties>> EnumerateInstanceExtensionProp
 
 std::optional<std::vector<VkLayerProperties>> EnumerateInstanceLayerProperties(
     const InstanceDispatch& dld);
+
+std::string GetDriverName(VkPhysicalDeviceDriverProperties driver);
 
 } // namespace Vulkan::vk

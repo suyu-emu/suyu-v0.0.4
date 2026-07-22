@@ -1,8 +1,15 @@
-# SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+# SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 cmake_minimum_required(VERSION 3.12)
-project(dynarmic LANGUAGES C CXX ASM VERSION 6.7.0)
+
+set(dynarmic_VERSION_MAJOR 7)
+set(dynarmic_VERSION_MINOR 0)
+set(dynarmic_VERSION_PATCH 0)
+
+set(dynarmic_VERSION ${dynarmic_VERSION_MAJOR}.${dynarmic_VERSION_MINOR}.${dynarmic_VERSION_PATCH})
+
+project(dynarmic LANGUAGES C CXX ASM VERSION ${dynarmic_VERSION})
 
 # Determine if we're built as a subproject (using add_subdirectory)
 # or if this is the master project.
@@ -18,21 +25,19 @@ endif()
 # Dynarmic project options
 option(DYNARMIC_ENABLE_CPU_FEATURE_DETECTION "Turning this off causes dynarmic to assume the host CPU doesn't support anything later than SSE3" ON)
 
-option(DYNARMIC_ENABLE_NO_EXECUTE_SUPPORT "Enables support for systems that require W^X" ${PLATFORM_OPENBSD})
+if (PLATFORM_OPENBSD OR PLATFORM_DRAGONFLY OR PLATFORM_NETBSD)
+    set(REQUIRE_WX ON)
+else()
+    set(REQUIRE_WX OFF)
+endif()
+option(DYNARMIC_ENABLE_NO_EXECUTE_SUPPORT "Enables support for systems that require W^X" ${REQUIRE_WX})
 
-option(DYNARMIC_IGNORE_ASSERTS "Ignore asserts" OFF)
+option(DYNARMIC_IGNORE_ASSERTS "Ignore asserts" ON)
 option(DYNARMIC_TESTS_USE_UNICORN "Enable fuzzing tests against unicorn" OFF)
 CMAKE_DEPENDENT_OPTION(DYNARMIC_USE_LLVM "Support disassembly of jitted x86_64 code using LLVM" OFF "NOT YUZU_DISABLE_LLVM" OFF)
 
 option(DYNARMIC_INSTALL "Install dynarmic headers and CMake files" OFF)
 option(DYNARMIC_USE_BUNDLED_EXTERNALS "Use all bundled externals (useful when e.g. cross-compiling)" OFF)
-option(DYNARMIC_ENABLE_LTO "Enable LTO" OFF)
-
-# Default to a Release build
-if (NOT CMAKE_BUILD_TYPE)
-    set(CMAKE_BUILD_TYPE "Release" CACHE STRING "Choose the type of build, options are: Debug Release RelWithDebInfo MinSizeRel." FORCE)
-    message(STATUS "Defaulting to a Release build")
-endif()
 
 # Set hard requirements for C++
 set(CMAKE_CXX_STANDARD 20)
@@ -47,14 +52,7 @@ if ("${CMAKE_SOURCE_DIR}" STREQUAL "${CMAKE_BINARY_DIR}")
 endif()
 
 # Add the module directory to the list of paths
-list(APPEND CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/CMakeModules")
-
-# Arch detection
-include(DetectArchitecture)
-if (NOT DEFINED ARCHITECTURE)
-    message(FATAL_ERROR "Unsupported architecture encountered. Ending CMake generation.")
-endif()
-message(STATUS "Target architecture: ${ARCHITECTURE}")
+list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/CMakeModules")
 
 # Compiler flags
 if (MSVC)
@@ -80,12 +78,9 @@ if (MSVC)
         /Zc:throwingNew     # Assumes new (without std::nothrow) never returns null.
         /volatile:iso       # Use strict standard-abiding volatile semantics
         /bigobj             # Increase number of sections in .obj files
-        /DNOMINMAX)
-
-    if (WIN32 AND (CMAKE_BUILD_TYPE STREQUAL "Debug" OR CMAKE_BUILD_TYPE STREQUAL "RelWithDebInfo"))
-        string(REPLACE "/Zi" "/Z7" CMAKE_CXX_FLAGS_RELWITHDEBINFO "${CMAKE_CXX_FLAGS_RELWITHDEBINFO}")
-        string(REPLACE "/Zi" "/Z7" CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG}")
-   endif()
+        /DNOMINMAX
+        /GR-
+    )
 
     if (CXX_CLANG)
         list(APPEND DYNARMIC_CXX_FLAGS
@@ -98,8 +93,10 @@ else()
         -Wextra
         -Wcast-qual
         -pedantic
-        -Wno-missing-braces)
-
+        -Wno-missing-braces
+        -fno-rtti
+        #-fno-exceptions
+    )
     if (CXX_GCC)
         # GCC produces bogus -Warray-bounds warnings from xbyak headers for code paths that are not
         # actually reachable.  Specifically, it happens in cases where some code casts an Operand&
@@ -109,7 +106,6 @@ else()
         list(APPEND DYNARMIC_CXX_FLAGS -Wno-array-bounds)
         list(APPEND DYNARMIC_CXX_FLAGS -Wstack-usage=4096)
     endif()
-
     if (CXX_CLANG)
         # Bracket depth determines maximum size of a fold expression in Clang since 9c9974c3ccb6.
         # And this in turns limits the size of a std::array.
@@ -119,20 +115,23 @@ else()
     endif()
 endif()
 
-find_package(Boost 1.57 REQUIRED)
-find_package(fmt 9 CONFIG)
+if (NOT Boost_FOUND)
+    find_package(Boost 1.57 REQUIRED)
+endif()
 
-# Pull in externals CMakeLists for libs where available
-add_subdirectory(externals)
-
-find_package(mcl 0.1.12 REQUIRED)
+find_package(fmt 8 CONFIG)
+find_package(unordered_dense REQUIRED)
 
 if ("arm64" IN_LIST ARCHITECTURE OR DYNARMIC_TESTS)
     find_package(oaknut 2.0.1 CONFIG)
 endif()
 
-if ("riscv" IN_LIST ARCHITECTURE)
+if ("riscv64" IN_LIST ARCHITECTURE)
     find_package(biscuit 0.9.1 REQUIRED)
+endif()
+
+if ("loongarch64" IN_LIST ARCHITECTURE)
+    find_package(lagoon REQUIRED)
 endif()
 
 if ("x86_64" IN_LIST ARCHITECTURE)

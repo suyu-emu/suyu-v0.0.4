@@ -11,7 +11,6 @@
 #include "common/common_types.h"
 #include "core/frontend/framebuffer_layout.h"
 #include "video_core/gpu.h"
-#include "video_core/optimized_rasterizer.h"
 #include "video_core/rasterizer_interface.h"
 
 namespace Core::Frontend {
@@ -31,8 +30,8 @@ struct RendererSettings {
 
 class RendererBase {
 public:
-    SUYU_NON_COPYABLE(RendererBase);
-    SUYU_NON_MOVEABLE(RendererBase);
+    YUZU_NON_COPYABLE(RendererBase);
+    YUZU_NON_MOVEABLE(RendererBase);
 
     explicit RendererBase(Core::Frontend::EmuWindow& window,
                           std::unique_ptr<Core::Frontend::GraphicsContext> context);
@@ -45,8 +44,6 @@ public:
     virtual std::vector<u8> GetAppletCaptureBuffer() = 0;
 
     [[nodiscard]] virtual RasterizerInterface* ReadRasterizer() = 0;
-
-    [[nodiscard]] virtual OptimizedRasterizer* ReadOptimizedRasterizer() = 0;
 
     [[nodiscard]] virtual std::string GetDeviceVendor() const = 0;
 

@@ -1,9 +1,13 @@
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2021 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
 #include <algorithm>
 #include <fmt/ranges.h>
 
+#include "common/assert.h"
 #include "hid_core/frontend/emulated_devices.h"
 #include "hid_core/frontend/input_converter.h"
 
@@ -467,17 +471,15 @@ void EmulatedDevices::TriggerOnChange(DeviceTriggerType type) {
 
 int EmulatedDevices::SetCallback(InterfaceUpdateCallback update_callback) {
     std::scoped_lock lock{callback_mutex};
+    ++last_callback_key;
     callback_list.insert_or_assign(last_callback_key, std::move(update_callback));
-    return last_callback_key++;
+    return last_callback_key;
 }
 
 void EmulatedDevices::DeleteCallback(int key) {
     std::scoped_lock lock{callback_mutex};
-    const auto& iterator = callback_list.find(key);
-    if (iterator == callback_list.end()) {
-        LOG_ERROR(Input, "Tried to delete non-existent callback {}", key);
-        return;
-    }
-    callback_list.erase(iterator);
+    auto const it = callback_list.find(key);
+    ASSERT_MSG(it != callback_list.end(), "Tried to delete non-existent callback {}", key);
+    callback_list.erase(it);
 }
 } // namespace Core::HID

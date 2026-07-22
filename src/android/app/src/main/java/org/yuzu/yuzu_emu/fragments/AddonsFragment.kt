@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 package org.yuzu.yuzu_emu.fragments
@@ -15,11 +15,9 @@ import androidx.core.view.updatePadding
 import androidx.documentfile.provider.DocumentFile
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
-import androidx.navigation.findNavController
 import androidx.navigation.fragment.navArgs
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.google.android.material.transition.MaterialSharedAxis
-import kotlinx.coroutines.launch
 import org.yuzu.yuzu_emu.R
 import org.yuzu.yuzu_emu.adapters.AddonAdapter
 import org.yuzu.yuzu_emu.databinding.FragmentAddonsBinding
@@ -27,6 +25,7 @@ import org.yuzu.yuzu_emu.model.AddonViewModel
 import org.yuzu.yuzu_emu.model.HomeViewModel
 import org.yuzu.yuzu_emu.utils.AddonUtil
 import org.yuzu.yuzu_emu.utils.FileUtil.copyFilesTo
+import org.yuzu.yuzu_emu.utils.InstallableActions
 import org.yuzu.yuzu_emu.utils.ViewUtils.updateMargins
 import org.yuzu.yuzu_emu.utils.collect
 import java.io.File
@@ -42,7 +41,7 @@ class AddonsFragment : Fragment() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        addonViewModel.onOpenAddons(args.game)
+        addonViewModel.onAddonsViewCreated(args.game)
         enterTransition = MaterialSharedAxis(MaterialSharedAxis.X, true)
         returnTransition = MaterialSharedAxis(MaterialSharedAxis.X, false)
         reenterTransition = MaterialSharedAxis(MaterialSharedAxis.X, false)
@@ -62,7 +61,7 @@ class AddonsFragment : Fragment() {
         homeViewModel.setStatusBarShadeVisibility(false)
 
         binding.toolbarAddons.setNavigationOnClickListener {
-            binding.root.findNavController().popBackStack()
+            requireActivity().onBackPressedDispatcher.onBackPressed()
         }
 
         binding.toolbarAddons.title = getString(R.string.addons_game, args.game.title)
@@ -109,6 +108,12 @@ class AddonsFragment : Fragment() {
                 ).show(parentFragmentManager, MessageDialogFragment.TAG)
             }
         }
+        parentFragmentManager.setFragmentResultListener(
+            ContentTypeSelectionDialogFragment.REQUEST_INSTALL_GAME_UPDATE,
+            viewLifecycleOwner
+        ) { _, _ ->
+            installGameUpdate.launch(arrayOf("*/*"))
+        }
 
         binding.buttonInstall.setOnClickListener {
             ContentTypeSelectionDialogFragment().show(
@@ -122,15 +127,17 @@ class AddonsFragment : Fragment() {
 
     override fun onResume() {
         super.onResume()
-        addonViewModel.refreshAddons()
+        addonViewModel.onAddonsViewStarted(args.game)
     }
 
     override fun onDestroy() {
+        if (activity?.isChangingConfigurations != true) {
+            addonViewModel.onCloseAddons()
+        }
         super.onDestroy()
-        addonViewModel.onCloseAddons()
     }
 
-    val installAddon =
+    private val installAddon =
         registerForActivityResult(ActivityResultContracts.OpenDocumentTree()) { result ->
             if (result == null) {
                 return@registerForActivityResult
@@ -167,12 +174,23 @@ class AddonsFragment : Fragment() {
                     } catch (_: Exception) {
                         return@newInstance errorMessage
                     }
-                    addonViewModel.refreshAddons()
+                    addonViewModel.refreshAddons(force = true)
                     return@newInstance getString(R.string.addon_installed_successfully)
                 }.show(parentFragmentManager, ProgressDialogFragment.TAG)
             } else {
                 errorMessage.show(parentFragmentManager, MessageDialogFragment.TAG)
             }
+        }
+
+    private val installGameUpdate =
+        registerForActivityResult(ActivityResultContracts.OpenMultipleDocuments()) { documents ->
+            InstallableActions.verifyAndInstallContent(
+                activity = requireActivity(),
+                fragmentManager = parentFragmentManager,
+                addonViewModel = addonViewModel,
+                documents = documents,
+                programId = args.game.programId
+            )
         }
 
     private fun setInsets() =

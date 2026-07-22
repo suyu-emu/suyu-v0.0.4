@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2023 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -43,17 +46,31 @@ struct FileSystemAttribute {
     u8 file_entry_name_length_max_defined;
     u8 dir_path_name_length_max_defined;
     u8 file_path_name_length_max_defined;
-    INSERT_PADDING_BYTES_NOINIT(0x5);
+
+    u8 utf16_create_dir_path_len_max_defined;
+    u8 utf16_delete_dir_path_len_max_defined;
+    u8 utf16_rename_src_dir_path_len_max_defined;
+    u8 utf16_rename_dest_dir_path_len_max_defined;
+    u8 utf16_open_dir_path_len_max_defined;
+
     u8 utf16_dir_entry_name_length_max_defined;
     u8 utf16_file_entry_name_length_max_defined;
     u8 utf16_dir_path_name_length_max_defined;
     u8 utf16_file_path_name_length_max_defined;
+
     INSERT_PADDING_BYTES_NOINIT(0x18);
+
     s32 dir_entry_name_length_max;
     s32 file_entry_name_length_max;
     s32 dir_path_name_length_max;
     s32 file_path_name_length_max;
-    INSERT_PADDING_WORDS_NOINIT(0x5);
+
+    s32 utf16_create_dir_path_length_max;
+    s32 utf16_delete_dir_path_length_max;
+    s32 utf16_rename_src_dir_path_length_max;
+    s32 utf16_rename_dest_dir_path_length_max;
+    s32 utf16_open_dir_path_length_max;
+
     s32 utf16_dir_entry_name_length_max;
     s32 utf16_file_entry_name_length_max;
     s32 utf16_dir_path_name_length_max;

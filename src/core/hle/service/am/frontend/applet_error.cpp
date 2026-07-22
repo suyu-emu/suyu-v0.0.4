@@ -1,10 +1,13 @@
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2019 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
 #include <array>
 #include <cstring>
 #include "common/assert.h"
-#include "common/logging/log.h"
+#include "common/logging.h"
 #include "common/string_util.h"
 #include "core/core.h"
 #include "core/frontend/applets/error.h"
@@ -93,7 +96,7 @@ union Error::ErrorArguments {
 
 namespace {
 template <typename T>
-void CopyArgumentData(const std::vector<u8>& data, T& variable) {
+void CopyArgumentData(std::span<const u8> data, T& variable) {
     ASSERT(data.size() >= sizeof(T));
     std::memcpy(&variable, data.data(), sizeof(T));
 }

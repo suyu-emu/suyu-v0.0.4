@@ -1,9 +1,13 @@
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2021 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
 #include <algorithm>
 #include <array>
 #include <vector>
+#include <boost/container/small_vector.hpp>
 
 #include "common/assert.h"
 #include "shader_recompiler/frontend/maxwell/control_flow.h"
@@ -16,6 +20,7 @@
 #include "video_core/memory_manager.h"
 #include "video_core/shader_cache.h"
 #include "video_core/shader_environment.h"
+#include "video_core/texture_cache/util.h"
 
 namespace VideoCommon {
 
@@ -127,8 +132,8 @@ void ShaderCache::Register(std::unique_ptr<ShaderInfo> data, VAddr addr, size_t 
     const VAddr addr_end = addr + size;
     Entry* const entry = NewEntry(addr, addr_end, data.get());
 
-    const u64 page_end = (addr_end + SUYU_PAGESIZE - 1) >> SUYU_PAGEBITS;
-    for (u64 page = addr >> SUYU_PAGEBITS; page < page_end; ++page) {
+    const u64 page_end = (addr_end + YUZU_PAGESIZE - 1) >> YUZU_PAGEBITS;
+    for (u64 page = addr >> YUZU_PAGEBITS; page < page_end; ++page) {
         invalidation_cache[page].push_back(entry);
     }
 
@@ -139,8 +144,8 @@ void ShaderCache::Register(std::unique_ptr<ShaderInfo> data, VAddr addr, size_t 
 
 void ShaderCache::InvalidatePagesInRegion(VAddr addr, size_t size) {
     const VAddr addr_end = addr + size;
-    const u64 page_end = (addr_end + SUYU_PAGESIZE - 1) >> SUYU_PAGEBITS;
-    for (u64 page = addr >> SUYU_PAGEBITS; page < page_end; ++page) {
+    const u64 page_end = (addr_end + YUZU_PAGESIZE - 1) >> YUZU_PAGEBITS;
+    for (u64 page = addr >> YUZU_PAGEBITS; page < page_end; ++page) {
         auto it = invalidation_cache.find(page);
         if (it == invalidation_cache.end()) {
             continue;
@@ -157,21 +162,22 @@ void ShaderCache::RemovePendingShaders() {
     std::ranges::sort(marked_for_removal);
     marked_for_removal.erase(std::unique(marked_for_removal.begin(), marked_for_removal.end()),
                              marked_for_removal.end());
-
+    // Linear growth anyways - maybe consider static_vector instead?
     boost::container::small_vector<ShaderInfo*, 16> removed_shaders;
-
     std::scoped_lock lock{lookup_mutex};
     for (Entry* const entry : marked_for_removal) {
         removed_shaders.push_back(entry->data);
-
-        const auto it = lookup_cache.find(entry->addr_start);
+        auto const it = lookup_cache.find(entry->addr_start);
         ASSERT(it != lookup_cache.end());
         lookup_cache.erase(it);
     }
     marked_for_removal.clear();
 
     if (!removed_shaders.empty()) {
-        RemoveShadersFromStorage(removed_shaders);
+        // Remove the given shaders from the cache
+        std::erase_if(storage, [&removed_shaders](const std::unique_ptr<ShaderInfo>& shader) {
+            return std::ranges::find(removed_shaders, shader.get()) != removed_shaders.end();
+        });
     }
 }
 
@@ -191,8 +197,8 @@ void ShaderCache::InvalidatePageEntries(std::vector<Entry*>& entries, VAddr addr
 }
 
 void ShaderCache::RemoveEntryFromInvalidationCache(const Entry* entry) {
-    const u64 page_end = (entry->addr_end + SUYU_PAGESIZE - 1) >> SUYU_PAGEBITS;
-    for (u64 page = entry->addr_start >> SUYU_PAGEBITS; page < page_end; ++page) {
+    const u64 page_end = (entry->addr_end + YUZU_PAGESIZE - 1) >> YUZU_PAGEBITS;
+    for (u64 page = entry->addr_start >> YUZU_PAGEBITS; page < page_end; ++page) {
         const auto entries_it = invalidation_cache.find(page);
         ASSERT(entries_it != invalidation_cache.end());
         std::vector<Entry*>& entries = entries_it->second;
@@ -212,13 +218,6 @@ void ShaderCache::UnmarkMemory(Entry* entry) {
     const VAddr addr = entry->addr_start;
     const size_t size = entry->addr_end - addr;
     device_memory.UpdatePagesCachedCount(addr, size, -1);
-}
-
-void ShaderCache::RemoveShadersFromStorage(std::span<ShaderInfo*> removed_shaders) {
-    // Remove them from the cache
-    std::erase_if(storage, [&removed_shaders](const std::unique_ptr<ShaderInfo>& shader) {
-        return std::ranges::find(removed_shaders, shader.get()) != removed_shaders.end();
-    });
 }
 
 ShaderCache::Entry* ShaderCache::NewEntry(VAddr addr, VAddr addr_end, ShaderInfo* data) {

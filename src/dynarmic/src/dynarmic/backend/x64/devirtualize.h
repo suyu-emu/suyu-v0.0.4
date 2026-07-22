@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 /* This file is part of the dynarmic project.
@@ -12,8 +12,8 @@
 #include <utility>
 
 #include <bit>
-#include "dynarmic/common/common_types.h"
-#include <mcl/type_traits/function_info.hpp>
+#include "common/common_types.h"
+#include "dynarmic/mcl/function_info.hpp"
 
 #include "dynarmic/backend/x64/callback.h"
 
@@ -75,7 +75,7 @@ ArgCallback DevirtualizeItanium(mcl::class_type<decltype(mfp)>* this_) {
 
 template<auto mfp>
 ArgCallback Devirtualize(mcl::class_type<decltype(mfp)>* this_) {
-#if defined(__APPLE__) || defined(linux) || defined(__linux) || defined(__linux__)
+#if defined(__APPLE__) || defined(__linux__)
     return DevirtualizeItanium<mfp>(this_);
 #elif defined(__MINGW64__)
     return DevirtualizeItanium<mfp>(this_);

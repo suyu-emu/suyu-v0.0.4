@@ -1,15 +1,18 @@
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2021 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
 #ifdef _WIN32
 
 #include <iterator>
-#include <unordered_map>
+#include <ankerl/unordered_dense.h>
 #include <boost/icl/separate_interval_set.hpp>
 #include <windows.h>
 #include "common/dynamic_library.h"
 
-#elif defined(__linux__) || defined(__FreeBSD__) // ^^^ Windows ^^^ vvv Linux vvv
+#else // ^^^ Windows ^^^ vvv POSIX vvv
 
 #ifndef _GNU_SOURCE
 #define _GNU_SOURCE
@@ -17,15 +20,36 @@
 #include <boost/icl/interval_set.hpp>
 #include <fcntl.h>
 #include <sys/mman.h>
-#include <sys/random.h>
 #include <unistd.h>
 #include "common/scope_exit.h"
 
+#if defined(__linux__)
+#include <sys/random.h>
+#elif defined(__APPLE__)
+#include <sys/types.h>
+#include <sys/random.h>
+#include <mach/vm_map.h>
+#include <mach/mach.h>
+#elif defined(__FreeBSD__)
+#include <sys/shm.h>
+#elif defined(__OPENORBIS__)
+#include <orbis/libkernel.h>
+#endif
+
+// FreeBSD
 #ifndef MAP_NORESERVE
 #define MAP_NORESERVE 0
 #endif
+// Solaris 11 and illumos
+#ifndef MAP_ALIGNED_SUPER
+#define MAP_ALIGNED_SUPER 0
+#endif
+// macOS
+#ifndef MAP_ANONYMOUS
+#define MAP_ANONYMOUS MAP_ANON
+#endif
 
-#endif // ^^^ Linux ^^^
+#endif // ^^^ POSIX ^^^
 
 #include <mutex>
 #include <random>
@@ -34,12 +58,22 @@
 #include "common/assert.h"
 #include "common/free_region_manager.h"
 #include "common/host_memory.h"
-#include "common/logging/log.h"
+#include "common/logging.h"
+
+#if defined(__ANDROID__) && __ANDROID_API__ < 30
+#include <sys/syscall.h>
+#ifndef MFD_CLOEXEC
+#define MFD_CLOEXEC 0x0001U
+#endif
+static int memfd_create(const char* name, unsigned int flags) {
+    return syscall(__NR_memfd_create, name, flags);
+}
+#endif
 
 namespace Common {
 
-constexpr size_t PageAlignment = 0x1000;
-constexpr size_t HugePageSize = 0x200000;
+[[maybe_unused]] constexpr size_t PageAlignment = 0x1000;
+[[maybe_unused]] constexpr size_t HugePageSize = 0x200000;
 
 #ifdef _WIN32
 
@@ -90,54 +124,55 @@ static void GetFuncAddress(Common::DynamicLibrary& dll, const char* name, T& pfn
 class HostMemory::Impl {
 public:
     explicit Impl(size_t backing_size_, size_t virtual_size_)
-        : backing_size{backing_size_}, virtual_size{virtual_size_}, process{GetCurrentProcess()},
-          kernelbase_dll("Kernelbase") {
+        : backing_size{backing_size_}
+        , virtual_size{virtual_size_}
+        , process{GetCurrentProcess()}
+        , kernelbase_dll("Kernelbase")
+    {}
+
+    bool Init() {
         if (!kernelbase_dll.IsOpen()) {
             LOG_CRITICAL(HW_Memory, "Failed to load Kernelbase.dll");
-            throw std::bad_alloc{};
+            return false;
         }
         GetFuncAddress(kernelbase_dll, "CreateFileMapping2", pfn_CreateFileMapping2);
         GetFuncAddress(kernelbase_dll, "VirtualAlloc2", pfn_VirtualAlloc2);
         GetFuncAddress(kernelbase_dll, "MapViewOfFile3", pfn_MapViewOfFile3);
         GetFuncAddress(kernelbase_dll, "UnmapViewOfFile2", pfn_UnmapViewOfFile2);
 
+        if (!pfn_CreateFileMapping2 || !pfn_VirtualAlloc2 || !pfn_MapViewOfFile3 || !pfn_UnmapViewOfFile2) {
+            LOG_CRITICAL(HW_Memory, "Failed to find functions for virtual allocs");
+            return false;
+        }
+
         // Allocate backing file map
-        backing_handle =
-            pfn_CreateFileMapping2(INVALID_HANDLE_VALUE, nullptr, FILE_MAP_WRITE | FILE_MAP_READ,
-                                   PAGE_READWRITE, SEC_COMMIT, backing_size, nullptr, nullptr, 0);
+        backing_handle = pfn_CreateFileMapping2(INVALID_HANDLE_VALUE, nullptr, FILE_MAP_WRITE | FILE_MAP_READ, PAGE_READWRITE, SEC_COMMIT, backing_size, nullptr, nullptr, 0);
         if (!backing_handle) {
-            LOG_CRITICAL(HW_Memory, "Failed to allocate {} MiB of backing memory",
-                         backing_size >> 20);
-            throw std::bad_alloc{};
+            LOG_CRITICAL(HW_Memory, "Failed to allocate {} MiB of backing memory", backing_size >> 20);
+            return false;
         }
         // Allocate a virtual memory for the backing file map as placeholder
-        backing_base = static_cast<u8*>(pfn_VirtualAlloc2(process, nullptr, backing_size,
-                                                          MEM_RESERVE | MEM_RESERVE_PLACEHOLDER,
-                                                          PAGE_NOACCESS, nullptr, 0));
+        backing_base = static_cast<u8*>(pfn_VirtualAlloc2(process, nullptr, backing_size, MEM_RESERVE | MEM_RESERVE_PLACEHOLDER, PAGE_NOACCESS, nullptr, 0));
         if (!backing_base) {
             Release();
-            LOG_CRITICAL(HW_Memory, "Failed to reserve {} MiB of virtual memory",
-                         backing_size >> 20);
-            throw std::bad_alloc{};
+            LOG_CRITICAL(HW_Memory, "Failed to reserve {} MiB of virtual memory", backing_size >> 20);
+            return false;
         }
         // Map backing placeholder
-        void* const ret = pfn_MapViewOfFile3(backing_handle, process, backing_base, 0, backing_size,
-                                             MEM_REPLACE_PLACEHOLDER, PAGE_READWRITE, nullptr, 0);
+        void* const ret = pfn_MapViewOfFile3(backing_handle, process, backing_base, 0, backing_size, MEM_REPLACE_PLACEHOLDER, PAGE_READWRITE, nullptr, 0);
         if (ret != backing_base) {
             Release();
             LOG_CRITICAL(HW_Memory, "Failed to map {} MiB of virtual memory", backing_size >> 20);
-            throw std::bad_alloc{};
+            return false;
         }
         // Allocate virtual address placeholder
-        virtual_base = static_cast<u8*>(pfn_VirtualAlloc2(process, nullptr, virtual_size,
-                                                          MEM_RESERVE | MEM_RESERVE_PLACEHOLDER,
-                                                          PAGE_NOACCESS, nullptr, 0));
+        virtual_base = static_cast<u8*>(pfn_VirtualAlloc2(process, nullptr, virtual_size, MEM_RESERVE | MEM_RESERVE_PLACEHOLDER, PAGE_NOACCESS, nullptr, 0));
         if (!virtual_base) {
             Release();
-            LOG_CRITICAL(HW_Memory, "Failed to reserve {} GiB of virtual memory",
-                         virtual_size >> 30);
-            throw std::bad_alloc{};
+            LOG_CRITICAL(HW_Memory, "Failed to reserve {} GiB of virtual memory", virtual_size >> 30);
+            return false;
         }
+        return true;
     }
 
     ~Impl() {
@@ -147,32 +182,7 @@ public:
     void Map(size_t virtual_offset, size_t host_offset, size_t length, MemoryPermission perms) {
         std::unique_lock lock{placeholder_mutex};
         if (!IsNiechePlaceholder(virtual_offset, length)) {
-            // Find the free region base (end of the previous mapped placeholder, or 0).
-            // VirtualFreeEx with MEM_PRESERVE_PLACEHOLDER requires splitting from a
-            // placeholder's base address, so we may need two sequential splits.
-            size_t free_region_start = 0;
-            for (const auto& interval : placeholders) {
-                if (interval.upper() <= virtual_offset) {
-                    free_region_start = interval.upper();
-                } else {
-                    break;
-                }
-            }
-            if (virtual_offset > free_region_start) {
-                Split(free_region_start, virtual_offset - free_region_start);
-            }
-            const size_t virtual_end = virtual_offset + length;
-            // Find end of the free region (start of the next mapped placeholder, or virtual_size)
-            size_t free_region_end = virtual_size;
-            for (const auto& interval : placeholders) {
-                if (interval.lower() >= virtual_end) {
-                    free_region_end = interval.lower();
-                    break;
-                }
-            }
-            if (virtual_end < free_region_end) {
-                Split(virtual_offset, length);
-            }
+            Split(virtual_offset, length);
         }
         ASSERT(placeholders.find({virtual_offset, virtual_offset + length}) == placeholders.end());
         TrackPlaceholder(virtual_offset, host_offset, length);
@@ -204,19 +214,14 @@ public:
         std::scoped_lock lock{placeholder_mutex};
         auto [it, end] = placeholders.equal_range({virtual_offset, virtual_end});
         while (it != end) {
-            const size_t offset = std::max(it->lower(), virtual_offset);
-            const size_t protect_length = std::min(it->upper(), virtual_end) - offset;
+            const size_t offset = (std::max)(it->lower(), virtual_offset);
+            const size_t protect_length = (std::min)(it->upper(), virtual_end) - offset;
             DWORD old_flags{};
             if (!VirtualProtect(virtual_base + offset, protect_length, new_flags, &old_flags)) {
                 LOG_CRITICAL(HW_Memory, "Failed to change virtual memory protect rules");
             }
             ++it;
         }
-    }
-
-    bool ClearBackingRegion(size_t physical_offset, size_t length) {
-        // TODO: This does not seem to be possible on Windows.
-        return false;
     }
 
     void EnableDirectMappedAddress() {
@@ -237,8 +242,7 @@ private:
             for (const auto& placeholder : placeholders) {
                 if (!pfn_UnmapViewOfFile2(process, virtual_base + placeholder.lower(),
                                           MEM_PRESERVE_PLACEHOLDER)) {
-                    LOG_CRITICAL(HW_Memory, "Failed to unmap virtual memory placeholder err={}",
-                                 GetLastError());
+                    LOG_CRITICAL(HW_Memory, "Failed to unmap virtual memory placeholder");
                 }
             }
             Coalesce(0, virtual_size);
@@ -272,8 +276,8 @@ private:
         }
         const size_t placeholder_begin = it->lower();
         const size_t placeholder_end = it->upper();
-        const size_t unmap_begin = std::max(virtual_offset, placeholder_begin);
-        const size_t unmap_end = std::min(virtual_offset + length, placeholder_end);
+        const size_t unmap_begin = (std::max)(virtual_offset, placeholder_begin);
+        const size_t unmap_end = (std::min)(virtual_offset + length, placeholder_end);
         ASSERT(unmap_begin >= placeholder_begin && unmap_begin < placeholder_end);
         ASSERT(unmap_end <= placeholder_end && unmap_end > placeholder_begin);
 
@@ -286,20 +290,14 @@ private:
 
         if (!pfn_UnmapViewOfFile2(process, virtual_base + placeholder_begin,
                                   MEM_PRESERVE_PLACEHOLDER)) {
-            LOG_CRITICAL(HW_Memory, "Failed to unmap placeholder offset=0x{:X} err={}",
-                         placeholder_begin, GetLastError());
+            LOG_CRITICAL(HW_Memory, "Failed to unmap placeholder");
         }
         // If we have to remap memory regions due to partial unmaps, we are in a data race as
         // Windows doesn't support remapping memory without unmapping first. Avoid adding any extra
         // logic within the panic region described below.
 
         // Panic region, we are in a data race right now
-        // VirtualFreeEx with MEM_PRESERVE_PLACEHOLDER requires the address to be the
-        // base of a placeholder. Split sequentially so each call operates on a valid base.
-        if (split_left) {
-            Split(placeholder_begin, unmap_begin - placeholder_begin);
-        }
-        if (split_right) {
+        if (split_left || split_right) {
             Split(unmap_begin, unmap_end - unmap_begin);
         }
         if (split_left) {
@@ -343,28 +341,21 @@ private:
     void MapView(size_t virtual_offset, size_t host_offset, size_t length) {
         if (!pfn_MapViewOfFile3(backing_handle, process, virtual_base + virtual_offset, host_offset,
                                 length, MEM_REPLACE_PLACEHOLDER, PAGE_READWRITE, nullptr, 0)) {
-            LOG_CRITICAL(HW_Memory,
-                         "Failed to map placeholder offset=0x{:X} host=0x{:X} length=0x{:X} "
-                         "err={}",
-                         virtual_offset, host_offset, length, GetLastError());
+            LOG_CRITICAL(HW_Memory, "Failed to map placeholder");
         }
     }
 
     void Split(size_t virtual_offset, size_t length) {
         if (!VirtualFreeEx(process, reinterpret_cast<LPVOID>(virtual_base + virtual_offset), length,
                            MEM_RELEASE | MEM_PRESERVE_PLACEHOLDER)) {
-            LOG_CRITICAL(HW_Memory,
-                         "Failed to split placeholder offset=0x{:X} length=0x{:X} err={}",
-                         virtual_offset, length, GetLastError());
+            LOG_CRITICAL(HW_Memory, "Failed to split placeholder");
         }
     }
 
     void Coalesce(size_t virtual_offset, size_t length) {
         if (!VirtualFreeEx(process, reinterpret_cast<LPVOID>(virtual_base + virtual_offset), length,
                            MEM_RELEASE | MEM_COALESCE_PLACEHOLDERS)) {
-            LOG_CRITICAL(HW_Memory,
-                         "Failed to coalesce placeholders offset=0x{:X} length=0x{:X} err={}",
-                         virtual_offset, length, GetLastError());
+            LOG_CRITICAL(HW_Memory, "Failed to coalesce placeholders");
         }
     }
 
@@ -400,10 +391,13 @@ private:
 
     std::mutex placeholder_mutex;                                 ///< Mutex for placeholders
     boost::icl::separate_interval_set<size_t> placeholders;       ///< Mapped placeholders
-    std::unordered_map<size_t, size_t> placeholder_host_pointers; ///< Placeholder backing offset
+    ankerl::unordered_dense::map<size_t, size_t> placeholder_host_pointers; ///< Placeholder backing offset
 };
 
-#elif defined(__linux__) || defined(__FreeBSD__) // ^^^ Windows ^^^ vvv Linux vvv
+#elif defined(__OPENORBIS__) || defined(__managarm__)
+// None of the luxuries of POSIX, all of the suffering
+// For managarm: see https://github.com/managarm/managarm/issues/1370
+#else // ^^^ Windows ^^^ vvv POSIX vvv
 
 #ifdef ARCHITECTURE_arm64
 
@@ -448,78 +442,129 @@ static void* ChooseVirtualBase(size_t virtual_size) {
 #else
 
 static void* ChooseVirtualBase(size_t virtual_size) {
-#if defined(__FreeBSD__)
-    void* virtual_base =
-        mmap(nullptr, virtual_size, PROT_READ | PROT_WRITE,
-             MAP_PRIVATE | MAP_ANONYMOUS | MAP_NORESERVE | MAP_ALIGNED_SUPER, -1, 0);
-
-    if (virtual_base != MAP_FAILED) {
+#if defined(__FreeBSD__) || defined(__DragonFly__) || defined(__OpenBSD__) || defined(__sun__) || defined(__HAIKU__) || defined(__managarm__) || defined(__AIX__)
+    void* virtual_base = mmap(nullptr, virtual_size, PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANONYMOUS | MAP_NORESERVE | MAP_ALIGNED_SUPER, -1, 0);
+    if (virtual_base != MAP_FAILED)
         return virtual_base;
-    }
 #endif
-
-    return mmap(nullptr, virtual_size, PROT_READ | PROT_WRITE,
-                MAP_PRIVATE | MAP_ANONYMOUS | MAP_NORESERVE, -1, 0);
+    return mmap(nullptr, virtual_size, PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANONYMOUS | MAP_NORESERVE, -1, 0);
 }
 
+#endif
+
+#if defined(__sun__) || defined(__HAIKU__) || defined(__NetBSD__) || defined(__DragonFly__)
+/// Most Unices don't have a portable shm_open (AIX, OpenBSD, NetBSD, Solaris 11, OpenIndiana)
+/// Portable implementation of shm_open(SHM_ANON, ...) - roughly equivalent but without
+/// OS support - may fail sporadically, beware!
+static int shm_open_anon(int flags, mode_t mode) {
+    char name[16] = "/shm-";
+    char *const limit = name + sizeof(name) - 1;
+    *limit = '\0';
+    char *start = name + strlen(name);
+    for (int tries = 0; tries < 4; tries++) {
+        struct timespec tv;
+        clock_gettime(CLOCK_REALTIME, &tv);
+        unsigned long r = (unsigned long)tv.tv_sec + (unsigned long)tv.tv_nsec;
+        for (char *fill = start; fill < limit; r /= 8)
+            *fill++ = '0' + (r % 8);
+        int fd = shm_open(name, flags, mode);
+        if (fd != -1) {
+            if (shm_unlink(name) == -1) {
+                int tmp = errno;
+                close(fd);
+                errno = tmp;
+                return -1;
+            }
+            return fd;
+        }
+        if (errno != EEXIST)
+            break;
+    }
+    return -1;
+}
+#elif defined(__OpenBSD__)
+/// Except OpenBSD which explicitly uses shm_mkstemp instead (as a more secure alternative)
+static int shm_open_anon(int flags, mode_t mode) {
+    char name[16] = "/shm-XXXXXXXXXX";
+    int fd;
+    if ((fd = shm_mkstemp(name)) == -1)
+        return -1;
+    if (shm_unlink(name) == -1) {
+        int tmp = errno;
+        close(fd);
+        errno = tmp;
+        return -1;
+    }
+    return fd;
+}
 #endif
 
 class HostMemory::Impl {
 public:
     explicit Impl(size_t backing_size_, size_t virtual_size_)
-        : backing_size{backing_size_}, virtual_size{virtual_size_} {
-        bool good = false;
-        SCOPE_EXIT {
-            if (!good) {
-                Release();
-            }
-        };
+        : backing_size{backing_size_}
+        , virtual_size{virtual_size_}
+    {}
 
+    bool Init() {
         long page_size = sysconf(_SC_PAGESIZE);
-        if (page_size != 0x1000) {
-            LOG_CRITICAL(HW_Memory, "page size {:#x} is incompatible with 4K paging", page_size);
-            throw std::bad_alloc{};
-        }
-
+        ASSERT_MSG(page_size == 0x1000, "page size {:#x} is incompatible with 4K paging", page_size);
         // Backing memory initialization
-#if defined(__FreeBSD__) && __FreeBSD__ < 13
-        // XXX Drop after FreeBSD 12.* reaches EOL on 2024-06-30
+#if defined(__sun__) || defined(__HAIKU__) || defined(__NetBSD__) || defined(__DragonFly__)
+        fd = shm_open_anon(O_RDWR | O_CREAT | O_EXCL | O_NOFOLLOW, 0600);
+#elif defined(__OpenBSD__)
+        fd = shm_open_anon(O_RDWR | O_CREAT | O_EXCL | O_NOFOLLOW, 0600);
+#elif defined(__FreeBSD__)
         fd = shm_open(SHM_ANON, O_RDWR, 0600);
+#elif defined(__APPLE__) || defined(__managarm__)
+        // macOS doesn't have memfd_create, use anonymous temporary file
+        char template_path[] = "/tmp/eden_mem_XXXXXX";
+        fd = mkstemp(template_path);
+        if (fd >= 0) {
+            unlink(template_path);
+        }
 #else
         fd = memfd_create("HostMemory", 0);
 #endif
-        if (fd < 0) {
-            LOG_CRITICAL(HW_Memory, "memfd_create failed: {}", strerror(errno));
-            throw std::bad_alloc{};
+        bool use_anon = false;
+        if (fd <= 0) {
+            LOG_WARNING(Common_Memory, "memfd_create: {}", strerror(errno));
+            use_anon = true;
         }
-
-        // Defined to extend the file with zeros
-        int ret = ftruncate(fd, backing_size);
-        if (ret != 0) {
-            LOG_CRITICAL(HW_Memory, "ftruncate failed with {}, are you out-of-memory?",
-                         strerror(errno));
-            throw std::bad_alloc{};
+        if (!use_anon) {
+            // Defined to extend the file with zeros
+            int ret = ftruncate(fd, backing_size);
+            if (ret != 0) {
+                LOG_WARNING(Common_Memory, "ftruncate: {} (likely out-of-emory)", strerror(errno));
+                use_anon = true;
+            }
         }
-
-        backing_base = static_cast<u8*>(
-            mmap(nullptr, backing_size, PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0));
+        if (use_anon) {
+            LOG_WARNING(Common_Memory, "Using private mappings instead of shared ones");
+            backing_base = static_cast<u8*>(mmap(nullptr, backing_size, PROT_READ | PROT_WRITE, MAP_ANONYMOUS | MAP_PRIVATE, -1, 0));
+            if (fd > 0) {
+                fd = -1;
+                close(fd);
+            }
+        } else {
+            backing_base = static_cast<u8*>(mmap(nullptr, backing_size, PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0));
+        }
         if (backing_base == MAP_FAILED) {
             LOG_CRITICAL(HW_Memory, "mmap failed: {}", strerror(errno));
-            throw std::bad_alloc{};
+            return false;
         }
 
         // Virtual memory initialization
         virtual_base = virtual_map_base = static_cast<u8*>(ChooseVirtualBase(virtual_size));
         if (virtual_base == MAP_FAILED) {
             LOG_CRITICAL(HW_Memory, "mmap failed: {}", strerror(errno));
-            throw std::bad_alloc{};
+            return false;
         }
 #if defined(__linux__)
         madvise(virtual_base, virtual_size, MADV_HUGEPAGE);
 #endif
-
         free_manager.SetAddressSpace(virtual_base, virtual_size);
-        good = true;
+        return true;
     }
 
     ~Impl() {
@@ -534,22 +579,18 @@ public:
         free_manager.AllocateBlock(virtual_base + virtual_offset, length);
 
         // Deduce mapping protection flags.
-        int flags = PROT_NONE;
-        if (True(perms & MemoryPermission::Read)) {
-            flags |= PROT_READ;
-        }
-        if (True(perms & MemoryPermission::Write)) {
-            flags |= PROT_WRITE;
-        }
+        int prot_flags = PROT_NONE;
+        if (True(perms & MemoryPermission::Read))
+            prot_flags |= PROT_READ;
+        if (True(perms & MemoryPermission::Write))
+            prot_flags |= PROT_WRITE;
 #ifdef ARCHITECTURE_arm64
-        if (True(perms & MemoryPermission::Execute)) {
-            flags |= PROT_EXEC;
-        }
+        if (True(perms & MemoryPermission::Execute))
+            prot_flags |= PROT_EXEC;
 #endif
-
-        void* ret = mmap(virtual_base + virtual_offset, length, flags, MAP_SHARED | MAP_FIXED, fd,
-                         host_offset);
-        ASSERT_MSG(ret != MAP_FAILED, "mmap failed: {}", strerror(errno));
+        int flags = (fd >= 0 ? MAP_SHARED : MAP_PRIVATE) | MAP_FIXED;
+        void* ret = mmap(virtual_base + virtual_offset, length, prot_flags, flags, fd, host_offset);
+        ASSERT_MSG(ret != MAP_FAILED, "mmap: {} {}", strerror(errno), fd);
     }
 
     void Unmap(size_t virtual_offset, size_t length) {
@@ -563,9 +604,8 @@ public:
         auto [merged_pointer, merged_size] =
             free_manager.FreeBlock(virtual_base + virtual_offset, length);
 
-        void* ret = mmap(merged_pointer, merged_size, PROT_NONE,
-                         MAP_PRIVATE | MAP_ANONYMOUS | MAP_FIXED, -1, 0);
-        ASSERT_MSG(ret != MAP_FAILED, "mmap failed: {}", strerror(errno));
+        void* ret = mmap(merged_pointer, merged_size, PROT_NONE, MAP_PRIVATE | MAP_ANONYMOUS | MAP_FIXED, -1, 0);
+        ASSERT_MSG(ret != MAP_FAILED, "mmap: {}", strerror(errno));
     }
 
     void Protect(size_t virtual_offset, size_t length, bool read, bool write, bool execute) {
@@ -586,19 +626,6 @@ public:
 #endif
         int ret = mprotect(virtual_base + virtual_offset, length, flags);
         ASSERT_MSG(ret == 0, "mprotect failed: {}", strerror(errno));
-    }
-
-    bool ClearBackingRegion(size_t physical_offset, size_t length) {
-#ifdef __linux__
-        // Set MADV_REMOVE on backing map to destroy it instantly.
-        // This also deletes the area from the backing file.
-        int ret = madvise(backing_base + physical_offset, length, MADV_REMOVE);
-        ASSERT_MSG(ret == 0, "madvise failed: {}", strerror(errno));
-
-        return true;
-#else
-        return false;
-#endif
     }
 
     void EnableDirectMappedAddress() {
@@ -647,8 +674,8 @@ private:
             *virtual_offset = 0;
             *length = 0;
         } else {
-            *virtual_offset = std::max(intended_start, address_space_start);
-            *length = std::min(intended_end, address_space_end) - *virtual_offset;
+            *virtual_offset = (std::max)(intended_start, address_space_start);
+            *length = (std::min)(intended_end, address_space_end) - *virtual_offset;
         }
     }
 
@@ -656,59 +683,37 @@ private:
     FreeRegionManager free_manager{};
 };
 
-#else // ^^^ Linux ^^^ vvv Generic vvv
-
-class HostMemory::Impl {
-public:
-    explicit Impl(size_t /*backing_size */, size_t /* virtual_size */) {
-        // This is just a place holder.
-        // Please implement fastmem in a proper way on your platform.
-        throw std::bad_alloc{};
-    }
-
-    void Map(size_t virtual_offset, size_t host_offset, size_t length, MemoryPermission perm) {}
-
-    void Unmap(size_t virtual_offset, size_t length) {}
-
-    void Protect(size_t virtual_offset, size_t length, bool read, bool write, bool execute) {}
-
-    bool ClearBackingRegion(size_t physical_offset, size_t length) {
-        return false;
-    }
-
-    void EnableDirectMappedAddress() {}
-
-    u8* backing_base{nullptr};
-    u8* virtual_base{nullptr};
-};
-
-#endif // ^^^ Generic ^^^
+#endif // ^^^ POSIX ^^^
 
 HostMemory::HostMemory(size_t backing_size_, size_t virtual_size_)
-    : backing_size(backing_size_), virtual_size(virtual_size_) {
-    try {
-        // Try to allocate a fastmem arena.
-        // The implementation will fail with std::bad_alloc on errors.
-        impl =
-            std::make_unique<HostMemory::Impl>(AlignUp(backing_size, PageAlignment),
-                                               AlignUp(virtual_size, PageAlignment) + HugePageSize);
+    : backing_size(backing_size_)
+    , virtual_size(virtual_size_)
+{
+#if defined(__OPENORBIS__) || defined(__managarm__)
+    LOG_WARNING(HW_Memory, "Platform doesn't support fastmem");
+    fallback_buffer.emplace(backing_size);
+    backing_base = fallback_buffer->data();
+    virtual_base = nullptr;
+#else
+    // Try to allocate a fastmem arena.
+    // The implementation will fail with std::bad_alloc on errors.
+    impl = std::make_unique<HostMemory::Impl>(AlignUp(backing_size, PageAlignment), AlignUp(virtual_size, PageAlignment) + HugePageSize);
+    if (impl->Init()) {
         backing_base = impl->backing_base;
         virtual_base = impl->virtual_base;
-
         if (virtual_base) {
             // Ensure the virtual base is aligned to the L2 block size.
-            virtual_base = reinterpret_cast<u8*>(
-                Common::AlignUp(reinterpret_cast<uintptr_t>(virtual_base), HugePageSize));
+            virtual_base = reinterpret_cast<u8*>(Common::AlignUp(uintptr_t(virtual_base), HugePageSize));
             virtual_base_offset = virtual_base - impl->virtual_base;
         }
-
-    } catch (const std::bad_alloc&) {
-        LOG_CRITICAL(HW_Memory,
-                     "Fastmem unavailable, falling back to VirtualBuffer for memory allocation");
-        fallback_buffer = std::make_unique<Common::VirtualBuffer<u8>>(backing_size);
+    } else {
+        impl.reset();
+        LOG_WARNING(HW_Memory, "Platform can support fastmem, but can't create it");
+        fallback_buffer.emplace(backing_size);
         backing_base = fallback_buffer->data();
         virtual_base = nullptr;
     }
+#endif
 }
 
 HostMemory::~HostMemory() = default;
@@ -717,8 +722,8 @@ HostMemory::HostMemory(HostMemory&&) noexcept = default;
 
 HostMemory& HostMemory::operator=(HostMemory&&) noexcept = default;
 
-void HostMemory::Map(size_t virtual_offset, size_t host_offset, size_t length,
-                     MemoryPermission perms, bool separate_heap) {
+void HostMemory::Map(size_t virtual_offset, size_t host_offset, size_t length, MemoryPermission perms, bool separate_heap) {
+#if !(defined(__OPENORBIS__) || defined(__managarm__))
     ASSERT(virtual_offset % PageAlignment == 0);
     ASSERT(host_offset % PageAlignment == 0);
     ASSERT(length % PageAlignment == 0);
@@ -728,9 +733,11 @@ void HostMemory::Map(size_t virtual_offset, size_t host_offset, size_t length,
         return;
     }
     impl->Map(virtual_offset + virtual_base_offset, host_offset, length, perms);
+#endif
 }
 
 void HostMemory::Unmap(size_t virtual_offset, size_t length, bool separate_heap) {
+#if !(defined(__OPENORBIS__) || defined(__managarm__))
     ASSERT(virtual_offset % PageAlignment == 0);
     ASSERT(length % PageAlignment == 0);
     ASSERT(virtual_offset + length <= virtual_size);
@@ -738,9 +745,11 @@ void HostMemory::Unmap(size_t virtual_offset, size_t length, bool separate_heap)
         return;
     }
     impl->Unmap(virtual_offset + virtual_base_offset, length);
+#endif
 }
 
 void HostMemory::Protect(size_t virtual_offset, size_t length, MemoryPermission perm) {
+#if !(defined(__OPENORBIS__) || defined(__managarm__))
     ASSERT(virtual_offset % PageAlignment == 0);
     ASSERT(length % PageAlignment == 0);
     ASSERT(virtual_offset + length <= virtual_size);
@@ -751,19 +760,20 @@ void HostMemory::Protect(size_t virtual_offset, size_t length, MemoryPermission 
     const bool write = True(perm & MemoryPermission::Write);
     const bool execute = True(perm & MemoryPermission::Execute);
     impl->Protect(virtual_offset + virtual_base_offset, length, read, write, execute);
+#endif
 }
 
 void HostMemory::ClearBackingRegion(size_t physical_offset, size_t length, u32 fill_value) {
-    if (!impl || fill_value != 0 || !impl->ClearBackingRegion(physical_offset, length)) {
-        std::memset(backing_base + physical_offset, fill_value, length);
-    }
+    std::memset(backing_base + physical_offset, fill_value, length);
 }
 
 void HostMemory::EnableDirectMappedAddress() {
+#if !(defined(__OPENORBIS__) || defined(__managarm__))
     if (impl) {
         impl->EnableDirectMappedAddress();
         virtual_size += reinterpret_cast<uintptr_t>(virtual_base);
     }
+#endif
 }
 
 } // namespace Common

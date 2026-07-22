@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 #include "qt_common/util/rom.h"
@@ -7,13 +7,8 @@
 
 namespace QtCommon::ROM {
 
-bool RomFSRawCopy(size_t total_size,
-                  size_t& read_size,
-                  QtProgressCallback callback,
-                  const FileSys::VirtualDir& src,
-                  const FileSys::VirtualDir& dest,
-                  bool full)
-{
+bool RomFSRawCopy(size_t total_size, size_t& read_size, QtProgressCallback callback,
+                  const FileSys::VirtualDir& src, const FileSys::VirtualDir& dest, bool full) {
     // TODO(crueter)
     // if (src == nullptr || dest == nullptr || !src->IsReadable() || !dest->IsWritable())
     //     return false;
@@ -75,4 +70,4 @@ bool RomFSRawCopy(size_t total_size,
     return true;
 }
 
-}
+} // namespace QtCommon::ROM

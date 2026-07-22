@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 #include "firmware_manager.h"
@@ -8,12 +8,12 @@
 #include "common/fs/fs.h"
 #include "common/fs/path_util.h"
 
-#include "common/logging/backend.h"
+#include "common/logging.h"
 
 #include "core/crypto/key_manager.h"
 #include "frontend_common/content_manager.h"
 
-#ifdef ANDROID
+#ifdef __ANDROID__
 #include <jni.h>
 #include <common/android/id_cache.h>
 #include <common/android/android_common.h>
@@ -23,9 +23,9 @@ FirmwareManager::KeyInstallResult
 FirmwareManager::InstallKeys(std::string location, std::string extension) {
     LOG_INFO(Frontend, "Installing key files from {}", location);
 
-    const auto keys_dir = Common::FS::GetSuyuPath(Common::FS::SuyuPath::KeysDir);
+    const auto keys_dir = Common::FS::GetEdenPath(Common::FS::EdenPath::KeysDir);
 
-#ifdef ANDROID
+#ifdef __ANDROID__
     JNIEnv *env = Common::Android::GetEnvForThread();
 
     jstring jsrc = Common::Android::ToJString(env, location);

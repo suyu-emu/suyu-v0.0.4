@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: 2015 Evan Teran
 // SPDX-License-Identifier: MIT
 
@@ -15,6 +18,10 @@
 #include <common/concepts.h>
 
 namespace Common {
+
+// No equivalent for "std::arithmetic" in the stdlib
+template <typename T>
+concept IsArithmetic = std::is_arithmetic_v<T>;
 
 template <size_t I, size_t F>
 class FixedPoint;
@@ -392,13 +399,13 @@ public: // binary math operators, effects underlying bit pattern since these
         return *this;
     }
 
-    template <IsIntegral Integer>
+    template <std::integral Integer>
     constexpr FixedPoint& operator>>=(Integer n) {
         data_ >>= n;
         return *this;
     }
 
-    template <IsIntegral Integer>
+    template <std::integral Integer>
     constexpr FixedPoint& operator<<=(Integer n) {
         data_ <<= n;
         return *this;
@@ -587,12 +594,12 @@ constexpr FixedPoint<I, F> operator/(Number lhs, FixedPoint<I, F> rhs) {
 }
 
 // shift operators
-template <size_t I, size_t F, IsIntegral Integer>
+template <size_t I, size_t F, std::integral Integer>
 constexpr FixedPoint<I, F> operator<<(FixedPoint<I, F> lhs, Integer rhs) {
     lhs <<= rhs;
     return lhs;
 }
-template <size_t I, size_t F, IsIntegral Integer>
+template <size_t I, size_t F, std::integral Integer>
 constexpr FixedPoint<I, F> operator>>(FixedPoint<I, F> lhs, Integer rhs) {
     lhs >>= rhs;
     return lhs;

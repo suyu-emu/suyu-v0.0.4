@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 /* This file is part of the dynarmic project.
@@ -11,9 +11,8 @@
 #include <algorithm>
 #include <array>
 
-#include "dynarmic/common/assert.h"
-#include <mcl/mp/metavalue/lift_value.hpp>
-#include "dynarmic/common/common_types.h"
+#include "common/assert.h"
+#include "common/common_types.h"
 
 #include "dynarmic/common/always_false.h"
 
@@ -162,11 +161,10 @@ u32 RegAlloc::GenerateImmediate(const IR::Value& value) {
 
         return new_location_index;
     } else if constexpr (kind == HostLoc::Kind::Fpr) {
-        UNIMPLEMENTED();
+        ASSERT(false && "Unimplemented instruction");
     } else {
-        static_assert(Common::always_false_v<mcl::mp::lift_value<kind>>);
+        UNREACHABLE();
     }
-
     return 0;
 }
 
@@ -225,7 +223,7 @@ u32 RegAlloc::RealizeReadImpl(const IR::Value& value) {
         fprs[new_location_index].realized = true;
         return new_location_index;
     } else {
-        static_assert(Common::always_false_v<mcl::mp::lift_value<required_kind>>);
+        UNREACHABLE();
     }
 }
 
@@ -252,7 +250,7 @@ u32 RegAlloc::RealizeWriteImpl(const IR::Inst* value) {
         setup_location(fprs[new_location_index]);
         return new_location_index;
     } else {
-        static_assert(Common::always_false_v<mcl::mp::lift_value<required_kind>>);
+        UNREACHABLE();
     }
 }
 

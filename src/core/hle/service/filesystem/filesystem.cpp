@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2018 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -6,6 +9,7 @@
 #include "common/assert.h"
 #include "common/fs/fs.h"
 #include "common/fs/path_util.h"
+#include "common/logging.h"
 #include "common/settings.h"
 #include "core/core.h"
 #include "core/file_sys/bis_factory.h"
@@ -346,14 +350,14 @@ std::shared_ptr<SaveDataController> FileSystemController::OpenSaveDataController
 
 std::shared_ptr<FileSys::SaveDataFactory> FileSystemController::CreateSaveDataFactory(
     ProgramId program_id) {
-    using SuyuPath = Common::FS::SuyuPath;
+    using EdenPath = Common::FS::EdenPath;
     const auto rw_mode = FileSys::OpenMode::ReadWrite;
 
     auto vfs = system.GetFilesystem();
-    const auto nand_directory =
-        vfs->OpenDirectory(Common::FS::GetSuyuPathString(SuyuPath::NANDDir), rw_mode);
+    const auto save_directory =
+        vfs->OpenDirectory(Common::FS::GetEdenPathString(EdenPath::SaveDir), rw_mode);
     return std::make_shared<FileSys::SaveDataFactory>(system, program_id,
-                                                      std::move(nand_directory));
+                                                      std::move(save_directory));
 }
 
 Result FileSystemController::OpenSDMC(FileSys::VirtualDir* out_sdmc) const {
@@ -502,6 +506,10 @@ FileSys::RegisteredCache* FileSystemController::GetSDMCContents() const {
         return nullptr;
 
     return sdmc_factory->GetSDMCContents();
+}
+
+FileSys::ExternalContentProvider* FileSystemController::GetExternalContentProvider() const {
+    return external_provider.get();
 }
 
 FileSys::PlaceholderCache* FileSystemController::GetSystemNANDPlaceholder() const {
@@ -679,27 +687,25 @@ FileSys::VirtualDir FileSystemController::GetBCATDirectory(u64 title_id) const {
 
 void FileSystemController::CreateFactories(FileSys::VfsFilesystem& vfs, bool overwrite) {
     if (overwrite) {
-        system.ClearContentProvider(FileSys::ContentProviderUnionSlot::SysNAND);
-        system.ClearContentProvider(FileSys::ContentProviderUnionSlot::UserNAND);
-        system.ClearContentProvider(FileSys::ContentProviderUnionSlot::SDMC);
         bis_factory = nullptr;
         sdmc_factory = nullptr;
+        external_provider = nullptr;
     }
 
-    using SuyuPath = Common::FS::SuyuPath;
-    const auto sdmc_dir_path = Common::FS::GetSuyuPath(SuyuPath::SDMCDir);
+    using EdenPath = Common::FS::EdenPath;
+    const auto sdmc_dir_path = Common::FS::GetEdenPath(EdenPath::SDMCDir);
     const auto sdmc_load_dir_path = sdmc_dir_path / "atmosphere/contents";
     const auto rw_mode = FileSys::OpenMode::ReadWrite;
 
     auto nand_directory =
-        vfs.OpenDirectory(Common::FS::GetSuyuPathString(SuyuPath::NANDDir), rw_mode);
+        vfs.OpenDirectory(Common::FS::GetEdenPathString(EdenPath::NANDDir), rw_mode);
     auto sd_directory = vfs.OpenDirectory(Common::FS::PathToUTF8String(sdmc_dir_path), rw_mode);
-    auto load_directory = vfs.OpenDirectory(Common::FS::GetSuyuPathString(SuyuPath::LoadDir),
+    auto load_directory = vfs.OpenDirectory(Common::FS::GetEdenPathString(EdenPath::LoadDir),
                                             FileSys::OpenMode::Read);
     auto sd_load_directory = vfs.OpenDirectory(Common::FS::PathToUTF8String(sdmc_load_dir_path),
                                                FileSys::OpenMode::Read);
     auto dump_directory =
-        vfs.OpenDirectory(Common::FS::GetSuyuPathString(SuyuPath::DumpDir), rw_mode);
+        vfs.OpenDirectory(Common::FS::GetEdenPathString(EdenPath::DumpDir), rw_mode);
 
     if (bis_factory == nullptr) {
         bis_factory = std::make_unique<FileSys::BISFactory>(
@@ -715,6 +721,36 @@ void FileSystemController::CreateFactories(FileSys::VfsFilesystem& vfs, bool ove
                                                               std::move(sd_load_directory));
         system.RegisterContentProvider(FileSys::ContentProviderUnionSlot::SDMC,
                                        sdmc_factory->GetSDMCContents());
+    }
+
+    if (external_provider == nullptr) {
+        std::vector<FileSys::VirtualDir> external_dirs;
+
+        LOG_DEBUG(Service_FS, "Initializing ExternalContentProvider with {} configured directories",
+                  Settings::values.external_content_dirs.size());
+
+        for (const auto& dir_path : Settings::values.external_content_dirs) {
+            if (!dir_path.empty()) {
+                LOG_DEBUG(Service_FS, "Attempting to open directory: {}", dir_path);
+                auto dir = vfs.OpenDirectory(dir_path, FileSys::OpenMode::Read);
+                if (dir != nullptr) {
+                    external_dirs.push_back(std::move(dir));
+                    LOG_DEBUG(Service_FS, "Successfully opened directory: {}", dir_path);
+                } else {
+                    LOG_ERROR(Service_FS, "Failed to open directory: {}", dir_path);
+                }
+            }
+        }
+
+        LOG_DEBUG(Service_FS, "Creating ExternalContentProvider with {} opened directories",
+                  external_dirs.size());
+
+        external_provider = std::make_unique<FileSys::ExternalContentProvider>(
+            std::move(external_dirs));
+        system.RegisterContentProvider(FileSys::ContentProviderUnionSlot::External,
+                                       external_provider.get());
+
+        LOG_DEBUG(Service_FS, "ExternalContentProvider registered to content provider union");
     }
 }
 

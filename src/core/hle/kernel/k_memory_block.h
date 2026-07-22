@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2020 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -172,12 +175,11 @@ enum class KMemoryPermission : u8 {
 DECLARE_ENUM_FLAG_OPERATORS(KMemoryPermission);
 
 constexpr KMemoryPermission ConvertToKMemoryPermission(Svc::MemoryPermission perm) {
-    const bool has_write =
-        (static_cast<u8>(perm) & static_cast<u8>(Svc::MemoryPermission::Write)) != 0;
     return static_cast<KMemoryPermission>(
         (static_cast<KMemoryPermission>(perm) & KMemoryPermission::UserMask) |
         KMemoryPermission::KernelRead |
-        (has_write ? KMemoryPermission::KernelWrite : KMemoryPermission::None) |
+        ((static_cast<KMemoryPermission>(perm) & KMemoryPermission::UserWrite)
+         << KMemoryPermission::KernelShift) |
         (perm == Svc::MemoryPermission::None ? KMemoryPermission::NotMapped
                                              : KMemoryPermission::None));
 }
@@ -552,7 +554,7 @@ public:
         }
 
         m_device_disable_merge_left_count =
-            std::min(m_device_disable_merge_left_count, m_device_use_count);
+            (std::min)(m_device_disable_merge_left_count, m_device_use_count);
 
         if (m_device_disable_merge_left_count == 0) {
             m_disable_merge_attribute = static_cast<KMemoryBlockDisableMergeAttribute>(

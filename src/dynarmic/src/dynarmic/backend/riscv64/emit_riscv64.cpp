@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 /* This file is part of the dynarmic project.
@@ -12,7 +12,7 @@
 
 #include <biscuit/assembler.hpp>
 #include <fmt/ostream.h>
-#include <mcl/bit/bit_field.hpp>
+#include "dynarmic/mcl/bit.hpp"
 
 #include "dynarmic/backend/riscv64/a32_jitstate.h"
 #include "dynarmic/backend/riscv64/abi.h"
@@ -35,17 +35,17 @@ void EmitIR<IR::Opcode::Identity>(biscuit::Assembler&, EmitContext& ctx, IR::Ins
 
 template<>
 void EmitIR<IR::Opcode::Breakpoint>(biscuit::Assembler&, EmitContext&, IR::Inst*) {
-    UNIMPLEMENTED();
+    ASSERT(false && "Unimplemented instruction");
 }
 
 template<>
 void EmitIR<IR::Opcode::CallHostFunction>(biscuit::Assembler&, EmitContext&, IR::Inst*) {
-    UNIMPLEMENTED();
+    ASSERT(false && "Unimplemented instruction");
 }
 
 template<>
 void EmitIR<IR::Opcode::PushRSB>(biscuit::Assembler&, EmitContext&, IR::Inst*) {
-    UNIMPLEMENTED();
+    ASSERT(false && "Unimplemented instruction");
 }
 
 template<>
@@ -56,12 +56,12 @@ void EmitIR<IR::Opcode::GetCarryFromOp>(biscuit::Assembler&, EmitContext& ctx, I
 
 template<>
 void EmitIR<IR::Opcode::GetOverflowFromOp>(biscuit::Assembler&, EmitContext&, IR::Inst*) {
-    UNIMPLEMENTED();
+    ASSERT(false && "Unimplemented instruction");
 }
 
 template<>
 void EmitIR<IR::Opcode::GetGEFromOp>(biscuit::Assembler&, EmitContext&, IR::Inst*) {
-    UNIMPLEMENTED();
+    ASSERT(false && "Unimplemented instruction");
 }
 
 template<>
@@ -87,12 +87,12 @@ void EmitIR<IR::Opcode::GetNZFromOp>(biscuit::Assembler& as, EmitContext& ctx, I
 
 template<>
 void EmitIR<IR::Opcode::GetUpperFromOp>(biscuit::Assembler&, EmitContext&, IR::Inst*) {
-    UNIMPLEMENTED();
+    ASSERT(false && "Unimplemented instruction");
 }
 
 template<>
 void EmitIR<IR::Opcode::GetLowerFromOp>(biscuit::Assembler&, EmitContext&, IR::Inst*) {
-    UNIMPLEMENTED();
+    ASSERT(false && "Unimplemented instruction");
 }
 
 template<>
@@ -109,7 +109,7 @@ void EmitIR<IR::Opcode::GetCFlagFromNZCV>(biscuit::Assembler& as, EmitContext& c
 
 template<>
 void EmitIR<IR::Opcode::NZCVFromPackedFlags>(biscuit::Assembler&, EmitContext&, IR::Inst*) {
-    UNIMPLEMENTED();
+    ASSERT(false && "Unimplemented instruction");
 }
 
 EmittedBlockInfo EmitRV64(biscuit::Assembler& as, IR::Block block, const EmitConfig& emit_conf) {
@@ -122,7 +122,7 @@ EmittedBlockInfo EmitRV64(biscuit::Assembler& as, IR::Block block, const EmitCon
 
     ebi.entry_point = reinterpret_cast<CodePtr>(as.GetCursorPointer());
 
-    for (auto iter = block.begin(); iter != block.end(); ++iter) {
+    for (auto iter = block.instructions.begin(); iter != block.instructions.end(); ++iter) {
         IR::Inst* inst = &*iter;
 
         switch (inst->GetOpcode()) {

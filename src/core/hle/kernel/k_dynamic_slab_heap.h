@@ -13,8 +13,8 @@ namespace Kernel {
 
 template <typename T, bool ClearNode = false>
 class KDynamicSlabHeap : protected impl::KSlabHeapImpl {
-    SUYU_NON_COPYABLE(KDynamicSlabHeap);
-    SUYU_NON_MOVEABLE(KDynamicSlabHeap);
+    YUZU_NON_COPYABLE(KDynamicSlabHeap);
+    YUZU_NON_MOVEABLE(KDynamicSlabHeap);
 
 public:
     constexpr KDynamicSlabHeap() = default;

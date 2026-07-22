@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2020 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -185,7 +188,7 @@ bool AddImageAlias(ImageBase& lhs, ImageBase& rhs, ImageId lhs_id, ImageId rhs_i
     const bool is_rhs_compressed = rhs_block.width > 1 || rhs_block.height > 1;
     const s32 lhs_mips = lhs.info.resources.levels;
     const s32 rhs_mips = rhs.info.resources.levels;
-    const s32 num_mips = std::min(lhs_mips - base->level, rhs_mips);
+    const s32 num_mips = (std::min)(lhs_mips - base->level, rhs_mips);
     AliasedImage lhs_alias;
     AliasedImage rhs_alias;
     lhs_alias.id = rhs_id;
@@ -204,9 +207,9 @@ bool AddImageAlias(ImageBase& lhs, ImageBase& rhs, ImageId lhs_id, ImageId rhs_i
             rhs_size.height = Common::DivCeil(rhs_size.height, rhs_block.height);
         }
         const Extent3D copy_size{
-            .width = std::min(lhs_size.width, rhs_size.width),
-            .height = std::min(lhs_size.height, rhs_size.height),
-            .depth = std::min(lhs_size.depth, rhs_size.depth),
+            .width = (std::min)(lhs_size.width, rhs_size.width),
+            .height = (std::min)(lhs_size.height, rhs_size.height),
+            .depth = (std::min)(lhs_size.depth, rhs_size.depth),
         };
         if (copy_size.width == 0 || copy_size.height == 0) {
             LOG_WARNING(HW_GPU, "Copy size is smaller than block size. Mip cannot be aliased.");
@@ -218,7 +221,7 @@ bool AddImageAlias(ImageBase& lhs, ImageBase& rhs, ImageId lhs_id, ImageId rhs_i
         const Offset3D rhs_offset{0, 0, is_rhs_3d ? base->layer : 0};
         const s32 lhs_layers = is_lhs_3d ? 1 : lhs.info.resources.layers - base->layer;
         const s32 rhs_layers = is_rhs_3d ? 1 : rhs.info.resources.layers;
-        const s32 num_layers = std::min(lhs_layers, rhs_layers);
+        const s32 num_layers = (std::min)(lhs_layers, rhs_layers);
         const SubresourceLayers lhs_subresource{
             .base_level = mip_level,
             .base_layer = 0,

@@ -1,10 +1,11 @@
-// SPDX-FileCopyrightText: 2023 yuzu Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 #pragma once
 
 #include <future>
 #include <jni.h>
+#include <network/network.h>
 
 #include "video_core/rasterizer_interface.h"
 
@@ -35,6 +36,9 @@ jclass GetDiskCacheLoadCallbackStageClass();
 jclass GetGameDirClass();
 jmethodID GetGameDirConstructor();
 jmethodID GetDiskCacheLoadProgress();
+jmethodID GetCopyToStorage();
+jmethodID GetFileExists();
+jmethodID GetFileExtension();
 
 jmethodID GetExitEmulationActivity();
 jmethodID GetOnEmulationStarted();
@@ -60,6 +64,7 @@ jclass GetOverlayControlDataClass();
 jmethodID GetOverlayControlDataConstructor();
 jfieldID GetOverlayControlDataIdField();
 jfieldID GetOverlayControlDataEnabledField();
+jfieldID GetOverlayControlDataIndividualScaleField();
 jfieldID GetOverlayControlDataLandscapePositionField();
 jfieldID GetOverlayControlDataPortraitPositionField();
 jfieldID GetOverlayControlDataFoldablePositionField();
@@ -81,10 +86,6 @@ jclass GetIntegerClass();
 jmethodID GetIntegerConstructor();
 jfieldID GetIntegerValueField();
 
-jclass GetLongClass();
-jmethodID GetLongConstructor();
-jfieldID GetLongValueField();
-
 jclass GetBooleanClass();
 jmethodID GetBooleanConstructor();
 jfieldID GetBooleanValueField();
@@ -104,13 +105,16 @@ jfieldID GetPlayerInputButtonColorRightField();
 jfieldID GetPlayerInputProfileNameField();
 jfieldID GetPlayerInputUseSystemVibratorField();
 
-jclass GetSuyuInputDeviceInterface();
-jmethodID GetSuyuDeviceGetName();
-jmethodID GetSuyuDeviceGetGUID();
-jmethodID GetSuyuDeviceGetPort();
-jmethodID GetSuyuDeviceGetSupportsVibration();
-jmethodID GetSuyuDeviceVibrate();
-jmethodID GetSuyuDeviceGetAxes();
-jmethodID GetSuyuDeviceHasKeys();
+jclass GetYuzuInputDeviceInterface();
+jmethodID GetYuzuDeviceGetName();
+jmethodID GetYuzuDeviceGetGUID();
+jmethodID GetYuzuDeviceGetPort();
+jmethodID GetYuzuDeviceGetSupportsVibration();
+jmethodID GetYuzuDeviceVibrate();
+jmethodID GetYuzuDeviceGetAxes();
+jmethodID GetYuzuDeviceHasKeys();
+jmethodID GetAddNetPlayMessage();
+jmethodID ClearChat();
+
 
 } // namespace Common::Android

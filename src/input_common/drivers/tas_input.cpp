@@ -1,14 +1,17 @@
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2021 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
 #include <cstring>
 #include <sstream>
-#include <fmt/format.h>
+#include <fmt/ranges.h>
 
 #include "common/fs/file.h"
 #include "common/fs/fs_types.h"
 #include "common/fs/path_util.h"
-#include "common/logging/log.h"
+#include "common/logging.h"
 #include "common/settings.h"
 #include "input_common/drivers/tas_input.h"
 
@@ -82,7 +85,7 @@ void Tas::LoadTasFile(size_t player_index, size_t file_index) {
     commands[player_index].clear();
 
     std::string file = Common::FS::ReadStringFromFile(
-        Common::FS::GetSuyuPath(Common::FS::SuyuPath::TASDir) /
+        Common::FS::GetEdenPath(Common::FS::EdenPath::TASDir) /
             fmt::format("script{}-{}.txt", file_index, player_index + 1),
         Common::FS::FileType::BinaryFile);
     std::istringstream command_line(file);
@@ -137,7 +140,7 @@ void Tas::WriteTasFile(std::u8string_view file_name) {
                                    WriteCommandAxis(line.l_axis), WriteCommandAxis(line.r_axis));
     }
 
-    const auto tas_file_name = Common::FS::GetSuyuPath(Common::FS::SuyuPath::TASDir) / file_name;
+    const auto tas_file_name = Common::FS::GetEdenPath(Common::FS::EdenPath::TASDir) / file_name;
     const auto bytes_written =
         Common::FS::WriteStringToFile(tas_file_name, Common::FS::FileType::TextFile, output_text);
     if (bytes_written == output_text.size()) {

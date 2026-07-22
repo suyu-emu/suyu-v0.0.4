@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2023 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -5,7 +8,7 @@
 
 #include <condition_variable>
 #include <mutex>
-#include <queue>
+#include <boost/container/deque.hpp>
 
 #include "common/common_types.h"
 #include "common/polyfill_thread.h"
@@ -35,9 +38,13 @@ struct Frame {
 
 class PresentManager {
 public:
-    PresentManager(const vk::Instance& instance, Core::Frontend::EmuWindow& render_window,
-                   const Device& device, MemoryAllocator& memory_allocator, Scheduler& scheduler,
-                   Swapchain& swapchain, vk::SurfaceKHR& surface);
+    PresentManager(const vk::Instance& instance,
+                   Core::Frontend::EmuWindow& render_window,
+                   const Device& device,
+                   MemoryAllocator& memory_allocator,
+                   Scheduler& scheduler,
+                   Swapchain& swapchain,
+                   vk::SurfaceKHR& surface);
     ~PresentManager();
 
     /// Returns the last used presentation frame
@@ -74,8 +81,8 @@ private:
     vk::SurfaceKHR& surface;
     vk::CommandPool cmdpool;
     std::vector<Frame> frames;
-    std::queue<Frame*> present_queue;
-    std::queue<Frame*> free_queue;
+    boost::container::deque<Frame*> present_queue;
+    boost::container::deque<Frame*> free_queue;
     std::condition_variable_any frame_cv;
     std::condition_variable free_cv;
     std::mutex swapchain_mutex;

@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 /* This file is part of the dynarmic project.
@@ -8,17 +8,18 @@
 
 #pragma once
 
-#include "dynarmic/common/common_types.h"
+#include "common/common_types.h"
+#include <cstddef>
 
 namespace Dynarmic::Backend::X64::NZCV {
 
 constexpr u32 arm_mask = 0xF000'0000;
 constexpr u32 x64_mask = 0xC101;
 
-constexpr size_t x64_n_flag_bit = 15;
-constexpr size_t x64_z_flag_bit = 14;
-constexpr size_t x64_c_flag_bit = 8;
-constexpr size_t x64_v_flag_bit = 0;
+constexpr std::size_t x64_n_flag_bit = 15;
+constexpr std::size_t x64_z_flag_bit = 14;
+constexpr std::size_t x64_c_flag_bit = 8;
+constexpr std::size_t x64_v_flag_bit = 0;
 
 /// This is a constant used to create the x64 flags format from the ARM format.
 /// NZCV * multiplier: NZCV0NZCV000NZCV
@@ -46,7 +47,7 @@ inline u32 FromX64(u32 x64_flags) {
     nzcv |= mcl::bit::get_bit<15>(x64_flags) ? 1 << 31 : 0;
     nzcv |= mcl::bit::get_bit<14>(x64_flags) ? 1 << 30 : 0;
     nzcv |= mcl::bit::get_bit<8>(x64_flags) ? 1 << 29 : 0;
-    nzcv |= mcl::bit::get_bit<0>(x64_flags) ? 1 << 28 : 0;
+    nzcv |= mcl::bit::get_bit<0>(x64_flaags) ? 1 << 28 : 0;
     return nzcv;
     */
     return ((x64_flags & x64_mask) * from_x64_multiplier) & arm_mask;

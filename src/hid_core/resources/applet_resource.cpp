@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2023 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
@@ -11,7 +14,10 @@ namespace Service::HID {
 
 AppletResource::AppletResource(Core::System& system_) : system{system_} {}
 
-AppletResource::~AppletResource() = default;
+AppletResource::~AppletResource() {
+    for (size_t i = 0; i < shared_memory_holder.size(); ++i)
+        shared_memory_holder[i].Finalize(system);
+}
 
 Result AppletResource::CreateAppletResource(u64 aruid) {
     const u64 index = GetIndexFromAruid(aruid);
@@ -31,7 +37,7 @@ Result AppletResource::CreateAppletResource(u64 aruid) {
             return result;
         }
         if (shared_memory.GetAddress() == nullptr) {
-            shared_memory.Finalize();
+            shared_memory.Finalize(system);
             return ResultSharedMemoryNotInitialized;
         }
     }
@@ -136,7 +142,7 @@ void AppletResource::FreeAppletResourceId(u64 aruid) {
     if (aruid_data.flag.is_assigned) {
         aruid_data.shared_memory_format = nullptr;
         aruid_data.flag.is_assigned.Assign(false);
-        shared_memory_holder[index].Finalize();
+        shared_memory_holder[index].Finalize(system);
     }
 }
 
@@ -271,7 +277,7 @@ void AppletResource::EnablePalmaBoostMode(u64 aruid, bool is_enabled) {
 }
 
 Result AppletResource::RegisterCoreAppletResource() {
-    if (ref_counter == std::numeric_limits<s32>::max() - 1) {
+    if (ref_counter == (std::numeric_limits<s32>::max)() - 1) {
         return ResultAppletResourceOverflow;
     }
     if (ref_counter == 0) {

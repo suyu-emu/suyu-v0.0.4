@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2023 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -29,7 +32,7 @@ constexpr bool IsValidSharedMemoryPermission(MemoryPermission perm) {
 Result MapSharedMemory(Core::System& system, Handle shmem_handle, u64 address, u64 size,
                        Svc::MemoryPermission map_perm) {
     LOG_TRACE(Kernel_SVC,
-              "called, shared_memory_handle=0x{:X}, addr=0x{:X}, size=0x{:X}, permissions=0x{:08X}",
+              "called, shared_memory_handle={:#X}, addr=0x{:X}, size=0x{:X}, permissions=0x{:08X}",
               shmem_handle, address, size, map_perm);
 
     // Validate the address/size.
@@ -46,18 +49,18 @@ Result MapSharedMemory(Core::System& system, Handle shmem_handle, u64 address, u
     auto& page_table = process.GetPageTable();
 
     // Get the shared memory.
-    KScopedAutoObject shmem = process.GetHandleTable().GetObject<KSharedMemory>(shmem_handle);
+    KScopedAutoObject shmem = process.GetHandleTable().GetObject<KSharedMemory>(system.Kernel(), shmem_handle);
     R_UNLESS(shmem.IsNotNull(), ResultInvalidHandle);
 
     // Verify that the mapping is in range.
     R_UNLESS(page_table.CanContain(address, size, KMemoryState::Shared), ResultInvalidMemoryRegion);
 
     // Add the shared memory to the process.
-    R_TRY(process.AddSharedMemory(shmem.GetPointerUnsafe(), address, size));
+    R_TRY(process.AddSharedMemory(system.Kernel(), shmem.GetPointerUnsafe(), address, size));
 
     // Ensure that we clean up the shared memory if we fail to map it.
     ON_RESULT_FAILURE {
-        process.RemoveSharedMemory(shmem.GetPointerUnsafe(), address, size);
+        process.RemoveSharedMemory(system.Kernel(), shmem.GetPointerUnsafe(), address, size);
     };
 
     // Map the shared memory.
@@ -76,7 +79,7 @@ Result UnmapSharedMemory(Core::System& system, Handle shmem_handle, u64 address,
     auto& page_table = process.GetPageTable();
 
     // Get the shared memory.
-    KScopedAutoObject shmem = process.GetHandleTable().GetObject<KSharedMemory>(shmem_handle);
+    KScopedAutoObject shmem = process.GetHandleTable().GetObject<KSharedMemory>(system.Kernel(), shmem_handle);
     R_UNLESS(shmem.IsNotNull(), ResultInvalidHandle);
 
     // Verify that the mapping is in range.
@@ -86,7 +89,7 @@ Result UnmapSharedMemory(Core::System& system, Handle shmem_handle, u64 address,
     R_TRY(shmem->Unmap(process, address, size));
 
     // Remove the shared memory from the process.
-    process.RemoveSharedMemory(shmem.GetPointerUnsafe(), address, size);
+    process.RemoveSharedMemory(system.Kernel(), shmem.GetPointerUnsafe(), address, size);
 
     R_SUCCEED();
 }

@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2024 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -8,6 +11,7 @@
 #include <mutex>
 
 #include "common/common_types.h"
+#include "core/hle/service/am/am_types.h"
 
 namespace Core {
 class System;
@@ -32,11 +36,13 @@ public:
 public:
     void SetEventObserver(EventObserver* event_observer);
     void Update();
+    void RequestUpdate();
 
 public:
     void TrackApplet(std::shared_ptr<Applet> applet, bool is_application);
     std::shared_ptr<Applet> GetByAppletResourceUserId(u64 aruid);
     std::shared_ptr<Applet> GetMainApplet();
+    std::shared_ptr<Applet> GetOverlayDisplayApplet();
 
 public:
     void RequestHomeMenuToGetForeground();
@@ -49,14 +55,17 @@ public:
     void OnOperationModeChanged();
     void OnExitRequested();
     void OnHomeButtonPressed(ButtonPressDuration type);
+    void OnSystemButtonPress(SystemButtonType type);
     void OnCaptureButtonPressed(ButtonPressDuration type) {}
     void OnPowerButtonPressed(ButtonPressDuration type) {}
 
 private:
     void PruneTerminatedAppletsLocked();
+    bool RestartAppletProcessLocked(Applet* applet);
     bool LockHomeMenuIntoForegroundLocked();
     void TerminateChildAppletsLocked(Applet* applet);
-    void UpdateAppletStateLocked(Applet* applet, bool is_foreground);
+    void UpdateAppletStateLocked(Applet* applet, bool is_foreground, bool overlay_blocking = false);
+    void SendButtonAppletMessageLocked(AppletMessage message);
 
 private:
     // System reference.
@@ -75,6 +84,7 @@ private:
     // Foreground roots.
     Applet* m_home_menu{};
     Applet* m_application{};
+    Applet* m_overlay_display{};
 
     // Applet map by aruid.
     std::map<u64, std::shared_ptr<Applet>> m_applets{};

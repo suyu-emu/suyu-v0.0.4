@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2024 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -39,13 +42,13 @@ IAudioOut::IAudioOut(Core::System& system_, Manager& manager, size_t session_id,
     // clang-format on
     RegisterHandlers(functions);
 
-    process->Open();
+    process->Open(system.Kernel());
 }
 
 IAudioOut::~IAudioOut() {
     impl->Free();
     service_context.CloseEvent(event);
-    process->Close();
+    process->Close(system.Kernel());
 }
 
 Result IAudioOut::GetAudioOutState(Out<u32> out_state) {

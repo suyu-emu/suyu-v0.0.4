@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2021 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -33,7 +36,6 @@ public:
 
     // Randomness.
     static u64 GenerateRandomRange(u64 min, u64 max);
-    static u64 GenerateRandomU64();
 
     // Secure Memory.
     static size_t CalculateRequiredSecureMemorySize(size_t size, u32 pool);

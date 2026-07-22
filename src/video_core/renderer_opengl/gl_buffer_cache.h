@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2018 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -5,7 +8,7 @@
 
 #include <array>
 #include <span>
-#include <unordered_map>
+#include <ankerl/unordered_dense.h>
 
 #include "common/common_types.h"
 #include "video_core/buffer_cache/buffer_cache_base.h"
@@ -59,7 +62,7 @@ class BufferCacheRuntime {
     friend Buffer;
 
 public:
-    static constexpr u8 INVALID_BINDING = std::numeric_limits<u8>::max();
+    static constexpr u8 INVALID_BINDING = (std::numeric_limits<u8>::max)();
 
     explicit BufferCacheRuntime(const Device& device_, StagingBufferPool& staging_buffer_pool_);
 
@@ -195,6 +198,10 @@ public:
         return device.CanReportMemoryUsage();
     }
 
+    u32 GetUniformBufferAlignment() const {
+        return static_cast<u32>(device.GetUniformBufferAlignment());
+    }
+
     u32 GetStorageBufferAlignment() const {
         return static_cast<u32>(device.GetShaderStorageBufferAlignment());
     }
@@ -235,7 +242,7 @@ private:
     u32 index_buffer_offset = 0;
 
     u64 device_access_memory;
-    std::unordered_map<GPUVAddr, OGLTransformFeedback> tfb_objects;
+    ankerl::unordered_dense::map<GPUVAddr, OGLTransformFeedback> tfb_objects;
 };
 
 struct BufferCacheParams {

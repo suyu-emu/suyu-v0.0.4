@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 /* This file is part of the dynarmic project.
@@ -6,7 +6,7 @@
  * SPDX-License-Identifier: 0BSD
  */
 
-#include <mcl/bit/bit_field.hpp>
+#include "dynarmic/mcl/bit.hpp"
 
 #include "dynarmic/frontend/A32/translate/impl/a32_translate_impl.h"
 
@@ -15,7 +15,7 @@ namespace Dynarmic::A32 {
 // CPS<effect> <iflags>{, #<mode>}
 // CPS #<mode>
 bool TranslatorVisitor::arm_CPS() {
-    return InterpretThisInstruction();
+    UNREACHABLE();
 }
 
 // MRS<c> <Rd>, <spec_reg>
@@ -107,7 +107,7 @@ bool TranslatorVisitor::arm_MSR_reg(Cond cond, unsigned mask, Reg n) {
 
 // RFE{<amode>} <Rn>{!}
 bool TranslatorVisitor::arm_RFE() {
-    return InterpretThisInstruction();
+    UNREACHABLE();
 }
 
 // SETEND <endian_specifier>
@@ -118,7 +118,7 @@ bool TranslatorVisitor::arm_SETEND(bool E) {
 
 // SRS{<amode>} SP{!}, #<mode>
 bool TranslatorVisitor::arm_SRS() {
-    return InterpretThisInstruction();
+    UNREACHABLE();
 }
 
 }  // namespace Dynarmic::A32

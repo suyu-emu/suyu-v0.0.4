@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2024 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -30,14 +33,14 @@ public:
     ~ISystemAppletProxy();
 
 private:
+    Result GetCommonStateGetter(Out<SharedPointer<ICommonStateGetter>> out_common_state_getter);
+    Result GetSelfController(Out<SharedPointer<ISelfController>> out_self_controller);
+    Result GetWindowController(Out<SharedPointer<IWindowController>> out_window_controller);
     Result GetAudioController(Out<SharedPointer<IAudioController>> out_audio_controller);
     Result GetDisplayController(Out<SharedPointer<IDisplayController>> out_display_controller);
     Result GetProcessWindingController(
         Out<SharedPointer<IProcessWindingController>> out_process_winding_controller);
     Result GetDebugFunctions(Out<SharedPointer<IDebugFunctions>> out_debug_functions);
-    Result GetWindowController(Out<SharedPointer<IWindowController>> out_window_controller);
-    Result GetSelfController(Out<SharedPointer<ISelfController>> out_self_controller);
-    Result GetCommonStateGetter(Out<SharedPointer<ICommonStateGetter>> out_common_state_getter);
     Result GetLibraryAppletCreator(
         Out<SharedPointer<ILibraryAppletCreator>> out_library_applet_creator);
     Result GetApplicationCreator(Out<SharedPointer<IApplicationCreator>> out_application_creator);

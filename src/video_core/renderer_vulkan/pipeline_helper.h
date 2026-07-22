@@ -1,9 +1,13 @@
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2021 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
 #pragma once
 
 #include <cstddef>
+#include <optional>
 
 #include <boost/container/small_vector.hpp>
 
@@ -12,12 +16,45 @@
 #include "shader_recompiler/shader_info.h"
 #include "video_core/renderer_vulkan/vk_texture_cache.h"
 #include "video_core/renderer_vulkan/vk_update_descriptor.h"
+#include "video_core/surface.h"
 #include "video_core/texture_cache/types.h"
 #include "video_core/vulkan_common/vulkan_device.h"
 
 namespace Vulkan {
 
 using Shader::Backend::SPIRV::NUM_TEXTURE_AND_IMAGE_SCALING_WORDS;
+
+[[nodiscard]] inline std::optional<PixelFormat> PixelFormatFromImageFormat(
+    Shader::ImageFormat format) {
+    switch (format) {
+    case Shader::ImageFormat::Typeless:
+        return std::nullopt;
+    case Shader::ImageFormat::R8_UINT:
+        return PixelFormat::R8_UINT;
+    case Shader::ImageFormat::R8_SINT:
+        return PixelFormat::R8_SINT;
+    case Shader::ImageFormat::R16_UINT:
+        return PixelFormat::R16_UINT;
+    case Shader::ImageFormat::R16_SINT:
+        return PixelFormat::R16_SINT;
+    case Shader::ImageFormat::R32_UINT:
+        return PixelFormat::R32_UINT;
+    case Shader::ImageFormat::R32G32_UINT:
+        return PixelFormat::R32G32_UINT;
+    case Shader::ImageFormat::R32G32B32A32_UINT:
+        return PixelFormat::R32G32B32A32_UINT;
+    }
+    return std::nullopt;
+}
+
+[[nodiscard]] inline u32 NumDescriptorEntries(const Shader::Info& info) {
+    return Shader::NumDescriptors(info.constant_buffer_descriptors) +
+           Shader::NumDescriptors(info.storage_buffers_descriptors) +
+           Shader::NumDescriptors(info.texture_buffer_descriptors) +
+           Shader::NumDescriptors(info.image_buffer_descriptors) +
+           Shader::NumDescriptors(info.texture_descriptors) +
+           Shader::NumDescriptors(info.image_descriptors);
+}
 
 class DescriptorLayoutBuilder {
 public:
@@ -28,6 +65,7 @@ public:
                num_descriptors <= device->MaxPushDescriptors();
     }
 
+    // TODO(crueter): utilize layout binding flags
     vk::DescriptorSetLayout CreateDescriptorSetLayout(bool use_push_descriptor) const {
         if (bindings.empty()) {
             return nullptr;
@@ -60,7 +98,8 @@ public:
             .pDescriptorUpdateEntries = entries.data(),
             .templateType = type,
             .descriptorSetLayout = descriptor_set_layout,
-            .pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS,
+            .pipelineBindPoint =
+                is_compute ? VK_PIPELINE_BIND_POINT_COMPUTE : VK_PIPELINE_BIND_POINT_GRAPHICS,
             .pipelineLayout = pipeline_layout,
             .set = 0,
         });
@@ -121,7 +160,7 @@ private:
             });
             ++binding;
             num_descriptors += descriptors[i].count;
-            offset += sizeof(DescriptorUpdateEntry);
+            offset += sizeof(DescriptorUpdateEntry) * descriptors[i].count;
         }
     }
 
@@ -184,21 +223,37 @@ inline void PushImageDescriptors(TextureCache& texture_cache,
     views += num_texture_buffers;
     views += num_image_buffers;
     for (const auto& desc : info.texture_descriptors) {
+        bool is_rescaled{};
         for (u32 index = 0; index < desc.count; ++index) {
             const VideoCommon::ImageViewId image_view_id{(views++)->id};
             const VideoCommon::SamplerId sampler_id{*(samplers++)};
             ImageView& image_view{texture_cache.GetImageView(image_view_id)};
-            const VkImageView vk_image_view{image_view.Handle(desc.type)};
+            VkImageView vk_image_view{image_view.Handle(desc.type)};
+            if (vk_image_view == VK_NULL_HANDLE) {
+                const VkImageView null_image_view{texture_cache.GetImageView(VideoCommon::NULL_IMAGE_VIEW_ID).Handle(desc.type)};
+                if (null_image_view != VK_NULL_HANDLE) vk_image_view = null_image_view;
+            }
             const Sampler& sampler{texture_cache.GetSampler(sampler_id)};
             const bool use_fallback_sampler{sampler.HasAddedAnisotropy() &&
                                             !image_view.SupportsAnisotropy()};
-            const VkSampler vk_sampler{use_fallback_sampler ? sampler.HandleWithDefaultAnisotropy()
-                                                            : sampler.Handle()};
+            VkSampler vk_sampler{use_fallback_sampler ? sampler.HandleWithDefaultAnisotropy()
+                                                      : sampler.Handle()};
+            if (sampler.HasLinearFiltering() &&
+                VideoCore::Surface::IsPixelFormatInteger(image_view.format)) {
+                vk_sampler = sampler.HandleWithNearestFilter();
+            }
+            if (desc.is_depth && sampler.HasDepthComparison() &&
+                !image_view.SupportsDepthComparison()) {
+                vk_sampler = sampler.HandleWithoutDepthComparison();
+            }
             guest_descriptor_queue.AddSampledImage(vk_image_view, vk_sampler);
-            rescaling.PushTexture(texture_cache.IsRescaling(image_view));
+            const bool element_rescaled{texture_cache.IsRescaling(image_view)};
+            is_rescaled |= element_rescaled;
         }
+        rescaling.PushTexture(is_rescaled);
     }
     for (const auto& desc : info.image_descriptors) {
+        bool is_rescaled{};
         for (u32 index = 0; index < desc.count; ++index) {
             ImageView& image_view{texture_cache.GetImageView((views++)->id)};
             if (desc.is_written) {
@@ -206,8 +261,10 @@ inline void PushImageDescriptors(TextureCache& texture_cache,
             }
             const VkImageView vk_image_view{image_view.StorageView(desc.type, desc.format)};
             guest_descriptor_queue.AddImage(vk_image_view);
-            rescaling.PushImage(texture_cache.IsRescaling(image_view));
+            const bool element_rescaled{texture_cache.IsRescaling(image_view)};
+            is_rescaled |= element_rescaled;
         }
+        rescaling.PushImage(is_rescaled);
     }
 }
 

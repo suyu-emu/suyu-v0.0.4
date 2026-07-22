@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2019 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -13,8 +16,8 @@
 #include <glad/glad.h>
 
 #include "common/literals.h"
-#include "common/logging/log.h"
-#include "common/polyfill_ranges.h"
+#include "common/logging.h"
+#include <ranges>
 #include "common/settings.h"
 #include "shader_recompiler/stage.h"
 #include "video_core/renderer_opengl/gl_device.h"
@@ -24,6 +27,8 @@ using namespace Common::Literals;
 
 namespace OpenGL {
 namespace {
+
+// TODO: Needs to explicitly enable ARB_TESSELLATION_SHADER for GL_MAX_TESS_CONTROL_UNIFORM_BLOCKS
 constexpr std::array LIMIT_UBOS = {
     GL_MAX_VERTEX_UNIFORM_BLOCKS,          GL_MAX_TESS_CONTROL_UNIFORM_BLOCKS,
     GL_MAX_TESS_EVALUATION_UNIFORM_BLOCKS, GL_MAX_GEOMETRY_UNIFORM_BLOCKS,
@@ -45,24 +50,28 @@ bool TestProgram(const GLchar* glsl) {
     return link_status == GL_TRUE;
 }
 
-std::vector<std::string_view> GetExtensions() {
+/// @brief Query OpenGL extensions
+/// DO NOT use string_view, the driver can immediately free up the extension name and such
+/// do NOT under ANY circumstances use string_view, make a copy, it's required
+std::vector<std::string> GetExtensions() {
     GLint num_extensions;
     glGetIntegerv(GL_NUM_EXTENSIONS, &num_extensions);
-    std::vector<std::string_view> extensions;
-    extensions.reserve(num_extensions);
+    std::vector<std::string> extensions;
     for (GLint index = 0; index < num_extensions; ++index) {
-        extensions.push_back(
-            reinterpret_cast<const char*>(glGetStringi(GL_EXTENSIONS, static_cast<GLuint>(index))));
+        auto const* p = reinterpret_cast<const char*>(glGetStringi(GL_EXTENSIONS, GLuint(index)));
+        if (p != nullptr) // Fuck you? - sincerely, buggy mesa drivers
+            extensions.push_back(std::string{p});
     }
     return extensions;
 }
 
-bool HasExtension(std::span<const std::string_view> extensions, std::string_view extension) {
-    return std::ranges::find(extensions, extension) != extensions.end();
+/// @brief Find extension in set of extensions (string)
+bool HasExtension(std::span<const std::string> extensions, std::string_view extension) {
+    return std::ranges::find(extensions, std::string{extension}) != extensions.end();
 }
 
 std::array<u32, Shader::MaxStageTypes> BuildMaxUniformBuffers() noexcept {
-    std::array<u32, Shader::MaxStageTypes> max;
+    std::array<u32, Shader::MaxStageTypes> max{};
     std::ranges::transform(LIMIT_UBOS, max.begin(), &GetInteger<u32>);
     return max;
 }
@@ -108,14 +117,14 @@ bool IsASTCSupported() {
 
 static bool HasSlowSoftwareAstc(std::string_view vendor_name, std::string_view renderer) {
 // ifdef for Unix reduces string comparisons for non-Windows drivers, and Intel
-#ifdef SUYU_UNIX
+#ifdef __unix__
     // Sorted vaguely by how likely a vendor is to appear
     if (vendor_name == "AMD") {
         // RadeonSI
         return true;
     }
     if (vendor_name == "Intel") {
-        // Must be inside SUYU_UNIX ifdef as the Windows driver uses the same vendor string
+        // Must be inside Unix ifdef as the Windows driver uses the same vendor string
         // iris, crocus
         const bool is_intel_dg = (renderer.find("DG") != std::string_view::npos);
         return is_intel_dg;
@@ -143,7 +152,7 @@ static bool HasSlowSoftwareAstc(std::string_view vendor_name, std::string_view r
     return false;
 }
 
-[[nodiscard]] bool IsDebugToolAttached(std::span<const std::string_view> extensions) {
+[[nodiscard]] bool IsDebugToolAttached(std::span<const std::string> extensions) {
     const bool nsight = std::getenv("NVTX_INJECTION64_PATH") || std::getenv("NSIGHT_LAUNCHED");
     return nsight || HasExtension(extensions, "GL_EXT_debug_tool") ||
            Settings::values.renderer_debug.GetValue();
@@ -155,10 +164,17 @@ Device::Device(Core::Frontend::EmuWindow& emu_window) {
         LOG_ERROR(Render_OpenGL, "OpenGL 4.6 is not available");
         throw std::runtime_error{"Insufficient version"};
     }
+#ifdef __HAIKU__
+    if (glad_glCreateProgramPipelines == nullptr) {
+        LOG_ERROR(Render_OpenGL, "You must compile Mesa +22 manually or use a different libGL.so (GLES is not supported)");
+        throw std::runtime_error{"Outdated mesa"};
+    }
+#endif
+
     vendor_name = reinterpret_cast<const char*>(glGetString(GL_VENDOR));
-    const std::string_view version = reinterpret_cast<const char*>(glGetString(GL_VERSION));
-    const std::string_view renderer = reinterpret_cast<const char*>(glGetString(GL_RENDERER));
-    const std::vector extensions = GetExtensions();
+    const std::string version = reinterpret_cast<const char*>(glGetString(GL_VERSION));
+    const std::string renderer = reinterpret_cast<const char*>(glGetString(GL_RENDERER));
+    const std::vector<std::string> extensions = GetExtensions();
 
     const bool is_nvidia = vendor_name == "NVIDIA Corporation";
     const bool is_amd = vendor_name == "ATI Technologies Inc.";
@@ -187,6 +203,7 @@ Device::Device(Core::Frontend::EmuWindow& emu_window) {
     max_varyings = GetInteger<u32>(GL_MAX_VARYING_VECTORS);
     max_compute_shared_memory_size = GetInteger<u32>(GL_MAX_COMPUTE_SHARED_MEMORY_SIZE);
     max_glasm_storage_buffer_blocks = GetInteger<u32>(GL_MAX_VERTEX_SHADER_STORAGE_BLOCKS);
+    max_user_clip_distances = GetInteger<u32>(GL_MAX_CLIP_DISTANCES);
     has_warp_intrinsics = GLAD_GL_NV_gpu_shader5 && GLAD_GL_NV_shader_thread_group &&
                           GLAD_GL_NV_shader_thread_shuffle;
     has_shader_ballot = GLAD_GL_ARB_shader_ballot;
@@ -217,19 +234,17 @@ Device::Device(Core::Frontend::EmuWindow& emu_window) {
     // uniform buffers as "push constants"
     has_fast_buffer_sub_data = is_nvidia && !disable_fast_buffer_sub_data;
 
-    shader_backend = Settings::values.shader_backend.GetValue();
-    use_assembly_shaders = shader_backend == Settings::ShaderBackend::Glasm &&
-                           GLAD_GL_NV_gpu_program5 && GLAD_GL_NV_compute_program5 &&
-                           GLAD_GL_NV_transform_feedback && GLAD_GL_NV_transform_feedback2;
-    if (shader_backend == Settings::ShaderBackend::Glasm && !use_assembly_shaders) {
-        LOG_ERROR(Render_OpenGL, "Assembly shaders enabled but not supported");
-        shader_backend = Settings::ShaderBackend::Glsl;
+    auto const shader_backend = Settings::values.renderer_backend.GetValue();
+    use_assembly_shaders = shader_backend == Settings::RendererBackend::OpenGL_GLASM
+        && GLAD_GL_NV_gpu_program5 && GLAD_GL_NV_compute_program5
+        && GLAD_GL_NV_transform_feedback && GLAD_GL_NV_transform_feedback2;
+    if (shader_backend == Settings::RendererBackend::OpenGL_GLASM && !use_assembly_shaders) {
+        LOG_ERROR(Render_OpenGL, "Assembly shaders enabled but not supported - expect instability!");
     }
 
-    if (shader_backend == Settings::ShaderBackend::Glsl && is_nvidia) {
-        const std::string_view driver_version = version.substr(13);
-        const int version_major =
-            std::atoi(driver_version.substr(0, driver_version.find(".")).data());
+    if (shader_backend == Settings::RendererBackend::OpenGL_GLSL && is_nvidia) {
+        const std::string driver_version = version.substr(13);
+        const int version_major = std::atoi(driver_version.substr(0, driver_version.find(".")).data());
         if (version_major >= 495) {
             has_cbuf_ftou_bug = true;
             has_bool_ref_bug = true;

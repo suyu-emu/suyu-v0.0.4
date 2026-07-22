@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2018 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -11,7 +14,7 @@
 #include <string>
 
 #include <variant>
-#include <fmt/format.h>
+#include <fmt/ranges.h>
 #include "common/common_funcs.h"
 #include "common/common_types.h"
 #include "core/crypto/partition_data_manager.h"
@@ -314,6 +317,10 @@ private:
     bool dev_mode;
     void LoadFromFile(const std::filesystem::path& file_path, bool is_title_keys);
 
+    template <size_t Size>
+    void WriteKeyToFile(KeyCategory category, std::string_view keyname,
+                        const std::array<u8, Size>& key);
+
     void DeriveGeneralPurposeKeys(std::size_t crypto_revision);
 
     void DeriveETicketRSAKey();
@@ -329,8 +336,7 @@ Key128 GenerateKeyEncryptionKey(Key128 source, Key128 master, Key128 kek_seed, K
 Key128 DeriveKeyblobKey(const Key128& sbk, const Key128& tsec, Key128 source);
 Key128 DeriveKeyblobMACKey(const Key128& keyblob_key, const Key128& mac_source);
 Key128 DeriveMasterKey(const std::array<u8, 0x90>& keyblob, const Key128& master_source);
-std::array<u8, 0x90> DecryptKeyblob(const std::array<u8, 0xB0>& encrypted_keyblob,
-                                    const Key128& key);
+std::array<u8, 0x90> DecryptKeyblob(const std::array<u8, 0xB0>& encrypted_keyblob, const Key128& key);
 
 std::optional<Key128> DeriveSDSeed();
 Loader::ResultStatus DeriveSDKeys(std::array<Key256, 2>& sd_keys, KeyManager& keys);

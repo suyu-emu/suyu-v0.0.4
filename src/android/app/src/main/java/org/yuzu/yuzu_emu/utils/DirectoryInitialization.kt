@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 package org.yuzu.yuzu_emu.utils
@@ -23,8 +23,9 @@ object DirectoryInitialization {
     fun start() {
         if (!areDirectoriesReady) {
             initializeInternalStorage()
-            NativeLibrary.initializeSystem(false)
             NativeConfig.initializeGlobalConfig()
+            NativeLibrary.initializeSystem(false)
+            NativeLibrary.reloadProfiles()
             migrateSettings()
             areDirectoriesReady = true
         }
@@ -57,6 +58,12 @@ object DirectoryInitialization {
         val themeMode = preferences.migratePreference<Int>(Settings.PREF_THEME_MODE)
         if (themeMode != null) {
             IntSetting.THEME_MODE.setInt(themeMode)
+            saveConfig = true
+        }
+
+        val staticThemeColor = preferences.migratePreference<Int>(Settings.PREF_STATIC_THEME_COLOR)
+        if (staticThemeColor != null) {
+            IntSetting.STATIC_THEME_COLOR.setInt(staticThemeColor)
             saveConfig = true
         }
 

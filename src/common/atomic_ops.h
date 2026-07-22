@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2020 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -103,46 +106,60 @@ template <>
 
 #else
 
+// Some architectures lack u128, there is no definitive way to check them all without even more macro magic
+// so let's just... do this; add your favourite arches once they get u128 support :)
+#if (defined(__clang__) || defined(__GNUC__)) && (defined(ARCHITECTURE_x86_64) || defined(ARCHITECTURE_arm64))
+using RealU128 = unsigned __int128;
+#   define SYNC_VAL_COMPARE_AND_SWAP(p, e, v) __sync_val_compare_and_swap(p, e, v)
+#   define SYNC_BOOL_COMPARE_AND_SWAP(p, e, v) __sync_bool_compare_and_swap(p, e, v)
+#   define U128_ZERO_INIT 0
+#else
+using RealU128 = u128;
+#   define SYNC_VAL_COMPARE_AND_SWAP(p, e, v) ((*p == e) ? *p = v : *p)
+#   define SYNC_BOOL_COMPARE_AND_SWAP(p, e, v) ((*p == e) ? (void)(*p = v) : (void)0), true
+#   define U128_ZERO_INIT {}
+#endif
+
 template <typename T>
 [[nodiscard]] inline bool AtomicCompareAndSwap(T* pointer, T value, T expected) {
-    return __sync_bool_compare_and_swap(pointer, expected, value);
+    return SYNC_BOOL_COMPARE_AND_SWAP(pointer, expected, value);
 }
 
 [[nodiscard]] inline bool AtomicCompareAndSwap(u64* pointer, u128 value, u128 expected) {
-    unsigned __int128 value_a;
-    unsigned __int128 expected_a;
+    RealU128 value_a;
+    RealU128 expected_a;
     std::memcpy(&value_a, value.data(), sizeof(u128));
     std::memcpy(&expected_a, expected.data(), sizeof(u128));
-    return __sync_bool_compare_and_swap((unsigned __int128*)pointer, expected_a, value_a);
+    return SYNC_BOOL_COMPARE_AND_SWAP((RealU128*)pointer, expected_a, value_a);
 }
 
 template <typename T>
 [[nodiscard]] inline bool AtomicCompareAndSwap(T* pointer, T value, T expected, T& actual) {
-    actual = __sync_val_compare_and_swap(pointer, expected, value);
+    actual = SYNC_VAL_COMPARE_AND_SWAP(pointer, expected, value);
     return actual == expected;
 }
 
-[[nodiscard]] inline bool AtomicCompareAndSwap(u64* pointer, u128 value, u128 expected,
-                                               u128& actual) {
-    unsigned __int128 value_a;
-    unsigned __int128 expected_a;
-    unsigned __int128 actual_a;
+[[nodiscard]] inline bool AtomicCompareAndSwap(u64* pointer, u128 value, u128 expected, u128& actual) {
+    RealU128 value_a;
+    RealU128 expected_a;
+    RealU128 actual_a;
     std::memcpy(&value_a, value.data(), sizeof(u128));
     std::memcpy(&expected_a, expected.data(), sizeof(u128));
-    actual_a = __sync_val_compare_and_swap((unsigned __int128*)pointer, expected_a, value_a);
+    actual_a = SYNC_VAL_COMPARE_AND_SWAP((RealU128*)pointer, expected_a, value_a);
     std::memcpy(actual.data(), &actual_a, sizeof(u128));
     return actual_a == expected_a;
 }
 
 [[nodiscard]] inline u128 AtomicLoad128(u64* pointer) {
-    unsigned __int128 zeros_a = 0;
-    unsigned __int128 result_a =
-        __sync_val_compare_and_swap((unsigned __int128*)pointer, zeros_a, zeros_a);
-
+    RealU128 zeros_a = U128_ZERO_INIT;
+    RealU128 result_a = SYNC_VAL_COMPARE_AND_SWAP((RealU128*)pointer, zeros_a, zeros_a);
     u128 result;
     std::memcpy(result.data(), &result_a, sizeof(u128));
     return result;
 }
+#undef U128_ZERO_INIT
+#undef SYNC_VAL_COMPARE_AND_SWAP
+#undef SYNC_BOOL_COMPARE_AND_SWAP
 
 #endif
 

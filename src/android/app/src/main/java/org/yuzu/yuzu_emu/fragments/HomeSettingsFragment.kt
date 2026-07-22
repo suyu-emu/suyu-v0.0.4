@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 package org.yuzu.yuzu_emu.fragments
@@ -36,12 +36,15 @@ import org.yuzu.yuzu_emu.databinding.FragmentHomeSettingsBinding
 import org.yuzu.yuzu_emu.features.DocumentProvider
 import org.yuzu.yuzu_emu.features.fetcher.SpacingItemDecoration
 import org.yuzu.yuzu_emu.features.settings.model.Settings
+import org.yuzu.yuzu_emu.features.settings.ui.SettingsSubscreen
 import org.yuzu.yuzu_emu.model.DriverViewModel
 import org.yuzu.yuzu_emu.model.HomeSetting
 import org.yuzu.yuzu_emu.model.HomeViewModel
 import org.yuzu.yuzu_emu.ui.main.MainActivity
 import org.yuzu.yuzu_emu.utils.FileUtil
+import org.yuzu.yuzu_emu.utils.GpuDriverHelper
 import org.yuzu.yuzu_emu.utils.Log
+import org.yuzu.yuzu_emu.utils.ViewUtils.updateMargins
 
 class HomeSettingsFragment : Fragment() {
     private var _binding: FragmentHomeSettingsBinding? = null
@@ -68,8 +71,12 @@ class HomeSettingsFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        homeViewModel.setStatusBarShadeVisibility(visible = true)
+        homeViewModel.setStatusBarShadeVisibility(visible = false)
         mainActivity = requireActivity() as MainActivity
+        binding.toolbarHomeSettings.setNavigationOnClickListener {
+            findNavController().popBackStack()
+        }
+        binding.toolbarHomeSettings.title = getString(R.string.preferences_settings)
 
         val optionsList: MutableList<HomeSetting> = mutableListOf<HomeSetting>().apply {
             add(
@@ -116,12 +123,28 @@ class HomeSettingsFragment : Fragment() {
             )
             add(
                 HomeSetting(
+                    R.string.profile_manager,
+                    R.string.profile_manager_description,
+                    R.drawable.ic_account_circle,
+                    {
+                        val action = HomeNavigationDirections.actionGlobalSettingsSubscreenActivity(
+                            SettingsSubscreen.PROFILE_MANAGER,
+                            null
+                        )
+                        binding.root.findNavController().navigate(action)
+                    }
+                )
+            )
+            add(
+                HomeSetting(
                     R.string.gpu_driver_manager,
                     R.string.install_gpu_driver_description,
                     R.drawable.ic_build,
                     {
-                        val action = HomeSettingsFragmentDirections
-                            .actionHomeSettingsFragmentToDriverManagerFragment(null)
+                        val action = HomeNavigationDirections.actionGlobalSettingsSubscreenActivity(
+                            SettingsSubscreen.DRIVER_MANAGER,
+                            null
+                        )
                         binding.root.findNavController().navigate(action)
                     },
                     { true },
@@ -130,6 +153,23 @@ class HomeSettingsFragment : Fragment() {
                     driverViewModel.selectedDriverTitle
                 )
             )
+            if (GpuDriverHelper.isAdrenoGpu()) {
+                add(
+                    HomeSetting(
+                        R.string.freedreno_settings_title,
+                        R.string.gpu_driver_settings,
+                        R.drawable.ic_graphics,
+                        {
+                            val action =
+                                HomeNavigationDirections.actionGlobalSettingsSubscreenActivity(
+                                    SettingsSubscreen.FREEDRENO_SETTINGS,
+                                    null
+                                )
+                            binding.root.findNavController().navigate(action)
+                        }
+                    )
+                )
+            }
             add(
                 HomeSetting(
                     R.string.multiplayer,
@@ -146,8 +186,11 @@ class HomeSettingsFragment : Fragment() {
                     R.string.applets_description,
                     R.drawable.ic_applet,
                     {
-                        binding.root.findNavController()
-                            .navigate(R.id.action_homeSettingsFragment_to_appletLauncherFragment)
+                        val action = HomeNavigationDirections.actionGlobalSettingsSubscreenActivity(
+                            SettingsSubscreen.APPLET_LAUNCHER,
+                            null
+                        )
+                        binding.root.findNavController().navigate(action)
                     },
                     { NativeLibrary.isFirmwareAvailable() },
                     R.string.applets_error_firmware,
@@ -160,8 +203,11 @@ class HomeSettingsFragment : Fragment() {
                     R.string.manage_yuzu_data_description,
                     R.drawable.ic_install,
                     {
-                        binding.root.findNavController()
-                            .navigate(R.id.action_homeSettingsFragment_to_installableFragment)
+                        val action = HomeNavigationDirections.actionGlobalSettingsSubscreenActivity(
+                            SettingsSubscreen.INSTALLABLE,
+                            null
+                        )
+                        binding.root.findNavController().navigate(action)
                     }
                 )
             )
@@ -171,8 +217,11 @@ class HomeSettingsFragment : Fragment() {
                     R.string.select_games_folder_description,
                     R.drawable.ic_add,
                     {
-                        binding.root.findNavController()
-                            .navigate(R.id.action_homeSettingsFragment_to_gameFoldersFragment)
+                        val action = HomeNavigationDirections.actionGlobalSettingsSubscreenActivity(
+                            SettingsSubscreen.GAME_FOLDERS,
+                            null
+                        )
+                        binding.root.findNavController().navigate(action)
                     }
                 )
             )
@@ -224,6 +273,14 @@ class HomeSettingsFragment : Fragment() {
             )
             add(
                 HomeSetting(
+                    R.string.share_gpu_log,
+                    R.string.share_gpu_log_description,
+                    R.drawable.ic_log,
+                    { shareGpuLog() }
+                )
+            )
+            add(
+                HomeSetting(
                     R.string.open_user_folder,
                     R.string.open_user_folder_description,
                     R.drawable.ic_folder_open,
@@ -232,13 +289,26 @@ class HomeSettingsFragment : Fragment() {
             )
             add(
                 HomeSetting(
+                    R.string.system_information,
+                    R.string.system_information_description,
+                    R.drawable.ic_system,
+                    {
+                        SystemInfoDialogFragment.newInstance()
+                            .show(parentFragmentManager, SystemInfoDialogFragment.TAG)
+                    }
+                )
+            )
+            add(
+                HomeSetting(
                     R.string.about,
                     R.string.about_description,
                     R.drawable.ic_info_outline,
                     {
-                        exitTransition = MaterialSharedAxis(MaterialSharedAxis.X, true)
-                        parentFragmentManager.primaryNavigationFragment?.findNavController()
-                            ?.navigate(R.id.action_homeSettingsFragment_to_aboutFragment)
+                        val action = HomeNavigationDirections.actionGlobalSettingsSubscreenActivity(
+                            SettingsSubscreen.ABOUT,
+                            null
+                        )
+                        binding.root.findNavController().navigate(action)
                     }
                 )
             )
@@ -397,20 +467,57 @@ class HomeSettingsFragment : Fragment() {
         }
     }
 
+    private fun shareGpuLog() {
+        val currentLog = DocumentFile.fromSingleUri(
+            mainActivity,
+            DocumentsContract.buildDocumentUri(
+                DocumentProvider.AUTHORITY,
+                "${DocumentProvider.ROOT_ID}/log/eden_gpu.log"
+            )
+        )!!
+        val oldLog = DocumentFile.fromSingleUri(
+            mainActivity,
+            DocumentsContract.buildDocumentUri(
+                DocumentProvider.AUTHORITY,
+                "${DocumentProvider.ROOT_ID}/log/eden_gpu.log.old.txt"
+            )
+        )!!
+
+        val intent = Intent(Intent.ACTION_SEND)
+            .setDataAndType(currentLog.uri, FileUtil.TEXT_PLAIN)
+            .addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+        if (!Log.gameLaunched && oldLog.exists()) {
+            intent.putExtra(Intent.EXTRA_STREAM, oldLog.uri)
+            startActivity(Intent.createChooser(intent, getText(R.string.share_gpu_log)))
+        } else if (currentLog.exists()) {
+            intent.putExtra(Intent.EXTRA_STREAM, currentLog.uri)
+            startActivity(Intent.createChooser(intent, getText(R.string.share_gpu_log)))
+        } else {
+            Toast.makeText(
+                requireContext(),
+                getText(R.string.share_gpu_log_missing),
+                Toast.LENGTH_SHORT
+            ).show()
+        }
+    }
+
     private fun setInsets() =
-        ViewCompat.setOnApplyWindowInsetsListener(binding.root) { view, windowInsets ->
+        ViewCompat.setOnApplyWindowInsetsListener(binding.root) { _, windowInsets ->
             val barInsets = windowInsets.getInsets(WindowInsetsCompat.Type.systemBars())
             val cutoutInsets = windowInsets.getInsets(WindowInsetsCompat.Type.displayCutout())
 
+            binding.appbarHomeSettings.updateMargins(
+                left = barInsets.left + cutoutInsets.left,
+                right = barInsets.right + cutoutInsets.right
+            )
+
             binding.scrollViewSettings.updatePadding(
-                top = barInsets.top
+                bottom = barInsets.bottom
             )
 
             binding.homeSettingsList.updatePadding(
                 left = barInsets.left + cutoutInsets.left,
-                top = cutoutInsets.top,
-                right = barInsets.right + cutoutInsets.right,
-                bottom = barInsets.bottom
+                right = barInsets.right + cutoutInsets.right
             )
 
             windowInsets

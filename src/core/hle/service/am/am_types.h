@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2024 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -15,6 +18,7 @@ class FrontendApplet;
 enum class AppletType {
     Application,
     LibraryApplet,
+    OverlayApplet,
     SystemApplet,
 };
 
@@ -90,6 +94,7 @@ enum class AppletId : u32 {
     LoginShare = 0x18,
     WebAuth = 0x19,
     MyPage = 0x1A,
+    Lhub = 0x35
 };
 
 enum class AppletProgramId : u64 {

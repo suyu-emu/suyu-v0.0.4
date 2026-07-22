@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2023 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -6,7 +9,7 @@
 namespace FileSys {
 
 u8 NcaHeader::GetProperKeyGeneration() const {
-    return std::max(this->key_generation, this->key_generation_2);
+    return (std::max)(this->key_generation, this->key_generation_2);
 }
 
 bool NcaPatchInfo::HasIndirectTable() const {

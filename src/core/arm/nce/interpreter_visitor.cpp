@@ -1,11 +1,21 @@
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2023 yuzu Emulator Project
 // SPDX-FileCopyrightText: Copyright 2023 merryhime <https://mary.rs>
 // SPDX-License-Identifier: GPL-2.0-or-later
 
-#include "common/bit_cast.h"
+#include <numeric>
 #include "core/arm/nce/interpreter_visitor.h"
 
 namespace Core {
+
+namespace {
+// Prefetch tuning parameters
+[[maybe_unused]] constexpr size_t CACHE_LINE_SIZE = 64;
+[[maybe_unused]] constexpr size_t PREFETCH_STRIDE = 128; // 2 cache lines ahead
+[[maybe_unused]] constexpr size_t SIMD_PREFETCH_THRESHOLD = 32; // Bytes
+} // namespace
 
 template <u32 BitSize>
 u64 SignExtendToLong(u64 value) {
@@ -168,17 +178,9 @@ bool InterpreterVisitor::Ordered(size_t size, bool L, bool o0, Reg Rn, Reg Rt) {
     const auto memop = L ? MemOp::Load : MemOp::Store;
     const size_t elsize = 8 << size;
     const size_t datasize = elsize;
-
-    // Operation
     const size_t dbytes = datasize / 8;
 
-    u64 address;
-    if (Rn == Reg::SP) {
-        address = this->GetSp();
-    } else {
-        address = this->GetReg(Rn);
-    }
-
+    u64 address = (Rn == Reg::SP) ? this->GetSp() : this->GetReg(Rn);
     switch (memop) {
     case MemOp::Store: {
         std::atomic_thread_fence(std::memory_order_seq_cst);
@@ -197,7 +199,6 @@ bool InterpreterVisitor::Ordered(size_t size, bool L, bool o0, Reg Rn, Reg Rt) {
     default:
         UNREACHABLE();
     }
-
     return true;
 }
 
@@ -407,11 +408,11 @@ bool InterpreterVisitor::RegisterImmediate(bool wback, bool postindex, size_t sc
     MemOp memop;
     bool signed_ = false;
     size_t regsize = 0;
+    const size_t datasize = 8 << scale;
 
     if (opc.Bit<1>() == 0) {
         memop = opc.Bit<0>() ? MemOp::Load : MemOp::Store;
         regsize = size == 0b11 ? 64 : 32;
-        signed_ = false;
     } else if (size == 0b11) {
         memop = MemOp::Prefetch;
         ASSERT(!opc.Bit<0>());
@@ -422,26 +423,10 @@ bool InterpreterVisitor::RegisterImmediate(bool wback, bool postindex, size_t sc
         signed_ = true;
     }
 
-    if (memop == MemOp::Load && wback && Rn == Rt && Rn != Reg::R31) {
-        // Unpredictable instruction
-        return false;
-    }
-    if (memop == MemOp::Store && wback && Rn == Rt && Rn != Reg::R31) {
-        // Unpredictable instruction
-        return false;
-    }
-
-    u64 address;
-    if (Rn == Reg::SP) {
-        address = this->GetSp();
-    } else {
-        address = this->GetReg(Rn);
-    }
-    if (!postindex) {
+    u64 address = (Rn == Reg::SP) ? this->GetSp() : this->GetReg(Rn);
+    if (!postindex)
         address += offset;
-    }
 
-    const size_t datasize = 8 << scale;
     switch (memop) {
     case MemOp::Store: {
         u64 data = this->GetReg(Rt);
@@ -459,22 +444,17 @@ bool InterpreterVisitor::RegisterImmediate(bool wback, bool postindex, size_t sc
         break;
     }
     case MemOp::Prefetch:
-        // this->Prefetch(address, Rt)
         break;
     }
 
     if (wback) {
-        if (postindex) {
+        if (postindex)
             address += offset;
-        }
-
-        if (Rn == Reg::SP) {
+        if (Rn == Reg::SP)
             this->SetSp(address);
-        } else {
+        else
             this->SetReg(Rn, address);
-        }
     }
-
     return true;
 }
 
@@ -509,17 +489,9 @@ bool InterpreterVisitor::STURx_LDURx(Imm<2> size, Imm<2> opc, Imm<9> imm9, Reg R
 bool InterpreterVisitor::SIMDImmediate(bool wback, bool postindex, size_t scale, u64 offset,
                                        MemOp memop, Reg Rn, Vec Vt) {
     const size_t datasize = 8 << scale;
-
-    u64 address;
-    if (Rn == Reg::SP) {
-        address = this->GetSp();
-    } else {
-        address = this->GetReg(Rn);
-    }
-
-    if (!postindex) {
+    u64 address = (Rn == Reg::SP) ? this->GetSp() : this->GetReg(Rn);
+    if (!postindex)
         address += offset;
-    }
 
     switch (memop) {
     case MemOp::Store: {
@@ -538,17 +510,13 @@ bool InterpreterVisitor::SIMDImmediate(bool wback, bool postindex, size_t scale,
     }
 
     if (wback) {
-        if (postindex) {
+        if (postindex)
             address += offset;
-        }
-
-        if (Rn == Reg::SP) {
+        if (Rn == Reg::SP)
             this->SetSp(address);
-        } else {
+        else
             this->SetReg(Rn, address);
-        }
     }
-
     return true;
 }
 
@@ -793,32 +761,23 @@ bool InterpreterVisitor::LDR_reg_fpsimd(Imm<2> size, Imm<1> opc_1, Reg Rm, Imm<3
     return this->SIMDOffset(scale, shift, opc_0, Rm, option, Rn, Vt);
 }
 
-std::optional<u64> MatchAndExecuteOneInstruction(Core::Memory::Memory& memory, mcontext_t* context,
-                                                 fpsimd_context* fpsimd_context) {
-    // Construct the interpreter.
+std::optional<u64> MatchAndExecuteOneInstruction(Core::Memory::Memory& memory, mcontext_t* context, fpsimd_context* fpsimd_context) {
     std::span<u64, 31> regs(reinterpret_cast<u64*>(context->regs), 31);
     std::span<u128, 32> vregs(reinterpret_cast<u128*>(fpsimd_context->vregs), 32);
     u64& sp = *reinterpret_cast<u64*>(&context->sp);
     const u64& pc = *reinterpret_cast<u64*>(&context->pc);
 
     InterpreterVisitor visitor(memory, regs, vregs, sp, pc);
-
-    // Read the instruction at the program counter.
     u32 instruction = memory.Read32(pc);
     bool was_executed = false;
 
-    // Interpret the instruction.
-    if (auto decoder = Dynarmic::A64::Decode<VisitorBase>(instruction)) {
-        was_executed = decoder->get().call(visitor, instruction);
+    auto decoder = Dynarmic::A64::Decode<VisitorBase, bool>(visitor, instruction);
+    if (decoder) {
+        was_executed = *decoder;
     } else {
-        LOG_ERROR(Core_ARM, "Unallocated encoding: {:#x}", instruction);
+        was_executed = false;
     }
-
-    if (was_executed) {
-        return pc + 4;
-    }
-
-    return std::nullopt;
+    return was_executed ? std::optional<u64>(pc + 4) : std::nullopt;
 }
 
 } // namespace Core

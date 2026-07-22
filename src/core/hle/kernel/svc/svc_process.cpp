@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2023 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -24,8 +27,8 @@ Result GetProcessId(Core::System& system, u64* out_process_id, Handle handle) {
 
     // Get the object from the handle table.
     KScopedAutoObject obj = GetCurrentProcess(system.Kernel())
-                                .GetHandleTable()
-                                .GetObject<KAutoObject>(static_cast<Handle>(handle));
+        .GetHandleTable()
+        .GetObject<KAutoObject>(system.Kernel(), Handle(handle));
     R_UNLESS(obj.IsNotNull(), ResultInvalidHandle);
 
     // Get the process from the object.
@@ -79,7 +82,7 @@ Result GetProcessList(Core::System& system, s32* out_num_processes, u64 out_proc
 
     const auto num_processes = process_list.size();
     const auto copy_amount =
-        std::min(static_cast<std::size_t>(out_process_ids_size), num_processes);
+        (std::min)(static_cast<std::size_t>(out_process_ids_size), num_processes);
 
     for (std::size_t i = 0; i < copy_amount && it != process_list.end(); ++i, ++it) {
         memory.Write64(out_process_ids, (*it)->GetProcessId());
@@ -92,10 +95,10 @@ Result GetProcessList(Core::System& system, s32* out_num_processes, u64 out_proc
 
 Result GetProcessInfo(Core::System& system, s64* out, Handle process_handle,
                       ProcessInfoType info_type) {
-    LOG_DEBUG(Kernel_SVC, "called, handle=0x{:08X}, type=0x{:X}", process_handle, info_type);
+    LOG_DEBUG(Kernel_SVC, "called, handle=0x{:08X}, type={:#X}", process_handle, info_type);
 
     const auto& handle_table = GetCurrentProcess(system.Kernel()).GetHandleTable();
-    KScopedAutoObject process = handle_table.GetObject<KProcess>(process_handle);
+    KScopedAutoObject process = handle_table.GetObject<KProcess>(system.Kernel(), process_handle);
     if (process.IsNull()) {
         LOG_ERROR(Kernel_SVC, "Process handle does not exist, process_handle=0x{:08X}",
                   process_handle);

@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2020 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -53,6 +56,7 @@ private:
     void InitializeWeb();
     void InitializeWifi();
     void InitializeLobby();
+    void InitializeLhub();
 
     // Executors for the various types of browser applets
     void ExecuteShop();
@@ -62,6 +66,7 @@ private:
     void ExecuteWeb();
     void ExecuteWifi();
     void ExecuteLobby();
+    void ExecuteLhub();
 
     const Core::Frontend::WebBrowserApplet& frontend;
 

@@ -1,22 +1,22 @@
-// SPDX-FileCopyrightText: 2014 Citra Emulator Project
-// SPDX-License-Identifier: GPL-2.0-or-later
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
 
 #include <array>
 #include <atomic>
 #include <memory>
-#include <optional>
 #include <utility>
 
+#include "game_settings.h"
 #include "audio_core/audio_core.h"
 #include "common/fs/fs.h"
-#include "common/logging/log.h"
-#include "common/microprofile.h"
+#include "common/logging.h"
 #include "common/settings.h"
 #include "common/settings_enums.h"
 #include "common/string_util.h"
-#include "core/anti_piracy_manager.h"
 #include "core/arm/exclusive_monitor.h"
 #include "core/core.h"
+
+#include "launch_timestamp_cache.h"
 #include "core/core_timing.h"
 #include "core/cpu_manager.h"
 #include "core/debugger/debugger.h"
@@ -47,8 +47,6 @@
 #include "core/hle/service/psc/time/steady_clock.h"
 #include "core/hle/service/psc/time/system_clock.h"
 #include "core/hle/service/psc/time/time_zone_service.h"
-#include "core/hle/service/kernel_helpers.h"
-#include "core/hle/service/os/event.h"
 #include "core/hle/service/service.h"
 #include "core/hle/service/services.h"
 #include "core/hle/service/set/system_settings_server.h"
@@ -67,11 +65,6 @@
 #include "video_core/renderer_base.h"
 #include "video_core/video_core.h"
 
-MICROPROFILE_DEFINE(ARM_CPU0, "ARM", "CPU 0", MP_RGB(255, 64, 64));
-MICROPROFILE_DEFINE(ARM_CPU1, "ARM", "CPU 1", MP_RGB(255, 64, 64));
-MICROPROFILE_DEFINE(ARM_CPU2, "ARM", "CPU 2", MP_RGB(255, 64, 64));
-MICROPROFILE_DEFINE(ARM_CPU3, "ARM", "CPU 3", MP_RGB(255, 64, 64));
-
 namespace Core {
 
 FileSys::VirtualFile GetGameFileFromPath(const FileSys::VirtualFilesystem& vfs,
@@ -84,7 +77,6 @@ FileSys::VirtualFile GetGameFileFromPath(const FileSys::VirtualFilesystem& vfs,
     if (filename == "00") {
         const auto dir = vfs->OpenDirectory(dir_name, FileSys::OpenMode::Read);
         std::vector<FileSys::VirtualFile> concat;
-        concat.reserve(0x10);
 
         for (u32 i = 0; i < 0x10; ++i) {
             const auto file_name = fmt::format("{:02X}", i);
@@ -108,12 +100,6 @@ FileSys::VirtualFile GetGameFileFromPath(const FileSys::VirtualFilesystem& vfs,
     }
 
     if (Common::FS::IsDir(path)) {
-        // Check for hactool-style output directory with exefs/ subdirectory
-        const auto exefs_main = path + "/exefs/main";
-        if (Common::FS::Exists(exefs_main)) {
-            return vfs->OpenFile(exefs_main, FileSys::OpenMode::Read);
-        }
-        // Standard deconstructed ROM directory (main at root)
         return vfs->OpenFile(path + "/main", FileSys::OpenMode::Read);
     }
 
@@ -122,32 +108,16 @@ FileSys::VirtualFile GetGameFileFromPath(const FileSys::VirtualFilesystem& vfs,
 
 struct System::Impl {
     explicit Impl(System& system)
-        : kernel{system}, fs_controller{system}, hid_core{}, room_network{}, cpu_manager{system},
+        : kernel{system}, fs_controller{system}, hid_core{kernel}, cpu_manager{system},
           reporter{system}, applet_manager{system}, frontend_applets{system}, profile_manager{} {}
 
-    void LoadOverrides(u64 programId) const {
-        if (!gpu_core) {
-            return;
-        }
-
-        std::string vendor = gpu_core->Renderer().GetDeviceVendor();
-        LOG_INFO(Core, "Loading game-specific overrides for program ID {:016X}, GPU: {}", programId, vendor);
-
-#ifdef ANDROID
-        if (vendor.find("Mali") != std::string::npos) {
-            if (programId == 0x010028600EBDA000) {
-                LOG_INFO(Core, "Applying Mali GPU workaround for Mario 3D World");
-            }
-        }
-#endif
-    }
+    u64 program_id;
 
     void Initialize(System& system) {
-        device_memory = std::make_unique<Core::DeviceMemory>();
+        device_memory.emplace();
 
         is_multicore = Settings::values.use_multi_core.GetValue();
-        extended_memory_layout =
-            Settings::values.memory_layout_mode.GetValue() != Settings::MemoryLayout::Memory_4Gb;
+        extended_memory_layout = Settings::values.memory_layout_mode.GetValue() != Settings::MemoryLayout::Memory_4Gb;
 
         core_timing.SetMulticore(is_multicore);
         core_timing.Initialize([&system]() { system.RegisterHostThread(); });
@@ -163,7 +133,7 @@ struct System::Impl {
         // Create default implementations of applets if one is not provided.
         frontend_applets.SetDefaultAppletsIfMissing();
 
-        is_async_gpu = Settings::values.use_asynchronous_gpu_emulation.GetValue();
+        auto const is_async_gpu = Settings::values.use_asynchronous_gpu_emulation.GetValue();
 
         kernel.SetMulticore(is_multicore);
         cpu_manager.SetMulticore(is_multicore);
@@ -172,6 +142,7 @@ struct System::Impl {
 
     void ReinitializeIfNecessary(System& system) {
         const bool must_reinitialize =
+            !device_memory.has_value() ||
             is_multicore != Settings::values.use_multi_core.GetValue() ||
             extended_memory_layout != (Settings::values.memory_layout_mode.GetValue() !=
                                        Settings::MemoryLayout::Memory_4Gb);
@@ -285,7 +256,7 @@ struct System::Impl {
     }
 
     void InitializeDebugger(System& system, u16 port) {
-        debugger = std::make_unique<Debugger>(system, port);
+        debugger.emplace(system, port);
     }
 
     void InitializeKernel(System& system) {
@@ -299,29 +270,22 @@ struct System::Impl {
     }
 
     SystemResultStatus SetupForApplicationProcess(System& system, Frontend::EmuWindow& emu_window) {
-        host1x_core = std::make_unique<Tegra::Host1x::Host1x>(system);
-        gpu_core = VideoCore::CreateGPU(emu_window, system);
-        if (!gpu_core) {
+        host1x_core.emplace(system);
+        VideoCore::CreateGPU(gpu_core, emu_window, system);
+        if (!gpu_core)
             return SystemResultStatus::ErrorVideoCore;
-        }
 
-        audio_core = std::make_unique<AudioCore::AudioCore>(system);
+        audio_core.emplace(system);
 
         service_manager = std::make_shared<Service::SM::ServiceManager>(kernel);
-        services =
-            std::make_unique<Service::Services>(service_manager, system, stop_event.get_token());
+        services.emplace(service_manager, system, stop_event.get_token());
 
         is_powered_on = true;
         exit_locked = false;
         exit_requested = false;
 
-        microprofile_cpu[0] = MICROPROFILE_TOKEN(ARM_CPU0);
-        microprofile_cpu[1] = MICROPROFILE_TOKEN(ARM_CPU1);
-        microprofile_cpu[2] = MICROPROFILE_TOKEN(ARM_CPU2);
-        microprofile_cpu[3] = MICROPROFILE_TOKEN(ARM_CPU3);
-
         if (Settings::values.enable_renderdoc_hotkey) {
-            renderdoc_api = std::make_unique<Tools::RenderdocAPI>();
+            renderdoc_api.emplace();
         }
 
         LOG_DEBUG(Core, "Initialized OK");
@@ -339,17 +303,11 @@ struct System::Impl {
         // Create the application process
         Loader::ResultStatus load_result{};
         std::vector<u8> control;
-        auto process =
-            Service::AM::CreateApplicationProcess(control, app_loader, load_result, system, file,
-                                                  params.program_id, params.program_index);
-
+        auto process = Service::AM::CreateApplicationProcess(control, app_loader, load_result, system, file, params.program_id, params.program_index);
         if (load_result != Loader::ResultStatus::Success) {
-            LOG_CRITICAL(Core, "Failed to load ROM (Error {}: {})!", load_result,
-                         Loader::GetResultStatusString(load_result));
+            LOG_CRITICAL(Core, "Failed to load ROM (Error {})!", load_result);
             ShutdownMainProcess();
-
-            return static_cast<SystemResultStatus>(
-                static_cast<u32>(SystemResultStatus::ErrorLoader) + static_cast<u32>(load_result));
+            return SystemResultStatus(u32(SystemResultStatus::ErrorLoader) + u32(load_result));
         }
 
         if (!app_loader) {
@@ -368,14 +326,19 @@ struct System::Impl {
 
         LOG_INFO(Core, "Loading {} ({:016X}) ...", name, params.program_id);
 
+        // Expose program id to dump sites and other global readers.
+        Settings::SetCurrentProgramID(params.program_id);
+
+        // Track launch time for frontend launches
+        LaunchTimestampCache::SaveLaunchTimestamp(params.program_id);
+
         // Make the process created be the application
         kernel.MakeApplicationProcess(process->GetHandle());
 
         // Set up the rest of the system.
         SystemResultStatus init_result{SetupForApplicationProcess(system, emu_window)};
         if (init_result != SystemResultStatus::Success) {
-            LOG_CRITICAL(Core, "Failed to initialize system (Error {})!",
-                         static_cast<int>(init_result));
+            LOG_CRITICAL(Core, "Failed to initialize system (Error {})!", int(init_result));
             ShutdownMainProcess();
             return init_result;
         }
@@ -398,43 +361,41 @@ struct System::Impl {
             }
         }
 
-        perf_stats = std::make_unique<PerfStats>(params.program_id);
+        perf_stats.emplace(params.program_id);
         // Reset counters and set time origin to current frame
         GetAndResetPerfStats();
         perf_stats->BeginSystemFrame();
 
-        std::string title_version;
-        const FileSys::PatchManager pm(params.program_id, system.GetFileSystemController(),
-                                       system.GetContentProvider());
-        const auto metadata = pm.GetControlMetadata();
-        if (metadata.first != nullptr) {
-            title_version = metadata.first->GetVersionString();
+        const FileSys::PatchManager pm(params.program_id, system.GetFileSystemController(), system.GetContentProvider());
+        auto const metadata = pm.GetControlMetadata();
+        std::string title_version = metadata.first != nullptr ? metadata.first->GetVersionString() : "";
+
+        if (app_loader->ReadProgramId(program_id) != Loader::ResultStatus::Success) {
+            LOG_ERROR(Core, "Failed to find program id for ROM");
         }
 
-        LoadOverrides(params.program_id);
-
-        if (auto room_member = room_network.GetRoomMember().lock()) {
+        GameSettings::LoadOverrides(program_id, gpu_core->Renderer());
+        if (auto room_member = Network::GetRoomMember().lock()) {
             Network::GameInfo game_info;
             game_info.name = name;
             game_info.id = params.program_id;
             game_info.version = title_version;
             room_member->SendGameInfo(game_info);
         }
-
-        status = SystemResultStatus::Success;
-        return status;
+        return SystemResultStatus::Success;
     }
 
     void ShutdownMainProcess() {
         SetShuttingDown(true);
 
+        // Reset per-game flags
+        Settings::values.use_squashed_iterated_blend = false;
+
         is_powered_on = false;
         exit_locked = false;
         exit_requested = false;
-
-        if (gpu_core != nullptr) {
+        if (gpu_core)
             gpu_core->NotifyShutdown();
-        }
 
         stop_event.request_stop();
         core_timing.SyncPause(false);
@@ -458,7 +419,7 @@ struct System::Impl {
         stop_event = {};
         Network::RestartSocketOperations();
 
-        if (auto room_member = room_network.GetRoomMember().lock()) {
+        if (auto room_member = Network::GetRoomMember().lock()) {
             Network::GameInfo game_info{};
             room_member->SendGameInfo(game_info);
         }
@@ -478,104 +439,73 @@ struct System::Impl {
     }
 
     Loader::ResultStatus GetGameName(std::string& out) const {
-        if (app_loader == nullptr)
-            return Loader::ResultStatus::ErrorNotInitialized;
-        return app_loader->ReadTitle(out);
-    }
-
-    void SetStatus(SystemResultStatus new_status, const char* details = nullptr) {
-        status = new_status;
-        if (details) {
-            status_details = details;
-        }
+        return app_loader ? app_loader->ReadTitle(out) : Loader::ResultStatus::ErrorNotInitialized;
     }
 
     PerfStatsResults GetAndResetPerfStats() {
         return perf_stats->GetAndResetStats(core_timing.GetGlobalTimeUs());
     }
 
-    mutable std::mutex suspend_guard;
-    std::atomic_bool is_paused{};
-    std::atomic<bool> is_shutting_down{};
-
     Timing::CoreTiming core_timing;
     Kernel::KernelCore kernel;
     /// RealVfsFilesystem instance
     FileSys::VirtualFilesystem virtual_filesystem;
-    /// ContentProviderUnion instance
-    std::unique_ptr<FileSys::ContentProviderUnion> content_provider;
     Service::FileSystem::FileSystemController fs_controller;
-    /// AppLoader used to load the current executing application
-    std::unique_ptr<Loader::AppLoader> app_loader;
-    std::unique_ptr<Tegra::GPU> gpu_core;
-    std::unique_ptr<Tegra::Host1x::Host1x> host1x_core;
-    std::unique_ptr<Core::DeviceMemory> device_memory;
-    std::unique_ptr<AudioCore::AudioCore> audio_core;
     Core::HID::HIDCore hid_core;
-    Network::RoomNetwork room_network;
-
     CpuManager cpu_manager;
-    std::atomic_bool is_powered_on{};
-    bool exit_locked = false;
-    bool exit_requested = false;
-
-    bool nvdec_active{};
-
     Reporter reporter;
-    std::unique_ptr<Memory::CheatEngine> cheat_engine;
-    std::unique_ptr<Tools::Freezer> memory_freezer;
-    std::array<u8, 0x20> build_id{};
-
-    std::unique_ptr<Tools::RenderdocAPI> renderdoc_api;
-
     /// Applets
     Service::AM::AppletManager applet_manager;
     Service::AM::Frontend::FrontendAppletHolder frontend_applets;
-
     /// APM (Performance) services
     Service::APM::Controller apm_controller{core_timing};
-
     /// Service State
     Service::Glue::ARPManager arp_manager;
     Service::Account::ProfileManager profile_manager;
+    /// Network instance
+    Network::NetworkInstance network_instance;
+    Core::SpeedLimiter speed_limiter;
+    ExecuteProgramCallback execute_program_callback;
+    ExitCallback exit_callback;
+
+    std::optional<Service::Services> services;
+    std::optional<Core::Debugger> debugger;
+    std::optional<Service::KernelHelpers::ServiceContext> general_channel_context;
+    std::optional<Service::Event> general_channel_event;
+    std::optional<Core::PerfStats> perf_stats;
+    std::optional<Tegra::Host1x::Host1x> host1x_core;
+    std::optional<Core::DeviceMemory> device_memory;
+    std::optional<AudioCore::AudioCore> audio_core;
+    std::optional<Memory::CheatEngine> cheat_engine;
+    std::optional<Tools::Freezer> memory_freezer;
+    std::optional<Tools::RenderdocAPI> renderdoc_api;
+    std::optional<Tegra::GPU> gpu_core;
+
+    std::array<Core::GPUDirtyMemoryManager, Core::Hardware::NUM_CPU_CORES> gpu_dirty_memory_managers;
+    std::vector<std::vector<u8>> user_channel;
+    std::vector<std::vector<u8>> general_channel;
+
+    std::array<u64, Core::Hardware::NUM_CPU_CORES> dynarmic_ticks{};
+    std::array<u8, 0x20> build_id{};
 
     /// Service manager
     std::shared_ptr<Service::SM::ServiceManager> service_manager;
-
-    /// Services
-    std::unique_ptr<Service::Services> services;
-
-    /// Network instance
-    Network::NetworkInstance network_instance;
-
-    /// Debugger
-    std::unique_ptr<Core::Debugger> debugger;
-
-    SystemResultStatus status = SystemResultStatus::Success;
-    std::string status_details = "";
-
-    std::unique_ptr<Core::PerfStats> perf_stats;
-    Core::SpeedLimiter speed_limiter;
-
-    bool is_multicore{};
-    bool is_async_gpu{};
-    bool extended_memory_layout{};
-
-    ExecuteProgramCallback execute_program_callback;
-    ExitCallback exit_callback;
+    /// ContentProviderUnion instance
+    std::unique_ptr<FileSys::ContentProviderUnion> content_provider;
+    /// AppLoader used to load the current executing application
+    std::unique_ptr<Loader::AppLoader> app_loader;
     std::stop_source stop_event;
 
-    std::array<u64, Core::Hardware::NUM_CPU_CORES> dynarmic_ticks{};
-    std::array<MicroProfileToken, Core::Hardware::NUM_CPU_CORES> microprofile_cpu{};
-
-    std::array<Core::GPUDirtyMemoryManager, Core::Hardware::NUM_CPU_CORES>
-        gpu_dirty_memory_managers;
-
-    std::deque<std::vector<u8>> user_channel;
-    std::deque<std::vector<u8>> general_channel;
+    mutable std::mutex suspend_guard;
     std::mutex general_channel_mutex;
-    std::optional<Service::KernelHelpers::ServiceContext> general_channel_context;
-    std::optional<Service::Event> general_channel_event;
+    std::atomic_bool is_paused{};
+    std::atomic_bool is_shutting_down{};
+    std::atomic_bool is_powered_on{};
+    bool is_multicore : 1 = false;
+    bool extended_memory_layout : 1 = false;
+    bool exit_locked : 1 = false;
+    bool exit_requested : 1 = false;
+    bool nvdec_active : 1 = false;
 
     void EnsureGeneralChannelInitialized(System& system) {
         if (!general_channel_event) {
@@ -804,14 +734,6 @@ Loader::ResultStatus System::GetGameName(std::string& out) const {
     return impl->GetGameName(out);
 }
 
-void System::SetStatus(SystemResultStatus new_status, const char* details) {
-    impl->SetStatus(new_status, details);
-}
-
-const std::string& System::GetStatusDetails() const {
-    return impl->status_details;
-}
-
 Loader::AppLoader& System::GetAppLoader() {
     return *impl->app_loader;
 }
@@ -831,7 +753,7 @@ FileSys::VirtualFilesystem System::GetFilesystem() const {
 void System::RegisterCheatList(const std::vector<Memory::CheatEntry>& list,
                                const std::array<u8, 32>& build_id, u64 main_region_begin,
                                u64 main_region_size) {
-    impl->cheat_engine = std::make_unique<Memory::CheatEngine>(*this, list, build_id);
+    impl->cheat_engine.emplace(*this, list, build_id);
     impl->cheat_engine->SetMainMemoryParameters(main_region_begin, main_region_size);
 }
 
@@ -882,10 +804,6 @@ const Service::FileSystem::FileSystemController& System::GetFileSystemController
 void System::RegisterContentProvider(FileSys::ContentProviderUnionSlot slot,
                                      FileSys::ContentProvider* provider) {
     impl->content_provider->SetSlot(slot, provider);
-}
-
-void System::ClearContentProvider(FileSys::ContentProviderUnionSlot slot) {
-    impl->content_provider->ClearSlot(slot);
 }
 
 const Reporter& System::GetReporter() const {
@@ -956,16 +874,6 @@ void System::RegisterHostThread() {
     impl->kernel.RegisterHostThread();
 }
 
-void System::EnterCPUProfile() {
-    std::size_t core = impl->kernel.GetCurrentHostThreadID();
-    impl->dynarmic_ticks[core] = MicroProfileEnter(impl->microprofile_cpu[core]);
-}
-
-void System::ExitCPUProfile() {
-    std::size_t core = impl->kernel.GetCurrentHostThreadID();
-    MicroProfileLeave(impl->microprofile_cpu[core], impl->dynarmic_ticks[core]);
-}
-
 bool System::IsMulticore() const {
     return impl->is_multicore;
 }
@@ -982,24 +890,8 @@ const Core::Debugger& System::GetDebugger() const {
     return *impl->debugger;
 }
 
-Network::RoomNetwork& System::GetRoomNetwork() {
-    return impl->room_network;
-}
-
-const Network::RoomNetwork& System::GetRoomNetwork() const {
-    return impl->room_network;
-}
-
 Tools::RenderdocAPI& System::GetRenderdocAPI() {
     return *impl->renderdoc_api;
-}
-
-AntiPiracyManager* System::GetAntiPiracyManager() {
-    return nullptr;
-}
-
-const AntiPiracyManager* System::GetAntiPiracyManager() const {
-    return nullptr;
 }
 
 void System::RunServer(std::unique_ptr<Service::ServerManager>&& server_manager) {
@@ -1018,11 +910,13 @@ void System::ExecuteProgram(std::size_t program_index) {
     }
 }
 
-std::deque<std::vector<u8>>& System::GetUserChannel() {
+/// @brief Gets a reference to the user channel stack.
+/// It is used to transfer data between programs.
+std::vector<std::vector<u8>>& System::GetUserChannel() {
     return impl->user_channel;
 }
 
-std::deque<std::vector<u8>>& System::GetGeneralChannel() {
+std::vector<std::vector<u8>>& System::GetGeneralChannel() {
     return impl->general_channel;
 }
 
@@ -1032,7 +926,7 @@ void System::PushGeneralChannelData(std::vector<u8>&& data) {
     const bool was_empty = impl->general_channel.empty();
     impl->general_channel.push_back(std::move(data));
     if (was_empty) {
-        impl->general_channel_event->Signal();
+        impl->general_channel_event->Signal(impl->kernel);
     }
 }
 
@@ -1041,13 +935,11 @@ bool System::TryPopGeneralChannel(std::vector<u8>& out_data) {
     if (!impl->general_channel_event || impl->general_channel.empty()) {
         return false;
     }
-
     out_data = std::move(impl->general_channel.back());
     impl->general_channel.pop_back();
     if (impl->general_channel.empty()) {
-        impl->general_channel_event->Clear();
+        impl->general_channel_event->Clear(impl->kernel);
     }
-
     return true;
 }
 

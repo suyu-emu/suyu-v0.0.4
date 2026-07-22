@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2023 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -19,7 +22,7 @@ Result CreateResourceLimit(Core::System& system, Handle* out_handle) {
 
     // Ensure we don't leak a reference to the limit.
     SCOPE_EXIT {
-        resource_limit->Close();
+        resource_limit->Close(system.Kernel());
     };
 
     // Initialize the resource limit.
@@ -29,7 +32,7 @@ Result CreateResourceLimit(Core::System& system, Handle* out_handle) {
     KResourceLimit::Register(kernel, resource_limit);
 
     // Add the limit to the handle table.
-    R_RETURN(GetCurrentProcess(kernel).GetHandleTable().Add(out_handle, resource_limit));
+    R_RETURN(GetCurrentProcess(kernel).GetHandleTable().Add(system.Kernel(), out_handle, resource_limit));
 }
 
 Result GetResourceLimitLimitValue(Core::System& system, s64* out_limit_value,
@@ -42,8 +45,8 @@ Result GetResourceLimitLimitValue(Core::System& system, s64* out_limit_value,
 
     // Get the resource limit.
     KScopedAutoObject resource_limit = GetCurrentProcess(system.Kernel())
-                                           .GetHandleTable()
-                                           .GetObject<KResourceLimit>(resource_limit_handle);
+        .GetHandleTable()
+        .GetObject<KResourceLimit>(system.Kernel(), resource_limit_handle);
     R_UNLESS(resource_limit.IsNotNull(), ResultInvalidHandle);
 
     // Get the limit value.
@@ -62,8 +65,8 @@ Result GetResourceLimitCurrentValue(Core::System& system, s64* out_current_value
 
     // Get the resource limit.
     KScopedAutoObject resource_limit = GetCurrentProcess(system.Kernel())
-                                           .GetHandleTable()
-                                           .GetObject<KResourceLimit>(resource_limit_handle);
+        .GetHandleTable()
+        .GetObject<KResourceLimit>(system.Kernel(), resource_limit_handle);
     R_UNLESS(resource_limit.IsNotNull(), ResultInvalidHandle);
 
     // Get the current value.
@@ -83,7 +86,7 @@ Result SetResourceLimitLimitValue(Core::System& system, Handle resource_limit_ha
     // Get the resource limit.
     KScopedAutoObject resource_limit = GetCurrentProcess(system.Kernel())
                                            .GetHandleTable()
-                                           .GetObject<KResourceLimit>(resource_limit_handle);
+                                           .GetObject<KResourceLimit>(system.Kernel(), resource_limit_handle);
     R_UNLESS(resource_limit.IsNotNull(), ResultInvalidHandle);
 
     // Set the limit value.

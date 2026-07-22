@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2023 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -29,7 +32,7 @@ constexpr bool IsValidProcessMemoryPermission(Svc::MemoryPermission perm) {
 Result SetProcessMemoryPermission(Core::System& system, Handle process_handle, u64 address,
                                   u64 size, Svc::MemoryPermission perm) {
     LOG_TRACE(Kernel_SVC,
-              "called, process_handle=0x{:X}, addr=0x{:X}, size=0x{:X}, permissions=0x{:08X}",
+              "called, process_handle={:#X}, addr=0x{:X}, size=0x{:X}, permissions=0x{:08X}",
               process_handle, address, size, perm);
 
     // Validate the address/size.
@@ -45,7 +48,7 @@ Result SetProcessMemoryPermission(Core::System& system, Handle process_handle, u
 
     // Get the process from its handle.
     KScopedAutoObject process =
-        GetCurrentProcess(system.Kernel()).GetHandleTable().GetObject<KProcess>(process_handle);
+        GetCurrentProcess(system.Kernel()).GetHandleTable().GetObject<KProcess>(system.Kernel(), process_handle);
     R_UNLESS(process.IsNotNull(), ResultInvalidHandle);
 
     // Validate that the address is in range.
@@ -59,7 +62,7 @@ Result SetProcessMemoryPermission(Core::System& system, Handle process_handle, u
 Result MapProcessMemory(Core::System& system, u64 dst_address, Handle process_handle,
                         u64 src_address, u64 size) {
     LOG_TRACE(Kernel_SVC,
-              "called, dst_address=0x{:X}, process_handle=0x{:X}, src_address=0x{:X}, size=0x{:X}",
+              "called, dst_address={:#X}, process_handle=0x{:X}, src_address=0x{:X}, size=0x{:X}",
               dst_address, process_handle, src_address, size);
 
     // Validate the address/size.
@@ -73,7 +76,7 @@ Result MapProcessMemory(Core::System& system, u64 dst_address, Handle process_ha
     // Get the processes.
     KProcess* dst_process = GetCurrentProcessPointer(system.Kernel());
     KScopedAutoObject src_process =
-        dst_process->GetHandleTable().GetObjectWithoutPseudoHandle<KProcess>(process_handle);
+        dst_process->GetHandleTable().GetObjectWithoutPseudoHandle<KProcess>(system.Kernel(), process_handle);
     R_UNLESS(src_process.IsNotNull(), ResultInvalidHandle);
 
     // Get the page tables.
@@ -100,7 +103,7 @@ Result MapProcessMemory(Core::System& system, u64 dst_address, Handle process_ha
 Result UnmapProcessMemory(Core::System& system, u64 dst_address, Handle process_handle,
                           u64 src_address, u64 size) {
     LOG_TRACE(Kernel_SVC,
-              "called, dst_address=0x{:X}, process_handle=0x{:X}, src_address=0x{:X}, size=0x{:X}",
+              "called, dst_address={:#X}, process_handle=0x{:X}, src_address=0x{:X}, size=0x{:X}",
               dst_address, process_handle, src_address, size);
 
     // Validate the address/size.
@@ -114,7 +117,7 @@ Result UnmapProcessMemory(Core::System& system, u64 dst_address, Handle process_
     // Get the processes.
     KProcess* dst_process = GetCurrentProcessPointer(system.Kernel());
     KScopedAutoObject src_process =
-        dst_process->GetHandleTable().GetObjectWithoutPseudoHandle<KProcess>(process_handle);
+        dst_process->GetHandleTable().GetObjectWithoutPseudoHandle<KProcess>(system.Kernel(), process_handle);
     R_UNLESS(src_process.IsNotNull(), ResultInvalidHandle);
 
     // Get the page tables.
@@ -137,19 +140,19 @@ Result MapProcessCodeMemory(Core::System& system, Handle process_handle, u64 dst
               "src_address=0x{:016X}, size=0x{:016X}",
               process_handle, dst_address, src_address, size);
 
-    if (!Common::Is4KBAligned(src_address)) {
+    if (!Common::IsAligned(src_address, Core::Memory::YUZU_PAGESIZE)) {
         LOG_ERROR(Kernel_SVC, "src_address is not page-aligned (src_address=0x{:016X}).",
                   src_address);
         R_THROW(ResultInvalidAddress);
     }
 
-    if (!Common::Is4KBAligned(dst_address)) {
+    if (!Common::IsAligned(dst_address, Core::Memory::YUZU_PAGESIZE)) {
         LOG_ERROR(Kernel_SVC, "dst_address is not page-aligned (dst_address=0x{:016X}).",
                   dst_address);
         R_THROW(ResultInvalidAddress);
     }
 
-    if (size == 0 || !Common::Is4KBAligned(size)) {
+    if (size == 0 || !Common::IsAligned(size, Core::Memory::YUZU_PAGESIZE)) {
         LOG_ERROR(Kernel_SVC, "Size is zero or not page-aligned (size=0x{:016X})", size);
         R_THROW(ResultInvalidSize);
     }
@@ -171,7 +174,7 @@ Result MapProcessCodeMemory(Core::System& system, Handle process_handle, u64 dst
     }
 
     const auto& handle_table = GetCurrentProcess(system.Kernel()).GetHandleTable();
-    KScopedAutoObject process = handle_table.GetObject<KProcess>(process_handle);
+    KScopedAutoObject process = handle_table.GetObject<KProcess>(system.Kernel(), process_handle);
     if (process.IsNull()) {
         LOG_ERROR(Kernel_SVC, "Invalid process handle specified (handle=0x{:08X}).",
                   process_handle);
@@ -187,6 +190,7 @@ Result MapProcessCodeMemory(Core::System& system, Handle process_handle, u64 dst
         R_THROW(ResultInvalidCurrentMemory);
     }
 
+    R_UNLESS(page_table.CanContain(dst_address, size, KMemoryState::AliasCode), ResultInvalidCurrentMemory);
     R_RETURN(page_table.MapCodeMemory(dst_address, src_address, size));
 }
 
@@ -197,19 +201,19 @@ Result UnmapProcessCodeMemory(Core::System& system, Handle process_handle, u64 d
               "size=0x{:016X}",
               process_handle, dst_address, src_address, size);
 
-    if (!Common::Is4KBAligned(dst_address)) {
+    if (!Common::IsAligned(dst_address, Core::Memory::YUZU_PAGESIZE)) {
         LOG_ERROR(Kernel_SVC, "dst_address is not page-aligned (dst_address=0x{:016X}).",
                   dst_address);
         R_THROW(ResultInvalidAddress);
     }
 
-    if (!Common::Is4KBAligned(src_address)) {
+    if (!Common::IsAligned(src_address, Core::Memory::YUZU_PAGESIZE)) {
         LOG_ERROR(Kernel_SVC, "src_address is not page-aligned (src_address=0x{:016X}).",
                   src_address);
         R_THROW(ResultInvalidAddress);
     }
 
-    if (size == 0 || !Common::Is4KBAligned(size)) {
+    if (size == 0 || !Common::IsAligned(size, Core::Memory::YUZU_PAGESIZE)) {
         LOG_ERROR(Kernel_SVC, "Size is zero or not page-aligned (size=0x{:016X}).", size);
         R_THROW(ResultInvalidSize);
     }
@@ -231,7 +235,7 @@ Result UnmapProcessCodeMemory(Core::System& system, Handle process_handle, u64 d
     }
 
     const auto& handle_table = GetCurrentProcess(system.Kernel()).GetHandleTable();
-    KScopedAutoObject process = handle_table.GetObject<KProcess>(process_handle);
+    KScopedAutoObject process = handle_table.GetObject<KProcess>(system.Kernel(), process_handle);
     if (process.IsNull()) {
         LOG_ERROR(Kernel_SVC, "Invalid process handle specified (handle=0x{:08X}).",
                   process_handle);
@@ -247,6 +251,7 @@ Result UnmapProcessCodeMemory(Core::System& system, Handle process_handle, u64 d
         R_THROW(ResultInvalidCurrentMemory);
     }
 
+    R_UNLESS(page_table.CanContain(dst_address, size, KMemoryState::AliasCode), ResultInvalidCurrentMemory);
     R_RETURN(page_table.UnmapCodeMemory(dst_address, src_address, size));
 }
 

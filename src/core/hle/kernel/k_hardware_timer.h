@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2022 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -40,7 +43,7 @@ private:
 
 private:
     // Absolute time in nanoseconds
-    s64 m_wakeup_time{std::numeric_limits<s64>::max()};
+    s64 m_wakeup_time{(std::numeric_limits<s64>::max)()};
     std::shared_ptr<Core::Timing::EventType> m_event_type{};
 };
 

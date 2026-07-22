@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2023 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -17,16 +20,13 @@ namespace Service::PSC::Time {
 
 class IPowerStateRequestHandler final : public ServiceFramework<IPowerStateRequestHandler> {
 public:
-    explicit IPowerStateRequestHandler(Core::System& system,
-                                       PowerStateRequestManager& power_state_request_manager);
-
+    explicit IPowerStateRequestHandler(Core::System& system, PowerStateRequestManager& power_state_request_manager);
     ~IPowerStateRequestHandler() override = default;
 
     Result GetPowerStateRequestEventReadableHandle(OutCopyHandle<Kernel::KReadableEvent> out_event);
     Result GetAndClearPowerStateRequest(Out<bool> out_cleared, Out<u32> out_priority);
 
 private:
-    Core::System& m_system;
     PowerStateRequestManager& m_power_state_request_manager;
 };
 

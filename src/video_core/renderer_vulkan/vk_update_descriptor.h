@@ -1,10 +1,13 @@
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2019 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
 #pragma once
 
 #include <array>
-
+#include <variant>
 #include "video_core/vulkan_common/vulkan_wrapper.h"
 
 namespace Vulkan {
@@ -12,20 +15,15 @@ namespace Vulkan {
 class Device;
 class Scheduler;
 
-struct DescriptorUpdateEntry {
-    struct Empty {};
-
+union DescriptorUpdateEntry {
     DescriptorUpdateEntry() = default;
     DescriptorUpdateEntry(VkDescriptorImageInfo image_) : image{image_} {}
     DescriptorUpdateEntry(VkDescriptorBufferInfo buffer_) : buffer{buffer_} {}
     DescriptorUpdateEntry(VkBufferView texel_buffer_) : texel_buffer{texel_buffer_} {}
-
-    union {
-        Empty empty{};
-        VkDescriptorImageInfo image;
-        VkDescriptorBufferInfo buffer;
-        VkBufferView texel_buffer;
-    };
+    std::monostate empty{};
+    VkDescriptorImageInfo image;
+    VkDescriptorBufferInfo buffer;
+    VkBufferView texel_buffer;
 };
 
 class UpdateDescriptorQueue final {
@@ -36,12 +34,11 @@ class UpdateDescriptorQueue final {
     static constexpr size_t PAYLOAD_SIZE = FRAME_PAYLOAD_SIZE * FRAMES_IN_FLIGHT;
 
 public:
-    explicit UpdateDescriptorQueue(const Device& device_, Scheduler& scheduler_);
+    explicit UpdateDescriptorQueue(const Device& device_);
     ~UpdateDescriptorQueue();
 
     void TickFrame();
-
-    void Acquire();
+    void Acquire(Scheduler& scheduler, size_t required_entries = 0);
 
     const DescriptorUpdateEntry* UpdateData() const noexcept {
         return upload_start;
@@ -77,8 +74,6 @@ public:
 
 private:
     const Device& device;
-    Scheduler& scheduler;
-
     size_t frame_index{0};
     DescriptorUpdateEntry* payload_cursor = nullptr;
     DescriptorUpdateEntry* payload_start = nullptr;

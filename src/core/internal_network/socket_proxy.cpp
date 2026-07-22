@@ -1,3 +1,5 @@
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
 // SPDX-FileCopyrightText: Copyright 2022 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -5,20 +7,20 @@
 #include <thread>
 
 #include "common/assert.h"
-#include "common/logging/log.h"
+#include "common/logging.h"
 #include "common/zstd_compression.h"
 #include "core/internal_network/network.h"
 #include "core/internal_network/network_interface.h"
 #include "core/internal_network/socket_proxy.h"
 #include "network/network.h"
 
-#if SUYU_UNIX
+#ifdef __unix__
 #include <sys/socket.h>
 #endif
 
 namespace Network {
 
-ProxySocket::ProxySocket(RoomNetwork& room_network_) noexcept : room_network{room_network_} {}
+ProxySocket::ProxySocket() noexcept {}
 
 ProxySocket::~ProxySocket() {
     if (fd == INVALID_SOCKET) {
@@ -102,14 +104,14 @@ Errno ProxySocket::Shutdown(ShutdownHow how) {
 std::pair<s32, Errno> ProxySocket::Recv(int flags, std::span<u8> message) {
     LOG_WARNING(Network, "(STUBBED) called");
     ASSERT(flags == 0);
-    ASSERT(message.size() < static_cast<size_t>(std::numeric_limits<int>::max()));
+    ASSERT(message.size() < static_cast<size_t>((std::numeric_limits<int>::max)()));
 
     return {static_cast<s32>(0), Errno::SUCCESS};
 }
 
 std::pair<s32, Errno> ProxySocket::RecvFrom(int flags, std::span<u8> message, SockAddrIn* addr) {
     ASSERT(flags == 0);
-    ASSERT(message.size() < static_cast<size_t>(std::numeric_limits<int>::max()));
+    ASSERT(message.size() < static_cast<size_t>((std::numeric_limits<int>::max)()));
 
     // TODO (flTobi): Verify the timeout behavior and break when connection is lost
     const auto timestamp = std::chrono::steady_clock::now();
@@ -180,14 +182,14 @@ std::pair<s32, Errno> ProxySocket::ReceivePacket(int flags, std::span<u8> messag
 
 std::pair<s32, Errno> ProxySocket::Send(std::span<const u8> message, int flags) {
     LOG_WARNING(Network, "(STUBBED) called");
-    ASSERT(message.size() < static_cast<size_t>(std::numeric_limits<int>::max()));
+    ASSERT(message.size() < static_cast<size_t>((std::numeric_limits<int>::max)()));
     ASSERT(flags == 0);
 
     return {static_cast<s32>(0), Errno::SUCCESS};
 }
 
 void ProxySocket::SendPacket(ProxyPacket& packet) {
-    if (auto room_member = room_network.GetRoomMember().lock()) {
+    if (auto room_member = Network::GetRoomMember().lock()) {
         if (room_member->IsConnected()) {
             packet.data = Common::Compression::CompressDataZSTDDefault(packet.data.data(),
                                                                        packet.data.size());
@@ -205,7 +207,7 @@ std::pair<s32, Errno> ProxySocket::SendTo(u32 flags, std::span<const u8> message
         return {static_cast<s32>(message.size()), Errno::SUCCESS};
     }
 
-    if (auto room_member = room_network.GetRoomMember().lock()) {
+    if (auto room_member = Network::GetRoomMember().lock()) {
         if (!room_member->IsConnected()) {
             return {static_cast<s32>(message.size()), Errno::SUCCESS};
         }
@@ -222,7 +224,7 @@ std::pair<s32, Errno> ProxySocket::SendTo(u32 flags, std::span<const u8> message
     // If the ip is all zeroes (INADDR_ANY) or if it matches the hosts ip address,
     // replace it with a "fake" routing address
     if (std::all_of(ip.begin(), ip.end(), [](u8 i) { return i == 0; }) || (ipv4 && ipv4 == ip)) {
-        if (auto room_member = room_network.GetRoomMember().lock()) {
+        if (auto room_member = Network::GetRoomMember().lock()) {
             packet.local_endpoint.ip = room_member->GetFakeIpAddress();
         }
     }

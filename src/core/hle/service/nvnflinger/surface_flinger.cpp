@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2024 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -12,7 +15,6 @@
 #include "core/hle/service/nvnflinger/buffer_queue_consumer.h"
 #include "core/hle/service/nvnflinger/buffer_queue_core.h"
 #include "core/hle/service/nvnflinger/buffer_queue_producer.h"
-#include "common/logging/log.h"
 
 namespace Service::Nvnflinger {
 
@@ -70,9 +72,6 @@ void SurfaceFlinger::AddLayerToDisplayStack(u64 display_id, s32 consumer_binder_
     auto* const display = this->FindDisplay(display_id);
     auto layer = this->FindLayer(consumer_binder_id);
 
-    LOG_INFO(Service_Nvnflinger, "AddLayerToDisplayStack display={} binder={} found_display={} found_layer={}",
-             display_id, consumer_binder_id, display != nullptr, layer != nullptr);
-
     if (!display || !layer) {
         return;
     }
@@ -108,23 +107,8 @@ void SurfaceFlinger::SetLayerBlending(s32 consumer_binder_id, LayerBlending blen
 void SurfaceFlinger::SetLayerIsOverlay(s32 consumer_binder_id, bool is_overlay) {
     if (const auto layer = this->FindLayer(consumer_binder_id); layer != nullptr) {
         layer->is_overlay = is_overlay;
-        return;
+        LOG_DEBUG(Service_VI, "Layer {} marked as overlay: {}", consumer_binder_id, is_overlay);
     }
-}
-
-void SurfaceFlinger::SetLayerZIndex(s32 consumer_binder_id, s32 z_index) {
-    if (const auto layer = this->FindLayer(consumer_binder_id); layer != nullptr) {
-        layer->z_index = z_index;
-        return;
-    }
-}
-
-bool SurfaceFlinger::GetLayerZIndex(s32 consumer_binder_id, s32* out_z_index) {
-    if (const auto layer = this->FindLayer(consumer_binder_id); layer != nullptr) {
-        *out_z_index = layer->z_index;
-        return true;
-    }
-    return false;
 }
 
 Display* SurfaceFlinger::FindDisplay(u64 display_id) {

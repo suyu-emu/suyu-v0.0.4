@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2020 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -75,7 +78,7 @@ public:
     }
 
     static constexpr s32 GetAlignedBlockIndex(size_t num_pages, size_t align_pages) {
-        const size_t target_pages = std::max(num_pages, align_pages);
+        const size_t target_pages = (std::max)(num_pages, align_pages);
         for (size_t i = 0; i < NumMemoryBlockPageShifts; i++) {
             if (target_pages <= (static_cast<size_t>(1) << MemoryBlockPageShifts[i]) / PageSize) {
                 return static_cast<s32>(i);

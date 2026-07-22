@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: 2014 Citra Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -17,7 +20,6 @@
 
 namespace Core {
 class System;
-class TelemetrySession;
 } // namespace Core
 
 namespace Core::Frontend {
@@ -47,15 +49,13 @@ public:
         return &rasterizer;
     }
 
-    VideoCore::OptimizedRasterizer* ReadOptimizedRasterizer() override {
-        return &rasterizer;
-    }
-
     [[nodiscard]] std::string GetDeviceVendor() const override {
         return device.GetVendorName();
     }
 
 private:
+    void AddTelemetryFields();
+
     void RenderToBuffer(std::span<const Tegra::FramebufferConfig> framebuffers,
                         const Layout::FramebufferLayout& layout, void* dst);
     void RenderScreenshot(std::span<const Tegra::FramebufferConfig> framebuffers);

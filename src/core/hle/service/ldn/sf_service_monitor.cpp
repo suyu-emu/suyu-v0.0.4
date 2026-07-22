@@ -40,10 +40,10 @@ Result ISfServiceMonitor::Initialize(Out<u32> out_value) {
 }
 
 Result ISfServiceMonitor::GetGroupInfo(
-    GroupInfo in_group_info, OutLargeData<GroupInfo, BufferAttr_HipcAutoSelect> out_group_info) {
+    OutLargeData<GroupInfo, BufferAttr_HipcAutoSelect> out_group_info, GroupInfo in_group_info) {
     LOG_WARNING(Service_LDN, "(STUBBED) called");
 
-    memcpy(out_group_info, &in_group_info, sizeof(GroupInfo));
+    *out_group_info = in_group_info;
     R_SUCCEED();
 }
 

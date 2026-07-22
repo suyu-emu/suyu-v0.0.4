@@ -105,6 +105,16 @@
             android:textAlignment="center"
             tools:text="deko_basic" />
 
+        <com.google.android.material.textview.MaterialTextView
+            android:id="@+id/playtime"
+            style="?attr/textAppearanceBodyMedium"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginHorizontal="16dp"
+            android:layout_marginBottom="8dp"
+            android:textAlignment="center"
+            tools:text="Game Playtime" />
+
     </LinearLayout>
 
     <com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton

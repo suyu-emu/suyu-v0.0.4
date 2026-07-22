@@ -1,7 +1,9 @@
-// SPDX-FileCopyrightText: 2023 yuzu Emulator Project
-// SPDX-License-Identifier: GPL-2.0-or-later
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
 
-#include <common/logging/log.h>
+#include <common/fs/path_util.h>
+#include <common/logging.h>
+#include <common/settings.h>
 #include <input_common/main.h>
 #include "android_config.h"
 #include "android_settings.h"
@@ -17,6 +19,9 @@ AndroidConfig::AndroidConfig(const std::string& config_name, ConfigType config_t
 }
 
 void AndroidConfig::ReloadAllValues() {
+    // Ensure the INI file is current before reloading values.
+    SetUpIni();
+
     Reload();
     ReadAndroidValues();
     SaveAndroidValues();
@@ -31,6 +36,12 @@ void AndroidConfig::ReadAndroidValues() {
     if (global) {
         ReadAndroidUIValues();
         ReadUIValues();
+        BeginGroup(Settings::TranslateCategory(Settings::Category::DataStorage));
+        Settings::values.ext_content_from_game_dirs = ReadBooleanSetting(
+            std::string("ext_content_from_game_dirs"),
+            std::make_optional(
+                Settings::values.ext_content_from_game_dirs.GetDefault()));
+        EndGroup();
         ReadOverlayValues();
     }
     ReadDriverValues();
@@ -68,6 +79,36 @@ void AndroidConfig::ReadPathValues() {
     }
     EndArray();
 
+    // Read external content directories
+    Settings::values.external_content_dirs.clear();
+    const int external_dirs_size = BeginArray(std::string("external_content_dirs"));
+    for (int i = 0; i < external_dirs_size; ++i) {
+        SetArrayIndex(i);
+        std::string dir_path = ReadStringSetting(std::string("path"));
+        if (!dir_path.empty()) {
+            Settings::values.external_content_dirs.push_back(dir_path);
+        }
+    }
+    EndArray();
+
+    const auto nand_dir_setting = ReadStringSetting(std::string("nand_directory"));
+    if (!nand_dir_setting.empty()) {
+        Common::FS::SetEdenPath(Common::FS::EdenPath::NANDDir, nand_dir_setting);
+    }
+
+    const auto sdmc_dir_setting = ReadStringSetting(std::string("sdmc_directory"));
+    if (!sdmc_dir_setting.empty()) {
+        Common::FS::SetEdenPath(Common::FS::EdenPath::SDMCDir, sdmc_dir_setting);
+    }
+
+    const auto save_dir_setting = ReadStringSetting(std::string("save_directory"));
+    if (save_dir_setting.empty()) {
+        Common::FS::SetEdenPath(Common::FS::EdenPath::SaveDir,
+            Common::FS::GetEdenPathString(Common::FS::EdenPath::NANDDir));
+    } else {
+        Common::FS::SetEdenPath(Common::FS::EdenPath::SaveDir, save_dir_setting);
+    }
+
     EndGroup();
 }
 
@@ -103,6 +144,7 @@ void AndroidConfig::ReadOverlayValues() {
             ReadDoubleSetting(std::string("foldable\\x_position"));
         control_data.foldable_position.second =
             ReadDoubleSetting(std::string("foldable\\y_position"));
+        control_data.individual_scale = static_cast<float>(ReadDoubleSetting(std::string("individual_scale")));
         AndroidSettings::values.overlay_control_data.push_back(control_data);
     }
     EndArray();
@@ -221,6 +263,34 @@ void AndroidConfig::SavePathValues() {
     }
     EndArray();
 
+    // Save external content directories
+    BeginArray(std::string("external_content_dirs"));
+    for (size_t i = 0; i < Settings::values.external_content_dirs.size(); ++i) {
+        SetArrayIndex(i);
+        WriteStringSetting(std::string("path"), Settings::values.external_content_dirs[i]);
+    }
+    EndArray();
+
+    // Save custom NAND directory
+    const auto nand_path = Common::FS::GetEdenPathString(Common::FS::EdenPath::NANDDir);
+    WriteStringSetting(std::string("nand_directory"), nand_path,
+                       std::make_optional(std::string("")));
+
+    // Save custom SDMC directory
+    const auto sdmc_path = Common::FS::GetEdenPathString(Common::FS::EdenPath::SDMCDir);
+    WriteStringSetting(std::string("sdmc_directory"), sdmc_path,
+                       std::make_optional(std::string("")));
+
+    // Save custom save directory
+    const auto save_path = Common::FS::GetEdenPathString(Common::FS::EdenPath::SaveDir);
+    if (save_path == nand_path) {
+        WriteStringSetting(std::string("save_directory"), std::string(""),
+                           std::make_optional(std::string("")));
+    } else {
+        WriteStringSetting(std::string("save_directory"), save_path,
+                           std::make_optional(std::string("")));
+    }
+
     EndGroup();
 }
 
@@ -255,6 +325,7 @@ void AndroidConfig::SaveOverlayValues() {
                            control_data.foldable_position.first);
         WriteDoubleSetting(std::string("foldable\\y_position"),
                            control_data.foldable_position.second);
+        WriteDoubleSetting(std::string("individual_scale"), static_cast<double>(control_data.individual_scale));
     }
     EndArray();
 

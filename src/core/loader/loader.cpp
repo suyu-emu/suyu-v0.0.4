@@ -1,18 +1,23 @@
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2018 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
-#include <chrono>
 #include <memory>
 #include <optional>
 #include <ostream>
 #include <string>
-#include <thread>
+#include <concepts>
+#include <algorithm>
 #include "common/concepts.h"
 #include "common/fs/path_util.h"
-#include "common/logging/log.h"
+#include "common/logging.h"
 #include "common/string_util.h"
-#include "core/anti_piracy_manager.h"
 #include "core/core.h"
+#include "core/file_sys/card_image.h"
+#include "core/file_sys/common_funcs.h"
+#include "core/file_sys/submission_package.h"
 #include "core/hle/kernel/k_process.h"
 #include "core/loader/deconstructed_rom_directory.h"
 #include "core/loader/kip.h"
@@ -27,44 +32,56 @@ namespace Loader {
 
 namespace {
 
-// Anti-piracy friction delays (in milliseconds)
-// These make piracy harder by adding inconvenience without blocking legitimate users
-constexpr int VERIFIED_GAME_DELAY_MS = 0;           // No delay for verified games
-constexpr int NINTENDO_LIBRARY_DELAY_MS = 0;        // No delay for Nintendo Library matches
-constexpr int LEGITIMATE_DUMP_DELAY_MS = 500;       // Small delay for legitimate dumps
-constexpr int UNKNOWN_GAME_DELAY_MS = 3000;         // 3 second delay for unknown games
-constexpr int SUSPICIOUS_GAME_DELAY_MS = 8000;      // 8 second delay for suspicious games
-constexpr int INVALID_GAME_DELAY_MS = 15000;        // 15 second delay for invalid/pirated games
-
-// Get friction delay based on validation result
-int GetFrictionDelay(Core::ValidationResult result) {
-    switch (result) {
-        case Core::ValidationResult::Valid:
-            return VERIFIED_GAME_DELAY_MS;
-        case Core::ValidationResult::ValidNintendoLibrary:
-            return NINTENDO_LIBRARY_DELAY_MS;
-        case Core::ValidationResult::ValidLegitimateRip:
-            return LEGITIMATE_DUMP_DELAY_MS;
-        case Core::ValidationResult::Unknown:
-        case Core::ValidationResult::NetworkError:
-        case Core::ValidationResult::NotAuthenticated:
-            return UNKNOWN_GAME_DELAY_MS;
-        case Core::ValidationResult::Suspicious:
-            return SUSPICIOUS_GAME_DELAY_MS;
-        case Core::ValidationResult::Invalid:
-            return INVALID_GAME_DELAY_MS;
-        default:
-            return UNKNOWN_GAME_DELAY_MS;
-    }
-}
-
-template <Common::DerivedFrom<AppLoader> T>
+template <std::derived_from<AppLoader> T>
 std::optional<FileType> IdentifyFileLoader(FileSys::VirtualFile file) {
     const auto file_type = T::IdentifyType(file);
     if (file_type != FileType::Error) {
         return file_type;
     }
     return std::nullopt;
+}
+
+std::shared_ptr<FileSys::NSP> OpenContainerAsNsp(FileSys::VirtualFile file, FileType type,
+                                                 u64 program_id = 0,
+                                                 std::size_t program_index = 0) {
+    if (!file) {
+        return nullptr;
+    }
+
+    if (type == FileType::NSP) {
+        auto nsp = std::make_shared<FileSys::NSP>(file, program_id, program_index);
+        return nsp->GetStatus() == ResultStatus::Success ? nsp : nullptr;
+    }
+
+    if (type == FileType::XCI) {
+        FileSys::XCI xci{file, program_id, program_index};
+        if (xci.GetStatus() != ResultStatus::Success) {
+            return nullptr;
+        }
+
+        auto secure_nsp = xci.GetSecurePartitionNSP();
+        if (secure_nsp == nullptr || secure_nsp->GetStatus() != ResultStatus::Success) {
+            return nullptr;
+        }
+
+        return secure_nsp;
+    }
+
+    return nullptr;
+}
+
+bool HasApplicationProgramContent(const std::shared_ptr<FileSys::NSP>& nsp) {
+    if (!nsp) {
+        return false;
+    }
+
+    const auto& ncas = nsp->GetNCAs();
+    return std::any_of(ncas.cbegin(), ncas.cend(), [](const auto& title_entry) {
+        const auto& nca_map = title_entry.second;
+        return nca_map.find(
+                   {FileSys::TitleType::Application, FileSys::ContentRecordType::Program}) !=
+               nca_map.end();
+    });
 }
 
 } // namespace
@@ -92,28 +109,47 @@ FileType IdentifyFile(FileSys::VirtualFile file) {
     }
 }
 
+bool IsContainerType(FileType type) {
+    return type == FileType::NSP || type == FileType::XCI;
+}
+
+bool IsBootableGameContainer(FileSys::VirtualFile file, FileType type, u64 program_id,
+                             std::size_t program_index) {
+    if (!file) {
+        return false;
+    }
+
+    if (type == FileType::Unknown) {
+        type = IdentifyFile(file);
+    }
+
+    if (!IsContainerType(type)) {
+        return false;
+    }
+
+    return HasApplicationProgramContent(OpenContainerAsNsp(file, type, program_id, program_index));
+}
+
 FileType GuessFromFilename(const std::string& name) {
     if (name == "main")
         return FileType::DeconstructedRomDirectory;
-    if (name == "00")
+    else if (name == "00")
         return FileType::NCA;
 
-    const std::string extension =
+    auto const extension =
         Common::ToLower(std::string(Common::FS::GetExtensionFromFilename(name)));
-
     if (extension == "nro")
         return FileType::NRO;
-    if (extension == "nso")
+    else if (extension == "nso")
         return FileType::NSO;
-    if (extension == "nca")
+    else if (extension == "nca")
         return FileType::NCA;
-    if (extension == "xci")
+    else if (extension == "xci")
         return FileType::XCI;
-    if (extension == "nsp")
+    else if (extension == "nsp")
         return FileType::NSP;
-    if (extension == "kip")
+    else if (extension == "kip")
         return FileType::KIP;
-
     return FileType::Unknown;
 }
 
@@ -298,48 +334,6 @@ std::unique_ptr<AppLoader> GetLoader(Core::System& system, FileSys::VirtualFile 
     }
 
     LOG_DEBUG(Loader, "Loading file {} as {}...", file->GetName(), GetFileTypeString(type));
-
-    // Perform anti-piracy validation if available
-    if (system.GetAntiPiracyManager()) {
-        auto& anti_piracy = *system.GetAntiPiracyManager();
-        if (anti_piracy.IsInitialized()) {
-            LOG_INFO(Loader, "Performing anti-piracy validation for: {}", file->GetName());
-
-            auto validation_result = anti_piracy.ValidateRom(file);
-            auto validation_message = anti_piracy.GetValidationMessage(validation_result);
-
-            LOG_INFO(Loader, "Anti-piracy validation result: {}", validation_message);
-
-            // Apply friction delay based on validation result
-            // This makes piracy harder by adding inconvenience without blocking legitimate users
-            int delay_ms = GetFrictionDelay(validation_result);
-            if (delay_ms > 0) {
-                LOG_INFO(Loader, "Applying anti-piracy friction delay of {} ms", delay_ms);
-                LOG_INFO(Loader, "To reduce or eliminate this delay, verify game ownership through:");
-                LOG_INFO(Loader, "  - Nintendo Account linking (Settings > Nintendo Library)");
-                LOG_INFO(Loader, "  - Using legitimate dump tools like NXDumpTool");
-
-                std::this_thread::sleep_for(std::chrono::milliseconds(delay_ms));
-            }
-
-            // Show educational message for suspicious or invalid ROMs
-            if (validation_result == Core::ValidationResult::Suspicious ||
-                validation_result == Core::ValidationResult::Invalid) {
-                LOG_WARNING(Loader, "ROM validation concerns detected.");
-                LOG_INFO(Loader, "Educational message: {}", anti_piracy.GetEducationalMessage());
-
-                // Log legitimate source suggestions
-                auto suggestions = anti_piracy.GetLegitimateSourceSuggestions();
-                LOG_INFO(Loader, "Consider these legitimate sources:");
-                for (const auto& suggestion : suggestions) {
-                    LOG_INFO(Loader, "  - {}", suggestion);
-                }
-            }
-
-            // Note: We don't block loading even for suspicious ROMs, as this is educational
-            // and the emulator should remain functional for legitimate use cases
-        }
-    }
 
     return GetFileLoader(system, std::move(file), type, program_id, program_index);
 }

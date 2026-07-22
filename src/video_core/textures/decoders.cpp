@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2018 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -111,13 +114,13 @@ void SwizzleSubrectImpl(std::span<u8> output, std::span<const u8> input, u32 wid
     const u32 x_shift = GOB_SIZE_SHIFT + block_height + block_depth;
 
     u32 unprocessed_lines = num_lines;
-    u32 extent_y = std::min(num_lines, height - origin_y);
+    u32 extent_y = (std::min)(num_lines, height - origin_y);
 
     for (u32 slice = 0; slice < depth; ++slice) {
         const u32 z = slice + origin_z;
         const u32 offset_z = (z >> block_depth) * slice_size +
                              ((z & block_depth_mask) << (GOB_SIZE_SHIFT + block_height));
-        const u32 lines_in_y = std::min(unprocessed_lines, extent_y);
+        const u32 lines_in_y = (std::min)(unprocessed_lines, extent_y);
         for (u32 line = 0; line < lines_in_y; ++line) {
             const u32 y = line + origin_y;
             const u32 swizzled_y = pdep<SWIZZLE_Y_BITS>(y);
@@ -180,7 +183,7 @@ void UnswizzleTexture(std::span<u8> output, std::span<const u8> input, u32 bytes
                       u32 width, u32 height, u32 depth, u32 block_height, u32 block_depth,
                       u32 stride_alignment) {
     const u32 stride = Common::AlignUpLog2(width, stride_alignment) * bytes_per_pixel;
-    const u32 new_bpp = std::min(4U, static_cast<u32>(std::countr_zero(width * bytes_per_pixel)));
+    const u32 new_bpp = (std::min)(4U, static_cast<u32>(std::countr_zero(width * bytes_per_pixel)));
     width = (width * bytes_per_pixel) >> new_bpp;
     bytes_per_pixel = 1U << new_bpp;
     Swizzle<false>(output, input, bytes_per_pixel, width, height, depth, block_height, block_depth,
@@ -191,7 +194,7 @@ void SwizzleTexture(std::span<u8> output, std::span<const u8> input, u32 bytes_p
                     u32 height, u32 depth, u32 block_height, u32 block_depth,
                     u32 stride_alignment) {
     const u32 stride = Common::AlignUpLog2(width, stride_alignment) * bytes_per_pixel;
-    const u32 new_bpp = std::min(4U, static_cast<u32>(std::countr_zero(width * bytes_per_pixel)));
+    const u32 new_bpp = (std::min)(4U, static_cast<u32>(std::countr_zero(width * bytes_per_pixel)));
     width = (width * bytes_per_pixel) >> new_bpp;
     bytes_per_pixel = 1U << new_bpp;
     Swizzle<true>(output, input, bytes_per_pixel, width, height, depth, block_height, block_depth,

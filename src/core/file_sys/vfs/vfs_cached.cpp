@@ -38,8 +38,7 @@ VirtualDir CachedVfsDirectory::GetSubdirectory(std::string_view dir_name) const 
 
 std::vector<VirtualFile> CachedVfsDirectory::GetFiles() const {
     std::vector<VirtualFile> out;
-    out.reserve(files.size());
-    for (const auto& [_, file] : files) {
+    for (auto& [file_name, file] : files) {
         out.push_back(file);
     }
     return out;
@@ -47,8 +46,7 @@ std::vector<VirtualFile> CachedVfsDirectory::GetFiles() const {
 
 std::vector<VirtualDir> CachedVfsDirectory::GetSubdirectories() const {
     std::vector<VirtualDir> out;
-    out.reserve(dirs.size());
-    for (auto& [_, dir] : dirs) {
+    for (auto& [dir_name, dir] : dirs) {
         out.push_back(dir);
     }
     return out;

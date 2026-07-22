@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2023 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -5,7 +8,7 @@
 #include "common/fs/file.h"
 #include "common/fs/fs.h"
 #include "common/fs/path_util.h"
-#include "common/logging/log.h"
+#include "common/logging.h"
 #include "common/string_util.h"
 
 #include "core/hle/service/mii/mii_database_manager.h"
@@ -22,9 +25,9 @@ DatabaseManager::DatabaseManager() {}
 Result DatabaseManager::MountSaveData() {
     if (!is_save_data_mounted) {
         system_save_dir =
-            Common::FS::GetSuyuPath(Common::FS::SuyuPath::NANDDir) / "system/save/8000000000000030";
+            Common::FS::GetEdenPath(Common::FS::EdenPath::NANDDir) / "system/save/8000000000000030";
         if (is_test_db) {
-            system_save_dir = Common::FS::GetSuyuPath(Common::FS::SuyuPath::NANDDir) /
+            system_save_dir = Common::FS::GetEdenPath(Common::FS::EdenPath::NANDDir) /
                               "system/save/8000000000000031";
         }
 

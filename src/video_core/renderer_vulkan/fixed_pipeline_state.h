@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2019 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -18,12 +21,23 @@ namespace Vulkan {
 using Maxwell = Tegra::Engines::Maxwell3D::Regs;
 
 struct DynamicFeatures {
+    u32 driver_id;
+    u32 driver_version;
     bool has_extended_dynamic_state;
     bool has_extended_dynamic_state_2;
-    bool has_extended_dynamic_state_2_extra;
+    bool has_extended_dynamic_state_2_logic_op;
+    bool has_extended_dynamic_state_2_patch_control_points;
     bool has_extended_dynamic_state_3_blend;
     bool has_extended_dynamic_state_3_enables;
+    bool has_dynamic_state3_depth_clamp_enable;
+    bool has_dynamic_state3_logic_op_enable;
+    bool has_dynamic_state3_line_stipple_enable;
     bool has_dynamic_vertex_input;
+    bool has_color_write_enable;
+    bool has_provoking_vertex;
+    bool has_provoking_vertex_first_mode;
+    bool has_provoking_vertex_last_mode;
+    bool has_provoking_vertex_tf_preserve;
 };
 
 struct FixedPipelineState {
@@ -150,6 +164,7 @@ struct FixedPipelineState {
             BitField<6, 4, u32> logic_op;
             BitField<10, 1, u32> logic_op_enable;
             BitField<11, 1, u32> depth_clamp_disabled;
+            BitField<12, 1, u32> line_stipple_enable;
         };
         union {
             u32 raw2;
@@ -166,7 +181,7 @@ struct FixedPipelineState {
         void Refresh(const Maxwell& regs);
         void Refresh2(const Maxwell& regs, Maxwell::PrimitiveTopology topology,
                       bool base_features_supported);
-        void Refresh3(const Maxwell& regs);
+        void Refresh3(const Maxwell& regs, const DynamicFeatures& features);
 
         Maxwell::ComparisonOp DepthTestFunc() const noexcept {
             return UnpackComparisonOp(depth_test_func);
@@ -185,7 +200,7 @@ struct FixedPipelineState {
         u32 raw1;
         BitField<0, 1, u32> extended_dynamic_state;
         BitField<1, 1, u32> extended_dynamic_state_2;
-        BitField<2, 1, u32> extended_dynamic_state_2_extra;
+        BitField<2, 1, u32> extended_dynamic_state_2_logic_op;
         BitField<3, 1, u32> extended_dynamic_state_3_blend;
         BitField<4, 1, u32> extended_dynamic_state_3_enables;
         BitField<5, 1, u32> dynamic_vertex_input;
@@ -196,6 +211,9 @@ struct FixedPipelineState {
         BitField<12, 2, u32> tessellation_spacing;
         BitField<14, 1, u32> tessellation_clockwise;
         BitField<15, 5, u32> patch_control_points_minus_one;
+        BitField<20, 1, u32> color_write_enable_dynamic;
+
+        BitField<21, 1, u32> attachment0_dual_source_blend;
 
         BitField<24, 4, Maxwell::PrimitiveTopology> topology;
         BitField<28, 4, Tegra::Texture::MsaaMode> msaa_mode;
@@ -216,8 +234,11 @@ struct FixedPipelineState {
     };
     std::array<u8, Maxwell::NumRenderTargets> color_formats;
 
+    u32 driver_id;
+    u32 driver_version;
     u32 alpha_test_ref;
     u32 point_size;
+
     std::array<u16, Maxwell::NumViewports> viewport_swizzles;
     union {
         u64 attribute_types; // Used with VK_EXT_vertex_input_dynamic_state
@@ -232,6 +253,12 @@ struct FixedPipelineState {
     std::array<u16, Maxwell::NumVertexArrays> vertex_strides;
 
     VideoCommon::TransformFeedbackState xfb_state;
+
+    u32 depth_bounds_min;
+    u32 depth_bounds_max;
+
+    u32 line_stipple_factor;
+    u32 line_stipple_pattern;
 
     void Refresh(Tegra::Engines::Maxwell3D& maxwell3d, DynamicFeatures& features);
 
@@ -249,8 +276,7 @@ struct FixedPipelineState {
             return sizeof(*this);
         }
         if (dynamic_vertex_input && extended_dynamic_state_3_blend) {
-            // Exclude dynamic state and attributes
-            return offsetof(FixedPipelineState, dynamic_state);
+            return offsetof(FixedPipelineState, attachments);
         }
         if (dynamic_vertex_input) {
             // Exclude dynamic state

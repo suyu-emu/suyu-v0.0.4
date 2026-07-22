@@ -1,9 +1,12 @@
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2022 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 #pragma once
 
-#include <fmt/format.h>
+#include <fmt/ranges.h>
 
 #include "common/common_funcs.h"
 #include "common/common_types.h"
@@ -170,7 +173,7 @@ struct Ssid {
     Ssid() = default;
 
     constexpr explicit Ssid(std::string_view data) {
-        length = static_cast<u8>(std::min(data.size(), SsidLengthMax));
+        length = static_cast<u8>((std::min)(data.size(), SsidLengthMax));
         raw = {};
         data.copy(raw.data(), length);
         raw[length] = 0;

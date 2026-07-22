@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2024 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -21,11 +24,11 @@
 #include "core/hle/service/filesystem/filesystem.h"
 #include "core/hle/service/friend/friend.h"
 #include "core/hle/service/glue/glue.h"
-#include "core/hle/service/gpio/gpio.h"
 #include "core/hle/service/grc/grc.h"
+#include "core/hle/service/gpio/gpio.h"
 #include "core/hle/service/hid/hid.h"
-#include "core/hle/service/i2c/i2c.h"
 #include "core/hle/service/ipc_helpers.h"
+#include "core/hle/service/i2c/i2c.h"
 #include "core/hle/service/jit/jit.h"
 #include "core/hle/service/lbl/lbl.h"
 #include "core/hle/service/ldn/ldn.h"
@@ -72,69 +75,82 @@ Services::Services(std::shared_ptr<SM::ServiceManager>& sm, Core::System& system
 
     system.GetFileSystemController().CreateFactories(*system.GetFilesystem(), false);
 
-    // clang-format off
-    kernel.RunOnHostCoreProcess("audio",      [&] { Audio::LoopProcess(system); }).detach();
-    kernel.RunOnHostCoreProcess("FS",         [&] { FileSystem::LoopProcess(system); }).detach();
-    kernel.RunOnHostCoreProcess("jit",        [&] { JIT::LoopProcess(system); }).detach();
-    kernel.RunOnHostCoreProcess("ldn",        [&] { LDN::LoopProcess(system); }).detach();
-    kernel.RunOnHostCoreProcess("Loader",     [&] { LDR::LoopProcess(system); }).detach();
-    kernel.RunOnHostCoreProcess("nvservices", [&] { Nvidia::LoopProcess(system); }).detach();
-    kernel.RunOnHostCoreProcess("bsdsocket",  [&] { Sockets::LoopProcess(system); }).detach();
+    // Just a quick C++ lesson
+    // Capturing lambdas will silently create new variables for the objects referenced via <ident> = <expr>
+    // and create a `auto&` sorts of for `&`; with all your usual reference shenanigans.
+    // Do not be confused, `std::function<>` will allocate into the heap and will do so most of the time
+    // The heap is where we'd expect our "stored" values to be placed at.
+    //
+    // Eventually we'd need a "heapless" solution so the overhead is nil - but again a good starting point
+    // is removing all the cold clones ;)
+
+    // BEGONE cold clones of lambdas, for I have merged you all into a SINGLE lambda instead of
+    // spamming lambdas like it's some kind of lambda calculus class
+    for (auto const& e : std::vector<std::pair<std::string_view, void (*)(Core::System&)>>{
+        {"audio",      &Audio::LoopProcess},
+        {"FS",         &FileSystem::LoopProcess},
+        {"jit",        &JIT::LoopProcess},
+        {"ldn",        &LDN::LoopProcess},
+        {"Loader",     &LDR::LoopProcess},
+        {"nvservices", &Nvidia::LoopProcess},
+        {"bsdsocket",  &Sockets::LoopProcess},
+    })
+        kernel.RunOnHostCoreProcess(std::string(e.first), [&system, f = e.second] { f(system); }).detach();
     kernel.RunOnHostCoreProcess("vi",         [&, token] { VI::LoopProcess(system, token); }).detach();
-
-    kernel.RunOnGuestCoreProcess("sm",         [&] { SM::LoopProcess(system); });
-    kernel.RunOnGuestCoreProcess("account",    [&] { Account::LoopProcess(system); });
-    kernel.RunOnGuestCoreProcess("am",         [&] { AM::LoopProcess(system); });
-    kernel.RunOnGuestCoreProcess("aoc",        [&] { AOC::LoopProcess(system); });
-    kernel.RunOnGuestCoreProcess("apm",        [&] { APM::LoopProcess(system); });
-    kernel.RunOnGuestCoreProcess("bcat",       [&] { BCAT::LoopProcess(system); });
-    kernel.RunOnGuestCoreProcess("bpc",        [&] { BPC::LoopProcess(system); });
-    kernel.RunOnGuestCoreProcess("btdrv",      [&] { BtDrv::LoopProcess(system); });
-    kernel.RunOnGuestCoreProcess("btm",        [&] { BTM::LoopProcess(system); });
-    kernel.RunOnGuestCoreProcess("capsrv",     [&] { Capture::LoopProcess(system); });
-    kernel.RunOnGuestCoreProcess("erpt",       [&] { ERPT::LoopProcess(system); });
-    kernel.RunOnGuestCoreProcess("es",         [&] { ES::LoopProcess(system); });
-    kernel.RunOnGuestCoreProcess("eupld",      [&] { EUPLD::LoopProcess(system); });
-    kernel.RunOnGuestCoreProcess("fatal",      [&] { Fatal::LoopProcess(system); });
-    kernel.RunOnGuestCoreProcess("fgm",        [&] { FGM::LoopProcess(system); });
-    kernel.RunOnGuestCoreProcess("friends",    [&] { Friend::LoopProcess(system); });
-    kernel.RunOnGuestCoreProcess("settings",   [&] { Set::LoopProcess(system); });
-    kernel.RunOnGuestCoreProcess("psc",        [&] { PSC::LoopProcess(system); });
-    kernel.RunOnGuestCoreProcess("glue",       [&] { Glue::LoopProcess(system); });
-    kernel.RunOnGuestCoreProcess("gpio",       [&] { GPIO::LoopProcess(system); });
-    kernel.RunOnGuestCoreProcess("grc",        [&] { GRC::LoopProcess(system); });
-    kernel.RunOnGuestCoreProcess("hid",        [&] { HID::LoopProcess(system); });
-    kernel.RunOnGuestCoreProcess("i2c",        [&] { I2C::LoopProcess(system); });
-    kernel.RunOnGuestCoreProcess("lbl",        [&] { LBL::LoopProcess(system); });
-    kernel.RunOnGuestCoreProcess("LogManager.Prod", [&] { LM::LoopProcess(system); });
-    kernel.RunOnGuestCoreProcess("mig",        [&] { Migration::LoopProcess(system); });
-    kernel.RunOnGuestCoreProcess("mii",        [&] { Mii::LoopProcess(system); });
-    kernel.RunOnGuestCoreProcess("mm",         [&] { MM::LoopProcess(system); });
-    kernel.RunOnGuestCoreProcess("mnpp",       [&] { MNPP::LoopProcess(system); });
-    kernel.RunOnGuestCoreProcess("nvnflinger", [&] { Nvnflinger::LoopProcess(system); });
-    kernel.RunOnGuestCoreProcess("NCM",        [&] { NCM::LoopProcess(system); });
-    kernel.RunOnGuestCoreProcess("nfc",        [&] { NFC::LoopProcess(system); });
-    kernel.RunOnGuestCoreProcess("nfp",        [&] { NFP::LoopProcess(system); });
-    kernel.RunOnGuestCoreProcess("ngc",        [&] { NGC::LoopProcess(system); });
-    kernel.RunOnGuestCoreProcess("nifm",       [&] { NIFM::LoopProcess(system); });
-    kernel.RunOnGuestCoreProcess("nim",        [&] { NIM::LoopProcess(system); });
-    kernel.RunOnGuestCoreProcess("npns",       [&] { NPNS::LoopProcess(system); });
-    kernel.RunOnGuestCoreProcess("ns",         [&] { NS::LoopProcess(system); });
-    kernel.RunOnGuestCoreProcess("olsc",       [&] { OLSC::LoopProcess(system); });
-    kernel.RunOnGuestCoreProcess("omm",        [&] { OMM::LoopProcess(system); });
-    kernel.RunOnGuestCoreProcess("pcie",       [&] { PCIe::LoopProcess(system); });
-    kernel.RunOnGuestCoreProcess("pctl",       [&] { PCTL::LoopProcess(system); });
-    kernel.RunOnGuestCoreProcess("pcv",        [&] { PCV::LoopProcess(system); });
-    kernel.RunOnGuestCoreProcess("prepo",      [&] { PlayReport::LoopProcess(system); });
-    kernel.RunOnGuestCoreProcess("ProcessManager", [&] { PM::LoopProcess(system); });
-    kernel.RunOnGuestCoreProcess("ptm",        [&] { PTM::LoopProcess(system); });
-    kernel.RunOnGuestCoreProcess("ro",         [&] { RO::LoopProcess(system); });
-    kernel.RunOnGuestCoreProcess("spl",        [&] { SPL::LoopProcess(system); });
-    kernel.RunOnGuestCoreProcess("ssl",        [&] { SSL::LoopProcess(system); });
-    kernel.RunOnGuestCoreProcess("usb",        [&] { USB::LoopProcess(system); });
-    // clang-format on
+    // Avoid cold clones of lambdas -- succintly
+    for (auto const& e : std::vector<std::pair<std::string_view, void (*)(Core::System&)>>{
+        {"sm",         &SM::LoopProcess},
+        {"account",    &Account::LoopProcess},
+        {"am",         &AM::LoopProcess},
+        {"aoc",        &AOC::LoopProcess},
+        {"apm",        &APM::LoopProcess},
+        {"bcat",       &BCAT::LoopProcess},
+        {"bpc",        &BPC::LoopProcess},
+        {"btdrv",      &BtDrv::LoopProcess},
+        {"btm",        &BTM::LoopProcess},
+        {"capsrv",     &Capture::LoopProcess},
+        {"erpt",       &ERPT::LoopProcess},
+        {"es",         &ES::LoopProcess},
+        {"eupld",      &EUPLD::LoopProcess},
+        {"fatal",      &Fatal::LoopProcess},
+        {"fgm",        &FGM::LoopProcess},
+        {"friends",    &Friend::LoopProcess},
+        {"settings",   &Set::LoopProcess},
+        {"psc",        &PSC::LoopProcess},
+        {"glue",       &Glue::LoopProcess},
+        {"grc",        &GRC::LoopProcess},
+        {"hid",        &HID::LoopProcess},
+        {"lbl",        &LBL::LoopProcess},
+        {"LogManager.Prod", &LM::LoopProcess},
+        {"mig",        &Migration::LoopProcess},
+        {"mii",        &Mii::LoopProcess},
+        {"mm",         &MM::LoopProcess},
+        {"mnpp",       &MNPP::LoopProcess},
+        {"nvnflinger", &Nvnflinger::LoopProcess},
+        {"NCM",        &NCM::LoopProcess},
+        {"nfc",        &NFC::LoopProcess},
+        {"nfp",        &NFP::LoopProcess},
+        {"ngc",        &NGC::LoopProcess},
+        {"nifm",       &NIFM::LoopProcess},
+        {"nim",        &NIM::LoopProcess},
+        {"npns",       &NPNS::LoopProcess},
+        {"ns",         &NS::LoopProcess},
+        {"olsc",       &OLSC::LoopProcess},
+        {"omm",        &OMM::LoopProcess},
+        {"pcie",       &PCIe::LoopProcess},
+        {"pctl",       &PCTL::LoopProcess},
+        {"pcv",        &PCV::LoopProcess},
+        {"prepo",      &PlayReport::LoopProcess},
+        {"ProcessManager", &PM::LoopProcess},
+        {"ptm",        &PTM::LoopProcess},
+        {"ro",         &RO::LoopProcess},
+        {"spl",        &SPL::LoopProcess},
+        {"ssl",        &SSL::LoopProcess},
+        {"usb",        &USB::LoopProcess},
+        {"i2c",        &I2C::LoopProcess},
+        {"gpio",        &GPIO::LoopProcess},
+    })
+        kernel.RunOnGuestCoreProcess(std::string(e.first), [&system, f = e.second] { f(system); });
 }
-
-Services::~Services() = default;
 
 } // namespace Service

@@ -53,10 +53,10 @@ Result IHOSBinderDriver::GetNativeHandle(s32 binder_id, u32 type_id,
     const auto binder = m_server->TryGetBinder(binder_id);
     R_UNLESS(binder != nullptr, ResultUnknown);
 
-    auto* native_handle = binder->GetNativeHandle(type_id);
+    auto native_handle = binder->GetNativeHandle(type_id);
     R_UNLESS(native_handle != nullptr, ResultUnknown);
 
-    *out_handle = native_handle;
+    *out_handle = binder->GetNativeHandle(type_id);
 
     R_SUCCEED();
 }

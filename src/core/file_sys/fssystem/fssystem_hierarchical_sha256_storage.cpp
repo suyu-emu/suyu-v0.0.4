@@ -5,22 +5,9 @@
 #include "common/scope_exit.h"
 #include "core/file_sys/fssystem/fssystem_hierarchical_sha256_storage.h"
 
+#include <cmath>
+
 namespace FileSys {
-
-namespace {
-
-s32 Log2(s32 value) {
-    ASSERT(value > 0);
-    ASSERT(Common::IsPowerOfTwo(value));
-
-    s32 log = 0;
-    while ((value >>= 1) > 0) {
-        ++log;
-    }
-    return log;
-}
-
-} // namespace
 
 Result HierarchicalSha256Storage::Initialize(VirtualFile* base_storages, s32 layer_count,
                                              size_t htbs, void* hash_buf, size_t hash_buf_size) {
@@ -31,7 +18,8 @@ Result HierarchicalSha256Storage::Initialize(VirtualFile* base_storages, s32 lay
 
     // Set size tracking members.
     m_hash_target_block_size = static_cast<s32>(htbs);
-    m_log_size_ratio = Log2(m_hash_target_block_size / HashSize);
+    m_log_size_ratio =
+        static_cast<s32>(std::log2(static_cast<double>(m_hash_target_block_size) / HashSize));
 
     // Get the base storage size.
     m_base_storage_size = base_storages[2]->GetSize();

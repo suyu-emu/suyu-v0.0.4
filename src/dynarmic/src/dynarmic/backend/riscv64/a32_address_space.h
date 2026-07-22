@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 /* This file is part of the dynarmic project.
  * Copyright (c) 2024 MerryMage
  * SPDX-License-Identifier: 0BSD
@@ -23,7 +26,7 @@ class A32AddressSpace final {
 public:
     explicit A32AddressSpace(const A32::UserConfig& conf);
 
-    IR::Block GenerateIR(IR::LocationDescriptor) const;
+    void GenerateIR(IR::Block& ir_block, IR::LocationDescriptor) const;
 
     CodePtr Get(IR::LocationDescriptor descriptor);
 
@@ -38,25 +41,25 @@ private:
 
     template<typename T>
     T GetMemPtr() {
-        static_assert(std::is_pointer_v<T> || std::is_same_v<T, uptr> || std::is_same_v<T, sptr>);
+        static_assert(std::is_pointer_v<T> || std::is_same_v<T, std::uintptr_t> || std::is_same_v<T, std::intptr_t>);
         return reinterpret_cast<T>(as.GetBufferPointer(0));
     }
 
     template<typename T>
     T GetMemPtr() const {
-        static_assert(std::is_pointer_v<T> || std::is_same_v<T, uptr> || std::is_same_v<T, sptr>);
+        static_assert(std::is_pointer_v<T> || std::is_same_v<T, std::uintptr_t> || std::is_same_v<T, std::intptr_t>);
         return reinterpret_cast<const T>(as.GetBufferPointer(0));
     }
 
     template<typename T>
     T GetCursorPtr() {
-        static_assert(std::is_pointer_v<T> || std::is_same_v<T, uptr> || std::is_same_v<T, sptr>);
+        static_assert(std::is_pointer_v<T> || std::is_same_v<T, std::uintptr_t> || std::is_same_v<T, std::intptr_t>);
         return reinterpret_cast<T>(as.GetCursorPointer());
     }
 
     template<typename T>
     T GetCursorPtr() const {
-        static_assert(std::is_pointer_v<T> || std::is_same_v<T, uptr> || std::is_same_v<T, sptr>);
+        static_assert(std::is_pointer_v<T> || std::is_same_v<T, std::uintptr_t> || std::is_same_v<T, std::intptr_t>);
         return reinterpret_cast<const T>(as.GetCursorPointer());
     }
 

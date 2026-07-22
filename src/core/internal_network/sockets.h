@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2020 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -7,11 +10,6 @@
 #include <memory>
 #include <span>
 #include <utility>
-
-#if defined(_WIN32)
-#elif !SUYU_UNIX
-#error "Platform not implemented"
-#endif
 
 #include "common/common_types.h"
 #include "core/internal_network/network.h"
@@ -24,7 +22,7 @@ struct ProxyPacket;
 
 class SocketBase {
 public:
-#ifdef SUYU_UNIX
+#ifndef _WIN32
     using SOCKET = int;
     static constexpr SOCKET INVALID_SOCKET = -1;
     static constexpr SOCKET SOCKET_ERROR = -1;
@@ -39,8 +37,8 @@ public:
     explicit SocketBase(SOCKET fd_) : fd{fd_} {}
     virtual ~SocketBase() = default;
 
-    SUYU_NON_COPYABLE(SocketBase);
-    SUYU_NON_MOVEABLE(SocketBase);
+    YUZU_NON_COPYABLE(SocketBase);
+    YUZU_NON_MOVEABLE(SocketBase);
 
     virtual Errno Initialize(Domain domain, Type type, Protocol protocol) = 0;
 

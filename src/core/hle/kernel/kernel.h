@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2021 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -8,7 +11,7 @@
 #include <list>
 #include <memory>
 #include <string>
-#include <unordered_map>
+#include <ankerl/unordered_dense.h>
 #include <vector>
 
 #include "common/polyfill_thread.h"
@@ -270,10 +273,6 @@ public:
     bool IsMulticore() const;
 
     bool IsShuttingDown() const;
-
-    void EnterSVCProfile();
-
-    void ExitSVCProfile();
 
     /// Workaround for single-core mode when preempting threads while idle.
     bool IsPhantomModeForSingleCore() const;

@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2024 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -71,16 +74,20 @@ ISystemDisplayService::~ISystemDisplayService() = default;
 Result ISystemDisplayService::GetLayerZ(Out<u64> out_z_value, u64 layer_id) {
     LOG_DEBUG(Service_VI, "called. layer_id={}", layer_id);
     s32 z{};
-    R_TRY(m_container->GetLayerZIndex(layer_id, &z));
+    const auto res = m_container->GetLayerZIndex(layer_id, &z);
+    R_TRY(res);
     *out_z_value = static_cast<u64>(z);
     R_SUCCEED();
 }
 
 Result ISystemDisplayService::SetLayerZ(u64 layer_id, u64 z_value) {
     LOG_DEBUG(Service_VI, "called. layer_id={}, z_value={}", layer_id, z_value);
+    // Forward to container using internal API when available
     R_RETURN(m_container->SetLayerZIndex(layer_id, static_cast<s32>(z_value)));
 }
 
+// This function currently does nothing but return a success error code in
+// the vi library itself, so do the same thing, but log out the passed in values.
 Result ISystemDisplayService::SetLayerVisibility(bool visible, u64 layer_id) {
     LOG_DEBUG(Service_VI, "called, layer_id={}, visible={}", layer_id, visible);
     R_RETURN(m_container->SetLayerVisibility(layer_id, visible));

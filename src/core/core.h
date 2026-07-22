@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: 2014 Citra Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -13,8 +16,9 @@
 #include <vector>
 
 #include "common/common_types.h"
-#include "core/libretro_wrapper.h"
 #include "core/file_sys/vfs/vfs_types.h"
+#include "core/hle/service/os/event.h"
+#include "core/hle/service/kernel_helpers.h"
 
 namespace Core::Frontend {
 class EmuWindow;
@@ -74,7 +78,6 @@ class ARPManager;
 }
 
 class ServerManager;
-class Event;
 
 namespace SM {
 class ServiceManager;
@@ -106,17 +109,12 @@ namespace Core::HID {
 class HIDCore;
 }
 
-namespace Network {
-class RoomNetwork;
-}
-
 namespace Tools {
 class RenderdocAPI;
 }
 
 namespace Core {
 
-class AntiPiracyManager;
 class CpuManager;
 class Debugger;
 class DeviceMemory;
@@ -327,10 +325,6 @@ public:
     /// Gets the name of the current game
     [[nodiscard]] Loader::ResultStatus GetGameName(std::string& out) const;
 
-    void SetStatus(SystemResultStatus new_status, const char* details);
-
-    [[nodiscard]] const std::string& GetStatusDetails() const;
-
     [[nodiscard]] Loader::AppLoader& GetAppLoader();
     [[nodiscard]] const Loader::AppLoader& GetAppLoader() const;
 
@@ -364,10 +358,7 @@ public:
     [[nodiscard]] Service::FileSystem::FileSystemController& GetFileSystemController();
     [[nodiscard]] const Service::FileSystem::FileSystemController& GetFileSystemController() const;
 
-    void RegisterContentProvider(FileSys::ContentProviderUnionSlot slot,
-                                 FileSys::ContentProvider* provider);
-
-    void ClearContentProvider(FileSys::ContentProviderUnionSlot slot);
+    void RegisterContentProvider(FileSys::ContentProviderUnionSlot slot, FileSys::ContentProvider* provider);
 
     [[nodiscard]] const Reporter& GetReporter() const;
 
@@ -383,19 +374,7 @@ public:
     [[nodiscard]] Core::Debugger& GetDebugger();
     [[nodiscard]] const Core::Debugger& GetDebugger() const;
 
-    /// Gets a mutable reference to the Room Network.
-    [[nodiscard]] Network::RoomNetwork& GetRoomNetwork();
-
-    /// Gets an immutable reference to the Room Network.
-    [[nodiscard]] const Network::RoomNetwork& GetRoomNetwork() const;
-
     [[nodiscard]] Tools::RenderdocAPI& GetRenderdocAPI();
-
-    /// Gets a mutable reference to the Anti-Piracy Manager.
-    [[nodiscard]] AntiPiracyManager* GetAntiPiracyManager();
-
-    /// Gets an immutable reference to the Anti-Piracy Manager.
-    [[nodiscard]] const AntiPiracyManager* GetAntiPiracyManager() const;
 
     void SetExitLocked(bool locked);
     bool GetExitLocked() const;
@@ -411,12 +390,6 @@ public:
 
     /// Register a host thread as an auxiliary thread.
     void RegisterHostThread();
-
-    /// Enter CPU Microprofile
-    void EnterCPUProfile();
-
-    /// Exit CPU Microprofile
-    void ExitCPUProfile();
 
     /// Tells if system is running on multicore.
     [[nodiscard]] bool IsMulticore() const;
@@ -444,12 +417,8 @@ public:
      */
     void ExecuteProgram(std::size_t program_index);
 
-    /**
-     * Gets a reference to the user channel stack.
-     * It is used to transfer data between programs.
-     */
-    [[nodiscard]] std::deque<std::vector<u8>>& GetUserChannel();
-    [[nodiscard]] std::deque<std::vector<u8>>& GetGeneralChannel();
+    [[nodiscard]] std::vector<std::vector<u8>>& GetUserChannel();
+    [[nodiscard]] std::vector<std::vector<u8>>& GetGeneralChannel();
     void PushGeneralChannelData(std::vector<u8>&& data);
     bool TryPopGeneralChannel(std::vector<u8>& out_data);
     [[nodiscard]] Service::Event& GetGeneralChannelEvent();
@@ -469,17 +438,8 @@ public:
     /// Applies any changes to settings to this core instance.
     void ApplySettings();
 
-    // New methods for libretro support
-    bool LoadLibretroCore(const std::string& core_path);
-    bool LoadLibretroGame(const std::string& game_path);
-    void RunLibretroCore();
-    void ResetLibretroCore();
-    void UnloadLibretroCore();
-
-private:
     struct Impl;
     std::unique_ptr<Impl> impl;
-    std::unique_ptr<LibretroWrapper> libretro_wrapper;
 };
 
 } // namespace Core

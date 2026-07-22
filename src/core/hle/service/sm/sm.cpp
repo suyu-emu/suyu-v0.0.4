@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2018 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -11,6 +14,7 @@
 #include "core/hle/kernel/k_scoped_resource_reservation.h"
 #include "core/hle/kernel/k_server_port.h"
 #include "core/hle/result.h"
+#include "core/hle/service/cmif_types.h"
 #include "core/hle/service/ipc_helpers.h"
 #include "core/hle/service/server_manager.h"
 #include "core/hle/service/sm/sm.h"
@@ -28,12 +32,12 @@ ServiceManager::ServiceManager(Kernel::KernelCore& kernel_) : kernel{kernel_} {
 }
 
 ServiceManager::~ServiceManager() {
-    for (auto& [_, port] : service_ports) {
-        port->Close();
+    for (auto& [name, port] : service_ports) {
+        port->Close(kernel);
     }
 
     if (deferral_event) {
-        deferral_event->Close();
+        deferral_event->Close(kernel);
     }
 }
 
@@ -60,7 +64,7 @@ Result ServiceManager::RegisterService(Kernel::KServerPort** out_server_port, st
     }
 
     auto* port = Kernel::KPort::Create(kernel);
-    port->Initialize(ServerSessionCountMax, false, 0);
+    port->Initialize(kernel, ServerSessionCountMax, false, 0);
 
     // Register the port.
     Kernel::KPort::Register(kernel, port);
@@ -68,7 +72,7 @@ Result ServiceManager::RegisterService(Kernel::KServerPort** out_server_port, st
     service_ports.emplace(name, std::addressof(port->GetClientPort()));
     registered_services.emplace(name, handler);
     if (deferral_event) {
-        deferral_event->Signal();
+        deferral_event->Signal(kernel);
     }
 
     // Set our output.
@@ -136,7 +140,7 @@ void SM::GetServiceCmif(HLERequestContext& ctx) {
     if (result == ResultSuccess) {
         IPC::ResponseBuilder rb{ctx, 2, 0, 1, IPC::ResponseBuilder::Flags::AlwaysMoveHandles};
         rb.Push(result);
-        rb.PushMoveObjects(client_session);
+        rb.PushMoveObjects(ctx, client_session);
     } else {
         IPC::ResponseBuilder rb{ctx, 2};
         rb.Push(result);
@@ -153,7 +157,7 @@ void SM::GetServiceTipc(HLERequestContext& ctx) {
 
     IPC::ResponseBuilder rb{ctx, 2, 0, 1, IPC::ResponseBuilder::Flags::AlwaysMoveHandles};
     rb.Push(result);
-    rb.PushMoveObjects(result == ResultSuccess ? client_session : nullptr);
+    rb.PushMoveObjects(ctx, result == ResultSuccess ? client_session : nullptr);
 }
 
 static std::string PopServiceName(IPC::RequestParser& rp) {
@@ -191,7 +195,7 @@ Result SM::GetServiceImpl(Kernel::KClientSession** out_client_session, HLEReques
 
     // Create a new session.
     Kernel::KClientSession* session{};
-    if (const auto result = client_port->CreateSession(&session); result.IsError()) {
+    if (const auto result = client_port->CreateSession(kernel, &session); result.IsError()) {
         LOG_ERROR(Service_SM, "called service={} -> error 0x{:08X}", name, result.raw);
         return result;
     }
@@ -226,8 +230,7 @@ void SM::RegisterServiceImpl(HLERequestContext& ctx, std::string name, u32 max_s
               max_session_count, is_light);
 
     Kernel::KServerPort* server_port{};
-    if (const auto result = service_manager.RegisterService(std::addressof(server_port), name,
-                                                            max_session_count, nullptr);
+    if (const auto result = service_manager.RegisterService(std::addressof(server_port), name, max_session_count, nullptr);
         result.IsError()) {
         LOG_ERROR(Service_SM, "failed to register service with error_code={:08X}", result.raw);
         IPC::ResponseBuilder rb{ctx, 2};
@@ -237,7 +240,7 @@ void SM::RegisterServiceImpl(HLERequestContext& ctx, std::string name, u32 max_s
 
     IPC::ResponseBuilder rb{ctx, 2, 0, 1, IPC::ResponseBuilder::Flags::AlwaysMoveHandles};
     rb.Push(ResultSuccess);
-    rb.PushMoveObjects(server_port);
+    rb.PushMoveObjects(ctx, server_port);
 }
 
 void SM::UnregisterService(HLERequestContext& ctx) {
@@ -250,15 +253,37 @@ void SM::UnregisterService(HLERequestContext& ctx) {
     rb.Push(service_manager.UnregisterService(name));
 }
 
+void SM::AtmosphereHasService(HLERequestContext& ctx) {
+    IPC::RequestParser rp{ctx};
+    std::string name(PopServiceName(rp));
+    LOG_WARNING(Service_SM, "(stubbed) called with name={}", name);
+    IPC::ResponseBuilder rb{ctx, 3};
+    Kernel::KClientPort* out_client_port = nullptr;
+    rb.Push(ResultSuccess);
+    rb.Push<bool>(service_manager.GetServicePort(&out_client_port, name) == ResultSuccess);
+}
+
 SM::SM(ServiceManager& service_manager_, Core::System& system_)
-    : ServiceFramework{system_, "sm:", 4},
-      service_manager{service_manager_}, kernel{system_.Kernel()} {
+    : ServiceFramework{system_, "sm:", 4}
+    , service_manager{service_manager_}
+    , kernel{system_.Kernel()}
+{
     RegisterHandlers({
         {0, &SM::Initialize, "Initialize"},
         {1, &SM::GetServiceCmif, "GetService"},
         {2, &SM::RegisterServiceCmif, "RegisterService"},
         {3, &SM::UnregisterService, "UnregisterService"},
         {4, nullptr, "DetachClient"},
+        // TODO: are these non-TIPC as well?
+        {65000, nullptr, "AtmosphereInstallMitm"},
+        {65001, nullptr, "AtmosphereUninstallMitm"},
+        {65002, nullptr, "Deprecated_AtmosphereAssociatePidTidForMitm"},
+        {65003, nullptr, "AtmosphereAcknowledgeMitmSession"},
+        {65004, nullptr, "AtmosphereHasMitm"},
+        {65005, nullptr, "AtmosphereWaitMitm"},
+        {65006, nullptr, "AtmosphereDeclareFutureMitm"},
+        {65100, &SM::AtmosphereHasService, "AtmosphereHasService"},
+        {65101, nullptr, "AtmosphereWaitService"},
     });
     RegisterHandlersTipc({
         {0, &SM::Initialize, "Initialize"},
@@ -266,6 +291,15 @@ SM::SM(ServiceManager& service_manager_, Core::System& system_)
         {2, &SM::RegisterServiceTipc, "RegisterService"},
         {3, &SM::UnregisterService, "UnregisterService"},
         {4, nullptr, "DetachClient"},
+        {65000, nullptr, "AtmosphereInstallMitm"},
+        {65001, nullptr, "AtmosphereUninstallMitm"},
+        {65002, nullptr, "Deprecated_AtmosphereAssociatePidTidForMitm"},
+        {65003, nullptr, "AtmosphereAcknowledgeMitmSession"},
+        {65004, nullptr, "AtmosphereHasMitm"},
+        {65005, nullptr, "AtmosphereWaitMitm"},
+        {65006, nullptr, "AtmosphereDeclareFutureMitm"},
+        {65100, &SM::AtmosphereHasService, "AtmosphereHasService"},
+        {65101, nullptr, "AtmosphereWaitService"},
     });
 }
 

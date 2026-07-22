@@ -11,9 +11,8 @@
 #define BEGIN_PUSH_CONSTANTS layout(push_constant) uniform PushConstants {
 #define END_PUSH_CONSTANTS };
 #define UNIFORM(n)
-#define BINDING_SWIZZLE_BUFFER 0
-#define BINDING_INPUT_BUFFER 1
-#define BINDING_OUTPUT_IMAGE 2
+#define BINDING_INPUT_BUFFER 0
+#define BINDING_OUTPUT_IMAGE 1
 
 #else // ^^^ Vulkan ^^^ // vvv OpenGL vvv
 
@@ -26,8 +25,7 @@
 #define BEGIN_PUSH_CONSTANTS
 #define END_PUSH_CONSTANTS
 #define UNIFORM(n) layout (location = n) uniform
-#define BINDING_SWIZZLE_BUFFER 0
-#define BINDING_INPUT_BUFFER 1
+#define BINDING_INPUT_BUFFER 0
 #define BINDING_OUTPUT_IMAGE 0
 
 #endif
@@ -42,10 +40,6 @@ UNIFORM(5) uint x_shift;
 UNIFORM(6) uint block_height;
 UNIFORM(7) uint block_height_mask;
 END_PUSH_CONSTANTS
-
-layout(binding = BINDING_SWIZZLE_BUFFER, std430) readonly buffer SwizzleTable {
-    uint swizzle_table[];
-};
 
 #if HAS_EXTENDED_TYPES
 layout(binding = BINDING_INPUT_BUFFER, std430) buffer InputBufferU8 { uint8_t u8data[]; };
@@ -71,9 +65,19 @@ const uint GOB_SIZE_SHIFT = GOB_SIZE_X_SHIFT + GOB_SIZE_Y_SHIFT + GOB_SIZE_Z_SHI
 
 const uvec2 SWIZZLE_MASK = uvec2(GOB_SIZE_X - 1, GOB_SIZE_Y - 1);
 
+uint SwizzleTable(uint pos) {
+    const uint t[8] = uint[](
+        0x12100200, 0x13110301, 0x16140604, 0x17150705,
+        0x1a180a08, 0x1b190b09, 0x1e1c0e0c, 0x1f1d0f0d
+    );
+    const uint i = pos >> 4;
+    const uint h = (t[i / 4] >> ((i % 4) * 8)) & 0xff;
+    return (h << 4) | (pos & 0xf);
+}
+
 uint SwizzleOffset(uvec2 pos) {
     pos = pos & SWIZZLE_MASK;
-    return swizzle_table[pos.y * 64 + pos.x];
+    return SwizzleTable(pos.y * 64 + pos.x);
 }
 
 uvec4 ReadTexel(uint offset) {

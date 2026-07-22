@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2024 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
@@ -9,6 +12,10 @@
 #include "core/hle/result.h"
 #include "hid_core/hid_types.h"
 #include "hid_core/resources/npad/npad_types.h"
+
+namespace Kernel {
+class KernelCore;
+}
 
 namespace Service::HID {
 struct NpadSharedMemoryEntry;
@@ -25,7 +32,7 @@ struct ColorProperties {
 /// Handles Npad request from HID interfaces
 class NpadAbstractPropertiesHandler final {
 public:
-    explicit NpadAbstractPropertiesHandler();
+    explicit NpadAbstractPropertiesHandler(Kernel::KernelCore& kernel_);
     ~NpadAbstractPropertiesHandler();
 
     void SetAbstractPadHolder(NpadAbstractedPadHolder* holder);
@@ -82,5 +89,6 @@ private:
     ColorProperties fullkey_color{};
     ColorProperties left_color{};
     ColorProperties right_color{};
+    Kernel::KernelCore& kernel;
 };
 } // namespace Service::HID

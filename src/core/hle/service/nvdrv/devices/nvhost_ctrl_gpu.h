@@ -1,10 +1,11 @@
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2018 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
 #pragma once
 
-#include <array>
-#include <mutex>
 #include <vector>
 
 #include "common/common_funcs.h"
@@ -36,9 +37,9 @@ public:
     Kernel::KEvent* QueryEvent(u32 event_id) override;
 
 private:
-    enum class ZBCTypes : u32 {
-        Color = 1,
-        Depth = 2,
+    enum class ZBCTypes {
+        color = 1,
+        depth = 2,
     };
 
     struct IoctlGpuCharacteristics {
@@ -105,21 +106,6 @@ private:
         u32_le mask;
     };
     static_assert(sizeof(IoctlActiveSlotMask) == 8, "IoctlActiveSlotMask is incorrect size");
-
-    struct IoctlNumVsms {
-        u32_le num_vsms{};
-        u32_le reserved{};
-    };
-    static_assert(sizeof(IoctlNumVsms) == 8, "IoctlNumVsms is incorrect size");
-
-    struct IoctlVsmsMapping {
-        u8 sm0_gpc_index{};
-        u8 sm0_tpc_index{};
-        u8 sm1_gpc_index{};
-        u8 sm1_tpc_index{};
-        u32_le reserved{};
-    };
-    static_assert(sizeof(IoctlVsmsMapping) == 8, "IoctlVsmsMapping is incorrect size");
 
     struct IoctlZcullGetCtxSize {
         u32_le size;
@@ -188,10 +174,20 @@ private:
     };
     static_assert(sizeof(IoctlGetGpuTime) == 0x10, "IoctlGetGpuTime is incorrect size");
 
-    struct IoctlPmuGetGpuLoad {
-        u32_le load{};
+    struct IoctlGetCpuTimeCorrelationInfo {
+        struct {
+            u64_le cpu_timestamp;
+            u64_le gpu_timestamp;
+        } samples[16];
+        u32_le count;
+        u32_le source_id;
     };
-    static_assert(sizeof(IoctlPmuGetGpuLoad) == 4, "IoctlPmuGetGpuLoad is incorrect size");
+    static_assert(sizeof(IoctlGetCpuTimeCorrelationInfo) == 264);
+
+    struct IoctlPmuGetLoad {
+        u32 pmu_gpu_load;
+    };
+    static_assert(sizeof(IoctlPmuGetLoad) == 4);
 
     NvResult GetCharacteristics1(IoctlCharacteristics& params);
     NvResult GetCharacteristics3(IoctlCharacteristics& params,
@@ -201,15 +197,13 @@ private:
     NvResult GetTPCMasks3(IoctlGpuGetTpcMasksArgs& params, std::span<u32> tpc_mask);
 
     NvResult GetActiveSlotMask(IoctlActiveSlotMask& params);
-    NvResult NumVsms(IoctlNumVsms& params);
-    NvResult VsmsMapping(IoctlVsmsMapping& params);
+    NvResult PmuGetGpuLoad(IoctlPmuGetLoad& params);
     NvResult ZCullGetCtxSize(IoctlZcullGetCtxSize& params);
     NvResult ZCullGetInfo(IoctlNvgpuGpuZcullGetInfoArgs& params);
     NvResult ZBCSetTable(IoctlZbcSetTable& params);
     NvResult ZBCQueryTable(IoctlZbcQueryTable& params);
     NvResult FlushL2(IoctlFlushL2& params);
     NvResult GetGpuTime(IoctlGetGpuTime& params);
-    NvResult PmuGetGpuLoad(IoctlPmuGetGpuLoad& params);
 
     EventInterface& events_interface;
 
@@ -217,10 +211,11 @@ private:
     Kernel::KEvent* error_notifier_event;
     Kernel::KEvent* unknown_event;
 
-    std::mutex zbc_mutex;
-    std::vector<ZbcColorEntry> zbc_colors;
-    std::vector<ZbcDepthEntry> zbc_depths;
-    static constexpr u32 SupportedZbcTypes = 2;
+    // ZBC Tables
+    std::mutex zbc_mutex{};
+    std::vector<ZbcColorEntry> zbc_colors{};
+    std::vector<ZbcDepthEntry> zbc_depths{};
+    const u32 supported_types = 2u;
 };
 
 } // namespace Service::Nvidia::Devices

@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2019 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -14,6 +17,7 @@
 #include "common/alignment.h"
 #include "common/common_types.h"
 #include "common/polyfill_thread.h"
+#include "common/settings.h"
 #include "video_core/renderer_vulkan/vk_master_semaphore.h"
 #include "video_core/vulkan_common/vulkan_wrapper.h"
 
@@ -40,10 +44,10 @@ public:
     ~Scheduler();
 
     /// Sends the current execution context to the GPU.
-    u64 Flush(VkSemaphore signal_semaphore = nullptr, VkSemaphore wait_semaphore = nullptr);
+    u64 Flush(VkSemaphore signal_semaphore = {}, VkSemaphore wait_semaphore = {});
 
     /// Sends the current execution context to the GPU and waits for it to complete.
-    void Finish(VkSemaphore signal_semaphore = nullptr, VkSemaphore wait_semaphore = nullptr);
+    void Finish(VkSemaphore signal_semaphore = {}, VkSemaphore wait_semaphore = {});
 
     /// Waits for the worker thread to finish executing everything. After this function returns it's
     /// safe to touch worker resources.
@@ -58,6 +62,11 @@ public:
     /// Requests the current execution context to be able to execute operations only allowed outside
     /// of a renderpass.
     void RequestOutsideRenderPassOperationContext();
+
+    /// Returns true when a render pass is currently active in the scheduler state.
+    bool IsRenderPassActive() const {
+        return state.renderpass != VK_NULL_HANDLE;
+    }
 
     /// Update the pipeline to the current execution context.
     bool UpdateGraphicsPipeline(GraphicsPipeline* pipeline);
@@ -108,13 +117,38 @@ public:
         return master_semaphore->IsFree(tick);
     }
 
-    /// Waits for the given tick to trigger on the GPU.
-    void Wait(u64 tick) {
-        if (tick >= master_semaphore->CurrentTick()) {
-            // Make sure we are not waiting for the current tick without signalling
-            Flush();
+    /// Waits for the given GPU tick, optionally pacing frames.
+    void Wait(u64 tick, double target_fps = 0.0) {
+        if (tick > 0) {
+            if (tick >= master_semaphore->CurrentTick()) {
+                Flush();
+            }
+            master_semaphore->Wait(tick);
         }
-        master_semaphore->Wait(tick);
+        if (Settings::values.use_speed_limit.GetValue() && target_fps > 0.0) {
+            auto now = std::chrono::steady_clock::now();
+            if (last_target_fps != target_fps) {
+                frame_interval = std::chrono::duration_cast<std::chrono::steady_clock::duration>(std::chrono::duration<double>(1.0 / target_fps));
+                max_frame_count = static_cast<int>(0.1 * target_fps);
+                last_target_fps = target_fps;
+                frame_counter = 0;
+                start_time = now;
+            }
+            frame_counter++;
+            auto target_time = start_time + frame_interval * frame_counter;
+            if (target_time >= now) {
+                auto sleep_time = target_time - now;
+                if (sleep_time > std::chrono::milliseconds(15)) {
+                    std::this_thread::sleep_for(sleep_time - std::chrono::milliseconds(1));
+                }
+                while (std::chrono::steady_clock::now() < target_time) {
+                    std::this_thread::yield();
+                }
+            } else if (frame_counter > max_frame_count) {
+                frame_counter = 0;
+                start_time = now;
+            }
+        }
     }
 
     /// Returns the master timeline semaphore.
@@ -153,6 +187,7 @@ private:
         TypedCommand& operator=(TypedCommand&&) = delete;
 
         void Execute(vk::CommandBuffer cmdbuf, vk::CommandBuffer upload_cmdbuf) const override {
+
             command(cmdbuf, upload_cmdbuf);
         }
 
@@ -207,12 +242,13 @@ private:
     };
 
     struct State {
-        VkRenderPass renderpass = nullptr;
-        VkFramebuffer framebuffer = nullptr;
+        VkRenderPass renderpass{};
+        VkFramebuffer framebuffer{};
         VkExtent2D render_area = {0, 0};
         GraphicsPipeline* graphics_pipeline = nullptr;
         bool is_rescaling = false;
         bool rescaling_defined = false;
+        bool needs_state_enable_refresh = false;
     };
 
     void WorkerThread(std::stop_token stop_token);
@@ -256,6 +292,12 @@ private:
     std::mutex queue_mutex;
     std::condition_variable_any event_cv;
     std::jthread worker_thread;
+
+    std::chrono::steady_clock::duration frame_interval{};
+    std::chrono::steady_clock::time_point start_time{};
+    double last_target_fps{};
+    u64 max_frame_count{};
+    u64 frame_counter{};
 };
 
 } // namespace Vulkan

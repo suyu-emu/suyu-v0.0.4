@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2023 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -23,7 +26,7 @@ namespace {
 
 Result AllocateSharedBufferMemory(std::unique_ptr<Kernel::KPageGroup>* out_page_group,
                                   Core::System& system, u32 size) {
-    using Core::Memory::SUYU_PAGESIZE;
+    using Core::Memory::YUZU_PAGESIZE;
 
     // Allocate memory for the system shared buffer.
     auto& kernel = system.Kernel();
@@ -34,7 +37,7 @@ Result AllocateSharedBufferMemory(std::unique_ptr<Kernel::KPageGroup>* out_page_
 
     // Allocate memory from secure pool.
     R_TRY(kernel.MemoryManager().AllocateAndOpen(
-        pg.get(), size / SUYU_PAGESIZE,
+        pg.get(), size / YUZU_PAGESIZE,
         Kernel::KMemoryManager::EncodeOption(Kernel::KMemoryManager::Pool::Secure,
                                              Kernel::KMemoryManager::Direction::FromBack)));
 
@@ -44,7 +47,7 @@ Result AllocateSharedBufferMemory(std::unique_ptr<Kernel::KPageGroup>* out_page_
         u32* end = system.DeviceMemory().GetPointer<u32>(block.GetAddress() + block.GetSize());
 
         for (; start < end; start++) {
-            *start = 0;
+            *start = 0xFF0000FF;
         }
     }
 
@@ -58,13 +61,13 @@ Result AllocateSharedBufferMemory(std::unique_ptr<Kernel::KPageGroup>* out_page_
 Result MapSharedBufferIntoProcessAddressSpace(Common::ProcessAddress* out_map_address,
                                               std::unique_ptr<Kernel::KPageGroup>& pg,
                                               Kernel::KProcess* process, Core::System& system) {
-    using Core::Memory::SUYU_PAGESIZE;
+    using Core::Memory::YUZU_PAGESIZE;
 
     auto& page_table = process->GetPageTable();
 
     // Get bounds of where mapping is possible.
     const VAddr alias_code_begin = GetInteger(page_table.GetAliasCodeRegionStart());
-    const VAddr alias_code_size = page_table.GetAliasCodeRegionSize() / SUYU_PAGESIZE;
+    const VAddr alias_code_size = page_table.GetAliasCodeRegionSize() / YUZU_PAGESIZE;
     const auto state = Kernel::KMemoryState::IoMemory;
     const auto perm = Kernel::KMemoryPermission::UserReadWrite;
     std::mt19937_64 rng{process->GetRandomEntropy(0)};
@@ -73,7 +76,7 @@ Result MapSharedBufferIntoProcessAddressSpace(Common::ProcessAddress* out_map_ad
     Result res = ResultSuccess;
     int i;
     for (i = 0; i < 64; i++) {
-        *out_map_address = alias_code_begin + ((rng() % alias_code_size) * SUYU_PAGESIZE);
+        *out_map_address = alias_code_begin + ((rng() % alias_code_size) * YUZU_PAGESIZE);
         res = page_table.MapPageGroup(*out_map_address, *pg, state, perm);
         if (R_SUCCEEDED(res)) {
             break;
@@ -252,7 +255,7 @@ Result SharedBufferManager::CreateSession(Kernel::KProcess* owner_process, u64* 
     R_TRY(m_container.CreateStrayLayer(std::addressof(producer_binder_id),
                                        std::addressof(session.layer_id), display_id));
 
-    // Configure blending.
+    // Configure blending and z-index
     R_ASSERT(m_container.SetLayerBlending(session.layer_id, enable_blending));
 
     // Get the producer and set preallocated buffers.
@@ -370,6 +373,8 @@ Result SharedBufferManager::PresentSharedFrameBuffer(android::Fence fence,
                  android::Status::NoError,
              VI::ResultOperationFailed);
 
+    (void)m_container.SetLayerZIndex(layer_id, 100000);
+
     // We succeeded.
     R_SUCCEED();
 }
@@ -411,7 +416,6 @@ Result SharedBufferManager::WriteAppletCaptureBuffer(bool* out_was_written, s32*
 
         for (; start < end; start++) {
             *start = 0;
-
             if (e >= 0 && e < static_cast<s64>(capture_buffer.size())) {
                 *start = capture_buffer[e];
             }

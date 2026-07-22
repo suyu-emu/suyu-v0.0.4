@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2021 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -775,7 +778,7 @@ Result SoftwareKeyboard::RequestExit() {
 
 // Inline Software Keyboard Requests
 
-void SoftwareKeyboard::RequestFinalize(const std::vector<u8>& request_data) {
+void SoftwareKeyboard::RequestFinalize(std::span<const u8> request_data) {
     LOG_DEBUG(Service_AM, "Processing Request: Finalize");
 
     ChangeState(SwkbdState::NotInitialized);
@@ -783,17 +786,17 @@ void SoftwareKeyboard::RequestFinalize(const std::vector<u8>& request_data) {
     ExitKeyboard();
 }
 
-void SoftwareKeyboard::RequestSetUserWordInfo(const std::vector<u8>& request_data) {
+void SoftwareKeyboard::RequestSetUserWordInfo(std::span<const u8> request_data) {
     LOG_WARNING(Service_AM, "SetUserWordInfo is not implemented.");
 
     ReplyReleasedUserWordInfo();
 }
 
-void SoftwareKeyboard::RequestSetCustomizeDic(const std::vector<u8>& request_data) {
+void SoftwareKeyboard::RequestSetCustomizeDic(std::span<const u8> request_data) {
     LOG_WARNING(Service_AM, "SetCustomizeDic is not implemented.");
 }
 
-void SoftwareKeyboard::RequestCalc(const std::vector<u8>& request_data) {
+void SoftwareKeyboard::RequestCalc(std::span<const u8> request_data) {
     LOG_DEBUG(Service_AM, "Processing Request: Calc");
 
     ASSERT(request_data.size() >= sizeof(SwkbdRequestCommand) + sizeof(SwkbdCalcArgCommon));
@@ -930,17 +933,17 @@ void SoftwareKeyboard::RequestCalcNew() {
     }
 }
 
-void SoftwareKeyboard::RequestSetCustomizedDictionaries(const std::vector<u8>& request_data) {
+void SoftwareKeyboard::RequestSetCustomizedDictionaries(std::span<const u8> request_data) {
     LOG_WARNING(Service_AM, "SetCustomizedDictionaries is not implemented.");
 }
 
-void SoftwareKeyboard::RequestUnsetCustomizedDictionaries(const std::vector<u8>& request_data) {
+void SoftwareKeyboard::RequestUnsetCustomizedDictionaries(std::span<const u8> request_data) {
     LOG_WARNING(Service_AM, "(STUBBED) Processing Request: UnsetCustomizedDictionaries");
 
     ReplyUnsetCustomizedDictionaries();
 }
 
-void SoftwareKeyboard::RequestSetChangedStringV2Flag(const std::vector<u8>& request_data) {
+void SoftwareKeyboard::RequestSetChangedStringV2Flag(std::span<const u8> request_data) {
     LOG_DEBUG(Service_AM, "Processing Request: SetChangedStringV2Flag");
 
     ASSERT(request_data.size() == sizeof(SwkbdRequestCommand) + 1);
@@ -948,7 +951,7 @@ void SoftwareKeyboard::RequestSetChangedStringV2Flag(const std::vector<u8>& requ
     std::memcpy(&use_changed_string_v2, request_data.data() + sizeof(SwkbdRequestCommand), 1);
 }
 
-void SoftwareKeyboard::RequestSetMovedCursorV2Flag(const std::vector<u8>& request_data) {
+void SoftwareKeyboard::RequestSetMovedCursorV2Flag(std::span<const u8> request_data) {
     LOG_DEBUG(Service_AM, "Processing Request: SetMovedCursorV2Flag");
 
     ASSERT(request_data.size() == sizeof(SwkbdRequestCommand) + 1);

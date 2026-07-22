@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 /* This file is part of the dynarmic project.
@@ -9,15 +9,11 @@
 #pragma once
 
 #include <initializer_list>
-#include <stdexcept>
-#include <type_traits>
 
-#include <mcl/mp/metavalue/lift_value.hpp>
-#include "dynarmic/common/common_types.h"
-#include "dynarmic/common/assert.h"
+#include "common/common_types.h"
+#include "common/assert.h"
 #include <oaknut/oaknut.hpp>
 
-#include "dynarmic/common/always_false.h"
 
 namespace Dynarmic::Backend::Arm64 {
 
@@ -30,25 +26,25 @@ constexpr oaknut::XReg Xpagetable{24};
 constexpr oaknut::XReg Xscratch0{16}, Xscratch1{17}, Xscratch2{30};
 constexpr oaknut::WReg Wscratch0{16}, Wscratch1{17}, Wscratch2{30};
 
-template<size_t bitsize>
+template<std::size_t bitsize>
 constexpr auto Rscratch0() {
     if constexpr (bitsize == 32) {
         return Wscratch0;
     } else if constexpr (bitsize == 64) {
         return Xscratch0;
     } else {
-        static_assert(Common::always_false_v<mcl::mp::lift_value<bitsize>>);
+        return Xscratch0; //UNREACHABLE();
     }
 }
 
-template<size_t bitsize>
+template<std::size_t bitsize>
 constexpr auto Rscratch1() {
     if constexpr (bitsize == 32) {
         return Wscratch1;
     } else if constexpr (bitsize == 64) {
         return Xscratch1;
     } else {
-        static_assert(Common::always_false_v<mcl::mp::lift_value<bitsize>>);
+        return Xscratch1; //UNREACHABLE();
     }
 }
 
@@ -71,7 +67,7 @@ constexpr RegisterList ToRegList(oaknut::Reg reg) {
 constexpr RegisterList ABI_CALLEE_SAVE = 0x0000ff00'7ff80000;
 constexpr RegisterList ABI_CALLER_SAVE = 0xffffffff'4000ffff;
 
-void ABI_PushRegisters(oaknut::CodeGenerator& code, RegisterList rl, size_t stack_space);
-void ABI_PopRegisters(oaknut::CodeGenerator& code, RegisterList rl, size_t stack_space);
+void ABI_PushRegisters(oaknut::CodeGenerator& code, RegisterList rl, std::size_t stack_space);
+void ABI_PopRegisters(oaknut::CodeGenerator& code, RegisterList rl, std::size_t stack_space);
 
 }  // namespace Dynarmic::Backend::Arm64

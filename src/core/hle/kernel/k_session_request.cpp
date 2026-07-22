@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2022 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -18,7 +21,7 @@ Result KSessionRequest::SessionMappings::PushMap(KProcessAddress client, KProces
     } else {
         // Allocate a page for the extra mappings.
         if (m_mappings == nullptr) {
-            KPageBuffer* page_buffer = KPageBuffer::Allocate(m_kernel);
+            KPageBuffer* page_buffer = KPageBuffer::Allocate(kernel);
             R_UNLESS(page_buffer != nullptr, ResultOutOfMemory);
 
             m_mappings = reinterpret_cast<Mapping*>(page_buffer);
@@ -54,7 +57,7 @@ Result KSessionRequest::SessionMappings::PushExchange(KProcessAddress client,
 
 void KSessionRequest::SessionMappings::Finalize() {
     if (m_mappings) {
-        KPageBuffer::Free(m_kernel, reinterpret_cast<KPageBuffer*>(m_mappings));
+        KPageBuffer::Free(kernel, reinterpret_cast<KPageBuffer*>(m_mappings));
         m_mappings = nullptr;
     }
 }

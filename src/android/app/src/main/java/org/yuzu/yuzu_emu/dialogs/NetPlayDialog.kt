@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 package org.yuzu.yuzu_emu.dialogs
@@ -36,6 +36,7 @@ import org.yuzu.yuzu_emu.features.settings.model.StringSetting
 import org.yuzu.yuzu_emu.network.NetDataValidators
 import org.yuzu.yuzu_emu.network.NetPlayManager
 import org.yuzu.yuzu_emu.utils.CompatUtils
+import org.yuzu.yuzu_emu.utils.FullscreenHelper
 import org.yuzu.yuzu_emu.utils.GameHelper
 
 class NetPlayDialog(context: Context) : BottomSheetDialog(context) {
@@ -43,9 +44,17 @@ class NetPlayDialog(context: Context) : BottomSheetDialog(context) {
 
     private val gameNameList: MutableList<Array<String>> = mutableListOf()
     private val gameIdList: MutableList<Array<Long>> = mutableListOf()
+    private val hideSystemBars: Boolean by lazy {
+        runCatching {
+            FullscreenHelper.shouldHideSystemBars(CompatUtils.findActivity(context))
+        }.getOrElse {
+            FullscreenHelper.isFullscreenEnabled(context)
+        }
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        setOnShowListener { applyFullscreenMode() }
 
         behavior.state = BottomSheetBehavior.STATE_EXPANDED
         behavior.state = BottomSheetBehavior.STATE_EXPANDED
@@ -116,6 +125,11 @@ class NetPlayDialog(context: Context) : BottomSheetDialog(context) {
                 }
             }
         }
+    }
+
+    override fun onStart() {
+        super.onStart()
+        applyFullscreenMode()
     }
 
     data class NetPlayItems(
@@ -352,6 +366,11 @@ class NetPlayDialog(context: Context) : BottomSheetDialog(context) {
         TextValidatorWatcher.validStates.clear()
         val activity = CompatUtils.findActivity(context)
         val dialog = BottomSheetDialog(activity)
+        dialog.setOnShowListener {
+            dialog.window?.let { window ->
+                FullscreenHelper.applyToWindow(window, hideSystemBars)
+            }
+        }
 
         dialog.behavior.state = BottomSheetBehavior.STATE_EXPANDED
         dialog.behavior.state = BottomSheetBehavior.STATE_EXPANDED
@@ -580,6 +599,12 @@ class NetPlayDialog(context: Context) : BottomSheetDialog(context) {
         }
 
         dialog.show()
+    }
+
+    private fun applyFullscreenMode() {
+        window?.let { window ->
+            FullscreenHelper.applyToWindow(window, hideSystemBars)
+        }
     }
 
     private fun showModerationDialog() {

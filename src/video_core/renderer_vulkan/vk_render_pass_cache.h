@@ -1,10 +1,13 @@
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2021 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
 #pragma once
 
 #include <mutex>
-#include <unordered_map>
+#include <ankerl/unordered_dense.h>
 
 #include "video_core/surface.h"
 #include "video_core/vulkan_common/vulkan_wrapper.h"
@@ -47,7 +50,7 @@ public:
 
 private:
     const Device* device{};
-    std::unordered_map<RenderPassKey, vk::RenderPass> cache;
+    ankerl::unordered_dense::map<RenderPassKey, vk::RenderPass> cache;
     std::mutex mutex;
 };
 

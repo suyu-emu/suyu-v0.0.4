@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2023 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -13,13 +16,13 @@ KDeviceAddressSpace::KDeviceAddressSpace(KernelCore& kernel)
     : KAutoObjectWithSlabHeapAndContainer(kernel), m_lock(kernel), m_is_initialized(false) {}
 KDeviceAddressSpace::~KDeviceAddressSpace() = default;
 
-void KDeviceAddressSpace::Initialize() {
+void KDeviceAddressSpace::Initialize(KernelCore& kernel) {
     // This just forwards to the device page table manager.
     // KDevicePageTable::Initialize();
 }
 
 // Member functions.
-Result KDeviceAddressSpace::Initialize(u64 address, u64 size) {
+Result KDeviceAddressSpace::Initialize(KernelCore& kernel, u64 address, u64 size) {
     // Initialize the device page table.
     // R_TRY(m_table.Initialize(address, size));
 
@@ -31,7 +34,7 @@ Result KDeviceAddressSpace::Initialize(u64 address, u64 size) {
     R_SUCCEED();
 }
 
-void KDeviceAddressSpace::Finalize() {
+void KDeviceAddressSpace::Finalize(KernelCore& kernel) {
     // Finalize the table.
     // m_table.Finalize();
 }

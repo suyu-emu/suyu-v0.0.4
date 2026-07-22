@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2020 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -12,7 +15,7 @@
 #ifdef _WIN32
 #include <winsock2.h>
 #include <ws2tcpip.h>
-#elif SUYU_UNIX
+#else
 #include <arpa/inet.h>
 #include <errno.h>
 #include <fcntl.h>
@@ -21,14 +24,11 @@
 #include <poll.h>
 #include <sys/socket.h>
 #include <unistd.h>
-#else
-#error "Unimplemented platform"
 #endif
 
 #include "common/assert.h"
 #include "common/common_types.h"
-#include "common/expected.h"
-#include "common/logging/log.h"
+#include "common/logging.h"
 #include "common/settings.h"
 #include "core/internal_network/network.h"
 #include "core/internal_network/network_interface.h"
@@ -77,7 +77,7 @@ SOCKET GetInterruptSocket() {
 sockaddr TranslateFromSockAddrIn(SockAddrIn input) {
     sockaddr_in result;
 
-#if SUYU_UNIX
+#ifdef __unix__
     result.sin_len = sizeof(result);
 #endif
 
@@ -105,7 +105,7 @@ sockaddr TranslateFromSockAddrIn(SockAddrIn input) {
 }
 
 LINGER MakeLinger(bool enable, u32 linger_value) {
-    ASSERT(linger_value <= std::numeric_limits<u_short>::max());
+    ASSERT(linger_value <= (std::numeric_limits<u_short>::max)());
 
     LINGER value;
     value.l_onoff = enable ? 1 : 0;
@@ -156,13 +156,15 @@ Errno TranslateNativeError(int e, CallType call_type = CallType::Other) {
         return Errno::TIMEDOUT;
     case WSAEINPROGRESS:
         return Errno::INPROGRESS;
+    case WSAEISCONN:
+        return Errno::ISCONN;
     default:
         UNIMPLEMENTED_MSG("Unimplemented errno={}", e);
         return Errno::OTHER;
     }
 }
 
-#elif SUYU_UNIX // ^ _WIN32 v SUYU_UNIX
+#else // ^^^ Windows vvv POSIX
 
 using SOCKET = int;
 using WSAPOLLFD = pollfd;
@@ -295,6 +297,8 @@ Errno TranslateNativeError(int e, CallType call_type = CallType::Other) {
         return Errno::TIMEDOUT;
     case EINPROGRESS:
         return Errno::INPROGRESS;
+    case EISCONN:
+        return Errno::ISCONN;
     default:
         UNIMPLEMENTED_MSG("Unimplemented errno={} ({})", e, strerror(e));
         return Errno::OTHER;
@@ -321,52 +325,37 @@ Errno GetAndLogLastError(CallType call_type = CallType::Other) {
 
 GetAddrInfoError TranslateGetAddrInfoErrorFromNative(int gai_err) {
     switch (gai_err) {
-    case 0:
-        return GetAddrInfoError::SUCCESS;
+    case 0: return GetAddrInfoError::SUCCESS;
+    case EAI_AGAIN: return GetAddrInfoError::AGAIN;
+    case EAI_BADFLAGS: return GetAddrInfoError::BADFLAGS;
+    case EAI_FAIL: return GetAddrInfoError::FAIL;
+    case EAI_FAMILY: return GetAddrInfoError::FAMILY;
+    case EAI_MEMORY: return GetAddrInfoError::MEMORY;
+    case EAI_NONAME: return GetAddrInfoError::NONAME;
+    case EAI_SERVICE: return GetAddrInfoError::SERVICE;
+    case EAI_SOCKTYPE: return GetAddrInfoError::SOCKTYPE;
+    // These codes may not be defined on all systems:
 #ifdef EAI_ADDRFAMILY
-    case EAI_ADDRFAMILY:
-        return GetAddrInfoError::ADDRFAMILY;
+    case EAI_ADDRFAMILY: return GetAddrInfoError::ADDRFAMILY;
 #endif
-    case EAI_AGAIN:
-        return GetAddrInfoError::AGAIN;
-    case EAI_BADFLAGS:
-        return GetAddrInfoError::BADFLAGS;
-    case EAI_FAIL:
-        return GetAddrInfoError::FAIL;
-    case EAI_FAMILY:
-        return GetAddrInfoError::FAMILY;
-    case EAI_MEMORY:
-        return GetAddrInfoError::MEMORY;
-    case EAI_NONAME:
-        return GetAddrInfoError::NONAME;
-    case EAI_SERVICE:
-        return GetAddrInfoError::SERVICE;
-    case EAI_SOCKTYPE:
-        return GetAddrInfoError::SOCKTYPE;
-        // These codes may not be defined on all systems:
 #ifdef EAI_SYSTEM
-    case EAI_SYSTEM:
-        return GetAddrInfoError::SYSTEM;
+    case EAI_SYSTEM: return GetAddrInfoError::SYSTEM;
 #endif
 #ifdef EAI_BADHINTS
-    case EAI_BADHINTS:
-        return GetAddrInfoError::BADHINTS;
+    case EAI_BADHINTS: return GetAddrInfoError::BADHINTS;
 #endif
 #ifdef EAI_PROTOCOL
-    case EAI_PROTOCOL:
-        return GetAddrInfoError::PROTOCOL;
+    case EAI_PROTOCOL: return GetAddrInfoError::PROTOCOL;
 #endif
 #ifdef EAI_OVERFLOW
-    case EAI_OVERFLOW:
-        return GetAddrInfoError::OVERFLOW_;
+    case EAI_OVERFLOW: return GetAddrInfoError::OVERFLOW_;
 #endif
     default:
 #ifdef EAI_NODATA
         // This can't be a case statement because it would create a duplicate
         // case on Windows where EAI_NODATA is an alias for EAI_NONAME.
-        if (gai_err == EAI_NODATA) {
+        if (gai_err == EAI_NODATA)
             return GetAddrInfoError::NODATA;
-        }
 #endif
         return GetAddrInfoError::OTHER;
     }
@@ -400,14 +389,10 @@ Type TranslateTypeFromNative(int type) {
     switch (type) {
     case 0:
         return Type::Unspecified;
-    case SOCK_STREAM:
-        return Type::STREAM;
-    case SOCK_DGRAM:
-        return Type::DGRAM;
-    case SOCK_RAW:
-        return Type::RAW;
-    case SOCK_SEQPACKET:
-        return Type::SEQPACKET;
+    case SOCK_STREAM: return Type::STREAM;
+    case SOCK_DGRAM: return Type::DGRAM;
+    case SOCK_RAW: return Type::RAW;
+    case SOCK_SEQPACKET: return Type::SEQPACKET;
     default:
         UNIMPLEMENTED_MSG("Unimplemented type={}", type);
         return Type::STREAM;
@@ -418,55 +403,227 @@ int TranslateTypeToNative(Type type) {
     switch (type) {
     case Type::Unspecified:
         return 0;
-    case Type::STREAM:
-        return SOCK_STREAM;
-    case Type::DGRAM:
-        return SOCK_DGRAM;
-    case Type::RAW:
-        return SOCK_RAW;
+    case Type::STREAM: return SOCK_STREAM;
+    case Type::DGRAM: return SOCK_DGRAM;
+    case Type::RAW: return SOCK_RAW;
+    case Type::SEQPACKET: return SOCK_SEQPACKET;
     default:
         UNIMPLEMENTED_MSG("Unimplemented type={}", type);
         return 0;
     }
 }
 
-Protocol TranslateProtocolFromNative(int protocol) {
+// Some of those protocols may not be supported on some platforms
+// It doesn't really matter, except that some homebrew may not work correctly
+// Official software uses TCP & UDP mainly, SCTP is used by some homebrew as well
+#ifdef __FreeBSD__
+#define NETWORK_PROTOCOL_TRANSLATE_LIST \
+    NETWORK_PROTOCOL_TRANSLATE_ELEM(IP) \
+    NETWORK_PROTOCOL_TRANSLATE_ELEM(ICMP) \
+    NETWORK_PROTOCOL_TRANSLATE_ELEM(TCP) \
+    NETWORK_PROTOCOL_TRANSLATE_ELEM(UDP) \
+    NETWORK_PROTOCOL_TRANSLATE_ELEM(IPV6) \
+    NETWORK_PROTOCOL_TRANSLATE_ELEM(RAW) \
+    NETWORK_PROTOCOL_TRANSLATE_ELEM(IGMP) \
+    NETWORK_PROTOCOL_TRANSLATE_ELEM(GGP) \
+    NETWORK_PROTOCOL_TRANSLATE_ELEM(IPV4) \
+    NETWORK_PROTOCOL_TRANSLATE_ELEM(ST) \
+    NETWORK_PROTOCOL_TRANSLATE_ELEM(EGP) \
+    NETWORK_PROTOCOL_TRANSLATE_ELEM(PIGP) \
+    NETWORK_PROTOCOL_TRANSLATE_ELEM(RCCMON) \
+    NETWORK_PROTOCOL_TRANSLATE_ELEM(NVPII) \
+    NETWORK_PROTOCOL_TRANSLATE_ELEM(PUP) \
+    NETWORK_PROTOCOL_TRANSLATE_ELEM(ARGUS) \
+    NETWORK_PROTOCOL_TRANSLATE_ELEM(EMCON) \
+    NETWORK_PROTOCOL_TRANSLATE_ELEM(XNET) \
+    NETWORK_PROTOCOL_TRANSLATE_ELEM(CHAOS) \
+    NETWORK_PROTOCOL_TRANSLATE_ELEM(MUX) \
+    NETWORK_PROTOCOL_TRANSLATE_ELEM(MEAS) \
+    NETWORK_PROTOCOL_TRANSLATE_ELEM(HMP) \
+    NETWORK_PROTOCOL_TRANSLATE_ELEM(PRM) \
+    NETWORK_PROTOCOL_TRANSLATE_ELEM(IDP) \
+    NETWORK_PROTOCOL_TRANSLATE_ELEM(TRUNK1) \
+    NETWORK_PROTOCOL_TRANSLATE_ELEM(TRUNK2) \
+    NETWORK_PROTOCOL_TRANSLATE_ELEM(LEAF1) \
+    NETWORK_PROTOCOL_TRANSLATE_ELEM(LEAF2) \
+    NETWORK_PROTOCOL_TRANSLATE_ELEM(RDP) \
+    NETWORK_PROTOCOL_TRANSLATE_ELEM(IRTP) \
+    NETWORK_PROTOCOL_TRANSLATE_ELEM(TP) \
+    NETWORK_PROTOCOL_TRANSLATE_ELEM(BLT) \
+    NETWORK_PROTOCOL_TRANSLATE_ELEM(NSP) \
+    NETWORK_PROTOCOL_TRANSLATE_ELEM(INP) \
+    NETWORK_PROTOCOL_TRANSLATE_ELEM(DCCP) \
+    /*NETWORK_PROTOCOL_TRANSLATE_ELEM(3PC)*/ \
+    NETWORK_PROTOCOL_TRANSLATE_ELEM(IDPR) \
+    NETWORK_PROTOCOL_TRANSLATE_ELEM(XTP) \
+    NETWORK_PROTOCOL_TRANSLATE_ELEM(DDP) \
+    NETWORK_PROTOCOL_TRANSLATE_ELEM(CMTP) \
+    NETWORK_PROTOCOL_TRANSLATE_ELEM(TPXX) \
+    NETWORK_PROTOCOL_TRANSLATE_ELEM(IL) \
+    NETWORK_PROTOCOL_TRANSLATE_ELEM(SDRP) \
+    NETWORK_PROTOCOL_TRANSLATE_ELEM(ROUTING) \
+    NETWORK_PROTOCOL_TRANSLATE_ELEM(FRAGMENT) \
+    NETWORK_PROTOCOL_TRANSLATE_ELEM(IDRP) \
+    NETWORK_PROTOCOL_TRANSLATE_ELEM(RSVP) \
+    NETWORK_PROTOCOL_TRANSLATE_ELEM(GRE) \
+    NETWORK_PROTOCOL_TRANSLATE_ELEM(MHRP) \
+    NETWORK_PROTOCOL_TRANSLATE_ELEM(BHA) \
+    NETWORK_PROTOCOL_TRANSLATE_ELEM(ESP) \
+    NETWORK_PROTOCOL_TRANSLATE_ELEM(AH) \
+    NETWORK_PROTOCOL_TRANSLATE_ELEM(INLSP) \
+    NETWORK_PROTOCOL_TRANSLATE_ELEM(SWIPE) \
+    NETWORK_PROTOCOL_TRANSLATE_ELEM(NHRP) \
+    NETWORK_PROTOCOL_TRANSLATE_ELEM(MOBILE) \
+    NETWORK_PROTOCOL_TRANSLATE_ELEM(TLSP) \
+    NETWORK_PROTOCOL_TRANSLATE_ELEM(SKIP) \
+    NETWORK_PROTOCOL_TRANSLATE_ELEM(ICMPV6) \
+    NETWORK_PROTOCOL_TRANSLATE_ELEM(NONE) \
+    NETWORK_PROTOCOL_TRANSLATE_ELEM(DSTOPTS) \
+    NETWORK_PROTOCOL_TRANSLATE_ELEM(AHIP) \
+    NETWORK_PROTOCOL_TRANSLATE_ELEM(CFTP) \
+    NETWORK_PROTOCOL_TRANSLATE_ELEM(HELLO) \
+    NETWORK_PROTOCOL_TRANSLATE_ELEM(SATEXPAK) \
+    NETWORK_PROTOCOL_TRANSLATE_ELEM(KRYPTOLAN) \
+    NETWORK_PROTOCOL_TRANSLATE_ELEM(RVD) \
+    NETWORK_PROTOCOL_TRANSLATE_ELEM(IPPC) \
+    NETWORK_PROTOCOL_TRANSLATE_ELEM(ADFS) \
+    NETWORK_PROTOCOL_TRANSLATE_ELEM(SATMON) \
+    NETWORK_PROTOCOL_TRANSLATE_ELEM(VISA) \
+    NETWORK_PROTOCOL_TRANSLATE_ELEM(IPCV) \
+    NETWORK_PROTOCOL_TRANSLATE_ELEM(CPNX) \
+    NETWORK_PROTOCOL_TRANSLATE_ELEM(CPHB) \
+    NETWORK_PROTOCOL_TRANSLATE_ELEM(WSN) \
+    NETWORK_PROTOCOL_TRANSLATE_ELEM(PVP) \
+    NETWORK_PROTOCOL_TRANSLATE_ELEM(BRSATMON) \
+    NETWORK_PROTOCOL_TRANSLATE_ELEM(ND) \
+    NETWORK_PROTOCOL_TRANSLATE_ELEM(WBMON) \
+    NETWORK_PROTOCOL_TRANSLATE_ELEM(WBEXPAK) \
+    NETWORK_PROTOCOL_TRANSLATE_ELEM(EON) \
+    NETWORK_PROTOCOL_TRANSLATE_ELEM(VMTP) \
+    NETWORK_PROTOCOL_TRANSLATE_ELEM(SVMTP) \
+    NETWORK_PROTOCOL_TRANSLATE_ELEM(VINES) \
+    NETWORK_PROTOCOL_TRANSLATE_ELEM(TTP) \
+    NETWORK_PROTOCOL_TRANSLATE_ELEM(IGP) \
+    NETWORK_PROTOCOL_TRANSLATE_ELEM(DGP) \
+    NETWORK_PROTOCOL_TRANSLATE_ELEM(TCF) \
+    NETWORK_PROTOCOL_TRANSLATE_ELEM(IGRP) \
+    NETWORK_PROTOCOL_TRANSLATE_ELEM(OSPFIGP) \
+    NETWORK_PROTOCOL_TRANSLATE_ELEM(SRPC) \
+    NETWORK_PROTOCOL_TRANSLATE_ELEM(LARP) \
+    NETWORK_PROTOCOL_TRANSLATE_ELEM(MTP) \
+    NETWORK_PROTOCOL_TRANSLATE_ELEM(AX25) \
+    NETWORK_PROTOCOL_TRANSLATE_ELEM(IPEIP) \
+    NETWORK_PROTOCOL_TRANSLATE_ELEM(MICP) \
+    NETWORK_PROTOCOL_TRANSLATE_ELEM(SCCSP) \
+    NETWORK_PROTOCOL_TRANSLATE_ELEM(ETHERIP) \
+    NETWORK_PROTOCOL_TRANSLATE_ELEM(ENCAP) \
+    NETWORK_PROTOCOL_TRANSLATE_ELEM(APES) \
+    NETWORK_PROTOCOL_TRANSLATE_ELEM(GMTP) \
+    NETWORK_PROTOCOL_TRANSLATE_ELEM(IPCOMP) \
+    NETWORK_PROTOCOL_TRANSLATE_ELEM(SCTP) \
+    NETWORK_PROTOCOL_TRANSLATE_ELEM(MH) \
+    NETWORK_PROTOCOL_TRANSLATE_ELEM(UDPLITE) \
+    NETWORK_PROTOCOL_TRANSLATE_ELEM(HIP) \
+    NETWORK_PROTOCOL_TRANSLATE_ELEM(SHIM6) \
+    NETWORK_PROTOCOL_TRANSLATE_ELEM(PIM) \
+    NETWORK_PROTOCOL_TRANSLATE_ELEM(CARP) \
+    NETWORK_PROTOCOL_TRANSLATE_ELEM(PGM) \
+    NETWORK_PROTOCOL_TRANSLATE_ELEM(MPLS) \
+    NETWORK_PROTOCOL_TRANSLATE_ELEM(PFSYNC)
+#elif defined(__linux__)
+// Other platforms get fucked
+#define NETWORK_PROTOCOL_TRANSLATE_LIST \
+    NETWORK_PROTOCOL_TRANSLATE_ELEM(IP) \
+    /*NETWORK_PROTOCOL_TRANSLATE_ELEM(HOPOPTS)*/ \
+    NETWORK_PROTOCOL_TRANSLATE_ELEM(ICMP) \
+    NETWORK_PROTOCOL_TRANSLATE_ELEM(IGMP) \
+    /*NETWORK_PROTOCOL_TRANSLATE_ELEM(IPIP)*/ \
+    NETWORK_PROTOCOL_TRANSLATE_ELEM(TCP) \
+    NETWORK_PROTOCOL_TRANSLATE_ELEM(EGP) \
+    NETWORK_PROTOCOL_TRANSLATE_ELEM(PUP) \
+    NETWORK_PROTOCOL_TRANSLATE_ELEM(UDP) \
+    NETWORK_PROTOCOL_TRANSLATE_ELEM(IDP) \
+    NETWORK_PROTOCOL_TRANSLATE_ELEM(TP) \
+    NETWORK_PROTOCOL_TRANSLATE_ELEM(DCCP) \
+    NETWORK_PROTOCOL_TRANSLATE_ELEM(IPV6) \
+    NETWORK_PROTOCOL_TRANSLATE_ELEM(ROUTING) \
+    NETWORK_PROTOCOL_TRANSLATE_ELEM(FRAGMENT) \
+    NETWORK_PROTOCOL_TRANSLATE_ELEM(RSVP) \
+    NETWORK_PROTOCOL_TRANSLATE_ELEM(GRE) \
+    NETWORK_PROTOCOL_TRANSLATE_ELEM(ESP) \
+    NETWORK_PROTOCOL_TRANSLATE_ELEM(AH) \
+    NETWORK_PROTOCOL_TRANSLATE_ELEM(ICMPV6) \
+    NETWORK_PROTOCOL_TRANSLATE_ELEM(NONE) \
+    NETWORK_PROTOCOL_TRANSLATE_ELEM(DSTOPTS) \
+    NETWORK_PROTOCOL_TRANSLATE_ELEM(MTP) \
+    NETWORK_PROTOCOL_TRANSLATE_ELEM(ENCAP) \
+    NETWORK_PROTOCOL_TRANSLATE_ELEM(PIM) \
+    /*NETWORK_PROTOCOL_TRANSLATE_ELEM(COMP)*/ \
+    NETWORK_PROTOCOL_TRANSLATE_ELEM(SCTP) \
+    NETWORK_PROTOCOL_TRANSLATE_ELEM(UDPLITE)
+#elif defined(_WIN32)
+#define NETWORK_PROTOCOL_TRANSLATE_LIST \
+    /*NETWORK_PROTOCOL_TRANSLATE_ELEM(HOPOPTS)*/ \
+    NETWORK_PROTOCOL_TRANSLATE_ELEM(ICMP) \
+    NETWORK_PROTOCOL_TRANSLATE_ELEM(IGMP) \
+    NETWORK_PROTOCOL_TRANSLATE_ELEM(GGP) \
+    NETWORK_PROTOCOL_TRANSLATE_ELEM(IPV4) \
+    NETWORK_PROTOCOL_TRANSLATE_ELEM(ST) \
+    NETWORK_PROTOCOL_TRANSLATE_ELEM(TCP) \
+    /*NETWORK_PROTOCOL_TRANSLATE_ELEM(CBT)*/ \
+    NETWORK_PROTOCOL_TRANSLATE_ELEM(EGP) \
+    NETWORK_PROTOCOL_TRANSLATE_ELEM(IGP) \
+    NETWORK_PROTOCOL_TRANSLATE_ELEM(PUP) \
+    NETWORK_PROTOCOL_TRANSLATE_ELEM(UDP) \
+    NETWORK_PROTOCOL_TRANSLATE_ELEM(IDP) \
+    NETWORK_PROTOCOL_TRANSLATE_ELEM(RDP) \
+    NETWORK_PROTOCOL_TRANSLATE_ELEM(IPV6) \
+    NETWORK_PROTOCOL_TRANSLATE_ELEM(ROUTING) \
+    NETWORK_PROTOCOL_TRANSLATE_ELEM(FRAGMENT) \
+    NETWORK_PROTOCOL_TRANSLATE_ELEM(ESP) \
+    NETWORK_PROTOCOL_TRANSLATE_ELEM(AH) \
+    NETWORK_PROTOCOL_TRANSLATE_ELEM(ICMPV6) \
+    NETWORK_PROTOCOL_TRANSLATE_ELEM(NONE) \
+    NETWORK_PROTOCOL_TRANSLATE_ELEM(DSTOPTS) \
+    NETWORK_PROTOCOL_TRANSLATE_ELEM(ND) \
+    /*NETWORK_PROTOCOL_TRANSLATE_ELEM(ICLFXBM)*/ \
+    NETWORK_PROTOCOL_TRANSLATE_ELEM(PIM) \
+    NETWORK_PROTOCOL_TRANSLATE_ELEM(PGM) \
+    /*NETWORK_PROTOCOL_TRANSLATE_ELEM(L2TP)*/ \
+    NETWORK_PROTOCOL_TRANSLATE_ELEM(SCTP)
+#else
+#define NETWORK_PROTOCOL_TRANSLATE_LIST \
+    NETWORK_PROTOCOL_TRANSLATE_ELEM(TCP) \
+    NETWORK_PROTOCOL_TRANSLATE_ELEM(UDP) \
+    NETWORK_PROTOCOL_TRANSLATE_ELEM(SCTP)
+#endif
+[[nodiscard]] Protocol TranslateProtocolFromNative(u32 protocol) {
     switch (protocol) {
-    case 0:
-        return Protocol::Unspecified;
-    case IPPROTO_TCP:
-        return Protocol::TCP;
-    case IPPROTO_UDP:
-        return Protocol::UDP;
+#define NETWORK_PROTOCOL_TRANSLATE_ELEM(x) case IPPROTO_##x: return Protocol::x;
+    NETWORK_PROTOCOL_TRANSLATE_LIST
+#undef NETWORK_PROTOCOL_TRANSLATE_ELEM
     default:
         UNIMPLEMENTED_MSG("Unimplemented protocol={}", protocol);
-        return Protocol::Unspecified;
+        return Protocol::IP;
     }
 }
-
-int TranslateProtocolToNative(Protocol protocol) {
+[[nodiscard]] u32 TranslateProtocolToNative(Protocol protocol) {
     switch (protocol) {
-    case Protocol::Unspecified:
-        return 0;
-    case Protocol::TCP:
-        return IPPROTO_TCP;
-    case Protocol::UDP:
-        return IPPROTO_UDP;
+#define NETWORK_PROTOCOL_TRANSLATE_ELEM(x) case Protocol::x: return IPPROTO_##x;
+    NETWORK_PROTOCOL_TRANSLATE_LIST
+#undef NETWORK_PROTOCOL_TRANSLATE_ELEM
     default:
         UNIMPLEMENTED_MSG("Unimplemented protocol={}", protocol);
         return 0;
     }
 }
+#undef NETWORK_PROTOCOL_TRANSLATE_LIST
 
 SockAddrIn TranslateToSockAddrIn(sockaddr_in input, size_t input_len) {
-    SockAddrIn result;
-
+    SockAddrIn result{};
     result.family = TranslateDomainFromNative(input.sin_family);
-
     result.portno = ntohs(input.sin_port);
-
     result.ip = TranslateIPv4(input.sin_addr);
-
     return result;
 }
 
@@ -575,15 +732,14 @@ u32 IPv4AddressToInteger(IPv4Address ip_addr) {
            static_cast<u32>(ip_addr[2]) << 8 | static_cast<u32>(ip_addr[3]);
 }
 
-Common::Expected<std::vector<AddrInfo>, GetAddrInfoError> GetAddressInfo(
+std::variant<std::vector<AddrInfo>, GetAddrInfoError> GetAddressInfo(
     const std::string& host, const std::optional<std::string>& service) {
     addrinfo hints{};
     hints.ai_family = AF_INET; // Switch only supports IPv4.
     addrinfo* addrinfo;
-    s32 gai_err = getaddrinfo(host.c_str(), service.has_value() ? service->c_str() : nullptr,
-                              &hints, &addrinfo);
+    s32 gai_err = getaddrinfo(host.c_str(), service.has_value() ? service->c_str() : nullptr, &hints, &addrinfo);
     if (gai_err != 0) {
-        return Common::Unexpected(TranslateGetAddrInfoErrorFromNative(gai_err));
+        return TranslateGetAddrInfoErrorFromNative(gai_err);
     }
     std::vector<AddrInfo> ret;
     for (auto* current = addrinfo; current; current = current->ai_next) {
@@ -680,8 +836,7 @@ Errno Socket::SetSockOpt(SOCKET fd_so, int option, T value) {
 }
 
 Errno Socket::Initialize(Domain domain, Type type, Protocol protocol) {
-    fd = socket(TranslateDomainToNative(domain), TranslateTypeToNative(type),
-                TranslateProtocolToNative(protocol));
+    fd = socket(TranslateDomainToNative(domain), TranslateTypeToNative(type), TranslateProtocolToNative(protocol));
     if (fd != INVALID_SOCKET) {
         return Errno::SUCCESS;
     }
@@ -798,7 +953,7 @@ Errno Socket::Shutdown(ShutdownHow how) {
 
 std::pair<s32, Errno> Socket::Recv(int flags, std::span<u8> message) {
     ASSERT(flags == 0);
-    ASSERT(message.size() < static_cast<size_t>(std::numeric_limits<int>::max()));
+    ASSERT(message.size() < static_cast<size_t>((std::numeric_limits<int>::max)()));
 
     const auto result =
         recv(fd, reinterpret_cast<char*>(message.data()), static_cast<int>(message.size()), 0);
@@ -811,7 +966,7 @@ std::pair<s32, Errno> Socket::Recv(int flags, std::span<u8> message) {
 
 std::pair<s32, Errno> Socket::RecvFrom(int flags, std::span<u8> message, SockAddrIn* addr) {
     ASSERT(flags == 0);
-    ASSERT(message.size() < static_cast<size_t>(std::numeric_limits<int>::max()));
+    ASSERT(message.size() < static_cast<size_t>((std::numeric_limits<int>::max)()));
 
     sockaddr_in addr_in{};
     socklen_t addrlen = sizeof(addr_in);
@@ -831,11 +986,11 @@ std::pair<s32, Errno> Socket::RecvFrom(int flags, std::span<u8> message, SockAdd
 }
 
 std::pair<s32, Errno> Socket::Send(std::span<const u8> message, int flags) {
-    ASSERT(message.size() < static_cast<size_t>(std::numeric_limits<int>::max()));
+    ASSERT(message.size() < static_cast<size_t>((std::numeric_limits<int>::max)()));
     ASSERT(flags == 0);
 
     int native_flags = 0;
-#if SUYU_UNIX
+#ifdef __unix__
     native_flags |= MSG_NOSIGNAL; // do not send us SIGPIPE
 #endif
     const auto result = send(fd, reinterpret_cast<const char*>(message.data()),
@@ -871,7 +1026,9 @@ std::pair<s32, Errno> Socket::SendTo(u32 flags, std::span<const u8> message,
 
 Errno Socket::Close() {
     [[maybe_unused]] const int result = closesocket(fd);
-    ASSERT(result == 0);
+    if (result != 0) {
+        LOG_WARNING(Network, "closesocket failed, socket may already be closed");
+    }
     fd = INVALID_SOCKET;
 
     return Errno::SUCCESS;

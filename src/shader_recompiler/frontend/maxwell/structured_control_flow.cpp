@@ -1,18 +1,21 @@
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2021 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
 #include <algorithm>
 #include <memory>
 #include <string>
-#include <unordered_map>
+#include <ankerl/unordered_dense.h>
 #include <utility>
 #include <vector>
 
-#include <fmt/format.h>
+#include <fmt/ranges.h>
 
 #include <boost/intrusive/list.hpp>
 
-#include "common/polyfill_ranges.h"
+#include <ranges>
 #include "shader_recompiler/environment.h"
 #include "shader_recompiler/frontend/ir/basic_block.h"
 #include "shader_recompiler/frontend/ir/ir_emitter.h"
@@ -387,7 +390,7 @@ private:
                    std::optional<Node> return_label) {
         Statement* const false_stmt{pool.Create(Identity{}, IR::Condition{false}, &root_stmt)};
         Tree& root{root_stmt.children};
-        std::unordered_map<Flow::Block*, Node> local_labels;
+        ankerl::unordered_dense::map<Flow::Block*, Node> local_labels;
         local_labels.reserve(function.blocks.size());
 
         for (Flow::Block& block : function.blocks) {
@@ -976,7 +979,7 @@ private:
     Environment& env;
     IR::AbstractSyntaxList& syntax_list;
     bool uses_demote_to_helper{};
-    const Flow::Block dummy_flow_block;
+    const Flow::Block dummy_flow_block{};
 };
 } // Anonymous namespace
 
@@ -988,6 +991,7 @@ IR::AbstractSyntaxList BuildASL(ObjectPool<IR::Inst>& inst_pool, ObjectPool<IR::
     Statement& root{goto_pass.RootStatement()};
     IR::AbstractSyntaxList syntax_list;
     TranslatePass{inst_pool, block_pool, stmt_pool, env, root, syntax_list, host_info};
+    stmt_pool.ReleaseContents();
     return syntax_list;
 }
 

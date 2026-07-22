@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: 2014 Citra Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -7,9 +10,8 @@
 #include "common/bit_field.h"
 #include "common/common_funcs.h"
 #include "common/common_types.h"
-#include "common/expected.h"
 
-// All the constants in this file come from http://switchbrew.org/index.php?title=Error_codes
+// All the constants in this file come from <https://switchbrew.org/wiki/Error_codes>
 
 /**
  * Identifies the module which caused the error. Error codes can be propagated through a call
@@ -40,7 +42,7 @@ enum class ErrorModule : u32 {
     NCMContent = 20,
     SM = 21,
     RO = 22,
-    GC = 23,
+    Gc = 23,
     SDMMC = 24,
     OVLN = 25,
     SPL = 26,
@@ -69,7 +71,7 @@ enum class ErrorModule : u32 {
     Bluetooth = 113,
     VI = 114,
     NFP = 115,
-    Time = 116,
+    TimeService = 116,
     FGM = 117,
     OE = 118,
     BH1730FVC = 119,
@@ -84,6 +86,7 @@ enum class ErrorModule : u32 {
     AM = 128,
     PlayReport = 129,
     AHID = 130,
+    APPLET = 131,
     Qlaunch = 132,
     PCV = 133,
     USBPD = 134,
@@ -110,8 +113,8 @@ enum class ErrorModule : u32 {
     NPNSHTTPSTREAM = 155,
     IDLE = 156,
     ARP = 157,
-    SWKBD = 158,
-    BOOT = 159,
+    UPDATER = 158,
+    SWKBD = 159,
     NetDiag = 160,
     NFCMifare = 161,
     UserlandAssert = 162,
@@ -122,7 +125,8 @@ enum class ErrorModule : u32 {
     BGTC = 167,
     UserlandCrash = 168,
     SASBUS = 169,
-    PI = 170,
+    PL = 170,
+    CDMSC = 171,
     AudioCtrl = 172,
     LBL = 173,
     JIT = 175,
@@ -134,23 +138,30 @@ enum class ErrorModule : u32 {
     Dauth = 181,
     STDFU = 182,
     DBG = 183,
+    CDACM = 184,
+    TCAP = 185,
     DHCPS = 186,
     SPI = 187,
     AVM = 188,
     PWM = 189,
+    DNSServer = 190,
     RTC = 191,
     Regulator = 192,
     LED = 193,
+    HTCTool = 194,
     SIO = 195,
     PCM = 196,
     CLKRST = 197,
     POWCTL = 198,
+    HIDDriver = 199,
+    DMA = 200,
     AudioOld = 201,
     HID = 202,
     LDN = 203,
     CS = 204,
     Irsensor = 205,
     Capture = 206,
+    MM = 207,
     Manu = 208,
     ATK = 209,
     WEB = 210,
@@ -163,19 +174,24 @@ enum class ErrorModule : u32 {
     MigrationLdcServ = 217,
     HIDBUS = 218,
     ENS = 219,
+    ND = 220,
+    NDD = 221,
+    ToyCon = 222,
     WebSocket = 223,
+    SocketIO = 224,
     DCDMTP = 227,
     PGL = 228,
     Notification = 229,
     INS = 230,
     LP2P = 231,
     RCD = 232,
-    LCM40607 = 233,
+    ICM40607 = 233,
     PRC = 235,
-    TMAHTC = 237,
-    ECTX = 238,
+    BridgeCtrl = 237,
+    ErrContext = 238,
     MNPP = 239,
     HSHL = 240,
+    RINGCON = 241,
     CAPMTP = 242,
     DP2HDMI = 244,
     Cradle = 245,
@@ -183,30 +199,20 @@ enum class ErrorModule : u32 {
     Icm42607p = 248,
     NDRM = 250,
     Fst2 = 251,
+    TS = 253,
+    SPLAY = 260,
     Nex = 306,
     NPLN = 321,
-    Libnx = 345,
-    HomebrewAbi = 346,
-    HomebrewLoader = 347,
-    LibnxNvidia = 348,
-    LibnxBinder = 349,
     TSPM = 499,
     DevMenu = 500,
     Nverpt = 520,
     Am_StuckMonitor = 521,
     Pia = 618,
     Eagle = 623,
-    LibAppletWeb = 800,
-    LibAppletAuth = 809,
-    LibAppletLns = 810,
-    LibAppletShop = 811,
-
-    // NOTE(EmulationEnjoyer): Keeping old applet entry names in the case there's some lookup by name happening somewhere
     GeneralWebApplet = 800,
     WifiWebAuthApplet = 809,
     WhitelistedApplet = 810,
     ShopN = 811,
-
     Coral = 815
 };
 
@@ -323,8 +329,8 @@ private:
 namespace ResultImpl {
 template <auto EvaluateResult, class F>
 class ScopedResultGuard {
-    SUYU_NON_COPYABLE(ScopedResultGuard);
-    SUYU_NON_MOVEABLE(ScopedResultGuard);
+    YUZU_NON_COPYABLE(ScopedResultGuard);
+    YUZU_NON_MOVEABLE(ScopedResultGuard);
 
 private:
     Result& m_ref;

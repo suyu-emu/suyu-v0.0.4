@@ -143,8 +143,21 @@ class ReleaseAdapter(
             binding.containerDownloads.removeAllViews()
 
             release.artifacts.forEach { artifact ->
+                val alreadyInstalled = try {
+                    // Prefer fast check via ViewModel list; fallback to helper if needed
+                    driverViewModel.driverData.any {
+                        File(it.first).name.equals(artifact.name, ignoreCase = true)
+                    } || GpuDriverHelper.isDriverZipInstalledByName(artifact.name)
+                } catch (_: Exception) {
+                    false
+                }
+
                 val button = MaterialButton(binding.root.context).apply {
-                    text = artifact.name
+                    text = if (alreadyInstalled) {
+                        context.getString(R.string.installed_label, artifact.name)
+                    } else {
+                        artifact.name
+                    }
                     setTextAppearance(
                         com.google.android.material.R.style.TextAppearance_Material3_LabelLarge
                     )
@@ -154,7 +167,7 @@ class ReleaseAdapter(
                             com.google.android.material.R.color.m3_button_background_color_selector
                         )
                     )
-                    setIconResource(R.drawable.ic_import)
+                    setIconResource(if (alreadyInstalled) R.drawable.ic_check else R.drawable.ic_import)
                     iconTint = ColorStateList.valueOf(
                         MaterialColors.getColor(
                             this,
@@ -167,7 +180,22 @@ class ReleaseAdapter(
                         ViewGroup.LayoutParams.MATCH_PARENT,
                         ViewGroup.LayoutParams.WRAP_CONTENT
                     )
+                    isEnabled = !alreadyInstalled
                     setOnClickListener {
+                        // Double-check just before starting (race-proof)
+                        if (GpuDriverHelper.isDriverZipInstalledByName(artifact.name)) {
+                            Toast.makeText(
+                                context,
+                                context.getString(R.string.driver_already_installed),
+                                Toast.LENGTH_SHORT
+                            ).show()
+                            // Update UI to reflect installed state
+                            this.isEnabled = false
+                            this.text = context.getString(R.string.installed_label, artifact.name)
+                            this.setIconResource(R.drawable.ic_check)
+                            return@setOnClickListener
+                        }
+
                         val dialogBinding =
                             DialogProgressBinding.inflate(LayoutInflater.from(context))
                         dialogBinding.progressBar.isIndeterminate = true
@@ -233,6 +261,10 @@ class ReleaseAdapter(
                                     driverViewModel.onDriverAdded(Pair(driverPath, driverData))
 
                                     progressDialog.dismiss()
+                                    // Update button to installed state
+                                    this@apply.isEnabled = false
+                                    this@apply.text = context.getString(R.string.installed_label, artifact.name)
+                                    this@apply.setIconResource(R.drawable.ic_check)
                                     Toast.makeText(
                                         context,
                                         context.getString(

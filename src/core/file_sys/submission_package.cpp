@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2018 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -7,7 +10,7 @@
 #include <fmt/ostream.h>
 
 #include "common/hex_util.h"
-#include "common/logging/log.h"
+#include "common/logging.h"
 #include "core/crypto/key_manager.h"
 #include "core/file_sys/content_archive.h"
 #include "core/file_sys/nca_metadata.h"
@@ -117,9 +120,7 @@ std::vector<std::shared_ptr<NCA>> NSP::GetNCAsCollapsed() const {
     if (extracted)
         LOG_WARNING(Service_FS, "called on an NSP that is of type extracted.");
     std::vector<std::shared_ptr<NCA>> out;
-    out.reserve(ncas.size());
     for (const auto& map : ncas) {
-        out.reserve(map.second.size());
         for (const auto& inner_map : map.second)
             out.push_back(inner_map.second);
     }
@@ -277,6 +278,14 @@ void NSP::ReadNCAs(const std::vector<VirtualFile>& files) {
                         ncas[next_nca->GetTitleId()][{cnmt.GetType(), rec.type}] =
                             std::move(next_nca);
                     } else {
+                        // fix for Bayonetta Origins in Bayonetta 3 and external content
+                        // where multiple update NCAs exist for the same title and type.
+                        auto& target_map = ncas[cnmt.GetTitleID()];
+                        auto existing = target_map.find({cnmt.GetType(), rec.type});
+
+                        if (existing != target_map.end() && rec.type == ContentRecordType::Program) {
+                            continue;
+                        }
                         ncas[cnmt.GetTitleID()][{cnmt.GetType(), rec.type}] = std::move(next_nca);
                     }
                 } else {

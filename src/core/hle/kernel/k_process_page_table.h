@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2023 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -30,21 +33,14 @@ public:
         m_page_table.Finalize();
     }
 
-    Core::Memory::Memory& GetMemory() {
-        return m_page_table.GetMemory();
+    void AllowDeviceMappingOfExecPages() {
+        m_page_table.AllowDeviceMappingOfExecPages();
     }
 
-    Core::Memory::Memory& GetMemory() const {
-        return m_page_table.GetMemory();
-    }
-
-    Common::PageTable& GetImpl() {
-        return m_page_table.GetImpl();
-    }
-
-    Common::PageTable& GetImpl() const {
-        return m_page_table.GetImpl();
-    }
+    [[nodiscard]] Core::Memory::Memory& GetMemory() noexcept { return m_page_table.GetMemory(); }
+    [[nodiscard]] Core::Memory::Memory const& GetMemory() const noexcept { return m_page_table.GetMemory(); }
+    [[nodiscard]] Common::PageTable& GetImpl() noexcept { return m_page_table.GetImpl(); }
+    [[nodiscard]] Common::PageTable const& GetImpl() const noexcept { return m_page_table.GetImpl(); }
 
     size_t GetNumGuardPages() const {
         return m_page_table.GetNumGuardPages();
@@ -410,8 +406,8 @@ public:
     size_t GetAliasRegionSize() const {
         return m_page_table.GetAliasRegionSize();
     }
-    size_t GetReservedRegionExtraSize() const {
-        return m_page_table.GetReservedRegionExtraSize();
+    size_t GetAliasRegionExtraSize() const {
+        return m_page_table.GetAliasRegionExtraSize();
     }
     size_t GetStackRegionSize() const {
         return m_page_table.GetStackRegionSize();

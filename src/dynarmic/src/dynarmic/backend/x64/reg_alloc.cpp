@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 /* This file is part of the dynarmic project.
@@ -6,32 +6,23 @@
  * SPDX-License-Identifier: 0BSD
  */
 
-#include "dynarmic/backend/x64/reg_alloc.h"
-
 #include <algorithm>
 #include <limits>
 #include <numeric>
 #include <utility>
 
 #include <fmt/ostream.h>
-#include "dynarmic/common/assert.h"
+#include "dynarmic/backend/x64/hostloc.h"
+#include "common/assert.h"
 #include <bit>
-#include <xbyak/xbyak.h>
+#include "dynarmic/backend/x64/xbyak.h"
 
 #include "dynarmic/backend/x64/abi.h"
+#include "dynarmic/backend/x64/reg_alloc.h"
 #include "dynarmic/backend/x64/stack_layout.h"
 #include "dynarmic/backend/x64/verbose_debugging_output.h"
 
 namespace Dynarmic::Backend::X64 {
-
-#define MAYBE_AVX(OPCODE, ...)                       \
-    [&] {                                            \
-        if (code->HasHostFeature(HostFeature::AVX)) { \
-            code->v##OPCODE(__VA_ARGS__);             \
-        } else {                                     \
-            code->OPCODE(__VA_ARGS__);                \
-        }                                            \
-    }()
 
 static inline bool CanExchange(const HostLoc a, const HostLoc b) noexcept {
     return HostLocIsGPR(a) && HostLocIsGPR(b);
@@ -65,26 +56,23 @@ static inline bool IsValuelessType(const IR::Type type) noexcept {
 }
 
 void HostLocInfo::ReleaseOne() noexcept {
-    is_being_used_count--;
+    ASSERT(is_being_used_count > 0);
+    --is_being_used_count;
     is_scratch = false;
-
-    if (current_references == 0)
-        return;
-
-    ASSERT(size_t(accumulated_uses) + 1 < (std::numeric_limits<uint16_t>::max)());
-    accumulated_uses++;
-    current_references--;
-
-    if (current_references == 0)
-        ReleaseAll();
+    if (current_references > 0) {
+        ASSERT(size_t(accumulated_uses) + 1 < (std::numeric_limits<decltype(accumulated_uses)>::max)());
+        ++accumulated_uses;
+        --current_references;
+        if (current_references == 0)
+            ReleaseAll();
+    }
 }
 
 void HostLocInfo::ReleaseAll() noexcept {
+    ASSERT(size_t(accumulated_uses) + current_references < (std::numeric_limits<decltype(accumulated_uses)>::max)());
     accumulated_uses += current_references;
     current_references = 0;
-
     is_set_last_use = false;
-
     if (total_uses == accumulated_uses) {
         values.clear();
         accumulated_uses = 0;
@@ -96,27 +84,30 @@ void HostLocInfo::ReleaseAll() noexcept {
     is_scratch = false;
 }
 
-void HostLocInfo::AddValue(IR::Inst* inst) noexcept {
+void HostLocInfo::AddValue(HostLoc loc, IR::Inst* inst) noexcept {
     if (is_set_last_use) {
         is_set_last_use = false;
         values.clear();
     }
     values.push_back(inst);
-    ASSERT(size_t(total_uses) + inst->UseCount() < (std::numeric_limits<uint16_t>::max)());
+
+    ASSERT(size_t(total_uses) + inst->UseCount() < (std::numeric_limits<decltype(total_uses)>::max)());
     total_uses += inst->UseCount();
     max_bit_width = std::max<uint8_t>(max_bit_width, std::countr_zero(GetBitWidth(inst->GetType())));
 }
 
-void HostLocInfo::EmitVerboseDebuggingOutput(BlockOfCode* code, size_t host_loc_index) const noexcept {
+#ifndef NDEBUG
+void HostLocInfo::EmitVerboseDebuggingOutput(BlockOfCode& code, size_t host_loc_index) const noexcept {
     using namespace Xbyak::util;
     for (auto const value : values) {
-        code->mov(code->ABI_PARAM1, rsp);
-        code->mov(code->ABI_PARAM2, host_loc_index);
-        code->mov(code->ABI_PARAM3, value->GetName());
-        code->mov(code->ABI_PARAM4, GetBitWidth(value->GetType()));
-        code->CallFunction(PrintVerboseDebuggingOutputLine);
+        code.mov(code.ABI_PARAM1, rsp);
+        code.mov(code.ABI_PARAM2, host_loc_index);
+        code.mov(code.ABI_PARAM3, value->GetName());
+        code.mov(code.ABI_PARAM4, GetBitWidth(value->GetType()));
+        code.CallFunction(PrintVerboseDebuggingOutputLine);
     }
 }
+#endif
 
 bool Argument::FitsInImmediateU32() const noexcept {
     if (!IsImmediate())
@@ -128,7 +119,7 @@ bool Argument::FitsInImmediateU32() const noexcept {
 bool Argument::FitsInImmediateS32() const noexcept {
     if (!IsImmediate())
         return false;
-    const s64 imm = static_cast<s64>(value.GetImmediateAsU64());
+    const s64 imm = s64(value.GetImmediateAsU64());
     return -s64(0x80000000) <= imm && imm <= s64(0x7FFFFFFF);
 }
 
@@ -174,42 +165,44 @@ IR::AccType Argument::GetImmediateAccType() const noexcept {
 }
 
 /// Is this value currently in a GPR?
-bool Argument::IsInGpr() const noexcept {
+bool Argument::IsInGpr(RegAlloc& reg_alloc) const noexcept {
     if (IsImmediate())
         return false;
     return HostLocIsGPR(*reg_alloc.ValueLocation(value.GetInst()));
 }
 
 /// Is this value currently in a XMM?
-bool Argument::IsInXmm() const noexcept {
+bool Argument::IsInXmm(RegAlloc& reg_alloc) const noexcept {
     if (IsImmediate())
         return false;
     return HostLocIsXMM(*reg_alloc.ValueLocation(value.GetInst()));
 }
 
 /// Is this value currently in memory?
-bool Argument::IsInMemory() const noexcept {
+bool Argument::IsInMemory(RegAlloc& reg_alloc) const noexcept {
     if (IsImmediate())
         return false;
     return HostLocIsSpill(*reg_alloc.ValueLocation(value.GetInst()));
 }
 
-RegAlloc::RegAlloc(BlockOfCode* code, boost::container::static_vector<HostLoc, 28> gpr_order, boost::container::static_vector<HostLoc, 28> xmm_order) noexcept
-    : gpr_order(gpr_order),
-    xmm_order(xmm_order),
-    code(code)
+RegAlloc::RegAlloc(std::bitset<32> gpr_order, std::bitset<32> xmm_order) noexcept
+    : gpr_order(gpr_order), xmm_order(xmm_order)
 {}
 
-//static std::uint64_t Zfncwjkrt_blockOfCodeShim = 0;
-
 RegAlloc::ArgumentInfo RegAlloc::GetArgumentInfo(const IR::Inst* inst) noexcept {
-    ArgumentInfo ret{Argument{*this}, Argument{*this}, Argument{*this}, Argument{*this}};
-    for (size_t i = 0; i < inst->NumArgs(); i++) {
+    ArgumentInfo ret{
+        Argument{},
+        Argument{},
+        Argument{},
+        Argument{}
+    };
+    for (size_t i = 0; i < inst->NumArgs() && i < 4; i++) {
         const auto arg = inst->GetArg(i);
         ret[i].value = arg;
         if (!arg.IsImmediate() && !IsValuelessType(arg.GetType())) {
-            ASSERT(ValueLocation(arg.GetInst()) && "argument must already been defined");
-            LocInfo(*ValueLocation(arg.GetInst())).AddArgReference();
+            auto const loc = ValueLocation(arg.GetInst());
+            ASSERT(loc && "argument must already been defined");
+            LocInfo(*loc).AddArgReference();
         }
     }
     return ret;
@@ -218,9 +211,9 @@ RegAlloc::ArgumentInfo RegAlloc::GetArgumentInfo(const IR::Inst* inst) noexcept 
 void RegAlloc::RegisterPseudoOperation(const IR::Inst* inst) noexcept {
     ASSERT(IsValueLive(inst) || !inst->HasUses());
     for (size_t i = 0; i < inst->NumArgs(); i++) {
-        const auto arg = inst->GetArg(i);
+        auto const arg = inst->GetArg(i);
         if (!arg.IsImmediate() && !IsValuelessType(arg.GetType())) {
-            if (const auto loc = ValueLocation(arg.GetInst())) {
+            if (auto const loc = ValueLocation(arg.GetInst())) {
                 // May not necessarily have a value (e.g. CMP variant of Sub32).
                 LocInfo(*loc).AddArgReference();
             }
@@ -228,34 +221,34 @@ void RegAlloc::RegisterPseudoOperation(const IR::Inst* inst) noexcept {
     }
 }
 
-Xbyak::Reg64 RegAlloc::UseScratchGpr(Argument& arg) noexcept {
+Xbyak::Reg64 RegAlloc::UseScratchGpr(BlockOfCode& code, Argument& arg) noexcept {
     ASSERT(!arg.allocated);
     arg.allocated = true;
-    return HostLocToReg64(UseScratchImpl(arg.value, gpr_order));
+    return HostLocToReg64(UseScratchImpl(code, arg.value, gpr_order));
 }
 
-Xbyak::Xmm RegAlloc::UseScratchXmm(Argument& arg) noexcept {
+Xbyak::Xmm RegAlloc::UseScratchXmm(BlockOfCode& code, Argument& arg) noexcept {
     ASSERT(!arg.allocated);
     arg.allocated = true;
-    return HostLocToXmm(UseScratchImpl(arg.value, xmm_order));
+    return HostLocToXmm(UseScratchImpl(code, arg.value, xmm_order));
 }
 
-void RegAlloc::UseScratch(Argument& arg, HostLoc host_loc) noexcept {
+void RegAlloc::UseScratch(BlockOfCode& code, Argument& arg, HostLoc host_loc) noexcept {
     ASSERT(!arg.allocated);
     arg.allocated = true;
-    UseScratchImpl(arg.value, {host_loc});
+    UseScratchImpl(code, arg.value, BuildRegSet({host_loc}));
 }
 
-void RegAlloc::DefineValue(IR::Inst* inst, const Xbyak::Reg& reg) noexcept {
+void RegAlloc::DefineValue(BlockOfCode& code, IR::Inst* inst, const Xbyak::Reg& reg) noexcept {
     ASSERT(reg.getKind() == Xbyak::Operand::XMM || reg.getKind() == Xbyak::Operand::REG);
     const auto hostloc = static_cast<HostLoc>(reg.getIdx() + static_cast<size_t>(reg.getKind() == Xbyak::Operand::XMM ? HostLoc::XMM0 : HostLoc::RAX));
-    DefineValueImpl(inst, hostloc);
+    DefineValueImpl(code, inst, hostloc);
 }
 
-void RegAlloc::DefineValue(IR::Inst* inst, Argument& arg) noexcept {
+void RegAlloc::DefineValue(BlockOfCode& code, IR::Inst* inst, Argument& arg) noexcept {
     ASSERT(!arg.allocated);
     arg.allocated = true;
-    DefineValueImpl(inst, arg.value);
+    DefineValueImpl(code, inst, arg.value);
 }
 
 void RegAlloc::Release(const Xbyak::Reg& reg) noexcept {
@@ -264,73 +257,72 @@ void RegAlloc::Release(const Xbyak::Reg& reg) noexcept {
     LocInfo(hostloc).ReleaseOne();
 }
 
-HostLoc RegAlloc::UseImpl(IR::Value use_value, const boost::container::static_vector<HostLoc, 28>& desired_locations) noexcept {
+HostLoc RegAlloc::UseImpl(BlockOfCode& code, IR::Value use_value, std::bitset<32> desired_locations) noexcept {
     if (use_value.IsImmediate()) {
-        return LoadImmediate(use_value, ScratchImpl(desired_locations));
+        return LoadImmediate(code, use_value, ScratchImpl(code, desired_locations));
     }
 
-    const auto* use_inst = use_value.GetInst();
-    const HostLoc current_location = *ValueLocation(use_inst);
-    const size_t max_bit_width = LocInfo(current_location).GetMaxBitWidth();
+    auto const* use_inst = use_value.GetInst();
+    HostLoc const current_location = *ValueLocation(use_inst);
 
-    const bool can_use_current_location = std::find(desired_locations.begin(), desired_locations.end(), current_location) != desired_locations.end();
-    if (can_use_current_location) {
+    if (HostLocIsRegister(current_location) && desired_locations.test(size_t(current_location))) {
         LocInfo(current_location).ReadLock();
         return current_location;
     }
 
     if (LocInfo(current_location).IsLocked()) {
-        return UseScratchImpl(use_value, desired_locations);
+        return UseScratchImpl(code, use_value, desired_locations);
     }
 
-    const HostLoc destination_location = SelectARegister(desired_locations);
+    size_t const max_bit_width = LocInfo(current_location).GetMaxBitWidth();
+    HostLoc const destination_location = SelectARegister(desired_locations);
     if (max_bit_width > HostLocBitWidth(destination_location)) {
-        return UseScratchImpl(use_value, desired_locations);
+        return UseScratchImpl(code, use_value, desired_locations);
     } else if (CanExchange(destination_location, current_location)) {
-        Exchange(destination_location, current_location);
+        Exchange(code, destination_location, current_location);
     } else {
-        MoveOutOfTheWay(destination_location);
-        Move(destination_location, current_location);
+        MoveOutOfTheWay(code, destination_location);
+        Move(code, destination_location, current_location);
     }
     LocInfo(destination_location).ReadLock();
     return destination_location;
 }
 
-HostLoc RegAlloc::UseScratchImpl(IR::Value use_value, const boost::container::static_vector<HostLoc, 28>& desired_locations) noexcept {
+HostLoc RegAlloc::UseScratchImpl(BlockOfCode& code, IR::Value use_value, std::bitset<32> desired_locations) noexcept {
     if (use_value.IsImmediate()) {
-        return LoadImmediate(use_value, ScratchImpl(desired_locations));
+        return LoadImmediate(code, use_value, ScratchImpl(code, desired_locations));
     }
 
     const auto* use_inst = use_value.GetInst();
     const HostLoc current_location = *ValueLocation(use_inst);
     const size_t bit_width = GetBitWidth(use_inst->GetType());
-
-    const bool can_use_current_location = std::find(desired_locations.begin(), desired_locations.end(), current_location) != desired_locations.end();
-    if (can_use_current_location && !LocInfo(current_location).IsLocked()) {
-        if (!LocInfo(current_location).IsLastUse()) {
-            MoveOutOfTheWay(current_location);
+    if (HostLocIsRegister(current_location) && desired_locations.test(size_t(current_location)) && !LocInfo(current_location).IsLocked()) {
+        if (LocInfo(current_location).IsLastUse()) {
+            LocInfo(current_location).is_set_last_use = true;
         } else {
-            LocInfo(current_location).SetLastUse();
+            MoveOutOfTheWay(code, current_location);
         }
         LocInfo(current_location).WriteLock();
         return current_location;
     }
 
     const HostLoc destination_location = SelectARegister(desired_locations);
-    MoveOutOfTheWay(destination_location);
-    CopyToScratch(bit_width, destination_location, current_location);
+    MoveOutOfTheWay(code, destination_location);
+    CopyToScratch(code, bit_width, destination_location, current_location);
     LocInfo(destination_location).WriteLock();
     return destination_location;
 }
 
-HostLoc RegAlloc::ScratchImpl(const boost::container::static_vector<HostLoc, 28>& desired_locations) noexcept {
+HostLoc RegAlloc::ScratchImpl(BlockOfCode& code, std::bitset<32> desired_locations) noexcept {
     const HostLoc location = SelectARegister(desired_locations);
-    MoveOutOfTheWay(location);
+    MoveOutOfTheWay(code, location);
     LocInfo(location).WriteLock();
     return location;
 }
 
-void RegAlloc::HostCall(IR::Inst* result_def,
+void RegAlloc::HostCall(
+    BlockOfCode& code,
+    IR::Inst* result_def,
     const std::optional<Argument::copyable_reference> arg0,
     const std::optional<Argument::copyable_reference> arg1,
     const std::optional<Argument::copyable_reference> arg2,
@@ -340,29 +332,31 @@ void RegAlloc::HostCall(IR::Inst* result_def,
     constexpr std::array<HostLoc, args_count> args_hostloc = {ABI_PARAM1, ABI_PARAM2, ABI_PARAM3, ABI_PARAM4};
     const std::array<std::optional<Argument::copyable_reference>, args_count> args = {arg0, arg1, arg2, arg3};
 
-    static const boost::container::static_vector<HostLoc, 28> other_caller_save = [args_hostloc]() noexcept {
-        boost::container::static_vector<HostLoc, 28> ret(ABI_ALL_CALLER_SAVE.begin(), ABI_ALL_CALLER_SAVE.end());
-        ret.erase(std::find(ret.begin(), ret.end(), ABI_RETURN));
+    static const std::bitset<32> other_caller_save = [args_hostloc]() noexcept {
+        std::bitset<32> ret = ABI_ALL_CALLER_SAVE;
+        ret.reset(size_t(ABI_RETURN));
         for (auto const hostloc : args_hostloc)
-            ret.erase(std::find(ret.begin(), ret.end(), hostloc));
+            ret.reset(size_t(hostloc));
         return ret;
     }();
 
-    ScratchGpr(ABI_RETURN);
-    if (result_def) {
-        DefineValueImpl(result_def, ABI_RETURN);
-    }
+    ScratchGpr(code, ABI_RETURN);
+    if (result_def)
+        DefineValueImpl(code, result_def, ABI_RETURN);
+
     for (size_t i = 0; i < args.size(); i++) {
         if (args[i]) {
-            UseScratch(*args[i], args_hostloc[i]);
+            UseScratch(code, *args[i], args_hostloc[i]);
         } else {
-            ScratchGpr(args_hostloc[i]); // TODO: Force spill
+            ScratchGpr(code, args_hostloc[i]); // TODO: Force spill
         }
     }
     // Must match with with ScratchImpl
-    for (auto const gpr : other_caller_save) {
-        MoveOutOfTheWay(gpr);
-        LocInfo(gpr).WriteLock();
+    for (size_t i = 0; i < other_caller_save.size(); ++i) {
+        if (other_caller_save[i]) {
+            MoveOutOfTheWay(code, HostLoc(i));
+            LocInfo(HostLoc(i)).WriteLock();
+        }
     }
     for (size_t i = 0; i < args.size(); i++) {
         if (args[i] && !args[i]->get().IsVoid()) {
@@ -370,13 +364,13 @@ void RegAlloc::HostCall(IR::Inst* result_def,
             const Xbyak::Reg64 reg = HostLocToReg64(args_hostloc[i]);
             switch (args[i]->get().GetType()) {
             case IR::Type::U8:
-                code->movzx(reg.cvt32(), reg.cvt8());
+                code.movzx(reg.cvt32(), reg.cvt8());
                 break;
             case IR::Type::U16:
-                code->movzx(reg.cvt32(), reg.cvt16());
+                code.movzx(reg.cvt32(), reg.cvt16());
                 break;
             case IR::Type::U32:
-                code->mov(reg.cvt32(), reg.cvt32());
+                code.mov(reg.cvt32(), reg.cvt32());
                 break;
             case IR::Type::U64:
                 break; //no op
@@ -387,60 +381,63 @@ void RegAlloc::HostCall(IR::Inst* result_def,
     }
 }
 
-void RegAlloc::AllocStackSpace(const size_t stack_space) noexcept {
+void RegAlloc::AllocStackSpace(BlockOfCode& code, const size_t stack_space) noexcept {
     ASSERT(stack_space < size_t((std::numeric_limits<s32>::max)()));
     ASSERT(reserved_stack_space == 0);
     reserved_stack_space = stack_space;
-    code->sub(code->rsp, u32(stack_space));
+    code.sub(code.rsp, u32(stack_space));
 }
 
-void RegAlloc::ReleaseStackSpace(const size_t stack_space) noexcept {
+void RegAlloc::ReleaseStackSpace(BlockOfCode& code, const size_t stack_space) noexcept {
     ASSERT(stack_space < size_t((std::numeric_limits<s32>::max)()));
     ASSERT(reserved_stack_space == stack_space);
     reserved_stack_space = 0;
-    code->add(code->rsp, u32(stack_space));
+    code.add(code.rsp, u32(stack_space));
 }
 
-HostLoc RegAlloc::SelectARegister(const boost::container::static_vector<HostLoc, 28>& desired_locations) const noexcept {
+HostLoc RegAlloc::SelectARegister(std::bitset<32> desired_locations) const noexcept {
     // TODO(lizzie): Overspill causes issues (reads to 0 and such) on some games, I need to make a testbench
     // to later track this down - however I just modified the LRU algo so it prefers empty registers first
     // we need to test high register pressure (and spills, maybe 32 regs?)
-
+    static_assert(size_t(HostLoc::FirstSpill) >= 32);
     // Selects the best location out of the available locations.
     // NOTE: Using last is BAD because new REX prefix for each insn using the last regs
     // TODO: Actually do LRU or something. Currently we just try to pick something without a value if possible.
     auto min_lru_counter = size_t(-1);
-    auto it_candidate = desired_locations.cend(); //default fallback if everything fails
-    auto it_rex_candidate = desired_locations.cend();
-    auto it_empty_candidate = desired_locations.cend();
-    for (auto it = desired_locations.cbegin(); it != desired_locations.cend(); it++) {
-        auto const& loc_info = LocInfo(*it);
-        DEBUG_ASSERT(*it != ABI_JIT_PTR);
-        // Abstain from using upper registers unless absolutely nescesary
-        if (loc_info.IsLocked()) {
-            // skip, not suitable for allocation
-        // While R13 and R14 are technically available, we avoid allocating for them
-        // at all costs, because theoretically skipping them is better than spilling
-        // all over the place - it also fixes bugs with high reg pressure
-        } else if (*it >= HostLoc::R13 && *it <= HostLoc::R15) {
-            // skip, do not touch
-        // Intel recommends to reuse registers as soon as they're overwritable (DO NOT SPILL)
-        } else if (loc_info.IsEmpty()) {
-            it_empty_candidate = it;
-            break;
-        // No empty registers for some reason (very evil) - just do normal LRU
-        } else if (loc_info.lru_counter < min_lru_counter) {
-            // Otherwise a "quasi"-LRU
-            min_lru_counter = loc_info.lru_counter;
-            if (*it >= HostLoc::R8 && *it <= HostLoc::R15) {
-                it_rex_candidate = it;
-            } else {
-                it_candidate = it;
+    auto it_candidate = HostLoc::FirstSpill; //default fallback if everything fails
+    auto it_rex_candidate = HostLoc::FirstSpill;
+    auto it_empty_candidate = HostLoc::FirstSpill;
+    for (HostLoc i = HostLoc(0); i < HostLoc(desired_locations.size()); i = HostLoc(size_t(i) + 1)) {
+        if (desired_locations.test(size_t(i))) {
+            auto const& loc_info = LocInfo(i);
+            DEBUG_ASSERT(i != ABI_JIT_PTR);
+            // Abstain from using upper registers unless absolutely nescesary
+            if (loc_info.IsLocked()) {
+                // skip, not suitable for allocation
+            // While R13 and R14 are technically available, we avoid allocating for them
+            // at all costs, because theoretically skipping them is better than spilling
+            // all over the place - i also fixes bugs with high reg pressure
+            // %rbp must not be trashed, so skip it as well
+            } else if (i == HostLoc::RBP || (i >= HostLoc::R13 && i <= HostLoc::R15)) {
+                // skip, do not touch
+            // Intel recommends to reuse registers as soon as they're overwritable (DO NOT SPILL)
+            } else if (loc_info.IsEmpty()) {
+                it_empty_candidate = i;
+                break;
+            // No empty registers for some reason (very evil) - just do normal LRU
+            } else if (loc_info.lru_counter < min_lru_counter) {
+                // Otherwise a "quasi"-LRU
+                min_lru_counter = loc_info.lru_counter;
+                if (i >= HostLoc::R8 && i <= HostLoc::R15) {
+                    it_rex_candidate = i;
+                } else {
+                    it_candidate = i;
+                }
+                // There used to be a break here - DO NOT BREAK away you MUST
+                // evaluate ALL of the registers BEFORE making a decision on when to take
+                // otherwise reg pressure will get high and bugs will seep :)
+                // TODO(lizzie): Investigate these god awful annoying reg pressure issues
             }
-            // There used to be a break here - DO NOT BREAK away you MUST
-            // evaluate ALL of the registers BEFORE making a decision on when to take
-            // otherwise reg pressure will get high and bugs will seep :)
-            // TODO(lizzie): Investigate these god awful annoying reg pressure issues
         }
     }
     // Final resolution goes as follows:
@@ -449,101 +446,86 @@ HostLoc RegAlloc::SelectARegister(const boost::container::static_vector<HostLoc,
     // 3 => Try using a REX prefixed one
     // We avoid using REX-addressable registers because they add +1 REX prefix which
     // do we really need? The trade-off may not be worth it.
-    auto const it_final = it_empty_candidate != desired_locations.cend()
-        ? it_empty_candidate : it_candidate != desired_locations.cend()
+    auto const it_final = it_empty_candidate != HostLoc::FirstSpill
+        ? it_empty_candidate : it_candidate != HostLoc::FirstSpill
         ? it_candidate : it_rex_candidate;
-    ASSERT(it_final != desired_locations.cend() && "All candidate registers have already been allocated");
+    ASSERT(it_final != HostLoc::FirstSpill && "All candidate registers have already been allocated");
     // Evil magic - increment LRU counter (will wrap at 256)
-    const_cast<RegAlloc*>(this)->LocInfo(*it_final).lru_counter++;
-    return *it_final;
+    const_cast<RegAlloc*>(this)->LocInfo(HostLoc(it_final)).lru_counter++;
+    return HostLoc(it_final);
 }
 
-void RegAlloc::DefineValueImpl(IR::Inst* def_inst, HostLoc host_loc) noexcept {
-    ASSERT(!ValueLocation(def_inst) && "def_inst has already been defined");
-    LocInfo(host_loc).AddValue(def_inst);
+std::optional<HostLoc> RegAlloc::ValueLocation(const IR::Inst* value) const noexcept {
+    for (size_t i = 0; i < hostloc_info.size(); i++)
+        if (hostloc_info[i].ContainsValue(value)) {
+            //for (size_t j = 0; j < hostloc_info.size(); ++j)
+            //    ASSERT((i == j || !hostloc_info[j].ContainsValue(value)) && "duplicate defs");
+            return HostLoc(i);
+        }
+    return std::nullopt;
 }
 
-void RegAlloc::DefineValueImpl(IR::Inst* def_inst, const IR::Value& use_inst) noexcept {
+void RegAlloc::DefineValueImpl(BlockOfCode& code, IR::Inst* def_inst, HostLoc host_loc) noexcept {
     ASSERT(!ValueLocation(def_inst) && "def_inst has already been defined");
+    LocInfo(host_loc).AddValue(host_loc, def_inst);
+    ASSERT(*ValueLocation(def_inst) == host_loc);
+}
 
+void RegAlloc::DefineValueImpl(BlockOfCode& code, IR::Inst* def_inst, const IR::Value& use_inst) noexcept {
+    ASSERT(!ValueLocation(def_inst) && "def_inst has already been defined");
     if (use_inst.IsImmediate()) {
-        const HostLoc location = ScratchImpl(gpr_order);
-        DefineValueImpl(def_inst, location);
-        LoadImmediate(use_inst, location);
-        return;
-    }
-
-    ASSERT(ValueLocation(use_inst.GetInst()) && "use_inst must already be defined");
-    const HostLoc location = *ValueLocation(use_inst.GetInst());
-    DefineValueImpl(def_inst, location);
-}
-
-HostLoc RegAlloc::LoadImmediate(IR::Value imm, HostLoc host_loc) noexcept {
-    ASSERT(imm.IsImmediate() && "imm is not an immediate");
-    if (HostLocIsGPR(host_loc)) {
-        const Xbyak::Reg64 reg = HostLocToReg64(host_loc);
-        const u64 imm_value = imm.GetImmediateAsU64();
-        if (imm_value == 0) {
-            code->xor_(reg.cvt32(), reg.cvt32());
-        } else {
-            code->mov(reg, imm_value);
-        }
-    } else if (HostLocIsXMM(host_loc)) {
-        const Xbyak::Xmm reg = HostLocToXmm(host_loc);
-        const u64 imm_value = imm.GetImmediateAsU64();
-        if (imm_value == 0) {
-            MAYBE_AVX(xorps, reg, reg);
-        } else {
-            MAYBE_AVX(movaps, reg, code->Const(code->xword, imm_value));
-        }
+        const HostLoc location = ScratchImpl(code, gpr_order);
+        DefineValueImpl(code, def_inst, location);
+        LoadImmediate(code, use_inst, location);
     } else {
-        UNREACHABLE();
+        ASSERT(ValueLocation(use_inst.GetInst()) && "use_inst must already be defined");
+        const HostLoc location = *ValueLocation(use_inst.GetInst());
+        DefineValueImpl(code, def_inst, location);
     }
-    return host_loc;
 }
 
-void RegAlloc::Move(HostLoc to, HostLoc from) noexcept {
+void RegAlloc::Move(BlockOfCode& code, HostLoc to, HostLoc from) noexcept {
     const size_t bit_width = LocInfo(from).GetMaxBitWidth();
     ASSERT(LocInfo(to).IsEmpty() && !LocInfo(from).IsLocked());
     ASSERT(bit_width <= HostLocBitWidth(to));
     ASSERT(!LocInfo(from).IsEmpty() && "Mov eliminated");
-    EmitMove(bit_width, to, from);
+    EmitMove(code, bit_width, to, from);
     LocInfo(to) = std::exchange(LocInfo(from), {});
 }
 
-void RegAlloc::CopyToScratch(size_t bit_width, HostLoc to, HostLoc from) noexcept {
+void RegAlloc::CopyToScratch(BlockOfCode& code, size_t bit_width, HostLoc to, HostLoc from) noexcept {
     ASSERT(LocInfo(to).IsEmpty() && !LocInfo(from).IsEmpty());
-    EmitMove(bit_width, to, from);
+    EmitMove(code, bit_width, to, from);
 }
 
-void RegAlloc::Exchange(HostLoc a, HostLoc b) noexcept {
+void RegAlloc::Exchange(BlockOfCode& code, HostLoc a, HostLoc b) noexcept {
     ASSERT(!LocInfo(a).IsLocked() && !LocInfo(b).IsLocked());
     ASSERT(LocInfo(a).GetMaxBitWidth() <= HostLocBitWidth(b));
     ASSERT(LocInfo(b).GetMaxBitWidth() <= HostLocBitWidth(a));
 
     if (LocInfo(a).IsEmpty()) {
-        Move(a, b);
+        Move(code, a, b);
     } else if (LocInfo(b).IsEmpty()) {
-        Move(b, a);
+        Move(code, b, a);
     } else {
-        EmitExchange(a, b);
+        EmitExchange(code, a, b);
         std::swap(LocInfo(a), LocInfo(b));
     }
 }
 
-void RegAlloc::MoveOutOfTheWay(HostLoc reg) noexcept {
+void RegAlloc::MoveOutOfTheWay(BlockOfCode& code, HostLoc reg) noexcept {
     ASSERT(!LocInfo(reg).IsLocked());
     if (!LocInfo(reg).IsEmpty()) {
-        SpillRegister(reg);
+        SpillRegister(code, reg);
     }
 }
 
-void RegAlloc::SpillRegister(HostLoc loc) noexcept {
+void RegAlloc::SpillRegister(BlockOfCode& code, HostLoc loc) noexcept {
     ASSERT(HostLocIsRegister(loc) && "Only registers can be spilled");
     ASSERT(!LocInfo(loc).IsEmpty() && "There is no need to spill unoccupied registers");
     ASSERT(!LocInfo(loc).IsLocked() && "Registers that have been allocated must not be spilt");
     auto const new_loc = FindFreeSpill(HostLocIsXMM(loc));
-    Move(new_loc, loc);
+    Move(code, new_loc, loc);
 }
 
 HostLoc RegAlloc::FindFreeSpill(bool is_xmm) const noexcept {
@@ -568,9 +550,39 @@ HostLoc RegAlloc::FindFreeSpill(bool is_xmm) const noexcept {
         if (const auto loc = HostLoc(i); LocInfo(loc).IsEmpty())
             return loc;
     UNREACHABLE();
-};
+}
 
-void RegAlloc::EmitMove(const size_t bit_width, const HostLoc to, const HostLoc from) noexcept {
+#define MAYBE_AVX(OPCODE, ...) \
+    [&] { \
+        if (code.HasHostFeature(HostFeature::AVX)) code.v##OPCODE(__VA_ARGS__); \
+        else code.OPCODE(__VA_ARGS__); \
+    }()
+
+HostLoc RegAlloc::LoadImmediate(BlockOfCode& code, IR::Value imm, HostLoc host_loc) noexcept {
+    ASSERT(imm.IsImmediate() && "imm is not an immediate");
+    if (HostLocIsGPR(host_loc)) {
+        const Xbyak::Reg64 reg = HostLocToReg64(host_loc);
+        const u64 imm_value = imm.GetImmediateAsU64();
+        if (imm_value == 0) {
+            code.xor_(reg.cvt32(), reg.cvt32());
+        } else {
+            code.mov(reg, imm_value);
+        }
+    } else if (HostLocIsXMM(host_loc)) {
+        const Xbyak::Xmm reg = HostLocToXmm(host_loc);
+        const u64 imm_value = imm.GetImmediateAsU64();
+        if (imm_value == 0) {
+            MAYBE_AVX(xorps, reg, reg);
+        } else {
+            MAYBE_AVX(movaps, reg, code.Const(code.xword, imm_value));
+        }
+    } else {
+        UNREACHABLE();
+    }
+    return host_loc;
+}
+
+void RegAlloc::EmitMove(BlockOfCode& code, const size_t bit_width, const HostLoc to, const HostLoc from) noexcept {
     auto const spill_to_op_arg_helper = [&](HostLoc loc, size_t reserved_stack_space) {
         ASSERT(HostLocIsSpill(loc));
         size_t i = size_t(loc) - size_t(HostLoc::FirstSpill);
@@ -585,9 +597,9 @@ void RegAlloc::EmitMove(const size_t bit_width, const HostLoc to, const HostLoc 
     } else if (HostLocIsGPR(to) && HostLocIsGPR(from)) {
         ASSERT(bit_width != 128);
         if (bit_width == 64) {
-            code->mov(HostLocToReg64(to), HostLocToReg64(from));
+            code.mov(HostLocToReg64(to), HostLocToReg64(from));
         } else {
-            code->mov(HostLocToReg64(to).cvt32(), HostLocToReg64(from).cvt32());
+            code.mov(HostLocToReg64(to).cvt32(), HostLocToReg64(from).cvt32());
         }
     } else if (HostLocIsXMM(to) && HostLocIsGPR(from)) {
         ASSERT(bit_width != 128);
@@ -642,25 +654,26 @@ void RegAlloc::EmitMove(const size_t bit_width, const HostLoc to, const HostLoc 
     } else if (HostLocIsGPR(to) && HostLocIsSpill(from)) {
         ASSERT(bit_width != 128);
         if (bit_width == 64) {
-            code->mov(HostLocToReg64(to), Xbyak::util::qword[spill_to_op_arg_helper(from, reserved_stack_space)]);
+            code.mov(HostLocToReg64(to), Xbyak::util::qword[spill_to_op_arg_helper(from, reserved_stack_space)]);
         } else {
-            code->mov(HostLocToReg64(to).cvt32(), Xbyak::util::dword[spill_to_op_arg_helper(from, reserved_stack_space)]);
+            code.mov(HostLocToReg64(to).cvt32(), Xbyak::util::dword[spill_to_op_arg_helper(from, reserved_stack_space)]);
         }
     } else if (HostLocIsSpill(to) && HostLocIsGPR(from)) {
         ASSERT(bit_width != 128);
         if (bit_width == 64) {
-            code->mov(Xbyak::util::qword[spill_to_op_arg_helper(to, reserved_stack_space)], HostLocToReg64(from));
+            code.mov(Xbyak::util::qword[spill_to_op_arg_helper(to, reserved_stack_space)], HostLocToReg64(from));
         } else {
-            code->mov(Xbyak::util::dword[spill_to_op_arg_helper(to, reserved_stack_space)], HostLocToReg64(from).cvt32());
+            code.mov(Xbyak::util::dword[spill_to_op_arg_helper(to, reserved_stack_space)], HostLocToReg64(from).cvt32());
         }
     } else {
         UNREACHABLE();
     }
 }
+#undef MAYBE_AVX
 
-void RegAlloc::EmitExchange(const HostLoc a, const HostLoc b) noexcept {
+void RegAlloc::EmitExchange(BlockOfCode& code, const HostLoc a, const HostLoc b) noexcept {
     ASSERT(HostLocIsGPR(a) && HostLocIsGPR(b) && "Exchanging XMM registers is uneeded OR invalid emit");
-    code->xchg(HostLocToReg64(a), HostLocToReg64(b));
+    code.xchg(HostLocToReg64(a), HostLocToReg64(b));
 }
 
 }  // namespace Dynarmic::Backend::X64

@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2021 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -20,9 +23,9 @@ struct KeyboardInitializeParameters {
     std::u16string initial_text;
     char16_t left_optional_symbol_key;
     char16_t right_optional_symbol_key;
-    u32 max_text_length;
-    u32 min_text_length;
-    s32 initial_cursor_position;
+    u32 max_text_length{};
+    u32 min_text_length{};
+    s32 initial_cursor_position{};
     Service::AM::Frontend::SwkbdType type;
     Service::AM::Frontend::SwkbdPasswordMode password_mode;
     Service::AM::Frontend::SwkbdTextDrawType text_draw_type;
@@ -34,12 +37,12 @@ struct KeyboardInitializeParameters {
 };
 
 struct InlineAppearParameters {
-    u32 max_text_length;
-    u32 min_text_length;
-    f32 key_top_scale_x;
-    f32 key_top_scale_y;
-    f32 key_top_translate_x;
-    f32 key_top_translate_y;
+    u32 max_text_length{};
+    u32 min_text_length{};
+    f32 key_top_scale_x{};
+    f32 key_top_scale_y{};
+    f32 key_top_translate_x{};
+    f32 key_top_translate_y{};
     Service::AM::Frontend::SwkbdType type;
     Service::AM::Frontend::SwkbdKeyDisableFlags key_disable_flags;
     bool key_top_as_floating;
@@ -50,7 +53,7 @@ struct InlineAppearParameters {
 
 struct InlineTextParameters {
     std::u16string input_text;
-    s32 cursor_position;
+    s32 cursor_position{};
 };
 
 class SoftwareKeyboardApplet : public Applet {

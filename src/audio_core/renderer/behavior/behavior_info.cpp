@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2022 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -43,7 +46,7 @@ void BehaviorInfo::AppendError(const ErrorInfo& error) {
 }
 
 void BehaviorInfo::CopyErrorInfo(std::span<ErrorInfo> out_errors, u32& out_count) const {
-    out_count = std::min(error_count, MaxErrors);
+    out_count = (std::min)(error_count, MaxErrors);
 
     for (size_t i = 0; i < MaxErrors; i++) {
         if (i < out_count) {
@@ -72,14 +75,6 @@ bool BehaviorInfo::IsSplitterSupported() const {
 
 bool BehaviorInfo::IsSplitterBugFixed() const {
     return CheckFeatureSupported(SupportTags::SplitterBugFix, user_revision);
-}
-
-bool BehaviorInfo::IsBiquadFilterParameterForSplitterEnabled() const {
-    return CheckFeatureSupported(SupportTags::BiquadFilterParameterForSplitter, user_revision);
-}
-
-bool BehaviorInfo::IsSplitterPrevVolumeResetSupported() const {
-    return CheckFeatureSupported(SupportTags::SplitterPrevVolumeReset, user_revision);
 }
 
 bool BehaviorInfo::IsEffectInfoVersion2Supported() const {
@@ -115,7 +110,7 @@ bool BehaviorInfo::IsCommandProcessingTimeEstimatorVersion4Supported() const {
 }
 
 bool BehaviorInfo::IsCommandProcessingTimeEstimatorVersion5Supported() const {
-    return CheckFeatureSupported(SupportTags::CommandProcessingTimeEstimatorVersion5,
+    return CheckFeatureSupported(SupportTags::CommandProcessingTimeEstimatorVersion4,
                                  user_revision);
 }
 
@@ -174,10 +169,6 @@ bool BehaviorInfo::UseBiquadFilterFloatProcessing() const {
     return CheckFeatureSupported(SupportTags::BiquadFilterFloatProcessing, user_revision);
 }
 
-bool BehaviorInfo::IsBiquadFilterParameterFloatSupported() const {
-    return CheckFeatureSupported(SupportTags::BiquadFilterParameterFloat, user_revision);
-}
-
 bool BehaviorInfo::IsMixInParameterDirtyOnlyUpdateSupported() const {
     return CheckFeatureSupported(SupportTags::MixInParameterDirtyOnlyUpdate, user_revision);
 }
@@ -200,6 +191,22 @@ bool BehaviorInfo::IsReverbChannelMappingChanged() const {
 
 bool BehaviorInfo::IsI3dl2ReverbChannelMappingChanged() const {
     return CheckFeatureSupported(SupportTags::I3dl2ReverbChannelMappingChange, user_revision);
+}
+
+bool BehaviorInfo::IsSplitterPrevVolumeResetSupported() const {
+    return CheckFeatureSupported(SupportTags::SplitterPrevVolumeReset, user_revision);
+}
+
+bool BehaviorInfo::IsSplitterDestinationV2bSupported() const {
+    return CheckFeatureSupported(SupportTags::SplitterDestinationV2b, user_revision);
+}
+
+bool BehaviorInfo::IsVoiceInParameterV2Supported() const {
+    return CheckFeatureSupported(SupportTags::VoiceInParameterV2, user_revision);
+}
+
+bool BehaviorInfo::IsBiquadFilterParameterForSplitterEnabled() const {
+    return CheckFeatureSupported(SupportTags::SplitterBiquadFilterParameter, user_revision);
 }
 
 } // namespace AudioCore::Renderer

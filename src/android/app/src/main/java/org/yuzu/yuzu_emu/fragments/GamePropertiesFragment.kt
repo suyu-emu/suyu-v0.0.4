@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 package org.yuzu.yuzu_emu.fragments
@@ -35,6 +35,8 @@ import org.yuzu.yuzu_emu.adapters.GamePropertiesAdapter
 import org.yuzu.yuzu_emu.databinding.FragmentGamePropertiesBinding
 import org.yuzu.yuzu_emu.features.DocumentProvider
 import org.yuzu.yuzu_emu.features.settings.model.Settings
+import org.yuzu.yuzu_emu.features.settings.ui.SettingsSubscreen
+import org.yuzu.yuzu_emu.model.AddonViewModel
 import org.yuzu.yuzu_emu.model.DriverViewModel
 import org.yuzu.yuzu_emu.model.GameProperty
 import org.yuzu.yuzu_emu.model.GamesViewModel
@@ -45,6 +47,7 @@ import org.yuzu.yuzu_emu.model.SubmenuProperty
 import org.yuzu.yuzu_emu.model.TaskState
 import org.yuzu.yuzu_emu.utils.DirectoryInitialization
 import org.yuzu.yuzu_emu.utils.FileUtil
+import org.yuzu.yuzu_emu.utils.GameHelper
 import org.yuzu.yuzu_emu.utils.GameIconUtils
 import org.yuzu.yuzu_emu.utils.GpuDriverHelper
 import org.yuzu.yuzu_emu.utils.MemoryUtil
@@ -60,6 +63,7 @@ class GamePropertiesFragment : Fragment() {
 
     private val homeViewModel: HomeViewModel by activityViewModels()
     private val gamesViewModel: GamesViewModel by activityViewModels()
+    private val addonViewModel: AddonViewModel by activityViewModels()
     private val driverViewModel: DriverViewModel by activityViewModels()
 
     private val args by navArgs<GamePropertiesFragmentArgs>()
@@ -117,6 +121,20 @@ class GamePropertiesFragment : Fragment() {
                 .show(childFragmentManager, LaunchGameDialogFragment.TAG)
         }
 
+        if (GameHelper.cachedGameList.isEmpty()) {
+            binding.buttonStart.isEnabled = false
+            viewLifecycleOwner.lifecycleScope.launch {
+                withContext(Dispatchers.IO) {
+                    GameHelper.restoreContentForGame(args.game)
+                }
+                if (_binding == null) {
+                    return@launch
+                }
+                addonViewModel.onAddonsViewStarted(args.game)
+                binding.buttonStart.isEnabled = true
+            }
+        }
+
         reloadList()
 
         homeViewModel.openImportSaves.collect(
@@ -132,8 +150,11 @@ class GamePropertiesFragment : Fragment() {
     }
 
     override fun onDestroy() {
+        val isChangingConfigurations = activity?.isChangingConfigurations == true
         super.onDestroy()
-        gamesViewModel.reloadGames(true)
+        if (!isChangingConfigurations) {
+            gamesViewModel.reloadGames(true)
+        }
     }
 
     private fun getPlayTime() {
@@ -145,13 +166,12 @@ class GamePropertiesFragment : Fragment() {
             val seconds = playTimeSeconds % 60
 
             val readablePlayTime = when {
-                hours > 0 -> "${hours}h ${minutes}m ${seconds}s"
-                minutes > 0 -> "${minutes}m ${seconds}s"
-                else -> "${seconds}s"
-            }
+            hours > 0 -> "$hours${getString(R.string.hours_abbr)} $minutes${getString(R.string.minutes_abbr)} $seconds${getString(R.string.seconds_abbr)}"
+            minutes > 0 -> "$minutes${getString(R.string.minutes_abbr)} $seconds${getString(R.string.seconds_abbr)}"
+            else -> "$seconds${getString(R.string.seconds_abbr)}"
+}
 
-            append(getString(R.string.playtime))
-            append(readablePlayTime)
+            append(getString(R.string.playtime) + " " + readablePlayTime)
         }
 
         binding.playtime.setOnClickListener {
@@ -251,8 +271,10 @@ class GamePropertiesFragment : Fragment() {
                     R.string.info_description,
                     R.drawable.ic_info_outline,
                     action = {
-                        val action = GamePropertiesFragmentDirections
-                            .actionPerGamePropertiesFragmentToGameInfoFragment(args.game)
+                        val action = HomeNavigationDirections.actionGlobalSettingsSubscreenActivity(
+                            SettingsSubscreen.GAME_INFO,
+                            args.game
+                        )
                         binding.root.findNavController().navigate(action)
                     }
                 )
@@ -311,6 +333,24 @@ class GamePropertiesFragment : Fragment() {
                 )
             )
 
+            if (!args.game.isHomebrew) {
+                add(
+                    SubmenuProperty(
+                        R.string.add_ons,
+                        R.string.add_ons_description,
+                        R.drawable.ic_edit,
+                        action = {
+                            val action =
+                                HomeNavigationDirections.actionGlobalSettingsSubscreenActivity(
+                                    SettingsSubscreen.ADDONS,
+                                    args.game
+                                )
+                            binding.root.findNavController().navigate(action)
+                        }
+                    )
+                )
+            }
+
             if (GpuDriverHelper.supportsCustomDriverLoading()) {
                 add(
                     SubmenuProperty(
@@ -319,8 +359,28 @@ class GamePropertiesFragment : Fragment() {
                         R.drawable.ic_build,
                         detailsFlow = driverViewModel.selectedDriverTitle,
                         action = {
-                            val action = GamePropertiesFragmentDirections
-                                .actionPerGamePropertiesFragmentToDriverManagerFragment(args.game)
+                            val action =
+                                HomeNavigationDirections.actionGlobalSettingsSubscreenActivity(
+                                    SettingsSubscreen.DRIVER_MANAGER,
+                                    args.game
+                                )
+                            binding.root.findNavController().navigate(action)
+                        }
+                    )
+                )
+            }
+            if (GpuDriverHelper.isAdrenoGpu()) {
+                add(
+                    SubmenuProperty(
+                        R.string.freedreno_per_game_title,
+                        R.string.freedreno_per_game_description,
+                        R.drawable.ic_graphics,
+                        action = {
+                            val action =
+                                HomeNavigationDirections.actionGlobalSettingsSubscreenActivity(
+                                    SettingsSubscreen.FREEDRENO_SETTINGS,
+                                    args.game
+                                )
                             binding.root.findNavController().navigate(action)
                         }
                     )
@@ -328,18 +388,6 @@ class GamePropertiesFragment : Fragment() {
             }
 
             if (!args.game.isHomebrew) {
-                add(
-                    SubmenuProperty(
-                        R.string.add_ons,
-                        R.string.add_ons_description,
-                        R.drawable.ic_edit,
-                        action = {
-                            val action = GamePropertiesFragmentDirections
-                                .actionPerGamePropertiesFragmentToAddonsFragment(args.game)
-                            binding.root.findNavController().navigate(action)
-                        }
-                    )
-                )
                 add(
                     InstallableProperty(
                         R.string.save_data,
@@ -392,7 +440,7 @@ class GamePropertiesFragment : Fragment() {
 
                 val shaderCacheDir = File(
                     DirectoryInitialization.userDirectory +
-                        "/shader/" + args.game.settingsName.lowercase()
+                        "/cache/shader/" + args.game.settingsName.lowercase()
                 )
                 if (shaderCacheDir.exists()) {
                     add(

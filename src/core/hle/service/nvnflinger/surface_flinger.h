@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2024 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -45,12 +48,11 @@ public:
     void SetLayerVisibility(s32 consumer_binder_id, bool visible);
     void SetLayerBlending(s32 consumer_binder_id, LayerBlending blending);
     void SetLayerIsOverlay(s32 consumer_binder_id, bool is_overlay);
-    void SetLayerZIndex(s32 consumer_binder_id, s32 z_index);
-    bool GetLayerZIndex(s32 consumer_binder_id, s32* out_z_index);
+
+    std::shared_ptr<Layer> FindLayer(s32 consumer_binder_id);
 
 private:
     Display* FindDisplay(u64 display_id);
-    std::shared_ptr<Layer> FindLayer(s32 consumer_binder_id);
 
 public:
     // TODO: these don't belong here

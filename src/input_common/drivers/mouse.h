@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2021 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -95,10 +98,8 @@ public:
     Common::Input::ButtonNames GetUIName(const Common::ParamPackage& params) const override;
 
 private:
-    void UpdateThread(std::stop_token stop_token);
     void UpdateStickInput();
     void UpdateMotionInput();
-
     bool IsMousePanningEnabled();
 
     Common::Input::ButtonNames GetUIButtonName(const Common::ParamPackage& params) const;
@@ -108,7 +109,7 @@ private:
     Common::Vec2<float> last_mouse_change;
     Common::Vec3<float> last_motion_change;
     Common::Vec2<int> wheel_position;
-    bool button_pressed;
+    bool button_pressed = false;
     std::jthread update_thread;
 };
 

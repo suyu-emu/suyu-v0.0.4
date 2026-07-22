@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2024 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -80,7 +83,7 @@ ILibraryAppletSelfAccessor::ILibraryAppletSelfAccessor(Core::System& system_,
         {130, nullptr, "GetGpuErrorDetectedSystemEvent"},
         {140, nullptr, "SetApplicationMemoryReservation"},
         {150, D<&ILibraryAppletSelfAccessor::ShouldSetGpuTimeSliceManually>, "ShouldSetGpuTimeSliceManually"},
-        {160, D<&ILibraryAppletSelfAccessor::Cmd160>, "Cmd160"},
+        {160, D<&ILibraryAppletSelfAccessor::GetLibraryAppletInfoEx>, "GetLibraryAppletInfoEx"},
     };
     // clang-format on
     RegisterHandlers(functions);
@@ -90,23 +93,23 @@ ILibraryAppletSelfAccessor::~ILibraryAppletSelfAccessor() = default;
 
 Result ILibraryAppletSelfAccessor::PopInData(Out<SharedPointer<IStorage>> out_storage) {
     LOG_INFO(Service_AM, "called");
-    R_RETURN(m_broker->GetInData().Pop(out_storage));
+    R_RETURN(m_broker->GetInData().Pop(system.Kernel(), out_storage));
 }
 
 Result ILibraryAppletSelfAccessor::PushOutData(SharedPointer<IStorage> storage) {
     LOG_INFO(Service_AM, "called");
-    m_broker->GetOutData().Push(storage);
+    m_broker->GetOutData().Push(system.Kernel(), storage);
     R_SUCCEED();
 }
 
 Result ILibraryAppletSelfAccessor::PopInteractiveInData(Out<SharedPointer<IStorage>> out_storage) {
     LOG_INFO(Service_AM, "called");
-    R_RETURN(m_broker->GetInteractiveInData().Pop(out_storage));
+    R_RETURN(m_broker->GetInteractiveInData().Pop(system.Kernel(), out_storage));
 }
 
 Result ILibraryAppletSelfAccessor::PushInteractiveOutData(SharedPointer<IStorage> storage) {
     LOG_INFO(Service_AM, "called");
-    m_broker->GetInteractiveOutData().Push(storage);
+    m_broker->GetInteractiveOutData().Push(system.Kernel(), storage);
     R_SUCCEED();
 }
 
@@ -162,7 +165,7 @@ Result ILibraryAppletSelfAccessor::GetMainAppletApplicationControlProperty(
         system.GetARPManager().GetControlProperty(&nacp, application.application_id);
 
     if (R_SUCCEEDED(result)) {
-        std::memcpy(out_nacp->data(), nacp.data(), std::min(nacp.size(), out_nacp->size()));
+        std::memcpy(out_nacp->data(), nacp.data(), (std::min)(nacp.size(), out_nacp->size()));
     }
 
     R_RETURN(result);
@@ -176,7 +179,14 @@ Result ILibraryAppletSelfAccessor::GetMainAppletStorageId(Out<FileSys::StorageId
 
 Result ILibraryAppletSelfAccessor::ExitProcessAndReturn() {
     LOG_INFO(Service_AM, "called");
-    m_applet->process->Terminate();
+
+    if (const auto caller_applet = m_applet->caller_applet.lock(); caller_applet) {
+        m_applet->process->Terminate();
+    } else {
+        system.GetUserChannel() = m_applet->user_channel_launch_parameter;
+        system.ExecuteProgram(0);
+    }
+
     R_SUCCEED();
 }
 
@@ -223,8 +233,9 @@ Result ILibraryAppletSelfAccessor::ReportVisibleErrorWithErrorContext(
     R_SUCCEED();
 }
 
-Result ILibraryAppletSelfAccessor::UnpopInData() {
-    LOG_WARNING(Service_AM, "(STUBBED) called");
+Result ILibraryAppletSelfAccessor::UnpopInData(SharedPointer<IStorage> storage) {
+    LOG_INFO(Service_AM, "called");
+    m_broker->GetInData().Unpop(system.Kernel(), storage);
     R_SUCCEED();
 }
 
@@ -320,9 +331,13 @@ Result ILibraryAppletSelfAccessor::ShouldSetGpuTimeSliceManually(
     R_SUCCEED();
 }
 
-Result ILibraryAppletSelfAccessor::Cmd160(Out<u64> out_unknown0) {
-    LOG_WARNING(Service_AM, "(STUBBED) called");
-    *out_unknown0 = 0;
+Result ILibraryAppletSelfAccessor::GetLibraryAppletInfoEx(
+    Out<LibraryAppletInfo> out_library_applet_info) {
+    LOG_INFO(Service_AM, "called");
+    *out_library_applet_info = {
+        .applet_id = m_applet->applet_id,
+        .library_applet_mode = m_applet->library_applet_mode,
+    };
     R_SUCCEED();
 }
 

@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2023 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -283,9 +286,9 @@ Loader::AppLoader::Modules FindModules(Kernel::KProcess* process) {
                     // Ignore leading directories.
                     char* path_pointer = module_path.path.data();
                     char* path_end =
-                        path_pointer + std::min(PathLengthMax, module_path.path_length);
+                        path_pointer + (std::min)(PathLengthMax, module_path.path_length);
 
-                    for (s32 i = 0; i < std::min(PathLengthMax, module_path.path_length) &&
+                    for (s32 i = 0; i < (std::min)(PathLengthMax, module_path.path_length) &&
                                     module_path.path[i] != '\0';
                          i++) {
                         if (module_path.path[i] == '/' || module_path.path[i] == '\\') {

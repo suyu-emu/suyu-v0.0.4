@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2023 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -29,14 +32,13 @@ constexpr bool IsValidAddressRange(u64 address, u64 size) {
 // Helper function that performs the common sanity checks for svcMapMemory
 // and svcUnmapMemory. This is doable, as both functions perform their sanitizing
 // in the same order.
-Result MapUnmapMemorySanityChecks(const KProcessPageTable& manager, u64 dst_addr, u64 src_addr,
-                                  u64 size) {
-    if (!Common::Is4KBAligned(dst_addr)) {
+Result MapUnmapMemorySanityChecks(const KProcessPageTable& manager, u64 dst_addr, u64 src_addr, u64 size) {
+    if (!Common::IsAligned(dst_addr, Core::Memory::YUZU_PAGESIZE)) {
         LOG_ERROR(Kernel_SVC, "Destination address is not aligned to 4KB, 0x{:016X}", dst_addr);
         R_THROW(ResultInvalidAddress);
     }
 
-    if (!Common::Is4KBAligned(src_addr)) {
+    if (!Common::IsAligned(src_addr, Core::Memory::YUZU_PAGESIZE)) {
         LOG_ERROR(Kernel_SVC, "Source address is not aligned to 4KB, 0x{:016X}", src_addr);
         R_THROW(ResultInvalidSize);
     }
@@ -46,7 +48,7 @@ Result MapUnmapMemorySanityChecks(const KProcessPageTable& manager, u64 dst_addr
         R_THROW(ResultInvalidSize);
     }
 
-    if (!Common::Is4KBAligned(size)) {
+    if (!Common::IsAligned(size, Core::Memory::YUZU_PAGESIZE)) {
         LOG_ERROR(Kernel_SVC, "Size is not aligned to 4KB, 0x{:016X}", size);
         R_THROW(ResultInvalidSize);
     }
@@ -77,7 +79,7 @@ Result MapUnmapMemorySanityChecks(const KProcessPageTable& manager, u64 dst_addr
 } // namespace
 
 Result SetMemoryPermission(Core::System& system, u64 address, u64 size, MemoryPermission perm) {
-    LOG_DEBUG(Kernel_SVC, "called, address=0x{:016X}, size=0x{:X}, perm=0x{:08X}", address, size,
+    LOG_DEBUG(Kernel_SVC, "called, address=0x{:016X}, size={:#X}, perm=0x{:08X}", address, size,
               perm);
 
     // Validate address / size.
@@ -99,7 +101,7 @@ Result SetMemoryPermission(Core::System& system, u64 address, u64 size, MemoryPe
 
 Result SetMemoryAttribute(Core::System& system, u64 address, u64 size, u32 mask, u32 attr) {
     LOG_DEBUG(Kernel_SVC,
-              "called, address=0x{:016X}, size=0x{:X}, mask=0x{:08X}, attribute=0x{:08X}", address,
+              "called, address=0x{:016X}, size={:#X}, mask=0x{:08X}, attribute=0x{:08X}", address,
               size, mask, attr);
 
     // Validate address / size.
@@ -130,7 +132,7 @@ Result SetMemoryAttribute(Core::System& system, u64 address, u64 size, u32 mask,
 
 /// Maps a memory range into a different range.
 Result MapMemory(Core::System& system, u64 dst_addr, u64 src_addr, u64 size) {
-    LOG_TRACE(Kernel_SVC, "called, dst_addr=0x{:X}, src_addr=0x{:X}, size=0x{:X}", dst_addr,
+    LOG_TRACE(Kernel_SVC, "called, dst_addr={:#X}, src_addr=0x{:X}, size=0x{:X}", dst_addr,
               src_addr, size);
 
     auto& page_table{GetCurrentProcess(system.Kernel()).GetPageTable()};
@@ -145,7 +147,7 @@ Result MapMemory(Core::System& system, u64 dst_addr, u64 src_addr, u64 size) {
 
 /// Unmaps a region that was previously mapped with svcMapMemory
 Result UnmapMemory(Core::System& system, u64 dst_addr, u64 src_addr, u64 size) {
-    LOG_TRACE(Kernel_SVC, "called, dst_addr=0x{:X}, src_addr=0x{:X}, size=0x{:X}", dst_addr,
+    LOG_TRACE(Kernel_SVC, "called, dst_addr={:#X}, src_addr=0x{:X}, size=0x{:X}", dst_addr,
               src_addr, size);
 
     auto& page_table{GetCurrentProcess(system.Kernel()).GetPageTable()};

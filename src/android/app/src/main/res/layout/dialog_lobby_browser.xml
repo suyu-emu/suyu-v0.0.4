@@ -8,16 +8,14 @@
 
     <com.google.android.material.appbar.AppBarLayout
         android:id="@+id/appbar"
+        style="@style/Widget.Eden.TransparentTopAppBarLayout"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:background="?attr/colorSurface"
-        android:elevation="0dp">
+        android:layout_height="wrap_content">
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="vertical"
-            app:layout_scrollFlags="scroll|enterAlways|snap">
+            android:orientation="vertical">
 
             <LinearLayout
                 android:layout_width="match_parent"

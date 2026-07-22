@@ -1,9 +1,11 @@
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2023 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
 #include <android/native_window_jni.h>
 #include "common/android/applets/software_keyboard.h"
-#include "common/detached_tasks.h"
 #include "core/core.h"
 #include "core/file_sys/registered_cache.h"
 #include "core/hle/service/acc/profile_manager.h"
@@ -44,7 +46,9 @@ public:
     void ShutdownEmulation();
 
     const Core::PerfStatsResults& PerfStats();
+    int ShadersBuilding();
     void ConfigureFilesystemProvider(const std::string& filepath);
+    void ConfigureFilesystemProviderFromGameFolder(const std::string& filepath);
     void InitializeSystem(bool reload);
     void SetAppletId(int applet_id);
     Core::SystemResultStatus InitializeEmulation(const std::string& filepath,
@@ -70,8 +74,8 @@ private:
     // Core emulation
     Core::System m_system;
     InputCommon::InputSubsystem m_input_subsystem;
-    Common::DetachedTasks m_detached_tasks;
     Core::PerfStatsResults m_perf_stats{};
+    int m_shaders_building{0};
     std::shared_ptr<FileSys::VfsFilesystem> m_vfs;
     Core::SystemResultStatus m_load_result{Core::SystemResultStatus::ErrorNotInitialized};
     std::atomic<bool> m_is_running = false;

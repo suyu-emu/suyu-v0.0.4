@@ -1,7 +1,9 @@
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2020 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
-#include "common/logging/log.h"
 #include "common/scope_exit.h"
 #include "common/settings.h"
 #include "core/core.h"
@@ -15,21 +17,20 @@
 namespace Kernel {
 
 PhysicalCore::PhysicalCore(KernelCore& kernel, std::size_t core_index)
-    : m_kernel{kernel}, m_core_index{core_index} {
+    : m_core_index{core_index}
+{
     m_is_single_core = !kernel.IsMulticore();
 }
 PhysicalCore::~PhysicalCore() = default;
 
-void PhysicalCore::RunThread(Kernel::KThread* thread) {
+void PhysicalCore::RunThread(KernelCore& kernel, Kernel::KThread* thread) {
     auto* process = thread->GetOwnerProcess();
-    auto& system = m_kernel.System();
+    auto& system = kernel.System();
     auto* interface = process->GetArmInterface(m_core_index);
 
     interface->Initialize();
 
     const auto EnterContext = [&]() {
-        system.EnterCPUProfile();
-
         // Lock the core context.
         std::scoped_lock lk{m_guard};
 
@@ -50,6 +51,14 @@ void PhysicalCore::RunThread(Kernel::KThread* thread) {
     };
 
     const auto ExitContext = [&]() {
+        // Save the JIT context back to the thread so the debugger can
+        // read the current register state. Debug halt paths (step,
+        // breakpoint, watchpoint) return from RunThread without going
+        // through the scheduler's Unload/SaveContext.
+        if (system.DebuggerEnabled()) {
+            interface->GetContext(thread->GetContext());
+        }
+
         // Unlock the thread.
         interface->UnlockThread(thread);
 
@@ -59,21 +68,19 @@ void PhysicalCore::RunThread(Kernel::KThread* thread) {
         // On exit, we no longer are running.
         m_arm_interface = nullptr;
         m_current_thread = nullptr;
-
-        system.ExitCPUProfile();
     };
 
     while (true) {
         // If the thread is scheduled for termination, exit.
         if (thread->HasDpc() && thread->IsTerminationRequested()) {
-            thread->Exit();
+            thread->Exit(kernel);
         }
 
         // Notify the debugger and go to sleep if a step was performed
         // and this thread has been scheduled again.
         if (thread->GetStepState() == StepState::StepPerformed) {
             system.GetDebugger().NotifyThreadStopped(thread);
-            thread->RequestSuspend(SuspendType::Debug);
+            thread->RequestSuspend(kernel, SuspendType::Debug);
             return;
         }
 
@@ -99,11 +106,16 @@ void PhysicalCore::RunThread(Kernel::KThread* thread) {
         }
 
         // Determine why we stopped.
-        const bool supervisor_call = True(hr & Core::HaltReason::SupervisorCall);
-        const bool prefetch_abort = True(hr & Core::HaltReason::PrefetchAbort);
-        const bool breakpoint = True(hr & Core::HaltReason::InstructionBreakpoint);
-        const bool data_abort = True(hr & Core::HaltReason::DataAbort);
-        const bool interrupt = True(hr & Core::HaltReason::BreakLoop);
+        // If a step completed successfully, skip other halt reason handlers
+        // the step takes priority (e.g. step may also set InstructionBreakpoint
+        // if the next instruction happens to be a breakpoint).
+        const bool step_completed = True(hr & Core::HaltReason::StepThread)
+                                    && thread->GetStepState() == StepState::StepPerformed;
+        const bool supervisor_call = !step_completed && True(hr & Core::HaltReason::SupervisorCall);
+        const bool prefetch_abort = !step_completed && True(hr & Core::HaltReason::PrefetchAbort);
+        const bool breakpoint = !step_completed && True(hr & Core::HaltReason::InstructionBreakpoint);
+        const bool data_abort = !step_completed && True(hr & Core::HaltReason::DataAbort);
+        const bool interrupt = !step_completed && True(hr & Core::HaltReason::BreakLoop);
 
         // Since scheduling may occur here, we cannot use any cached
         // state after returning from calls we make.
@@ -113,13 +125,18 @@ void PhysicalCore::RunThread(Kernel::KThread* thread) {
         if (breakpoint || prefetch_abort) {
             if (breakpoint) {
                 interface->RewindBreakpointInstruction();
+                // RewindBreakpointInstruction sets the JIT state to the
+                // saved breakpoint context. Update the thread context to
+                // match, since ExitContext already saved the post-execution
+                // state.
+                interface->GetContext(thread->GetContext());
             }
             if (system.DebuggerEnabled()) {
                 system.GetDebugger().NotifyThreadStopped(thread);
             } else {
                 interface->LogBacktrace(process);
             }
-            thread->RequestSuspend(SuspendType::Debug);
+            thread->RequestSuspend(kernel, SuspendType::Debug);
             return;
         }
 
@@ -128,12 +145,13 @@ void PhysicalCore::RunThread(Kernel::KThread* thread) {
             if (system.DebuggerEnabled()) {
                 system.GetDebugger().NotifyThreadWatchpoint(thread, *interface->HaltedWatchpoint());
             }
-            thread->RequestSuspend(SuspendType::Debug);
+            thread->RequestSuspend(kernel, SuspendType::Debug);
             return;
         }
 
         // Handle system calls.
         if (supervisor_call) {
+            // Perform call.
             Svc::Call(system, interface->GetSvcNumber());
             return;
         }
@@ -191,8 +209,8 @@ void PhysicalCore::CloneFpuStatus(KThread* dst) const {
     dst->GetContext().fpsr = ctx.fpsr;
 }
 
-void PhysicalCore::LogBacktrace() {
-    auto* process = GetCurrentProcessPointer(m_kernel);
+void PhysicalCore::LogBacktrace(KernelCore& kernel) {
+    auto* process = GetCurrentProcessPointer(kernel);
     if (!process) {
         return;
     }

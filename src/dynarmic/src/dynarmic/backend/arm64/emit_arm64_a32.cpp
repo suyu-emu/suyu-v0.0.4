@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 /* This file is part of the dynarmic project.
@@ -6,7 +6,7 @@
  * SPDX-License-Identifier: 0BSD
  */
 
-#include <mcl/bit/bit_field.hpp>
+#include "dynarmic/mcl/bit.hpp"
 #include <oaknut/oaknut.hpp>
 
 #include "dynarmic/backend/arm64/a32_jitstate.h"
@@ -35,10 +35,6 @@ oaknut::Label EmitA32Cond(oaknut::CodeGenerator& code, EmitContext&, IR::Cond co
 }
 
 void EmitA32Terminal(oaknut::CodeGenerator& code, EmitContext& ctx, IR::Term::Terminal terminal, IR::LocationDescriptor initial_location, bool is_single_step);
-
-void EmitA32Terminal(oaknut::CodeGenerator&, EmitContext&, IR::Term::Interpret, IR::LocationDescriptor, bool) {
-    UNREACHABLE();
-}
 
 void EmitA32Terminal(oaknut::CodeGenerator& code, EmitContext& ctx, IR::Term::ReturnToDispatch, IR::LocationDescriptor, bool) {
     EmitRelocation(code, ctx, LinkTarget::ReturnToDispatcher);
@@ -582,11 +578,9 @@ void EmitIR<IR::Opcode::A32BXWritePC>(oaknut::CodeGenerator& code, EmitContext& 
 
 template<>
 void EmitIR<IR::Opcode::A32UpdateUpperLocationDescriptor>(oaknut::CodeGenerator& code, EmitContext& ctx, IR::Inst*) {
-    for (auto& inst : ctx.block) {
-        if (inst.GetOpcode() == IR::Opcode::A32BXWritePC) {
+    for (auto& inst : ctx.block.instructions)
+        if (inst.GetOpcode() == IR::Opcode::A32BXWritePC)
             return;
-        }
-    }
     EmitSetUpperLocationDescriptor(code, ctx, ctx.block.EndLocation(), ctx.block.Location());
 }
 

@@ -1,6 +1,7 @@
+# SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+# SPDX-License-Identifier: GPL-3.0-or-later
+
 # SPDX-FileCopyrightText: 2018 yuzu Emulator Project
-# SPDX-FileCopyrightText: Copyright 2024 suyu Emulator Project
-# SPDX-FileCopyrightText: Copyright 2024 Torzu Emulator Project
 # SPDX-License-Identifier: GPL-2.0-or-later
 
 add_library(shader_recompiler STATIC
@@ -77,42 +78,15 @@ add_library(shader_recompiler STATIC
     backend/spirv/emit_spirv_warp.cpp
     backend/spirv/spirv_emit_context.cpp
     backend/spirv/spirv_emit_context.h
-    backend/msl/emit_msl.cpp
-    backend/msl/emit_msl.h
-    backend/msl/emit_msl_atomic.cpp
-    backend/msl/emit_msl_barriers.cpp
-    backend/msl/emit_msl_bitwise_conversion.cpp
-    backend/msl/emit_msl_composite.cpp
-    backend/msl/emit_msl_context_get_set.cpp
-    backend/msl/emit_msl_control_flow.cpp
-    backend/msl/emit_msl_convert.cpp
-    backend/msl/emit_msl_floating_point.cpp
-    backend/msl/emit_msl_image.cpp
-    backend/msl/emit_msl_instructions.h
-    backend/msl/emit_msl_integer.cpp
-    backend/msl/emit_msl_logical.cpp
-    backend/msl/emit_msl_memory.cpp
-    backend/msl/emit_msl_not_implemented.cpp
-    backend/msl/emit_msl_select.cpp
-    backend/msl/emit_msl_shared_memory.cpp
-    backend/msl/emit_msl_special.cpp
-    backend/msl/emit_msl_undefined.cpp
-    backend/msl/emit_msl_warp.cpp
-    backend/msl/msl_emit_context.cpp
-    backend/msl/msl_emit_context.h
-    backend/msl/var_alloc.cpp
-    backend/msl/var_alloc.h
     environment.h
     exception.h
     frontend/ir/abstract_syntax_list.h
-    frontend/ir/attribute.cpp
     frontend/ir/attribute.h
     frontend/ir/basic_block.cpp
     frontend/ir/basic_block.h
     frontend/ir/breadth_first_search.h
     frontend/ir/condition.cpp
     frontend/ir/condition.h
-    frontend/ir/flow_test.cpp
     frontend/ir/flow_test.h
     frontend/ir/ir_emitter.cpp
     frontend/ir/ir_emitter.h
@@ -261,21 +235,15 @@ add_library(shader_recompiler STATIC
     ir_opt/vendor_workaround_pass.cpp
     ir_opt/verification_pass.cpp
     object_pool.h
-    precompiled_headers.h
     profile.h
     program_header.h
     runtime_info.h
     shader_info.h
     varying_state.h
+
 )
 
-if (SUYU_USE_EXTERNAL_VULKAN_SPIRV_TOOLS)
-    set(SPIRV_TOOLS_LIBRARY SPIRV-Tools-opt)
-else()
-    set(SPIRV_TOOLS_LIBRARY SPIRV-Tools-opt SPIRV-Tools SPIRV-Tools-link)
-endif()
-
-target_link_libraries(shader_recompiler PUBLIC common fmt::fmt sirit ${SPIRV_TOOLS_LIBRARY})
+target_link_libraries(shader_recompiler PUBLIC common fmt::fmt sirit::sirit)
 
 if (MSVC)
     target_compile_options(shader_recompiler PRIVATE
@@ -285,8 +253,7 @@ if (MSVC)
     )
 else()
     target_compile_options(shader_recompiler PRIVATE
-        -Werror=conversion
-
+        $<$<COMPILE_LANGUAGE:C,CXX>:-Werror=conversion>
         # Bracket depth determines maximum size of a fold expression in Clang since 9c9974c3ccb6.
         # And this in turns limits the size of a std::array.
         $<$<CXX_COMPILER_ID:Clang>:-fbracket-depth=1024>
@@ -295,7 +262,3 @@ else()
 endif()
 
 create_target_directory_groups(shader_recompiler)
-
-if (SUYU_USE_PRECOMPILED_HEADERS)
-    target_precompile_headers(shader_recompiler PRIVATE precompiled_headers.h)
-endif()

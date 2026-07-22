@@ -1,13 +1,21 @@
+# SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+# SPDX-License-Identifier: GPL-3.0-or-later
+
 # SPDX-FileCopyrightText: 2016 Citra Emulator Project
-# SPDX-FileCopyrightText: Copyright 2024 suyu Emulator Project
-# SPDX-FileCopyrightText: Copyright 2024 Torzu Emulator Project
 # SPDX-License-Identifier: GPL-2.0-or-later
+
+# TODO(crueter): A lot of this should be moved to the root.
+# otherwise we have to do weird shenanigans with library linking and stuff
+# Or just add a CPMUtil thing to propagate packages
+
+# Explicitly declare this option here to propagate to the oaknut CPM call
+option(DYNARMIC_TESTS "Build tests" ${BUILD_TESTING})
 
 # Dynarmic has cmake_minimum_required(3.12) and we may want to override
 # some of its variables, which is only possible in 3.13+
 set(CMAKE_POLICY_DEFAULT_CMP0077 NEW)
 
-# Disable tests in all externals supporting the standard option name
+# Disable tests/tools in all externals supporting the standard option name
 set(BUILD_TESTING OFF)
 
 # Build only static externals
@@ -16,37 +24,185 @@ set(BUILD_SHARED_LIBS OFF)
 # Skip install rules for all externals
 set_directory_properties(PROPERTIES EXCLUDE_FROM_ALL ON)
 
-# Xbyak (also used by Dynarmic, so needs to be added first)
-if ((ARCHITECTURE_x86 OR ARCHITECTURE_x86_64) AND NOT TARGET xbyak::xbyak)
-    add_subdirectory(xbyak)
+# Xbyak
+if (ARCHITECTURE_x86 OR ARCHITECTURE_x86_64)
+    AddJsonPackage(xbyak)
 endif()
 
-if (ENABLE_NXDUMPTOOL AND EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/nxdumptool/CMakeLists.txt")
-    add_subdirectory(nxdumptool)
-elseif(ENABLE_NXDUMPTOOL)
-    message(WARNING "ENABLE_NXDUMPTOOL is ON, but externals/nxdumptool has no CMakeLists.txt")
+# enet
+AddJsonPackage(enet)
+
+if (enet_ADDED)
+    target_include_directories(enet INTERFACE ${enet_SOURCE_DIR}/include)
 endif()
 
-if (ENABLE_NXOPTIMIZER)
-    add_subdirectory(nx-optimizer)
+if (NOT TARGET enet::enet)
+    add_library(enet::enet ALIAS enet)
 endif()
 
-if (ENABLE_OWNFOIL AND EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/ownfoil/CMakeLists.txt")
-    add_subdirectory(ownfoil)
-elseif(ENABLE_OWNFOIL)
-    message(WARNING "ENABLE_OWNFOIL is ON, but externals/ownfoil has no CMakeLists.txt")
+# stb
+add_library(stb stb/stb_dxt.cpp)
+target_include_directories(stb PUBLIC ./stb)
+
+if (NOT TARGET stb::headers)
+    add_library(stb::headers ALIAS stb)
 endif()
 
-# Oaknut (also used by Dynarmic, so needs to be added first)
-if (ARCHITECTURE_arm64 AND NOT TARGET merry::oaknut)
-    add_subdirectory(oaknut)
+# ItaniumDemangle (Windows only)
+if (WIN32 AND NOT TARGET LLVM::Demangle)
+    add_library(demangle demangle/ItaniumDemangle.cpp)
+    target_include_directories(demangle PUBLIC ./demangle)
+    if (NOT MSVC)
+        target_compile_options(demangle PRIVATE -Wno-deprecated-declarations) # std::is_pod
+    endif()
+    add_library(LLVM::Demangle ALIAS demangle)
 endif()
 
-# Dynarmic
-if ((ARCHITECTURE_x86_64 OR ARCHITECTURE_arm64) AND NOT TARGET dynarmic::dynarmic)
-    set(DYNARMIC_IGNORE_ASSERTS ON)
-    add_subdirectory(dynarmic)
-    add_library(dynarmic::dynarmic ALIAS dynarmic)
+# unordered_dense
+AddJsonPackage(unordered-dense)
+
+# httplib
+if (IOS)
+    set(HTTPLIB_USE_BROTLI_IF_AVAILABLE OFF)
+endif()
+AddJsonPackage(httplib)
+
+if (YUZU_STATIC_ROOM)
+    return()
+endif()
+
+# Oaknut
+if (ARCHITECTURE_arm64 OR DYNARMIC_TESTS)
+    AddJsonPackage(oaknut)
+endif()
+
+# biscuit
+if (ARCHITECTURE_riscv64)
+    AddJsonPackage(biscuit)
+endif()
+
+# Lagoon
+if (ARCHITECTURE_loongarch64)
+    AddJsonPackage(lagoon)
+endif()
+
+# Vulkan stuff
+AddDependentPackages(vulkan-headers vulkan-utility-libraries)
+
+# frozen
+AddJsonPackage(frozen)
+
+# DiscordRPC
+if (USE_DISCORD_PRESENCE)
+    if (ARCHITECTURE_arm64)
+        add_compile_definitions(RAPIDJSON_ENDIAN=RAPIDJSON_LITTLEENDIAN)
+    endif()
+
+    AddJsonPackage(discord-rpc)
+
+    if (DiscordRPC_ADDED)
+        target_include_directories(discord-rpc INTERFACE ${DiscordRPC_SOURCE_DIR}/include)
+        add_library(DiscordRPC::discord-rpc ALIAS discord-rpc)
+    endif()
+endif()
+
+# SimpleIni
+AddJsonPackage(simpleini)
+
+# Most linux distros don't package cubeb, so enable regardless of cpm settings
+if(ENABLE_CUBEB)
+    AddJsonPackage(cubeb)
+
+    if (cubeb_ADDED)
+        if (NOT MSVC)
+            if (TARGET speex)
+                target_compile_options(speex PRIVATE $<$<COMPILE_LANGUAGE:C,CXX>:-Wno-sign-compare>)
+            endif()
+            set_target_properties(cubeb PROPERTIES COMPILE_OPTIONS "")
+            target_compile_options(cubeb INTERFACE
+                $<$<COMPILE_LANGUAGE:C,CXX>:-Wno-implicit-const-int-float-conversion>
+                $<$<COMPILE_LANGUAGE:C,CXX>:-Wno-shadow>
+                $<$<COMPILE_LANGUAGE:C,CXX>:-Wno-missing-declarations>
+                $<$<COMPILE_LANGUAGE:C,CXX>:-Wno-return-type>
+                $<$<COMPILE_LANGUAGE:C,CXX>:-Wno-uninitialized>
+            )
+        else()
+            target_compile_options(cubeb PRIVATE
+                /wd4456
+                /wd4458
+            )
+        endif()
+    endif()
+
+    if (NOT TARGET cubeb::cubeb)
+        add_library(cubeb::cubeb ALIAS cubeb)
+    endif()
+endif()
+
+if (NOT ANDROID)
+    if (NOT YUZU_USE_BUNDLED_SDL3)
+        if (NOT WIN32)
+            # Yuzu itself needs: Atomic Audio Events Joystick Haptic Sensor Threads Timers
+            # Since 2.0.18 Atomic+Threads required for HIDAPI/libusb (see https://github.com/libsdl-org/SDL/issues/5095)
+            # Yuzu-cmd also needs: Video (depends on Loadso/Dlopen)
+            # CPUinfo also required for SDL Audio, at least until 2.28.0 (see https://github.com/libsdl-org/SDL/issues/7809)
+            set(SDL_UNUSED_SUBSYSTEMS
+                File Filesystem
+                Locale Power Render)
+            foreach(_SUB ${SDL_UNUSED_SUBSYSTEMS})
+              string(TOUPPER ${_SUB} _OPT)
+              set(SDL_${_OPT} OFF)
+            endforeach()
+
+            set(HIDAPI ON)
+        endif()
+
+        if (APPLE)
+            set(SDL_FILE ON)
+        endif()
+
+        AddJsonPackage(sdl3)
+    else()
+        message(STATUS "Using bundled SDL3")
+        if (PLATFORM_FREEBSD)
+            set(BUILD_SHARED_LIBS ON)
+        endif()
+        AddJsonPackage(sdl3-ci)
+    endif()
+
+    # Normalize SDL3 link target across package variants.
+    # Some SDL3 packages export only SDL3::SDL3-shared or SDL3::SDL3-static.
+    if (NOT TARGET SDL3::SDL3)
+        if (TARGET SDL3::SDL3-shared)
+            add_library(SDL3::SDL3 ALIAS SDL3::SDL3-shared)
+        elseif (TARGET SDL3::SDL3-static)
+            add_library(SDL3::SDL3 ALIAS SDL3::SDL3-static)
+        else()
+            message(FATAL_ERROR "SDL3 package found, but no usable SDL3 target was exported")
+        endif()
+    endif()
+endif()
+
+set(BUILD_SHARED_LIBS OFF)
+
+# SPIRV Headers
+AddJsonPackage(spirv-headers)
+
+# Sirit
+if (YUZU_USE_BUNDLED_SIRIT)
+    AddJsonPackage(sirit-ci)
+else()
+    AddJsonPackage(sirit)
+    if(MSVC AND CXX_CLANG)
+        target_compile_options(siritobj PRIVATE
+            $<$<COMPILE_LANGUAGE:C,CXX>:-Wno-error=unused-command-line-argument>
+        )
+    endif()
+endif()
+
+# Catch2
+if (YUZU_TESTS OR DYNARMIC_TESTS)
+    AddJsonPackage(catch2)
 endif()
 
 # getopt
@@ -57,170 +213,46 @@ endif()
 # Glad
 add_subdirectory(glad)
 
-# mbedtls
-add_subdirectory(mbedtls)
-target_include_directories(mbedtls PUBLIC ./mbedtls/include)
-if (NOT MSVC)
-    target_compile_options(mbedcrypto PRIVATE
-        -Wno-unused-but-set-variable
-        -Wno-string-concatenation)
-endif()
-
-# MicroProfile
-add_library(microprofile INTERFACE)
-target_include_directories(microprofile INTERFACE ./microprofile)
-
-# GCC bugs
-if (CMAKE_CXX_COMPILER_VERSION VERSION_GREATER_EQUAL "12" AND CMAKE_CXX_COMPILER_ID STREQUAL "GNU" AND MINGW)
-    target_compile_options(microprofile INTERFACE "-Wno-array-bounds")
-endif()
-
 # libusb
-if (ENABLE_LIBUSB AND NOT TARGET libusb::usb)
+if (ENABLE_LIBUSB)
     add_subdirectory(libusb)
 endif()
 
-# SDL2
-if (SUYU_USE_EXTERNAL_SDL2)
-    if (NOT WIN32)
-        # Suyu itself needs: Atomic Audio Events Joystick Haptic Sensor Threads Timers
-        # Since 2.0.18 Atomic+Threads required for HIDAPI/libusb (see https://github.com/libsdl-org/SDL/issues/5095)
-        # Suyu-cmd also needs: Video (depends on Loadso/Dlopen)
-        # CPUinfo also required for SDL Audio, at least until 2.28.0 (see https://github.com/libsdl-org/SDL/issues/7809)
-        set(SDL_UNUSED_SUBSYSTEMS
-            File Filesystem
-            Locale Power Render)
-        foreach(_SUB ${SDL_UNUSED_SUBSYSTEMS})
-          string(TOUPPER ${_SUB} _OPT)
-          set(SDL_${_OPT} OFF)
-        endforeach()
+# VMA
+AddJsonPackage(vulkan-memory-allocator)
 
-        set(HIDAPI ON)
+if (VulkanMemoryAllocator_ADDED)
+    if (CXX_CLANG)
+        target_compile_options(VulkanMemoryAllocator INTERFACE
+            $<$<COMPILE_LANGUAGE:C,CXX>:-Wno-unused-variable>
+        )
+    elseif(MSVC)
+        target_compile_options(VulkanMemoryAllocator INTERFACE
+            /wd4189
+        )
     endif()
-    if (APPLE)
-        set(SDL_FILE ON)
-    endif()
-
-    add_subdirectory(SDL)
-endif()
-
-# ENet
-if (NOT TARGET enet::enet)
-    add_subdirectory(enet)
-    target_include_directories(enet INTERFACE ./enet/include)
-    add_library(enet::enet ALIAS enet)
-endif()
-
-# Cubeb
-if (ENABLE_CUBEB AND NOT TARGET cubeb::cubeb)
-    set(BUILD_TESTS OFF)
-    set(BUILD_TOOLS OFF)
-    add_subdirectory(cubeb)
-    add_library(cubeb::cubeb ALIAS cubeb)
-    if (NOT MSVC)
-        if (TARGET speex)
-            target_compile_options(speex PRIVATE -Wno-sign-compare)
-        endif()
-        target_compile_options(cubeb PRIVATE -Wno-implicit-const-int-float-conversion)
-    endif()
-endif()
-
-# DiscordRPC
-if (USE_DISCORD_PRESENCE AND NOT TARGET DiscordRPC::discord-rpc)
-    set(BUILD_EXAMPLES OFF)
-    add_subdirectory(discord-rpc)
-    target_include_directories(discord-rpc INTERFACE ./discord-rpc/include)
-    add_library(DiscordRPC::discord-rpc ALIAS discord-rpc)
-endif()
-
-# Sirit
-add_subdirectory(sirit)
-
-# httplib
-if (ENABLE_WEB_SERVICE OR USE_DISCORD_PRESENCE AND NOT TARGET httplib::httplib)
-    set(HTTPLIB_REQUIRE_OPENSSL ON)
-    add_subdirectory(cpp-httplib)
 endif()
 
 # cpp-jwt
-if (ENABLE_WEB_SERVICE AND NOT TARGET cpp-jwt::cpp-jwt)
-    set(CPP_JWT_BUILD_EXAMPLES OFF)
-    set(CPP_JWT_BUILD_TESTS OFF)
-    set(CPP_JWT_USE_VENDORED_NLOHMANN_JSON OFF)
-    add_subdirectory(cpp-jwt)
-endif()
-
-# Opus
-if (NOT TARGET Opus::opus)
-    set(OPUS_BUILD_TESTING OFF)
-    set(OPUS_BUILD_PROGRAMS OFF)
-    set(OPUS_INSTALL_PKG_CONFIG_MODULE OFF)
-    set(OPUS_INSTALL_CMAKE_CONFIG_MODULE OFF)
-    add_subdirectory(opus)
+if (ENABLE_WEB_SERVICE OR ENABLE_UPDATE_CHECKER)
+    AddJsonPackage(cpp-jwt)
 endif()
 
 # FFMpeg
-if (SUYU_USE_BUNDLED_FFMPEG)
+if (YUZU_USE_EXTERNAL_FFMPEG OR YUZU_USE_BUNDLED_FFMPEG)
     add_subdirectory(ffmpeg)
+
     set(FFmpeg_PATH "${FFmpeg_PATH}" PARENT_SCOPE)
     set(FFmpeg_LDFLAGS "${FFmpeg_LDFLAGS}" PARENT_SCOPE)
     set(FFmpeg_LIBRARIES "${FFmpeg_LIBRARIES}" PARENT_SCOPE)
+    set(FFmpeg_LIBRARY_DIR "${FFmpeg_LIBRARY_DIR}" PARENT_SCOPE)
     set(FFmpeg_INCLUDE_DIR "${FFmpeg_INCLUDE_DIR}" PARENT_SCOPE)
-endif()
 
-# Vulkan-Headers
-if (SUYU_USE_EXTERNAL_VULKAN_HEADERS)
-    add_subdirectory(Vulkan-Headers)
-endif()
-
-# Vulkan-Utility-Libraries
-if (SUYU_USE_EXTERNAL_VULKAN_UTILITY_LIBRARIES)
-    add_subdirectory(Vulkan-Utility-Libraries)
-endif()
-
-# SPIRV-Tools
-if (SUYU_USE_EXTERNAL_VULKAN_SPIRV_TOOLS)
-    set(_suyu_spirv_tools_headers_dir
-        ${CMAKE_SOURCE_DIR}/externals/spirv-headers-extract/SPIRV-Headers-6146b3d9ad4fcc5fb512209d348e97ce03749169)
-    if (EXISTS ${_suyu_spirv_tools_headers_dir}/CMakeLists.txt)
-        set(SPIRV-Headers_SOURCE_DIR ${_suyu_spirv_tools_headers_dir})
-    endif()
-    add_subdirectory(SPIRV-Tools)
-    # SPIRV-Tools requires C++17; override the root-level /std:c++20 compile option
-    # to avoid C++20 operator== recursion issues in small_vector.h
-    if (MSVC)
-        foreach(_spirv_target SPIRV-Tools-static SPIRV-Tools-opt)
-            if (TARGET ${_spirv_target})
-                target_compile_options(${_spirv_target} PRIVATE /std:c++17)
-            endif()
-        endforeach()
-    endif()
-    unset(_suyu_spirv_tools_headers_dir)
+    message(STATUS "FFmpeg Libraries: ${FFmpeg_LIBRARIES}")
 endif()
 
 # TZDB (Time Zone Database)
 add_subdirectory(nx_tzdb)
-
-# VMA
-if (NOT TARGET GPUOpen::VulkanMemoryAllocator)
-    add_subdirectory(VulkanMemoryAllocator)
-endif()
-
-if (NOT TARGET LLVM::Demangle)
-    add_library(demangle demangle/ItaniumDemangle.cpp)
-    target_include_directories(demangle PUBLIC ./demangle)
-    if (NOT MSVC)
-        target_compile_options(demangle PRIVATE -Wno-deprecated-declarations) # std::is_pod
-    endif()
-    add_library(LLVM::Demangle ALIAS demangle)
-endif()
-
-add_library(stb stb/stb_dxt.cpp)
-target_include_directories(stb PUBLIC ./stb)
-
-if (NOT TARGET stb::headers)
-    add_library(stb::headers ALIAS stb)
-endif()
 
 add_library(tz tz/tz/tz.cpp)
 target_include_directories(tz PUBLIC ./tz)
@@ -234,21 +266,23 @@ if (NOT TARGET RenderDoc::API)
     add_library(RenderDoc::API ALIAS renderdoc)
 endif()
 
-if (ANDROID)
-   if (ARCHITECTURE_arm64)
-       add_subdirectory(libadrenotools)
-   endif()
+if (ANDROID AND ARCHITECTURE_arm64)
+    AddJsonPackage(libadrenotools)
 endif()
 
-if (UNIX AND NOT APPLE AND NOT TARGET gamemode::headers)
+AddJsonPackage(gamemode)
+
+if (gamemode_ADDED)
     add_library(gamemode INTERFACE)
-    target_include_directories(gamemode INTERFACE gamemode)
+    target_include_directories(gamemode INTERFACE ${gamemode_SOURCE_DIR}/lib)
     add_library(gamemode::headers ALIAS gamemode)
 endif()
 
 # Breakpad
+# TODO(crueter): Breakpad needs additional fetches
+# https://github.com/google/breakpad/blob/main/DEPS
 # https://github.com/microsoft/vcpkg/blob/master/ports/breakpad/CMakeLists.txt
-if (SUYU_CRASH_DUMPS AND NOT TARGET libbreakpad_client)
+if (YUZU_CRASH_DUMPS AND NOT TARGET libbreakpad_client)
     set(BREAKPAD_WIN32_DEFINES
         NOMINMAX
         UNICODE
@@ -258,10 +292,19 @@ if (SUYU_CRASH_DUMPS AND NOT TARGET libbreakpad_client)
         _CRT_NONSTDC_NO_DEPRECATE
     )
 
+    # TODO
+    AddPackage(
+        NAME breakpad
+        URL "google/breakpad"
+        SHA f80f288803
+        HASH 4a87ee88cea99bd633d52a5b00135a649f1475e3b65db325a6df9c804ab82b054ad7e62419b35f6e22cc5dfbbb569214041d7ad5d10fab10106e700bb5050e1d
+        DOWNLOAD_ONLY YES
+    )
+
     # libbreakpad
     add_library(libbreakpad STATIC)
-    file(GLOB_RECURSE LIBBREAKPAD_SOURCES breakpad/src/processor/*.cc)
-    file(GLOB_RECURSE LIBDISASM_SOURCES breakpad/src/third_party/libdisasm/*.c)
+    file(GLOB_RECURSE LIBBREAKPAD_SOURCES ${breakpad_SOURCE_DIR}/src/processor/*.cc)
+    file(GLOB_RECURSE LIBDISASM_SOURCES ${breakpad_SOURCE_DIR}/src/third_party/libdisasm/*.c)
     list(FILTER LIBBREAKPAD_SOURCES EXCLUDE REGEX "_unittest|_selftest|synth_minidump|/tests|/testdata|/solaris|microdump_stackwalk|minidump_dump|minidump_stackwalk")
     if (WIN32)
         list(FILTER LIBBREAKPAD_SOURCES EXCLUDE REGEX "/linux|/mac|/android")
@@ -275,31 +318,31 @@ if (SUYU_CRASH_DUMPS AND NOT TARGET libbreakpad_client)
     target_sources(libbreakpad PRIVATE ${LIBBREAKPAD_SOURCES} ${LIBDISASM_SOURCES})
     target_include_directories(libbreakpad
         PUBLIC
-            ${CMAKE_CURRENT_SOURCE_DIR}/breakpad/src
-            ${CMAKE_CURRENT_SOURCE_DIR}/breakpad/src/third_party/libdisasm
+            ${breakpad_SOURCE_DIR}/src
+            ${breakpad_SOURCE_DIR}/src/third_party/libdisasm
     )
 
     # libbreakpad_client
     add_library(libbreakpad_client STATIC)
-    file(GLOB LIBBREAKPAD_COMMON_SOURCES breakpad/src/common/*.cc breakpad/src/common/*.c breakpad/src/client/*.cc)
+    file(GLOB LIBBREAKPAD_COMMON_SOURCES ${breakpad_SOURCE_DIR}/src/common/*.cc ${breakpad_SOURCE_DIR}/src/common/*.c ${breakpad_SOURCE_DIR}/src/client/*.cc)
 
     if (WIN32)
-        file(GLOB_RECURSE LIBBREAKPAD_CLIENT_SOURCES breakpad/src/client/windows/*.cc breakpad/src/common/windows/*.cc)
+        file(GLOB_RECURSE LIBBREAKPAD_CLIENT_SOURCES ${breakpad_SOURCE_DIR}/src/client/windows/*.cc ${breakpad_SOURCE_DIR}/src/common/windows/*.cc)
         list(FILTER LIBBREAKPAD_COMMON_SOURCES EXCLUDE REGEX "language.cc|path_helper.cc|stabs_to_module.cc|stabs_reader.cc|minidump_file_writer.cc")
         target_include_directories(libbreakpad_client PRIVATE "${CMAKE_GENERATOR_INSTANCE}/DIA SDK/include")
         target_compile_definitions(libbreakpad_client PRIVATE ${BREAKPAD_WIN32_DEFINES})
     elseif (APPLE)
         target_compile_definitions(libbreakpad_client PRIVATE HAVE_MACH_O_NLIST_H)
-        file(GLOB_RECURSE LIBBREAKPAD_CLIENT_SOURCES breakpad/src/client/mac/*.cc breakpad/src/common/mac/*.cc)
-        list(APPEND LIBBREAKPAD_CLIENT_SOURCES breakpad/src/common/mac/MachIPC.mm)
+        file(GLOB_RECURSE LIBBREAKPAD_CLIENT_SOURCES ${breakpad_SOURCE_DIR}/src/client/mac/*.cc ${breakpad_SOURCE_DIR}/src/common/mac/*.cc)
+        list(APPEND LIBBREAKPAD_CLIENT_SOURCES ${breakpad_SOURCE_DIR}/src/common/mac/MachIPC.mm)
     else()
-        target_compile_definitions(libbreakpad_client PUBLIC -DHAVE_A_OUT_H)
-        file(GLOB_RECURSE LIBBREAKPAD_CLIENT_SOURCES breakpad/src/client/linux/*.cc breakpad/src/common/linux/*.cc)
+        target_compile_definitions(libbreakpad_client PUBLIC HAVE_A_OUT_H)
+        file(GLOB_RECURSE LIBBREAKPAD_CLIENT_SOURCES ${breakpad_SOURCE_DIR}/src/client/linux/*.cc ${breakpad_SOURCE_DIR}/src/common/linux/*.cc)
     endif()
     list(APPEND LIBBREAKPAD_CLIENT_SOURCES ${LIBBREAKPAD_COMMON_SOURCES})
     list(FILTER LIBBREAKPAD_CLIENT_SOURCES EXCLUDE REGEX "/sender|/tests|/unittests|/testcases|_unittest|_test")
     target_sources(libbreakpad_client PRIVATE ${LIBBREAKPAD_CLIENT_SOURCES})
-    target_include_directories(libbreakpad_client PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/breakpad/src)
+    target_include_directories(libbreakpad_client PRIVATE ${breakpad_SOURCE_DIR}/src)
 
     if (WIN32)
         target_link_libraries(libbreakpad_client PRIVATE wininet.lib)
@@ -318,49 +361,53 @@ if (SUYU_CRASH_DUMPS AND NOT TARGET libbreakpad_client)
     if (LINUX)
         find_package(ZLIB REQUIRED)
 
-        add_executable(minidump_stackwalk breakpad/src/processor/minidump_stackwalk.cc)
+        add_executable(minidump_stackwalk ${breakpad_SOURCE_DIR}/src/processor/minidump_stackwalk.cc)
         target_link_libraries(minidump_stackwalk PRIVATE libbreakpad libbreakpad_client)
 
         add_executable(dump_syms
-            breakpad/src/common/dwarf_cfi_to_module.cc
-            breakpad/src/common/dwarf_cu_to_module.cc
-            breakpad/src/common/dwarf_line_to_module.cc
-            breakpad/src/common/dwarf_range_list_handler.cc
-            breakpad/src/common/language.cc
-            breakpad/src/common/module.cc
-            breakpad/src/common/path_helper.cc
-            breakpad/src/common/stabs_reader.cc
-            breakpad/src/common/stabs_to_module.cc
-            breakpad/src/common/dwarf/bytereader.cc
-            breakpad/src/common/dwarf/dwarf2diehandler.cc
-            breakpad/src/common/dwarf/dwarf2reader.cc
-            breakpad/src/common/dwarf/elf_reader.cc
-            breakpad/src/common/linux/crc32.cc
-            breakpad/src/common/linux/dump_symbols.cc
-            breakpad/src/common/linux/elf_symbols_to_module.cc
-            breakpad/src/common/linux/elfutils.cc
-            breakpad/src/common/linux/file_id.cc
-            breakpad/src/common/linux/linux_libc_support.cc
-            breakpad/src/common/linux/memory_mapped_file.cc
-            breakpad/src/common/linux/safe_readlink.cc
-            breakpad/src/tools/linux/dump_syms/dump_syms.cc)
-        target_link_libraries(dump_syms PRIVATE libbreakpad_client ZLIB::ZLIB)
+            ${breakpad_SOURCE_DIR}/src/common/dwarf_cfi_to_module.cc
+            ${breakpad_SOURCE_DIR}/src/common/dwarf_cu_to_module.cc
+            ${breakpad_SOURCE_DIR}/src/common/dwarf_line_to_module.cc
+            ${breakpad_SOURCE_DIR}/src/common/dwarf_range_list_handler.cc
+            ${breakpad_SOURCE_DIR}/src/common/language.cc
+            ${breakpad_SOURCE_DIR}/src/common/module.cc
+            ${breakpad_SOURCE_DIR}/src/common/path_helper.cc
+            ${breakpad_SOURCE_DIR}/src/common/stabs_reader.cc
+            ${breakpad_SOURCE_DIR}/src/common/stabs_to_module.cc
+            ${breakpad_SOURCE_DIR}/src/common/dwarf/bytereader.cc
+            ${breakpad_SOURCE_DIR}/src/common/dwarf/dwarf2diehandler.cc
+            ${breakpad_SOURCE_DIR}/src/common/dwarf/dwarf2reader.cc
+            ${breakpad_SOURCE_DIR}/src/common/dwarf/elf_reader.cc
+            ${breakpad_SOURCE_DIR}/src/common/linux/crc32.cc
+            ${breakpad_SOURCE_DIR}/src/common/linux/dump_symbols.cc
+            ${breakpad_SOURCE_DIR}/src/common/linux/elf_symbols_to_module.cc
+            ${breakpad_SOURCE_DIR}/src/common/linux/elfutils.cc
+            ${breakpad_SOURCE_DIR}/src/common/linux/file_id.cc
+            ${breakpad_SOURCE_DIR}/src/common/linux/linux_libc_support.cc
+            ${breakpad_SOURCE_DIR}/src/common/linux/memory_mapped_file.cc
+            ${breakpad_SOURCE_DIR}/src/common/linux/safe_readlink.cc
+            ${breakpad_SOURCE_DIR}/src/tools/linux/dump_syms/dump_syms.cc)
+        target_link_libraries(dump_syms PRIVATE libbreakpad_client)
     endif()
 endif()
 
-# SimpleIni
-if (NOT TARGET SimpleIni::SimpleIni)
-    add_subdirectory(simpleini)
+# oboe
+if (ANDROID)
+    AddJsonPackage(oboe)
+
+    add_library(oboe::oboe ALIAS oboe)
 endif()
 
-# sse2neon
-if (ARCHITECTURE_arm64 AND NOT TARGET sse2neon)
-    add_library(sse2neon INTERFACE)
-    target_include_directories(sse2neon INTERFACE sse2neon)
-endif()
-
-# metal-cpp
 if (APPLE)
-    add_library(metal-cpp INTERFACE)
-    target_include_directories(metal-cpp INTERFACE metal-cpp)
+    # moltenvk
+    if (NOT YUZU_USE_BUNDLED_MOLTENVK)
+        find_library(MOLTENVK_LIBRARY MoltenVK)
+    endif()
+
+    # TODO: kosmickrisp?
+    if (NOT MOLTENVK_LIBRARY OR YUZU_USE_BUNDLED_MOLTENVK)
+        AddJsonPackage(moltenvk)
+
+        set(MOLTENVK_LIBRARY "${moltenvk_SOURCE_DIR}/MoltenVK/dylib/macOS/libMoltenVK.dylib" CACHE STRING "" FORCE)
+    endif()
 endif()

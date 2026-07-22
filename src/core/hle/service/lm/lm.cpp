@@ -1,12 +1,15 @@
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2018 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
 #include <string>
 
 #include <optional>
-#include <unordered_map>
+#include <ankerl/unordered_dense.h>
 #include <boost/container_hash/hash.hpp>
-#include "common/logging/log.h"
+#include "common/logging.h"
 #include "core/core.h"
 #include "core/hle/service/ipc_helpers.h"
 #include "core/hle/service/lm/lm.h"
@@ -88,6 +91,8 @@ public:
         static const FunctionInfo functions[] = {
             {0, &ILogger::Log, "Log"},
             {1, &ILogger::SetDestination, "SetDestination"},
+            {2, nullptr, "TransmitHashedLog"}, //20.0.0+
+            {3, nullptr, "DevNotify"}, //20.0.0+
         };
         RegisterHandlers(functions);
     }
@@ -159,7 +164,7 @@ private:
         rb.Push(ResultSuccess);
     }
 
-    u64 ReadLeb128(const std::vector<u8>& data, std::size_t& offset) {
+    u64 ReadLeb128(std::span<const u8> data, std::size_t& offset) {
         u64 result{};
         u32 shift{};
 
@@ -175,12 +180,12 @@ private:
         return result;
     }
 
-    std::optional<std::string> ReadString(const std::vector<u8>& data, std::size_t& offset,
+    std::optional<std::string> ReadString(std::span<const u8> data, std::size_t& offset,
                                           std::size_t length) {
         if (length == 0) {
             return std::nullopt;
         }
-        const auto length_to_read = std::min(length, data.size() - offset);
+        const auto length_to_read = (std::min)(length, data.size() - offset);
 
         std::string output(length_to_read, '\0');
         std::memcpy(output.data(), data.data() + offset, length_to_read);
@@ -188,7 +193,7 @@ private:
         return output;
     }
 
-    u32_le ReadAsU32(const std::vector<u8>& data, std::size_t& offset, std::size_t length) {
+    u32_le ReadAsU32(std::span<const u8> data, std::size_t& offset, std::size_t length) {
         ASSERT(length == sizeof(u32));
         u32_le output{};
         std::memcpy(&output, data.data() + offset, sizeof(u32));
@@ -196,7 +201,7 @@ private:
         return output;
     }
 
-    u64_le ReadAsU64(const std::vector<u8>& data, std::size_t& offset, std::size_t length) {
+    u64_le ReadAsU64(std::span<const u8> data, std::size_t& offset, std::size_t length) {
         ASSERT(length == sizeof(u64));
         u64_le output{};
         std::memcpy(&output, data.data() + offset, sizeof(u64));
@@ -204,7 +209,7 @@ private:
         return output;
     }
 
-    void ParseLog(const LogPacketHeaderEntry entry, const std::vector<u8>& log_data) {
+    void ParseLog(const LogPacketHeaderEntry entry, std::span<const u8> log_data) {
         // Possible entries
         std::optional<std::string> text_log;
         std::optional<u32> line_number;
@@ -326,7 +331,7 @@ private:
     };
     static_assert(sizeof(LogPacketHeader) == 0x18, "LogPacketHeader is an invalid size");
 
-    std::unordered_map<LogPacketHeaderEntry, std::vector<u8>> entries{};
+    ankerl::unordered_dense::map<LogPacketHeaderEntry, std::vector<u8>> entries{};
     LogDestination destination{LogDestination::All};
 };
 
@@ -348,7 +353,7 @@ private:
 
         IPC::ResponseBuilder rb{ctx, 2, 0, 1};
         rb.Push(ResultSuccess);
-        rb.PushIpcInterface<ILogger>(system);
+        rb.PushIpcInterface<ILogger>(ctx, system);
     }
 };
 

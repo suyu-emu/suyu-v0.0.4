@@ -1,8 +1,12 @@
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2024 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "common/assert.h"
-#include "common/polyfill_ranges.h"
+#include <ranges>
+#include <vulkan/vulkan_core.h>
 #include "video_core/renderer_vulkan/present/util.h"
 
 namespace Vulkan {
@@ -65,7 +69,7 @@ void TransitionImageLayout(vk::CommandBuffer& cmdbuf, VkImage image, VkImageLayo
             .layerCount = 1,
         },
     };
-    cmdbuf.PipelineBarrier(VK_PIPELINE_STAGE_ALL_COMMANDS_BIT, VK_PIPELINE_STAGE_ALL_COMMANDS_BIT,
+    cmdbuf.PipelineBarrier(vk::PIPELINE_STAGE_GRAPHICS_COMPUTE, vk::PIPELINE_STAGE_GRAPHICS_COMPUTE,
                            0, barrier);
 }
 
@@ -167,10 +171,10 @@ void DownloadColorImage(vk::CommandBuffer& cmdbuf, VkImage image, VkBuffer buffe
         .imageOffset{.x = 0, .y = 0, .z = 0},
         .imageExtent{extent},
     };
-    cmdbuf.PipelineBarrier(VK_PIPELINE_STAGE_ALL_COMMANDS_BIT, VK_PIPELINE_STAGE_TRANSFER_BIT, 0,
+    cmdbuf.PipelineBarrier(vk::PIPELINE_STAGE_GRAPHICS_COMPUTE_TRANSFER, VK_PIPELINE_STAGE_TRANSFER_BIT, 0,
                            read_barrier);
     cmdbuf.CopyImageToBuffer(image, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL, buffer, copy);
-    cmdbuf.PipelineBarrier(VK_PIPELINE_STAGE_TRANSFER_BIT, VK_PIPELINE_STAGE_ALL_COMMANDS_BIT, 0,
+    cmdbuf.PipelineBarrier(VK_PIPELINE_STAGE_TRANSFER_BIT, vk::PIPELINE_STAGE_GRAPHICS_COMPUTE, 0,
                            memory_write_barrier, nullptr, image_write_barrier);
 }
 
@@ -397,12 +401,12 @@ static vk::Pipeline CreateWrappedPipelineImpl(
         .pVertexAttributeDescriptions = nullptr,
     };
 
-    constexpr VkPipelineInputAssemblyStateCreateInfo input_assembly_ci{
+    const VkPipelineInputAssemblyStateCreateInfo input_assembly_ci{
         .sType = VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO,
         .pNext = nullptr,
         .flags = 0,
         .topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_STRIP,
-        .primitiveRestartEnable = VK_FALSE,
+        .primitiveRestartEnable = device.IsMoltenVK() ? VK_TRUE : VK_FALSE,
     };
 
     constexpr VkPipelineViewportStateCreateInfo viewport_state_ci{
@@ -618,6 +622,38 @@ vk::Sampler CreateNearestNeighborSampler(const Device& device) {
         .unnormalizedCoordinates = VK_FALSE,
     };
 
+    return device.GetLogical().CreateSampler(ci_nn);
+}
+
+vk::Sampler CreateCubicSampler(const Device& device, VkCubicFilterWeightsQCOM qcom_weights) {
+    VkSamplerCreateInfo ci_nn{
+        .sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO,
+        .pNext = nullptr,
+        .flags = 0,
+        .magFilter = device.IsExtFilterCubicSupported() ? VK_FILTER_CUBIC_EXT : VK_FILTER_LINEAR,
+        .minFilter = device.IsExtFilterCubicSupported() ? VK_FILTER_CUBIC_EXT : VK_FILTER_LINEAR,
+        .mipmapMode = VK_SAMPLER_MIPMAP_MODE_NEAREST,
+        .addressModeU = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_BORDER,
+        .addressModeV = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_BORDER,
+        .addressModeW = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_BORDER,
+        .mipLodBias = 0.0f,
+        .anisotropyEnable = VK_FALSE,
+        .maxAnisotropy = 0.0f,
+        .compareEnable = VK_FALSE,
+        .compareOp = VK_COMPARE_OP_NEVER,
+        .minLod = 0.0f,
+        .maxLod = 0.0f,
+        .borderColor = VK_BORDER_COLOR_FLOAT_OPAQUE_BLACK,
+        .unnormalizedCoordinates = VK_FALSE,
+    };
+    const VkSamplerCubicWeightsCreateInfoQCOM ci_qcom_nn{
+        .sType = VK_STRUCTURE_TYPE_SAMPLER_CUBIC_WEIGHTS_CREATE_INFO_QCOM,
+        .pNext = nullptr,
+        .cubicWeights = qcom_weights
+    };
+    // If not specified, assume Catmull-Rom
+    if (qcom_weights != VK_CUBIC_FILTER_WEIGHTS_CATMULL_ROM_QCOM)
+        ci_nn.pNext = &ci_qcom_nn;
     return device.GetLogical().CreateSampler(ci_nn);
 }
 

@@ -1,0 +1,19 @@
+name: tx-src
+
+on:
+  push:
+    branches: [ master ]
+
+jobs:
+  sources:
+    runs-on: source
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Push New Sources
+        run: |
+          export PATH=/usr/lib/qt6/bin:$PATH
+          ./tools/translations/qt-source.sh
+          tx-cli push -s

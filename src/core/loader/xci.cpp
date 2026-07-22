@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2018 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -44,10 +47,13 @@ AppLoader_XCI::~AppLoader_XCI() = default;
 FileType AppLoader_XCI::IdentifyType(const FileSys::VirtualFile& xci_file) {
     const FileSys::XCI xci(xci_file);
 
-    if (xci.GetStatus() == ResultStatus::Success &&
-        xci.GetNCAByType(FileSys::NCAContentType::Program) != nullptr &&
-        AppLoader_NCA::IdentifyType(xci.GetNCAFileByType(FileSys::NCAContentType::Program)) ==
-            FileType::NCA) {
+    if (xci.GetStatus() != ResultStatus::Success) {
+        return FileType::Error;
+    }
+
+    // Identify XCI as a valid container even when it does not include a bootable Program NCA.
+    // Bootability is handled by AppLoader_XCI::Load().
+    if (xci.GetSecurePartitionNSP() != nullptr) {
         return FileType::XCI;
     }
 

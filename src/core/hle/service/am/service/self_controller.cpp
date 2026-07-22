@@ -1,7 +1,10 @@
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2024 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
-#include "common/logging/log.h"
+#include "common/logging.h"
 #include "core/hle/result.h"
 #include "core/hle/service/am/am_results.h"
 #include "core/hle/service/am/frontend/applets.h"
@@ -43,8 +46,8 @@ ISelfController::ISelfController(Core::System& system_, std::shared_ptr<Applet> 
         {42, D<&ISelfController::GetSystemSharedLayerHandle>, "GetSystemSharedLayerHandle"},
         {43, D<&ISelfController::GetSystemSharedBufferHandle>, "GetSystemSharedBufferHandle"},
         {44, D<&ISelfController::CreateManagedDisplaySeparableLayer>, "CreateManagedDisplaySeparableLayer"},
-        {45, D<&ISelfController::SetManagedDisplayLayerSeparationMode>, "SetManagedDisplayLayerSeparationMode"},
-        {46, D<&ISelfController::SetRecordingLayerCompositionEnabled>, "SetRecordingLayerCompositionEnabled"},
+        {45, nullptr, "SetManagedDisplayLayerSeparationMode"},
+        {46, nullptr, "SetRecordingLayerCompositionEnabled"},
         {50, D<&ISelfController::SetHandlesRequestToDisplay>, "SetHandlesRequestToDisplay"},
         {51, D<&ISelfController::ApproveToDisplay>, "ApproveToDisplay"},
         {60, D<&ISelfController::OverrideAutoSleepTimeAndDimmingTime>, "OverrideAutoSleepTimeAndDimmingTime"},
@@ -148,7 +151,7 @@ Result ISelfController::GetLibraryAppletLaunchableEvent(
     OutCopyHandle<Kernel::KReadableEvent> out_event) {
     LOG_WARNING(Service_AM, "(STUBBED) called");
 
-    m_applet->library_applet_launchable_event.Signal();
+    m_applet->library_applet_launchable_event.Signal(system.Kernel());
     *out_event = m_applet->library_applet_launchable_event.GetHandle();
 
     R_SUCCEED();
@@ -167,7 +170,7 @@ Result ISelfController::SetOperationModeChangedNotification(bool enabled) {
     LOG_INFO(Service_AM, "called, enabled={}", enabled);
 
     std::scoped_lock lk{m_applet->lock};
-    m_applet->lifecycle_manager.SetOperationModeChangedNotificationEnabled(enabled);
+    m_applet->lifecycle_manager.SetOperationModeChangedNotificationEnabled(system.Kernel(), enabled);
 
     R_SUCCEED();
 }
@@ -176,7 +179,7 @@ Result ISelfController::SetPerformanceModeChangedNotification(bool enabled) {
     LOG_INFO(Service_AM, "called, enabled={}", enabled);
 
     std::scoped_lock lk{m_applet->lock};
-    m_applet->lifecycle_manager.SetPerformanceModeChangedNotificationEnabled(enabled);
+    m_applet->lifecycle_manager.SetPerformanceModeChangedNotificationEnabled(system.Kernel(), enabled);
 
     R_SUCCEED();
 }
@@ -185,7 +188,7 @@ Result ISelfController::SetFocusHandlingMode(bool notify, bool background, bool 
     LOG_INFO(Service_AM, "called, notify={} background={} suspend={}", notify, background, suspend);
 
     std::scoped_lock lk{m_applet->lock};
-    m_applet->lifecycle_manager.SetFocusStateChangedNotificationEnabled(notify);
+    m_applet->lifecycle_manager.SetFocusStateChangedNotificationEnabled(system.Kernel(), notify);
     m_applet->lifecycle_manager.SetFocusHandlingMode(suspend);
     m_applet->UpdateSuspensionStateLocked(true);
 
@@ -264,21 +267,11 @@ Result ISelfController::CreateManagedDisplayLayer(Out<u64> out_layer_id) {
 
 Result ISelfController::CreateManagedDisplaySeparableLayer(Out<u64> out_layer_id,
                                                            Out<u64> out_recording_layer_id) {
-    LOG_INFO(Service_AM, "called");
+    LOG_WARNING(Service_AM, "(STUBBED) called");
 
     std::scoped_lock lk{m_applet->lock};
     R_RETURN(m_applet->display_layer_manager.CreateManagedDisplaySeparableLayer(
         out_layer_id, out_recording_layer_id));
-}
-
-Result ISelfController::SetManagedDisplayLayerSeparationMode(bool enabled) {
-    LOG_INFO(Service_AM, "(STUBBED) called, enabled={}", enabled);
-    R_SUCCEED();
-}
-
-Result ISelfController::SetRecordingLayerCompositionEnabled(bool enabled) {
-    LOG_INFO(Service_AM, "(STUBBED) called, enabled={}", enabled);
-    R_SUCCEED();
 }
 
 Result ISelfController::SetHandlesRequestToDisplay(bool enable) {
@@ -364,7 +357,7 @@ Result ISelfController::GetAccumulatedSuspendedTickValue(
     LOG_DEBUG(Service_AM, "called.");
 
     // This command returns the total number of system ticks since ISelfController creation
-    // where the game was suspended. Since Suyu doesn't implement game suspension, this command
+    // where the game was suspended. Since Yuzu doesn't implement game suspension, this command
     // can just always return 0 ticks.
     std::scoped_lock lk{m_applet->lock};
     *out_accumulated_suspended_tick_value = m_applet->suspended_ticks;
@@ -415,10 +408,11 @@ Result ISelfController::SetRecordVolumeMuted(bool muted) {
     R_SUCCEED();
 }
 
-Result ISelfController::Unknown230(u32 value, Out<u16> out_value) {
-    LOG_INFO(Service_AM, "(STUBBED) called, value={}", value);
+Result ISelfController::Unknown230(u32 in_val, Out<u16> out_val) {
+    LOG_WARNING(Service_AM, "(STUBBED) called, in_val={}", in_val);
 
-    *out_value = 0;
+    *out_val = 0;
+
     R_SUCCEED();
 }
 

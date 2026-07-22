@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2023 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
@@ -67,10 +70,9 @@ IHidSystemServer::IHidSystemServer(Core::System& system_, std::shared_ptr<Resour
         {328, nullptr, "AttachAbstractedPadToNpad"},
         {329, nullptr, "DetachAbstractedPadAll"},
         {330, nullptr, "CheckAbstractedPadConnection"},
-        {332, nullptr, "ConvertAppletDetailedUiTypeFromPlayReportType"},
-        {333, nullptr, "SetNpadUserSpgApplet"},
-        {334, nullptr, "AcquireUniquePadButtonStateChangedEventHandle"},
-        {500, nullptr, "SetAppletResourceUserId"},
+        {332, nullptr, "ConvertAppletDetailedUiTypeFromPlayReportType"}, //19.0.0+
+        {333, nullptr, "SetNpadUserSpgApplet"}, //20.0.0+
+        {334, nullptr, "AcquireUniquePadButtonStateChangedEventHandle"}, //20.0.0+
         {501, &IHidSystemServer::RegisterAppletResourceUserId, "RegisterAppletResourceUserId"},
         {502, &IHidSystemServer::UnregisterAppletResourceUserId, "UnregisterAppletResourceUserId"},
         {503, &IHidSystemServer::EnableAppletToGetInput, "EnableAppletToGetInput"},
@@ -99,12 +101,12 @@ IHidSystemServer::IHidSystemServer(Core::System& system_, std::shared_ptr<Resour
         {547, nullptr, "GetAllowedBluetoothLinksCount"},
         {548, &IHidSystemServer::GetRegisteredDevices, "GetRegisteredDevices"},
         {549, nullptr, "GetConnectableRegisteredDevices"},
-        {551, nullptr, "GetRegisteredDevicesForControllerSupport"},
+        {551, nullptr, "GetRegisteredDevicesForControllerSupport"}, //20.0.0+
         {700, nullptr, "ActivateUniquePad"},
         {702, &IHidSystemServer::AcquireUniquePadConnectionEventHandle, "AcquireUniquePadConnectionEventHandle"},
         {703, &IHidSystemServer::GetUniquePadIds, "GetUniquePadIds"},
-        {711, nullptr, "AcquireUniquePadConnectionOnHandheldForNsEventHandle"},
-        {712, nullptr, "GetUniquePadColor12"},
+        {711, nullptr, "AcquireUniquePadConnectionOnHandheldForNsEventHandle"}, //20.0.0+
+        {712, nullptr, "GetUniquePadColor12"}, //20.0.0+
         {751, &IHidSystemServer::AcquireJoyDetachOnBluetoothOffEventHandle, "AcquireJoyDetachOnBluetoothOffEventHandle"},
         {800, nullptr, "ListSixAxisSensorHandles"},
         {801, nullptr, "IsSixAxisSensorUserCalibrationSupported"},
@@ -171,8 +173,8 @@ IHidSystemServer::IHidSystemServer(Core::System& system_, std::shared_ptr<Resour
         {1155, &IHidSystemServer::SetForceHandheldStyleVibration, "SetForceHandheldStyleVibration"},
         {1156, nullptr, "SendConnectionTriggerWithoutTimeoutEvent"},
         {1157, nullptr, "CancelConnectionTrigger"},
-        {1158, nullptr, "SetConnectionLimitForSplay"},
-        {1159, nullptr, "ClearConnectionLimitForSplay"},
+        {1158, nullptr, "SetConnectionLimitForSplay"}, //20.1.0+
+        {1159, nullptr, "ClearConnectionLimitForSplay"}, //20.1.0+
         {1200, nullptr, "IsButtonConfigSupported"},
         {1201, nullptr, "IsButtonConfigEmbeddedSupported"},
         {1202, nullptr, "DeleteButtonConfig"},
@@ -231,17 +233,17 @@ IHidSystemServer::IHidSystemServer(Core::System& system_, std::shared_ptr<Resour
         {1289, nullptr, "SetButtonConfigStorageFull"},
         {1290, nullptr, "DeleteButtonConfigStorageRight"},
         {1291, nullptr, "DeleteButtonConfigStorageRight"},
-        {1308, nullptr, "SetButtonConfigVisible"},
-        {1309, nullptr, "IsButtonConfigVisible"},
-        {1320, nullptr, "WakeTouchScreenUp"},
-        {1321, nullptr, "PutTouchScreenToSleep"},
-        {1322, nullptr, "AcquireTouchScreenAsyncWakeCompletedEvent"},
-        {1323, nullptr, "StartTouchScreenAutoTuneForSystemSettings"},
-        {1324, nullptr, "AcquireTouchScreenAutoTuneCompletedEvent"},
-        {1325, nullptr, "IsTouchScreenAutoTuneRequiredForRepairProviderReplacement"},
-        {1326, nullptr, "SetTouchScreenOffset"},
-        {1420, nullptr, "GetAppletResourceProperty"},
-        {12010, nullptr, "SetButtonConfigLeft"},
+        {1308, nullptr, "SetButtonConfigVisible"}, //18.0.0+
+        {1309, nullptr, "IsButtonConfigVisible"}, //18.0.0+
+        {1320, nullptr, "WakeTouchScreenUp"}, //17.0.0+
+        {1321, nullptr, "PutTouchScreenToSleep"}, //17.0.0+
+        {1322, nullptr, "AcquireTouchScreenAsyncWakeCompletedEvent"}, //20.0.0+
+        {1323, nullptr, "StartTouchScreenAutoTuneForSystemSettings"}, //21.0.0+
+        {1324, nullptr, "AcquireTouchScreenAutoTuneCompletedEvent"}, //21.0.0+
+        {1325, nullptr, "IsTouchScreenAutoTuneRequiredForRepairProviderReplacement"}, //21.0.0+
+        {1326, nullptr, "SetTouchScreenOffset"}, //21.0.0+
+        {1420, nullptr, "GetAppletResourceProperty"}, //19.0.0+
+        {12010, nullptr, "SetButtonConfigLeft"} //11.0.0-17.0.1
     };
     // clang-format on
 
@@ -279,7 +281,7 @@ void IHidSystemServer::ApplyNpadSystemCommonPolicy(HLERequestContext& ctx) {
 
     LOG_INFO(Service_HID, "called, applet_resource_user_id={}", applet_resource_user_id);
 
-    GetResourceManager()->GetNpad()->ApplyNpadSystemCommonPolicy(applet_resource_user_id);
+    GetResourceManager()->GetNpad()->ApplyNpadSystemCommonPolicy(system.Kernel(), applet_resource_user_id);
 
     IPC::ResponseBuilder rb{ctx, 2};
     rb.Push(ResultSuccess);
@@ -326,7 +328,7 @@ void IHidSystemServer::ApplyNpadSystemCommonPolicyFull(HLERequestContext& ctx) {
 
     LOG_INFO(Service_HID, "called, applet_resource_user_id={}", applet_resource_user_id);
 
-    GetResourceManager()->GetNpad()->ApplyNpadSystemCommonPolicyFull(applet_resource_user_id);
+    GetResourceManager()->GetNpad()->ApplyNpadSystemCommonPolicyFull(system.Kernel(), applet_resource_user_id);
 
     IPC::ResponseBuilder rb{ctx, 2};
     rb.Push(ResultSuccess);
@@ -356,9 +358,8 @@ void IHidSystemServer::GetMaskedSupportedNpadStyleSet(HLERequestContext& ctx) {
     LOG_INFO(Service_HID, "called, applet_resource_user_id={}", applet_resource_user_id);
 
     Core::HID::NpadStyleSet supported_styleset{};
-    const auto& npad = GetResourceManager()->GetNpad();
-    const Result result =
-        npad->GetMaskedSupportedNpadStyleSet(applet_resource_user_id, supported_styleset);
+    const auto npad = GetResourceManager()->GetNpad();
+    const Result result = npad->GetMaskedSupportedNpadStyleSet(system.Kernel(), applet_resource_user_id, supported_styleset);
 
     IPC::ResponseBuilder rb{ctx, 3};
     rb.Push(result);
@@ -371,9 +372,8 @@ void IHidSystemServer::SetSupportedNpadStyleSetAll(HLERequestContext& ctx) {
 
     LOG_DEBUG(Service_HID, "called, applet_resource_user_id={}", applet_resource_user_id);
 
-    const auto& npad = GetResourceManager()->GetNpad();
-    const auto result =
-        npad->SetSupportedNpadStyleSet(applet_resource_user_id, Core::HID::NpadStyleSet::All);
+    const auto npad = GetResourceManager()->GetNpad();
+    const auto result = npad->SetSupportedNpadStyleSet(system.Kernel(), applet_resource_user_id, Core::HID::NpadStyleSet::All);
 
     IPC::ResponseBuilder rb{ctx, 2};
     rb.Push(result);
@@ -726,7 +726,7 @@ void IHidSystemServer::AcquireConnectionTriggerTimeoutEvent(HLERequestContext& c
 
     IPC::ResponseBuilder rb{ctx, 2, 1};
     rb.Push(ResultSuccess);
-    rb.PushCopyObjects(acquire_device_registered_event->GetReadableEvent());
+    rb.PushCopyObjects(ctx, acquire_device_registered_event->GetReadableEvent());
 }
 
 void IHidSystemServer::AcquireDeviceRegisteredEventForControllerSupport(HLERequestContext& ctx) {
@@ -734,7 +734,7 @@ void IHidSystemServer::AcquireDeviceRegisteredEventForControllerSupport(HLEReque
 
     IPC::ResponseBuilder rb{ctx, 2, 1};
     rb.Push(ResultSuccess);
-    rb.PushCopyObjects(acquire_device_registered_event->GetReadableEvent());
+    rb.PushCopyObjects(ctx, acquire_device_registered_event->GetReadableEvent());
 }
 
 void IHidSystemServer::GetRegisteredDevices(HLERequestContext& ctx) {
@@ -759,7 +759,7 @@ void IHidSystemServer::AcquireUniquePadConnectionEventHandle(HLERequestContext& 
     LOG_WARNING(Service_HID, "(STUBBED) called");
 
     IPC::ResponseBuilder rb{ctx, 2, 1};
-    rb.PushCopyObjects(unique_pad_connection_event->GetReadableEvent());
+    rb.PushCopyObjects(ctx, unique_pad_connection_event->GetReadableEvent());
     rb.Push(ResultSuccess);
 }
 
@@ -776,7 +776,7 @@ void IHidSystemServer::AcquireJoyDetachOnBluetoothOffEventHandle(HLERequestConte
 
     IPC::ResponseBuilder rb{ctx, 2, 1};
     rb.Push(ResultSuccess);
-    rb.PushCopyObjects(joy_detach_event->GetReadableEvent());
+    rb.PushCopyObjects(ctx, joy_detach_event->GetReadableEvent());
 }
 
 void IHidSystemServer::IsUsbFullKeyControllerEnabled(HLERequestContext& ctx) {

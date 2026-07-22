@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 /* This file is part of the dynarmic project.
@@ -7,14 +7,8 @@
  */
 
 #include <bit>
-#include <mcl/mp/metavalue/lift_value.hpp>
-#include <mcl/mp/typelist/cartesian_product.hpp>
-#include <mcl/mp/typelist/get.hpp>
-#include <mcl/mp/typelist/lift_sequence.hpp>
-#include <mcl/mp/typelist/list.hpp>
-#include <mcl/mp/typelist/lower_to_tuple.hpp>
-#include <mcl/type_traits/function_info.hpp>
-#include <mcl/type_traits/integer_of_size.hpp>
+#include "dynarmic/mcl/function_info.hpp"
+#include "dynarmic/mcl/integer_of_size.hpp"
 #include <oaknut/oaknut.hpp>
 
 #include "dynarmic/backend/arm64/a32_jitstate.h"
@@ -31,7 +25,6 @@
 #include "dynarmic/common/fp/info.h"
 #include "dynarmic/common/fp/op.h"
 #include "dynarmic/common/fp/rounding_mode.h"
-#include "dynarmic/common/lut_from_list.h"
 #include "dynarmic/ir/basic_block.h"
 #include "dynarmic/ir/microinstruction.h"
 #include "dynarmic/ir/opcodes.h"
@@ -39,9 +32,7 @@
 namespace Dynarmic::Backend::Arm64 {
 
 using namespace oaknut::util;
-namespace mp = mcl::mp;
-
-using A64FullVectorWidth = std::integral_constant<size_t, 128>;
+using A64FullVectorWidth = std::integral_constant<std::size_t, 128>;
 
 // Array alias that always sizes itself according to the given type T
 // relative to the size of a vector register. e.g. T = u32 would result
@@ -74,7 +65,7 @@ static void EmitTwoOp(oaknut::CodeGenerator& code, EmitContext& ctx, IR::Inst* i
     MaybeStandardFPSCRValue(code, ctx, fpcr_controlled, [&] { emit(Qresult, Qa); });
 }
 
-template<size_t size, typename EmitFn>
+template<std::size_t size, typename EmitFn>
 static void EmitTwoOpArranged(oaknut::CodeGenerator& code, EmitContext& ctx, IR::Inst* inst, EmitFn emit) {
     EmitTwoOp(code, ctx, inst, [&](auto& Qresult, auto& Qa) {
         if constexpr (size == 16) {
@@ -84,7 +75,7 @@ static void EmitTwoOpArranged(oaknut::CodeGenerator& code, EmitContext& ctx, IR:
         } else if constexpr (size == 64) {
             emit(Qresult->D2(), Qa->D2());
         } else {
-            static_assert(Common::always_false_v<mcl::mp::lift_value<size>>);
+            UNREACHABLE();
         }
     });
 }
@@ -102,7 +93,7 @@ static void EmitThreeOp(oaknut::CodeGenerator& code, EmitContext& ctx, IR::Inst*
     MaybeStandardFPSCRValue(code, ctx, fpcr_controlled, [&] { emit(Qresult, Qa, Qb); });
 }
 
-template<size_t size, typename EmitFn>
+template<std::size_t size, typename EmitFn>
 static void EmitThreeOpArranged(oaknut::CodeGenerator& code, EmitContext& ctx, IR::Inst* inst, EmitFn emit) {
     EmitThreeOp(code, ctx, inst, [&](auto& Qresult, auto& Qa, auto& Qb) {
         if constexpr (size == 16) {
@@ -112,12 +103,12 @@ static void EmitThreeOpArranged(oaknut::CodeGenerator& code, EmitContext& ctx, I
         } else if constexpr (size == 64) {
             emit(Qresult->D2(), Qa->D2(), Qb->D2());
         } else {
-            static_assert(Common::always_false_v<mcl::mp::lift_value<size>>);
+            UNREACHABLE();
         }
     });
 }
 
-template<size_t size, typename EmitFn>
+template<std::size_t size, typename EmitFn>
 static void EmitFMA(oaknut::CodeGenerator& code, EmitContext& ctx, IR::Inst* inst, EmitFn emit) {
     auto args = ctx.reg_alloc.GetArgumentInfo(inst);
     auto Qresult = ctx.reg_alloc.ReadWriteQ(args[0], inst);
@@ -135,12 +126,12 @@ static void EmitFMA(oaknut::CodeGenerator& code, EmitContext& ctx, IR::Inst* ins
         } else if constexpr (size == 64) {
             emit(Qresult->D2(), Qm->D2(), Qn->D2());
         } else {
-            static_assert(Common::always_false_v<mcl::mp::lift_value<size>>);
+            UNREACHABLE();
         }
     });
 }
 
-template<size_t size, typename EmitFn>
+template<std::size_t size, typename EmitFn>
 static void EmitFromFixed(oaknut::CodeGenerator& code, EmitContext& ctx, IR::Inst* inst, EmitFn emit) {
     auto args = ctx.reg_alloc.GetArgumentInfo(inst);
     auto Qto = ctx.reg_alloc.WriteQ(inst);
@@ -157,17 +148,17 @@ static void EmitFromFixed(oaknut::CodeGenerator& code, EmitContext& ctx, IR::Ins
         } else if constexpr (size == 64) {
             emit(Qto->D2(), Qfrom->D2(), fbits);
         } else {
-            static_assert(Common::always_false_v<mcl::mp::lift_value<size>>);
+            UNREACHABLE();
         }
     });
 }
 
-template<size_t fsize, bool is_signed>
+template<std::size_t fsize, bool is_signed>
 void EmitToFixed(oaknut::CodeGenerator& code, EmitContext& ctx, IR::Inst* inst) {
     auto args = ctx.reg_alloc.GetArgumentInfo(inst);
     auto Qto = ctx.reg_alloc.WriteQ(inst);
     auto Qfrom = ctx.reg_alloc.ReadQ(args[0]);
-    const size_t fbits = args[1].GetImmediateU8();
+    const std::size_t fbits = args[1].GetImmediateU8();
     const auto rounding_mode = static_cast<FP::RoundingMode>(args[2].GetImmediateU8());
     const bool fpcr_controlled = inst->GetArg(3).GetU1();
     RegAlloc::Realize(Qto, Qfrom);
@@ -179,7 +170,7 @@ void EmitToFixed(oaknut::CodeGenerator& code, EmitContext& ctx, IR::Inst* inst) 
         } else if constexpr (fsize == 64) {
             return Qto->D2();
         } else {
-            static_assert(Common::always_false_v<mcl::mp::lift_value<fsize>>);
+            UNREACHABLE();
         }
     }();
     auto Vfrom = [&] {
@@ -188,7 +179,7 @@ void EmitToFixed(oaknut::CodeGenerator& code, EmitContext& ctx, IR::Inst* inst) 
         } else if constexpr (fsize == 64) {
             return Qfrom->D2();
         } else {
-            static_assert(Common::always_false_v<mcl::mp::lift_value<fsize>>);
+            UNREACHABLE();
         }
     }();
 
@@ -281,7 +272,7 @@ static void EmitTwoOpFallbackWithoutRegAlloc(oaknut::CodeGenerator& code, EmitCo
     ABI_PopRegisters(code, ABI_CALLER_SAVE & ~(1ull << Qresult.index()), stack_size);
 }
 
-template<size_t fpcr_controlled_arg_index = 1, typename Lambda>
+template<std::size_t fpcr_controlled_arg_index = 1, typename Lambda>
 static void EmitTwoOpFallback(oaknut::CodeGenerator& code, EmitContext& ctx, IR::Inst* inst, Lambda lambda) {
     auto args = ctx.reg_alloc.GetArgumentInfo(inst);
     auto Qarg1 = ctx.reg_alloc.ReadQ(args[0]);
@@ -571,7 +562,7 @@ void EmitIR<IR::Opcode::FPVectorRecipStepFused64>(oaknut::CodeGenerator& code, E
 /// TODO: we have space for a 5th parameter? :)
 template<typename FPT, FP::RoundingMode rounding_mode, bool exact>
 static void EmitIRVectorRoundInt16Thunk(VectorArray<FPT>& output, const VectorArray<FPT>& input, FP::FPCR fpcr, FP::FPSR& fpsr) {
-    for (size_t i = 0; i < output.size(); ++i)
+    for (std::size_t i = 0; i < output.size(); ++i)
         output[i] = FPT(FP::FPRoundInt<FPT>(input[i], fpcr, rounding_mode, exact, fpsr));
 }
 
@@ -645,8 +636,9 @@ void EmitIR<IR::Opcode::FPVectorRoundInt32>(oaknut::CodeGenerator& code, EmitCon
             case FP::RoundingMode::ToNearest_TieAwayFromZero:
                 code.FRINTA(Qresult->S4(), Qoperand->S4());
                 break;
+            default:
+                UNREACHABLE();
             }
-            UNREACHABLE();
         }
     });
 }
@@ -684,8 +676,9 @@ void EmitIR<IR::Opcode::FPVectorRoundInt64>(oaknut::CodeGenerator& code, EmitCon
             case FP::RoundingMode::ToNearest_TieAwayFromZero:
                 code.FRINTA(Qresult->D2(), Qoperand->D2());
                 break;
+            default:
+                UNREACHABLE();
             }
-            UNREACHABLE();
         }
     });
 }

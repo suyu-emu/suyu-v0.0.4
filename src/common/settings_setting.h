@@ -1,16 +1,18 @@
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2023 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
 #pragma once
 
+#include <algorithm>
 #include <limits>
-#include <map>
 #include <optional>
 #include <stdexcept>
 #include <string>
-#include <typeindex>
-#include <typeinfo>
-#include <fmt/core.h>
+#include <type_traits>
+#include <fmt/ranges.h>
 #include "common/common_types.h"
 #include "common/settings_common.h"
 #include "common/settings_enums.h"
@@ -69,9 +71,16 @@ public:
                      u32 specialization_ = Specialization::Default, bool save_ = true,
                      bool runtime_modifiable_ = false, BasicSetting* other_setting_ = nullptr)
         requires(ranged)
-        : BasicSetting(linkage, name, category_, save_, runtime_modifiable_, specialization_,
-                       other_setting_),
+        : BasicSetting(linkage, name, category_, save_, runtime_modifiable_, specialization_, other_setting_),
           value{default_val}, default_value{default_val}, maximum{max_val}, minimum{min_val} {}
+
+    explicit Setting(Linkage& linkage, const Type& default_val,
+                     const std::string& name, Category category_,
+                     u32 specialization_ = Specialization::Default, bool save_ = true,
+                     bool runtime_modifiable_ = false, BasicSetting* other_setting_ = nullptr)
+        requires(ranged && std::is_enum_v<Type>)
+        : BasicSetting(linkage, name, category_, save_, runtime_modifiable_, specialization_, other_setting_),
+          value{default_val}, default_value{default_val}, maximum{EnumMetadata<Type>::GetLast()}, minimum{EnumMetadata<Type>::GetFirst()} {}
 
     /**
      *  Returns a reference to the setting's value.
@@ -91,7 +100,15 @@ public:
      * @param val The desired value
      */
     virtual void SetValue(const Type& val) {
-        Type temp{ranged ? std::clamp(val, minimum, maximum) : val};
+        // Enums have a maximal range which they're allowed
+        Type temp{};
+        if constexpr (std::is_enum_v<Type>) {
+            auto const r_min = std::underlying_type_t<Type>(0);
+            auto const r_max = std::underlying_type_t<Type>(EnumMetadata<Type>::GetLast());
+            temp = Type(std::clamp(std::underlying_type_t<Type>(val), r_min, r_max));
+        } else {
+            temp = ranged ? std::clamp(val, this->minimum, this->maximum) : val;
+        }
         std::swap(value, temp);
     }
 
@@ -116,13 +133,10 @@ protected:
             return value_.has_value() ? std::to_string(*value_) : "none";
         } else if constexpr (std::is_same_v<Type, bool>) {
             return value_ ? "true" : "false";
-        } else if constexpr (std::is_same_v<Type, AudioEngine>) {
-            // Compatibility with old AudioEngine setting being a string
-            return CanonicalizeEnum(value_);
         } else if constexpr (std::is_floating_point_v<Type>) {
             return fmt::format("{:f}", value_);
         } else if constexpr (std::is_enum_v<Type>) {
-            return std::to_string(static_cast<u32>(value_));
+            return std::to_string(std::underlying_type_t<Type>(value_));
         } else {
             return std::to_string(value_);
         }
@@ -185,15 +199,13 @@ public:
             if constexpr (std::is_same_v<Type, std::string>) {
                 this->SetValue(input);
             } else if constexpr (std::is_same_v<Type, std::optional<u32>>) {
-                this->SetValue(static_cast<u32>(std::stoul(input)));
+                this->SetValue(u32(std::stoul(input)));
             } else if constexpr (std::is_same_v<Type, bool>) {
                 this->SetValue(input == "true");
             } else if constexpr (std::is_same_v<Type, float>) {
                 this->SetValue(std::stof(input));
-            } else if constexpr (std::is_same_v<Type, AudioEngine>) {
-                this->SetValue(ToEnum<AudioEngine>(input));
             } else {
-                this->SetValue(static_cast<Type>(std::stoll(input)));
+                this->SetValue(Type(std::stoll(input)));
             }
         } catch (std::invalid_argument&) {
             this->SetValue(this->GetDefault());
@@ -204,7 +216,7 @@ public:
 
     [[nodiscard]] std::string Canonicalize() const override final {
         if constexpr (std::is_enum_v<Type>) {
-            return CanonicalizeEnum(this->GetValue());
+            return std::string{CanonicalizeEnum(this->GetValue())};
         } else {
             return ToString(this->GetValue());
         }
@@ -215,15 +227,21 @@ public:
      *
      * @returns the type_index of the setting's type
      */
-    [[nodiscard]] std::type_index TypeId() const override final {
-        return std::type_index(typeid(Type));
+    [[nodiscard]] std::string_view TypeId() const override final {
+        if constexpr (std::is_same_v<Type, std::string>) {
+            return "string";
+        } else if constexpr (std::is_same_v<Type, bool>) {
+            return "bool";
+        } else {
+            return "other";
+        }
     }
 
     [[nodiscard]] constexpr u32 EnumIndex() const override final {
         if constexpr (std::is_enum_v<Type>) {
             return EnumMetadata<Type>::Index();
         } else {
-            return std::numeric_limits<u32>::max();
+            return (std::numeric_limits<u32>::max)();
         }
     }
 
@@ -237,14 +255,14 @@ public:
 
     [[nodiscard]] std::string MinVal() const override final {
         if constexpr (std::is_arithmetic_v<Type> && !ranged) {
-            return this->ToString(std::numeric_limits<Type>::min());
+            return this->ToString((std::numeric_limits<Type>::min)());
         } else {
             return this->ToString(minimum);
         }
     }
     [[nodiscard]] std::string MaxVal() const override final {
         if constexpr (std::is_arithmetic_v<Type> && !ranged) {
-            return this->ToString(std::numeric_limits<Type>::max());
+            return this->ToString((std::numeric_limits<Type>::max)());
         } else {
             return this->ToString(maximum);
         }
@@ -285,41 +303,32 @@ public:
      * @param other_setting_ A second Setting to associate to this one in metadata
      */
     template <typename T = BasicSetting>
-    explicit SwitchableSetting(Linkage& linkage, const Type& default_val, const std::string& name,
-                               Category category_, u32 specialization_ = Specialization::Default,
-                               bool save_ = true, bool runtime_modifiable_ = false,
-                               typename std::enable_if<!ranged, T*>::type other_setting_ = nullptr)
-        : Setting<Type, false>{
-              linkage, default_val,         name,          category_, specialization_,
-              save_,   runtime_modifiable_, other_setting_} {
+    explicit SwitchableSetting(Linkage& linkage, const Type& default_val, const std::string& name, Category category_, u32 specialization_ = Specialization::Default, bool save_ = true, bool runtime_modifiable_ = false, T* other_setting_ = nullptr) requires(!ranged)
+        : Setting<Type, false>{ linkage, default_val, name, category_, specialization_, save_, runtime_modifiable_, other_setting_} {
         linkage.restore_functions.emplace_back([this]() { this->SetGlobal(true); });
     }
     virtual ~SwitchableSetting() = default;
 
-    /**
-     * Sets a default value, minimum value, maximum value, and label.
-     *
-     * @param linkage Setting registry
-     * @param default_val Initial value of the setting, and default value of the setting
-     * @param min_val Sets the minimum allowed value of the setting
-     * @param max_val Sets the maximum allowed value of the setting
-     * @param name Label for the setting
-     * @param category_ Category of the setting AKA INI group
-     * @param specialization_ Suggestion for how frontend implementations represent this in a config
-     * @param save_ Suggests that this should or should not be saved to a frontend config file
-     * @param runtime_modifiable_ Suggests whether this is modifiable while a guest is loaded
-     * @param other_setting_ A second Setting to associate to this one in metadata
-     */
+    /// @brief Sets a default value, minimum value, maximum value, and label.
+    /// @param linkage Setting registry
+    /// @param default_val Initial value of the setting, and default value of the setting
+    /// @param min_val Sets the minimum allowed value of the setting
+    /// @param max_val Sets the maximum allowed value of the setting
+    /// @param name Label for the setting
+    /// @param category_ Category of the setting AKA INI group
+    /// @param specialization_ Suggestion for how frontend implementations represent this in a config
+    /// @param save_ Suggests that this should or should not be saved to a frontend config file
+    /// @param runtime_modifiable_ Suggests whether this is modifiable while a guest is loaded
+    /// @param other_setting_ A second Setting to associate to this one in metadata
     template <typename T = BasicSetting>
-    explicit SwitchableSetting(Linkage& linkage, const Type& default_val, const Type& min_val,
-                               const Type& max_val, const std::string& name, Category category_,
-                               u32 specialization_ = Specialization::Default, bool save_ = true,
-                               bool runtime_modifiable_ = false,
-                               typename std::enable_if<ranged, T*>::type other_setting_ = nullptr)
-        : Setting<Type, true>{linkage,         default_val, min_val,
-                              max_val,         name,        category_,
-                              specialization_, save_,       runtime_modifiable_,
-                              other_setting_} {
+    explicit SwitchableSetting(Linkage& linkage, const Type& default_val, const Type& min_val, const Type& max_val, const std::string& name, Category category_, u32 specialization_ = Specialization::Default, bool save_ = true, bool runtime_modifiable_ = false, T* other_setting_ = nullptr) requires(ranged)
+        : Setting<Type, true>{linkage, default_val, min_val, max_val, name, category_, specialization_, save_, runtime_modifiable_, other_setting_} {
+        linkage.restore_functions.emplace_back([this]() { this->SetGlobal(true); });
+    }
+
+    template <typename T = BasicSetting>
+    explicit SwitchableSetting(Linkage& linkage, const Type& default_val, const std::string& name, Category category_, u32 specialization_ = Specialization::Default, bool save_ = true, bool runtime_modifiable_ = false, T* other_setting_ = nullptr) requires(ranged)
+        : Setting<Type, true>{linkage, default_val, EnumMetadata<Type>::GetFirst(), EnumMetadata<Type>::GetLast(), name, category_, specialization_, save_, runtime_modifiable_, other_setting_} {
         linkage.restore_functions.emplace_back([this]() { this->SetGlobal(true); });
     }
 
@@ -369,7 +378,15 @@ public:
      * @param val The new value
      */
     void SetValue(const Type& val) override final {
-        Type temp{ranged ? std::clamp(val, this->minimum, this->maximum) : val};
+        // Enums have a maximal range which they're allowed
+        Type temp{};
+        if constexpr (std::is_enum_v<Type>) {
+            auto const r_min = std::underlying_type_t<Type>(0);
+            auto const r_max = std::underlying_type_t<Type>(EnumMetadata<Type>::GetLast());
+            temp = Type(std::clamp(std::underlying_type_t<Type>(val), r_min, r_max));
+        } else {
+            temp = ranged ? std::clamp(val, this->minimum, this->maximum) : val;
+        }
         if (use_global) {
             std::swap(this->value, temp);
         } else {

@@ -1,9 +1,12 @@
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2018 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
 #include <memory>
 
-#include "common/logging/log.h"
+#include "common/logging.h"
 #include "core/core.h"
 #include "core/hle/kernel/k_process.h"
 #include "core/hle/kernel/kernel.h"
@@ -276,7 +279,7 @@ void ARP_W::AcquireRegistrar(HLERequestContext& ctx) {
 
     IPC::ResponseBuilder rb{ctx, 2, 0, 1};
     rb.Push(ResultSuccess);
-    rb.PushIpcInterface(registrar);
+    rb.PushIpcInterface(ctx, registrar);
 }
 
 void ARP_W::UnregisterApplicationInstance(HLERequestContext& ctx) {

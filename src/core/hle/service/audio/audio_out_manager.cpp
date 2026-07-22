@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2018 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -11,7 +14,9 @@ namespace Service::Audio {
 using namespace AudioCore::AudioOut;
 
 IAudioOutManager::IAudioOutManager(Core::System& system_)
-    : ServiceFramework{system_, "audout:u"}, impl{std::make_unique<Manager>(system_)} {
+    : ServiceFramework{system_, "audout:u"}
+    , impl(system_)
+{
     // clang-format off
     static const FunctionInfo functions[] = {
         {0, D<&IAudioOutManager::ListAudioOuts>, "ListAudioOuts"},
@@ -94,6 +99,17 @@ Result IAudioOutManager::OpenAudioOutAuto(
                                   .channel_count = out_system.GetChannelCount(),
                                   .sample_format = static_cast<u32>(out_system.GetSampleFormat()),
                                   .state = static_cast<u32>(out_system.GetState())};
+
+    R_SUCCEED();
+}
+
+Result IAudioOutManager::SetAllAudioOutVolume(f32 volume) {
+    std::scoped_lock l{impl->mutex};
+    for (auto& session : impl->sessions) {
+        if (session) {
+            session->GetSystem().SetVolume(volume);
+        }
+    }
 
     R_SUCCEED();
 }

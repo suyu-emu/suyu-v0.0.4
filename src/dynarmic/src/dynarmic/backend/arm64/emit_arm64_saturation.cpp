@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 /* This file is part of the dynarmic project.
@@ -66,7 +66,7 @@ void EmitIR<IR::Opcode::SignedSaturation>(oaknut::CodeGenerator& code, EmitConte
     const auto overflow_inst = inst->GetAssociatedPseudoOperation(IR::Opcode::GetOverflowFromOp);
 
     auto args = ctx.reg_alloc.GetArgumentInfo(inst);
-    const size_t N = args[1].GetImmediateU8();
+    const std::size_t N = args[1].GetImmediateU8();
     ASSERT(N >= 1 && N <= 32);
 
     if (N == 32) {
@@ -112,7 +112,7 @@ void EmitIR<IR::Opcode::UnsignedSaturation>(oaknut::CodeGenerator& code, EmitCon
     RegAlloc::Realize(Wresult, Woperand);
     ctx.reg_alloc.SpillFlags();
 
-    const size_t N = args[1].GetImmediateU8();
+    const std::size_t N = args[1].GetImmediateU8();
     ASSERT(N <= 31);
     const u32 saturated_value = (1u << N) - 1;
 

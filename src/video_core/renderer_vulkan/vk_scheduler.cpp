@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2019 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -6,11 +9,15 @@
 #include <thread>
 #include <utility>
 
+#include <fmt/format.h>
+
 #include "video_core/renderer_vulkan/vk_query_cache.h"
 
-#include "common/microprofile.h"
+#include "common/settings.h"
 #include "common/thread.h"
+#include "video_core/gpu_logging/gpu_logging.h"
 #include "video_core/renderer_vulkan/vk_command_pool.h"
+#include "video_core/renderer_vulkan/vk_graphics_pipeline.h"
 #include "video_core/renderer_vulkan/vk_master_semaphore.h"
 #include "video_core/renderer_vulkan/vk_scheduler.h"
 #include "video_core/renderer_vulkan/vk_state_tracker.h"
@@ -19,8 +26,6 @@
 #include "video_core/vulkan_common/vulkan_wrapper.h"
 
 namespace Vulkan {
-
-MICROPROFILE_DECLARE(Vulkan_WaitForWorker);
 
 void Scheduler::CommandChunk::ExecuteAll(vk::CommandBuffer cmdbuf,
                                          vk::CommandBuffer upload_cmdbuf) {
@@ -41,6 +46,7 @@ Scheduler::Scheduler(const Device& device_, StateTracker& state_tracker_)
     : device{device_}, state_tracker{state_tracker_},
       master_semaphore{std::make_unique<MasterSemaphore>(device)},
       command_pool{std::make_unique<CommandPool>(*master_semaphore, device)} {
+
     AcquireNewChunk();
     AllocateWorkerCommandBuffer();
     worker_thread = std::jthread([this](std::stop_token token) { WorkerThread(token); });
@@ -64,7 +70,6 @@ void Scheduler::Finish(VkSemaphore signal_semaphore, VkSemaphore wait_semaphore)
 }
 
 void Scheduler::WaitWorker() {
-    MICROPROFILE_SCOPE(Vulkan_WaitForWorker);
     DispatchWork();
 
     // Ensure the queue is drained.
@@ -78,15 +83,14 @@ void Scheduler::WaitWorker() {
 }
 
 void Scheduler::DispatchWork() {
-    if (chunk->Empty()) {
-        return;
+    if (chunk && !chunk->Empty()) {
+        {
+            std::scoped_lock ql{queue_mutex};
+            work_queue.push(std::move(chunk));
+        }
+        event_cv.notify_all();
+        AcquireNewChunk();
     }
-    {
-        std::scoped_lock ql{queue_mutex};
-        work_queue.push(std::move(chunk));
-    }
-    event_cv.notify_all();
-    AcquireNewChunk();
 }
 
 void Scheduler::RequestRenderpass(const Framebuffer* framebuffer) {
@@ -102,6 +106,15 @@ void Scheduler::RequestRenderpass(const Framebuffer* framebuffer) {
     state.renderpass = renderpass;
     state.framebuffer = framebuffer_handle;
     state.render_area = render_area;
+
+    // Log render pass begin
+    if (GPU::Logging::IsActive() &&
+        Settings::values.gpu_log_vulkan_calls.GetValue()) {
+        const std::string render_pass_info = fmt::format(
+            "renderArea={}x{}, numImages={}",
+            render_area.width, render_area.height, framebuffer->NumImages());
+        GPU::Logging::GPULogger::GetInstance().LogRenderPassBegin(render_pass_info);
+    }
 
     Record([renderpass, framebuffer_handle, render_area](vk::CommandBuffer cmdbuf) {
         const VkRenderPassBeginInfo renderpass_bi{
@@ -130,9 +143,27 @@ void Scheduler::RequestOutsideRenderPassOperationContext() {
 
 bool Scheduler::UpdateGraphicsPipeline(GraphicsPipeline* pipeline) {
     if (state.graphics_pipeline == pipeline) {
+        if (pipeline && pipeline->UsesExtendedDynamicState() &&
+            state.needs_state_enable_refresh) {
+            state_tracker.InvalidateStateEnableFlag();
+            state.needs_state_enable_refresh = false;
+        }
         return false;
     }
+
     state.graphics_pipeline = pipeline;
+
+    if (!pipeline) {
+        return true;
+    }
+
+    if (!pipeline->UsesExtendedDynamicState()) {
+        state.needs_state_enable_refresh = true;
+    } else if (state.needs_state_enable_refresh) {
+        state_tracker.InvalidateStateEnableFlag();
+        state.needs_state_enable_refresh = false;
+    }
+
     return true;
 }
 
@@ -166,7 +197,7 @@ void Scheduler::WorkerThread(std::stop_token stop_token) {
             std::unique_lock lk{queue_mutex};
 
             // Wait for work.
-            Common::CondvarWait(event_cv, lk, stop_token, [&] { return TryPopQueue(work); });
+            event_cv.wait(lk, stop_token, [&] { return TryPopQueue(work); });
 
             // If we've been asked to stop, we're done.
             if (stop_token.stop_requested()) {
@@ -228,8 +259,7 @@ u64 Scheduler::SubmitExecution(VkSemaphore signal_semaphore, VkSemaphore wait_se
             .srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT,
             .dstAccessMask = VK_ACCESS_MEMORY_READ_BIT | VK_ACCESS_MEMORY_WRITE_BIT,
         };
-        upload_cmdbuf.PipelineBarrier(VK_PIPELINE_STAGE_TRANSFER_BIT,
-                                      VK_PIPELINE_STAGE_ALL_COMMANDS_BIT, 0, WRITE_BARRIER);
+        upload_cmdbuf.PipelineBarrier(VK_PIPELINE_STAGE_TRANSFER_BIT, VK_PIPELINE_STAGE_ALL_COMMANDS_BIT, 0, WRITE_BARRIER);
         upload_cmdbuf.End();
         cmdbuf.End();
 
@@ -241,6 +271,12 @@ u64 Scheduler::SubmitExecution(VkSemaphore signal_semaphore, VkSemaphore wait_se
         switch (const VkResult result = master_semaphore->SubmitQueue(
                     cmdbuf, upload_cmdbuf, signal_semaphore, wait_semaphore, signal_value)) {
         case VK_SUCCESS:
+            // Log successful queue submission
+            if (GPU::Logging::IsActive() &&
+                Settings::values.gpu_log_vulkan_calls.GetValue()) {
+                GPU::Logging::GPULogger::GetInstance().LogVulkanCall(
+                    "vkQueueSubmit", "", VK_SUCCESS);
+            }
             break;
         case VK_ERROR_DEVICE_LOST:
             device.ReportLoss();
@@ -257,16 +293,6 @@ u64 Scheduler::SubmitExecution(VkSemaphore signal_semaphore, VkSemaphore wait_se
 
 void Scheduler::AllocateNewContext() {
     // Enable counters once again. These are disabled when a command buffer is finished.
-    if (query_cache) {
-#if ANDROID
-        if (Settings::IsGPULevelHigh()) {
-            // This is problematic on Android, disable on GPU Normal.
-            query_cache->NotifySegment(true);
-        }
-#else
-        query_cache->NotifySegment(true);
-#endif
-    }
 }
 
 void Scheduler::InvalidateState() {
@@ -276,54 +302,88 @@ void Scheduler::InvalidateState() {
 }
 
 void Scheduler::EndPendingOperations() {
-#if ANDROID
-    if (Settings::IsGPULevelHigh()) {
-        // This is problematic on Android, disable on GPU Normal.
-        // query_cache->DisableStreams();
-    }
-#else
-    // query_cache->DisableStreams();
-#endif
-    query_cache->NotifySegment(false);
+    query_cache->CounterReset(VideoCommon::QueryType::ZPassPixelCount64);
     EndRenderPass();
 }
 
-void Scheduler::EndRenderPass() {
-    if (!state.renderpass) {
-        return;
-    }
-    Record([num_images = num_renderpass_images, images = renderpass_images,
-            ranges = renderpass_image_ranges](vk::CommandBuffer cmdbuf) {
-        std::array<VkImageMemoryBarrier, 9> barriers;
-        for (size_t i = 0; i < num_images; ++i) {
-            barriers[i] = VkImageMemoryBarrier{
-                .sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER,
-                .pNext = nullptr,
-                .srcAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT |
-                                 VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT,
-                .dstAccessMask = VK_ACCESS_SHADER_READ_BIT | VK_ACCESS_SHADER_WRITE_BIT |
-                                 VK_ACCESS_COLOR_ATTACHMENT_READ_BIT |
-                                 VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT |
-                                 VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_READ_BIT |
-                                 VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT,
-                .oldLayout = VK_IMAGE_LAYOUT_GENERAL,
-                .newLayout = VK_IMAGE_LAYOUT_GENERAL,
-                .srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
-                .dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
-                .image = images[i],
-                .subresourceRange = ranges[i],
-            };
+void Scheduler::EndRenderPass()
+    {
+        if (!state.renderpass) {
+            return;
         }
-        cmdbuf.EndRenderPass();
-        cmdbuf.PipelineBarrier(VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT |
-                                   VK_PIPELINE_STAGE_LATE_FRAGMENT_TESTS_BIT |
-                                   VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
-                               VK_PIPELINE_STAGE_ALL_COMMANDS_BIT, 0, nullptr, nullptr,
-                               vk::Span(barriers.data(), num_images));
-    });
-    state.renderpass = nullptr;
-    num_renderpass_images = 0;
-}
+
+        query_cache->CounterClose(VideoCommon::QueryType::StreamingByteCount);
+
+        // Log render pass end
+        if (GPU::Logging::IsActive() &&
+            Settings::values.gpu_log_vulkan_calls.GetValue()) {
+            GPU::Logging::GPULogger::GetInstance().LogRenderPassEnd();
+        }
+
+        query_cache->CounterEnable(VideoCommon::QueryType::ZPassPixelCount64, false);
+        query_cache->NotifySegment(false);
+
+        Record([num_images = num_renderpass_images,
+                       images = renderpass_images,
+                       ranges = renderpass_image_ranges,
+                       has_transform_feedback = device.IsExtTransformFeedbackSupported()](
+                          vk::CommandBuffer cmdbuf) {
+            std::array<VkImageMemoryBarrier, 9> barriers;
+            for (size_t i = 0; i < num_images; ++i) {
+                const VkImageSubresourceRange& range = ranges[i];
+                const bool is_color = (range.aspectMask & VK_IMAGE_ASPECT_COLOR_BIT) != 0;
+                const bool is_depth_stencil = (range.aspectMask
+                                              & (VK_IMAGE_ASPECT_DEPTH_BIT
+                                                 | VK_IMAGE_ASPECT_STENCIL_BIT)) !=0;
+
+                VkAccessFlags src_access = 0;
+
+                if (is_color)
+                    src_access |= VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
+                else if (is_depth_stencil)
+                    src_access |= VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
+                else
+                    src_access |= VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT
+                                  | VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
+
+                barriers[i] = VkImageMemoryBarrier{
+                        .sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER,
+                        .pNext = nullptr,
+                        .srcAccessMask = src_access,
+                        .dstAccessMask = VK_ACCESS_SHADER_READ_BIT | VK_ACCESS_SHADER_WRITE_BIT
+                                         | VK_ACCESS_COLOR_ATTACHMENT_READ_BIT
+                                         | VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT
+                                         | VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_READ_BIT
+                                         | VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT,
+                        .oldLayout = VK_IMAGE_LAYOUT_GENERAL,
+                        .newLayout = VK_IMAGE_LAYOUT_GENERAL,
+                        .srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
+                        .dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
+                        .image = images[i],
+                        .subresourceRange = range,
+                };
+            }
+            cmdbuf.EndRenderPass();
+            cmdbuf.PipelineBarrier(VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT | VK_PIPELINE_STAGE_LATE_FRAGMENT_TESTS_BIT |
+                                   VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT, vk::PIPELINE_STAGE_GRAPHICS_COMPUTE,
+                                   0, nullptr, nullptr, vk::Span(barriers.data(), num_images));
+            if (has_transform_feedback) {
+                static constexpr VkMemoryBarrier XFB_OUTPUT_BARRIER{
+                    .sType = VK_STRUCTURE_TYPE_MEMORY_BARRIER,
+                    .pNext = nullptr,
+                    .srcAccessMask = VK_ACCESS_TRANSFORM_FEEDBACK_WRITE_BIT_EXT,
+                    .dstAccessMask = VK_ACCESS_VERTEX_ATTRIBUTE_READ_BIT | VK_ACCESS_TRANSFER_READ_BIT,
+                };
+                cmdbuf.PipelineBarrier(VK_PIPELINE_STAGE_TRANSFORM_FEEDBACK_BIT_EXT,
+                                       VK_PIPELINE_STAGE_VERTEX_INPUT_BIT | VK_PIPELINE_STAGE_TRANSFER_BIT,
+                                       0, XFB_OUTPUT_BARRIER);
+            }
+        });
+
+        state.renderpass = VkRenderPass{};
+        num_renderpass_images = 0;
+    }
+
 
 void Scheduler::AcquireNewChunk() {
     std::scoped_lock rl{reserve_mutex};

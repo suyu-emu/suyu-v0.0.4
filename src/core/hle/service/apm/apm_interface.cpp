@@ -1,7 +1,10 @@
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2018 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
-#include "common/logging/log.h"
+#include "common/logging.h"
 #include "core/hle/service/apm/apm.h"
 #include "core/hle/service/apm/apm_controller.h"
 #include "core/hle/service/apm/apm_interface.h"
@@ -79,7 +82,7 @@ void APM::OpenSession(HLERequestContext& ctx) {
 
     IPC::ResponseBuilder rb{ctx, 2, 0, 1};
     rb.Push(ResultSuccess);
-    rb.PushIpcInterface<ISession>(system, controller);
+    rb.PushIpcInterface<ISession>(ctx, system, controller);
 }
 
 void APM::GetPerformanceMode(HLERequestContext& ctx) {
@@ -122,7 +125,7 @@ void APM_Sys::GetPerformanceEvent(HLERequestContext& ctx) {
 
     IPC::ResponseBuilder rb{ctx, 2, 0, 1};
     rb.Push(ResultSuccess);
-    rb.PushIpcInterface<ISession>(system, controller);
+    rb.PushIpcInterface<ISession>(ctx, system, controller);
 }
 
 void APM_Sys::SetCpuBoostMode(HLERequestContext& ctx) {

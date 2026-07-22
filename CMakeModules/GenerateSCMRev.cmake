@@ -1,64 +1,59 @@
+# SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+# SPDX-License-Identifier: GPL-3.0-or-later
+
 # SPDX-FileCopyrightText: 2019 yuzu Emulator Project
-# SPDX-FileCopyrightText: 2024 suyu Emulator Project
 # SPDX-License-Identifier: GPL-2.0-or-later
 
-# Gets a UTC timestamp and sets the provided variable to it
+# generate git/build information
+include(GetSCMRev)
+
 function(get_timestamp _var)
     string(TIMESTAMP timestamp UTC)
     set(${_var} "${timestamp}" PARENT_SCOPE)
 endfunction()
 
-# generate git/build information
-include(GetGitRevisionDescription)
-if(NOT GIT_REF_SPEC)
-    get_git_head_revision(GIT_REF_SPEC GIT_REV)
-endif()
-if(NOT GIT_DESC)
-    git_describe(GIT_DESC --always --long --dirty)
-endif()
-if (NOT GIT_BRANCH)
-  git_branch_name(GIT_BRANCH)
-endif()
 get_timestamp(BUILD_DATE)
 
-# Generate cpp with Git revision from template
-# Also if this is a CI build, add the build name (ie: Nightly, Canary) to the scm_rev file as well
-set(REPO_NAME "")
-set(BUILD_VERSION "0")
-set(BUILD_ID ${DISPLAY_VERSION})
-if (BUILD_REPOSITORY)
-  # regex capture the string nightly or canary into CMAKE_MATCH_1
-  string(REGEX MATCH "suyu/suyu-?(.*)" OUTVAR ${BUILD_REPOSITORY})
-  if ("${CMAKE_MATCH_COUNT}" GREATER 0)
-    # capitalize the first letter of each word in the repo name.
-    string(REPLACE "-" ";" REPO_NAME_LIST ${CMAKE_MATCH_1})
-    foreach(WORD ${REPO_NAME_LIST})
-      string(SUBSTRING ${WORD} 0 1 FIRST_LETTER)
-      string(SUBSTRING ${WORD} 1 -1 REMAINDER)
-      string(TOUPPER ${FIRST_LETTER} FIRST_LETTER)
-      set(REPO_NAME "${REPO_NAME}${FIRST_LETTER}${REMAINDER}")
-    endforeach()
-    if (BUILD_TAG)
-      string(REGEX MATCH "${CMAKE_MATCH_1}-([0-9]+)" OUTVAR ${BUILD_TAG})
-      if (${CMAKE_MATCH_COUNT} GREATER 0)
-        set(BUILD_VERSION ${CMAKE_MATCH_1})
-      endif()
-      if (BUILD_VERSION)
-        # This leaves a trailing space on the last word, but we actually want that
-        # because of how it's styled in the title bar.
-        set(BUILD_FULLNAME "${REPO_NAME} ${BUILD_VERSION} ")
-      else()
-        set(BUILD_FULLNAME "")
-      endif()
-    endif()
-  endif()
+if (DEFINED GIT_RELEASE)
+    set(BUILD_VERSION "${GIT_TAG}")
+    set(GIT_REFSPEC "${GIT_RELEASE}")
+    set(IS_DEV_BUILD false)
+else()
+    string(SUBSTRING ${GIT_COMMIT} 0 10 BUILD_VERSION)
+    set(BUILD_VERSION "${BUILD_VERSION}-${GIT_REFSPEC}")
+    set(IS_DEV_BUILD true)
 endif()
 
-if (NOT BUILD_FULLNAME)
-  # Local/development builds should present a stable product version name.
-  set(REPO_NAME "suyu")
-  set(BUILD_FULLNAME "suyu v0.0.4 (Early Access)")
-  set(BUILD_VERSION "0.0.4")
+if (NIGHTLY_BUILD)
+    set(IS_NIGHTLY_BUILD true)
+else()
+    set(IS_NIGHTLY_BUILD false)
 endif()
+
+set(GIT_DESC ${BUILD_VERSION})
+
+# Generate cpp with Git revision from template
+
+# TODO(crueter): Stable releases feed.
+set(BUILD_AUTO_UPDATE_STABLE_REPO "eden-emu/eden")
+set(BUILD_AUTO_UPDATE_STABLE_API "git.eden-emu.dev")
+set(BUILD_AUTO_UPDATE_STABLE_API_PATH "/api/v1/repos/")
+
+set(BUILD_AUTO_UPDATE_API_PATH "/latest/release.json")
+if (NIGHTLY_BUILD)
+    set(BUILD_AUTO_UPDATE_WEBSITE "https://git.eden-emu.dev")
+    set(BUILD_AUTO_UPDATE_API "nightly.eden-emu.dev")
+    set(BUILD_AUTO_UPDATE_REPO "eden-ci/nightly")
+    set(REPO_NAME "Eden Nightly")
+else()
+    set(BUILD_AUTO_UPDATE_WEBSITE "https://git.eden-emu.dev")
+    set(BUILD_AUTO_UPDATE_API "stable.eden-emu.dev")
+    set(BUILD_AUTO_UPDATE_REPO "eden-emu/eden")
+    set(REPO_NAME "Eden")
+endif()
+
+set(BUILD_ID ${GIT_REFSPEC})
+set(BUILD_FULLNAME "${REPO_NAME} ${BUILD_VERSION} ")
+set(CXX_COMPILER "${CMAKE_CXX_COMPILER_ID} ${CMAKE_CXX_COMPILER_VERSION}")
 
 configure_file(scm_rev.cpp.in scm_rev.cpp @ONLY)

@@ -1,207 +1,277 @@
-# SPDX-FileCopyrightText: 2018 yuzu Emulator Project
-# SPDX-FileCopyrightText: 2024 suyu Emulator Project
-# SPDX-FileCopyrightText: Copyright 2024 Torzu Emulator Project
-# SPDX-License-Identifier: GPL-2.0-or-later
+# SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+# SPDX-License-Identifier: GPL-3.0-or-later
 
-cmake_minimum_required(VERSION 3.22)
+cmake_minimum_required(VERSION 3.31)
 
-set(CMAKE_XCODE_GENERATE_TOP_LEVEL_PROJECT OFF)
-set(CMAKE_XCODE_EMIT_RELATIVE_PATH YES)
+project(yuzu)
 
-project(suyu)
-
-# CMake module paths
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/CMakeModules")
+list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/CMakeModules/find")
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/externals/cmake-modules")
 
-# Set CPM cache for better dependency management
-set(CPM_SOURCE_CACHE "${CMAKE_SOURCE_DIR}/.cache/cpm")
+set(CPM_SOURCE_CACHE ${CMAKE_SOURCE_DIR}/.cache/cpm)
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+set(CMAKE_CXX_SCAN_FOR_MODULES 0)
 
 include(DetectPlatform)
 include(DetectArchitecture)
-include(DownloadExternals)
+include(DefaultConfig)
+include(UseLTO)
+include(FasterLinker)
+include(UseCcache)
 include(CMakeDependentOption)
 include(CTest)
+include(CPMUtil)
 
-# Set bundled sdl2/qt as dependent options.
-# OFF by default - using Conan to provide SDL2
-option(ENABLE_SDL2 "Enable the SDL2 frontend" ON)
-# Disabled: Migrated to Conan package manager
-CMAKE_DEPENDENT_OPTION(SUYU_USE_BUNDLED_SDL2 "Download bundled SDL2 binaries" OFF "ENABLE_SDL2;MSVC" OFF)
-# On Linux system SDL2 is likely to be lacking HIDAPI support which have drawbacks but is needed for SDL motion
-# Allow MSVC to compile external SDL2 from externals/ as well
-CMAKE_DEPENDENT_OPTION(SUYU_USE_EXTERNAL_SDL2 "Compile external SDL2" ON "ENABLE_SDL2" OFF)
+if (NOT DEFINED ARCHITECTURE)
+    message(FATAL_ERROR "Architecture didn't make it out of scope, did you delete DetectArchitecture.cmake?")
+endif()
 
-cmake_dependent_option(ENABLE_LIBUSB "Enable the use of LibUSB" ON "NOT ANDROID" OFF)
+# Needed for FFmpeg w/ VAAPI and DRM
+if (PLATFORM_OPENBSD)
+    # OpenBSD 7.8 broke libcxx when upgrading, so we must define the PSTL backend manually
+    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -I${CMAKE_SYSROOT}/usr/X11R6/include -D_LIBCPP_PSTL_BACKEND_SERIAL=1")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -I${CMAKE_SYSROOT}/usr/X11R6/include -D_LIBCPP_PSTL_BACKEND_SERIAL=1")
+    set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -L${CMAKE_SYSROOT}/usr/X11R6/lib")
+elseif (PLATFORM_NETBSD)
+    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -I${CMAKE_SYSROOT}/usr/X11R7/include -I${CMAKE_SYSROOT}/usr/pkg/include/c++/v1")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -I${CMAKE_SYSROOT}/usr/X11R7/include -I${CMAKE_SYSROOT}/usr/pkg/include/c++/v1")
+    set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -L${CMAKE_SYSROOT}/usr/X11R7/lib")
+endif()
 
-option(ENABLE_OPENGL "Enable OpenGL" ON)
-mark_as_advanced(FORCE ENABLE_OPENGL)
+# NetBSD: Fun for the whole family!
+if (PLATFORM_NETBSD)
+    set(ENV{PKG_CONFIG_PATH} "${PKG_CONFIG_PATH}:${CMAKE_SYSROOT}/usr/pkg/lib/ffmpeg7/pkgconfig")
+endif()
+
+cmake_dependent_option(YUZU_STATIC_ROOM "Build a static room executable only (CI only)" OFF "PLATFORM_LINUX" OFF)
+if (YUZU_STATIC_ROOM)
+    set(YUZU_ROOM ON)
+    set(YUZU_ROOM_STANDALONE ON)
+
+    # disable e v e r y t h i n g
+    set(ENABLE_QT OFF)
+    set(YUZU_CMD OFF)
+    set(ENABLE_CUBEB OFF)
+    set(ENABLE_UPDATE_CHECKER OFF)
+    set(USE_DISCORD_PRESENCE OFF)
+    set(BUILD_TESTING OFF)
+    set(ENABLE_WEB_SERVICE OFF)
+    set(ENABLE_LIBUSB OFF)
+
+    # allow static libs for boost though
+    set(Boost_USE_STATIC_LIBS ON)
+    set(CMAKE_FIND_LIBRARY_SUFFIXES ".a")
+    set(OPENSSL_USE_STATIC_LIBS ON)
+    set(OpenSSL_FORCE_SYSTEM ON)
+
+    set(zstd_FORCE_BUNDLED ON)
+    set(fmt_FORCE_BUNDLED ON)
+endif()
+
+# qt stuff
 option(ENABLE_QT "Enable the Qt frontend" ON)
-# Disabled temporarily - Qt6 from Conan builds from source (takes 2+ hours)
-# Re-enable after base Conan migration is validated
-option(ENABLE_QT6 "Allow usage of Qt6 to be attempted" OFF)
-set(QT6_LOCATION "" CACHE PATH "Additional Location to search for Qt6 libraries like C:/Qt/6.3.1/msvc2019_64/")
+option(ENABLE_QT_TRANSLATION "Enable translations for the Qt frontend" OFF)
+option(ENABLE_UPDATE_CHECKER "Enable update checker (for Qt and Android)" OFF)
+cmake_dependent_option(YUZU_USE_QT_MULTIMEDIA "Use QtMultimedia for Camera"  OFF "NOT YUZU_USE_BUNDLED_QT" OFF)
+cmake_dependent_option(YUZU_USE_QT_WEB_ENGINE "Use QtWebEngine for web applet implementation" OFF "NOT YUZU_USE_BUNDLED_QT" OFF)
+set(YUZU_QT_MIRROR "" CACHE STRING "What mirror to use for downloading the bundled Qt libraries")
+cmake_dependent_option(YUZU_USE_BUNDLED_QT "Download bundled Qt binaries" "${MSVC}" "ENABLE_QT" OFF)
 
-option(ENABLE_QT_TRANSLATION "Enable translations for the Qt frontend" ON)
-# Disabled: Migrated to Conan package manager
-CMAKE_DEPENDENT_OPTION(SUYU_USE_BUNDLED_QT "Download bundled Qt binaries" OFF "ENABLE_QT" OFF)
+option(ENABLE_DEBUG_TOOLS "Enable debugging tools (maxwell disassembler, SPIRV translator, etc)" OFF)
 
-option(ENABLE_WEB_SERVICE "Enable web services (telemetry, etc.)" ON)
+# non-linux bundled qt are static
+if (YUZU_USE_BUNDLED_QT AND (APPLE OR NOT UNIX))
+    set(YUZU_STATIC_BUILD ON)
+endif()
 
-option(SUYU_USE_BUNDLED_FFMPEG "Download/Build bundled FFmpeg" "${WIN32}")
+# TODO: does mingw need any of this anymore
+# static stuff
+option(YUZU_STATIC_BUILD "Use static libraries and executables if available" OFF)
 
-option(SUYU_USE_EXTERNAL_VULKAN_HEADERS "Use Vulkan-Headers from externals" ON)
+# TODO: StaticBuild.cmake
+if (YUZU_STATIC_BUILD)
+    # lol
+    set(Boost_USE_STATIC_LIBS ON)
+    set(BUILD_SHARED_LIBS OFF)
 
-option(SUYU_USE_EXTERNAL_VULKAN_SPIRV_TOOLS "Use SPIRV-Tools from externals" ON)
+    ## find .a libs first (static, usually)
+    set(CMAKE_FIND_LIBRARY_SUFFIXES ".a")
 
-option(SUYU_USE_EXTERNAL_VULKAN_UTILITY_LIBRARIES "Use Vulkan-Utility-Libraries from externals" ON)
+    ## some libraries use CMAKE_IMPORT_LIBRARY_SUFFIX e.g. Harfbuzz ##
+    set(CMAKE_IMPORT_LIBRARY_SUFFIX ".a")
 
-option(SUYU_USE_QT_MULTIMEDIA "Use QtMultimedia for Camera" OFF)
+    if (MINGW)
+        # simple hook to reject dynamic libs
+        function(find_library var)
+            # also skip previously-found libraries cuz... yaknow
+            # UNLESS they are dll.a :{
+            if (${var} AND NOT ${var} MATCHES "dll\\.a$")
+                return()
+            endif()
 
-option(SUYU_USE_QT_WEB_ENGINE "Use QtWebEngine for web applet implementation" OFF)
+            _find_library(${var} ${ARGN})
+            if (${var})
+                get_filename_component(lib_name "${${var}}" NAME)
+                if (lib_name MATCHES "dll\\.a$")
+                    unset(${var} CACHE)
+                    set(${var} "${var}-NOTFOUND" CACHE INTERNAL "" FORCE)
+                endif()
+            endif()
+        endfunction()
+
+        # msys2 quazip does not build a static lib
+        set(QuaZip-Qt6_FORCE_BUNDLED ON)
+
+        set(YUZU_USE_BUNDLED_FFMPEG ON)
+        set(YUZU_USE_BUNDLED_SDL3 ON)
+        set(YUZU_USE_BUNDLED_OPENSSL ON)
+
+        set(HTTPLIB_USE_BROTLI_IF_AVAILABLE OFF)
+    elseif(APPLE)
+        set(YUZU_USE_BUNDLED_FFMPEG ON)
+        set(YUZU_USE_BUNDLED_SDL3 ON)
+        set(YUZU_USE_BUNDLED_OPENSSL ON)
+
+        # these libs do not properly provide static libs/let you do it with cmake
+        set(fmt_FORCE_BUNDLED ON)
+        set(SPIRV-Headers_FORCE_BUNDLED ON)
+        set(zstd_FORCE_BUNDLED ON)
+    endif()
+endif()
+
+if (MSVC AND ARCHITECTURE_x86)
+    message(FATAL_ERROR "Attempting to build with the x86 environment is not supported. \
+        This can typically happen if you used the Developer Command Prompt from the start menu; \
+        instead, run vcvars64.bat directly, located at C:/Program Files/Microsoft Visual Studio/2022/Community/VC/Auxiliary/Build/vcvars64.bat")
+endif()
+
+if (CXX_CLANG_CL)
+    # clang-cl prints literally 10000+ warnings without this
+    add_compile_options(
+        $<$<COMPILE_LANGUAGE:C,CXX>:-Wno-unused-command-line-argument>
+        $<$<COMPILE_LANGUAGE:C,CXX>:-Wno-unsafe-buffer-usage>
+        $<$<COMPILE_LANGUAGE:C,CXX>:-Wno-unused-value>
+        $<$<COMPILE_LANGUAGE:C,CXX>:-Wno-extra-semi-stmt>
+        $<$<COMPILE_LANGUAGE:C,CXX>:-Wno-sign-conversion>
+        $<$<COMPILE_LANGUAGE:C,CXX>:-Wno-reserved-identifier>
+        $<$<COMPILE_LANGUAGE:C,CXX>:-Wno-deprecated-declarations>
+        $<$<COMPILE_LANGUAGE:C,CXX>:-Wno-cast-function-type-mismatch>
+        $<$<COMPILE_LANGUAGE:C,CXX>:/EHsc>)
+    # REQUIRED CPU features IN Windows-amd64
+    if (ARCHITECTURE_x86_64)
+        add_compile_options(
+            $<$<COMPILE_LANGUAGE:C,CXX>:-msse4.1>
+            $<$<COMPILE_LANGUAGE:C,CXX>:-mcx16>
+        )
+    endif()
+endif()
+
+# Disable Warnings as Errors for MSVC
+if (MSVC AND NOT CXX_CLANG)
+    # This was dripping into spirv, being overriden, and causing cl flag override warning
+    # set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /W3 /WX-")
+    set(CMAKE_CXX_FLAGS_INIT "${CMAKE_CXX_FLAGS_INIT} /W3 /WX-")
+endif()
+
+# Set runtime library to MD/MDd for all configurations
+if(MSVC)
+    if (YUZU_USE_BUNDLED_QT AND ARCHITECTURE_arm64)
+        set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
+        set(libflag MT)
+    else()
+        set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>DLL")
+        set(libflag MD)
+    endif()
+
+    # Force all projects (including external dependencies) to use the same runtime
+    set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} /${libflag}")
+    set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} /${libflag}d")
+    set(CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS_RELEASE} /${libflag}")
+    set(CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS_DEBUG} /${libflag}d")
+
+    # Add this to ensure Cubeb uses the same runtime
+    add_compile_options(
+        $<$<COMPILE_LANGUAGE:C,CXX>:$<$<CONFIG:Debug>:/${libflag}d>>
+        $<$<COMPILE_LANGUAGE:C,CXX>:$<$<CONFIG:Release>:/${libflag}>>
+        $<$<COMPILE_LANGUAGE:C,CXX>:$<$<CONFIG:RelWithDebInfo>:/${libflag}>>
+        $<$<COMPILE_LANGUAGE:C,CXX>:$<$<CONFIG:MinSizeRel>:/${libflag}>>)
+endif()
+
+# TODO(crueter): Cleanup, each dep that has a bundled option should allow to choose between bundled, external, system
+cmake_dependent_option(YUZU_USE_BUNDLED_SDL3 "Download bundled SDL3 build" "${MSVC}" "NOT ANDROID" OFF)
 
 option(ENABLE_CUBEB "Enables the cubeb audio backend" ON)
 
-option(USE_DISCORD_PRESENCE "Enables Discord Rich Presence" OFF)
-
-option(SUYU_TESTS "Compile tests" ON)
-
-option(SUYU_USE_PRECOMPILED_HEADERS "Use precompiled headers" ON)
-
-option(SUYU_DOWNLOAD_ANDROID_VVL "Download validation layer binary for android" ON)
-
-CMAKE_DEPENDENT_OPTION(SUYU_ROOM "Compile LDN room server" ON "NOT ANDROID" OFF)
-
-option(SUZU_CMD "Compile the -cmd executable (can disable if -cmd is unused)" ON)
-
-CMAKE_DEPENDENT_OPTION(SUYU_CRASH_DUMPS "Compile crash dump (Minidump) support" OFF "WIN32 OR LINUX" OFF)
-
-option(ENABLE_NXDUMPTOOL "Enable nxdumptool integration" OFF)
-option(ENABLE_NXOPTIMIZER "Enable NXOptimizer integration" OFF)
-option(ENABLE_OWNFOIL "Enable ownfoil integration" OFF)
-option(ENABLE_NXAPI "Enable nxapi integration" OFF)
-
-# Disabled: Migrated to Conan package manager
-option(SUYU_USE_BUNDLED_VCPKG "Use vcpkg for suyu dependencies" OFF)
-
-option(SUYU_CHECK_SUBMODULES "Check if submodules are present" ON)
-
-option(SUYU_ENABLE_LTO "Enable link-time optimization" OFF)
-
-option(SUYU_DOWNLOAD_TIME_ZONE_DATA "Always download time zone binaries" OFF)
-
-option(SUYU_ENABLE_PORTABLE "Allow suyu to enable portable mode if a user folder is found in the CWD" ON)
-
-CMAKE_DEPENDENT_OPTION(SUYU_USE_FASTER_LD "Check if a faster linker is available" ON "NOT WIN32" OFF)
-
-CMAKE_DEPENDENT_OPTION(USE_SYSTEM_MOLTENVK "Use the system MoltenVK lib (instead of the bundled one)" OFF "APPLE" OFF)
-
-option(USE_CCACHE "Use CCache for faster building" ON)
-
-set(DEFAULT_ENABLE_OPENSSL ON)
-if (ANDROID)
-    # Android currently has no SSL backend as the NDK doesn't include any SSL
-    # library; a proper 'native' backend would have to go through Java.
-    set(DEFAULT_ENABLE_OPENSSL OFF)
-endif()
-option(ENABLE_OPENSSL "Enable OpenSSL backend for ISslConnection" ${DEFAULT_ENABLE_OPENSSL})
-
-if (ANDROID AND SUYU_DOWNLOAD_ANDROID_VVL)
-    set(vvl_version "sdk-1.3.261.1")
-    set(vvl_zip_file "${CMAKE_BINARY_DIR}/externals/vvl-android.zip")
-    if (NOT EXISTS "${vvl_zip_file}")
-        # Download and extract validation layer release to externals directory
-        set(vvl_base_url "https://github.com/KhronosGroup/Vulkan-ValidationLayers/releases/download")
-        file(DOWNLOAD "${vvl_base_url}/${vvl_version}/android-binaries-${vvl_version}-android.zip"
-            "${vvl_zip_file}" SHOW_PROGRESS)
-        execute_process(COMMAND ${CMAKE_COMMAND} -E tar xf "${vvl_zip_file}"
-                        WORKING_DIRECTORY "${CMAKE_BINARY_DIR}/externals")
-    endif()
-
-    # Copy the arm64 binary to src/android/app/main/jniLibs
-    set(vvl_lib_path "${CMAKE_CURRENT_SOURCE_DIR}/src/android/app/src/main/jniLibs/arm64-v8a/")
-    file(COPY "${CMAKE_BINARY_DIR}/externals/android-binaries-${vvl_version}/arm64-v8a/libVkLayer_khronos_validation.so"
-            DESTINATION "${vvl_lib_path}")
+set(EXT_DEFAULT OFF)
+if (MSVC OR ANDROID)
+    set(EXT_DEFAULT ON)
 endif()
 
-if (ANDROID)
-    set(CMAKE_SKIP_INSTALL_RULES ON)
+# ffmpeg
+option(YUZU_USE_BUNDLED_FFMPEG "Download bundled FFmpeg" ${EXT_DEFAULT})
+cmake_dependent_option(YUZU_USE_EXTERNAL_FFMPEG "Build FFmpeg from external source" "${PLATFORM_SUN}" "NOT WIN32 AND NOT ANDROID" OFF)
+
+# sirit
+set(BUNDLED_SIRIT_DEFAULT OFF)
+if (MSVC AND NOT (CMAKE_BUILD_TYPE MATCHES "Deb") OR ANDROID)
+    set(BUNDLED_SIRIT_DEFAULT ON)
 endif()
 
-if (SUYU_USE_BUNDLED_VCPKG)
-    # Configure vcpkg overlay ports to use custom package definitions
-    set(VCPKG_OVERLAY_PORTS "${CMAKE_SOURCE_DIR}/vcpkg-overlays")
+option(YUZU_USE_BUNDLED_SIRIT "Download bundled sirit" ${BUNDLED_SIRIT_DEFAULT})
 
-    if (ANDROID)
-        set(ENV{ANDROID_NDK_HOME} "${ANDROID_NDK}")
-        list(APPEND VCPKG_MANIFEST_FEATURES "android")
+# FreeBSD 15+ has libusb, versions below should disable it
+cmake_dependent_option(ENABLE_LIBUSB "Enable the use of LibUSB" ON "WIN32 OR PLATFORM_LINUX OR PLATFORM_FREEBSD OR APPLE" OFF)
 
-        if (CMAKE_ANDROID_ARCH_ABI STREQUAL "arm64-v8a")
-            set(VCPKG_TARGET_TRIPLET "arm64-android")
-            # this is to avoid CMake using the host pkg-config to find the host
-            # libraries when building for Android targets
-            set(PKG_CONFIG_EXECUTABLE "aarch64-none-linux-android-pkg-config" CACHE FILEPATH "" FORCE)
-        elseif (CMAKE_ANDROID_ARCH_ABI STREQUAL "x86_64")
-            set(VCPKG_TARGET_TRIPLET "x64-android")
-            set(PKG_CONFIG_EXECUTABLE "x86_64-none-linux-android-pkg-config" CACHE FILEPATH "" FORCE)
-        else()
-            message(FATAL_ERROR "Unsupported Android architecture ${CMAKE_ANDROID_ARCH_ABI}")
-        endif()
-    endif()
+cmake_dependent_option(ENABLE_OPENGL "Enable OpenGL" ON "NOT (WIN32 AND ARCHITECTURE_arm64) AND NOT APPLE" OFF)
+mark_as_advanced(FORCE ENABLE_OPENGL)
 
-    if (MSVC)
-        set(VCPKG_DOWNLOADS_PATH ${PROJECT_SOURCE_DIR}/externals/vcpkg/downloads)
-        set(NASM_VERSION "2.16.01")
-        set(NASM_DESTINATION_PATH ${VCPKG_DOWNLOADS_PATH}/nasm-${NASM_VERSION}-win64.zip)
-        set(NASM_DOWNLOAD_URL "https://git.suyu.dev/suyu/ext-windows-bin/raw/branch/master/nasm/nasm-${NASM_VERSION}-win64.zip")
+option(ENABLE_WEB_SERVICE "Enable web services (telemetry, etc.)" ON)
+option(ENABLE_WIFI_SCAN "Enable WiFi scanning" OFF)
 
-        if (NOT EXISTS ${NASM_DESTINATION_PATH})
-            file(DOWNLOAD ${NASM_DOWNLOAD_URL} ${NASM_DESTINATION_PATH} SHOW_PROGRESS STATUS NASM_STATUS)
+cmake_dependent_option(USE_DISCORD_PRESENCE "Enables Discord Rich Presence" OFF "ENABLE_QT" OFF)
 
-            if (NOT NASM_STATUS EQUAL 0)
-                # Warn and not fail since vcpkg is supposed to download this package for us in the first place
-                message(WARNING "External nasm vcpkg package download from ${NASM_DOWNLOAD_URL} failed with status ${NASM_STATUS}")
-            endif()
-        endif()
-    endif()
+option(YUZU_TESTS "Compile tests" "${BUILD_TESTING}")
 
-    if (SUYU_TESTS)
-        list(APPEND VCPKG_MANIFEST_FEATURES "suyu-tests")
-    endif()
-    if (ENABLE_WEB_SERVICE)
-        list(APPEND VCPKG_MANIFEST_FEATURES "web-service")
-    endif()
-    if (ANDROID)
-        list(APPEND VCPKG_MANIFEST_FEATURES "android")
-    endif()
+# Install udev rules on Linux (mainly for gyros)
+# Only acts on joysticks and nothing else.
+cmake_dependent_option(YUZU_INSTALL_UDEV_RULES "Install udev rules for gyro access" OFF "PLATFORM_LINUX" OFF)
 
-    include(${CMAKE_SOURCE_DIR}/externals/vcpkg/scripts/buildsystems/vcpkg.cmake)
-elseif(NOT "$ENV{VCPKG_TOOLCHAIN_FILE}" STREQUAL "")
-    # Disable manifest mode (use vcpkg classic mode) when using a custom vcpkg installation
-    option(VCPKG_MANIFEST_MODE "")
-    include("$ENV{VCPKG_TOOLCHAIN_FILE}")
+option(YUZU_DOWNLOAD_ANDROID_VVL "Download validation layer binary for android" ON)
+
+option(YUZU_LEGACY "Apply patches that improve compatibility with older GPUs (e.g. Snapdragon 865) at the cost of performance" OFF)
+
+option(NIGHTLY_BUILD "Use Nightly qualifiers in the update checker and build metadata" OFF)
+
+cmake_dependent_option(YUZU_ROOM "Enable dedicated room functionality" ON "NOT ANDROID" OFF)
+cmake_dependent_option(YUZU_ROOM_STANDALONE "Enable standalone room executable" ON "YUZU_ROOM" OFF)
+
+cmake_dependent_option(YUZU_CMD "Compile the eden-cli executable" ON "NOT ANDROID" OFF)
+
+cmake_dependent_option(YUZU_CRASH_DUMPS "Compile crash dump (Minidump) support" OFF "WIN32 OR PLATFORM_LINUX" OFF)
+
+option(YUZU_DOWNLOAD_TIME_ZONE_DATA "Always download time zone binaries" ON)
+set(YUZU_TZDB_PATH "" CACHE STRING "Path to a pre-downloaded timezone database")
+
+cmake_dependent_option(YUZU_USE_BUNDLED_MOLTENVK "Download bundled MoltenVK lib" ON "APPLE" OFF)
+
+option(YUZU_DISABLE_LLVM "Disable LLVM (useful for CI)" OFF)
+
+set(DEFAULT_YUZU_USE_BUNDLED_OPENSSL OFF)
+if (EXT_DEFAULT OR PLATFORM_SUN OR PLATFORM_OPENBSD)
+    set(DEFAULT_YUZU_USE_BUNDLED_OPENSSL ON)
 endif()
 
-if (SUYU_USE_PRECOMPILED_HEADERS)
-    if (MSVC AND CCACHE)
-        # buildcache does not properly cache PCH files, leading to compilation errors.
-        # See https://github.com/mbitsnbites/buildcache/discussions/230
-        message(WARNING "buildcache does not properly support Precompiled Headers. Disabling PCH")
-        set(DYNARMIC_USE_PRECOMPILED_HEADERS OFF CACHE BOOL "" FORCE)
-        set(SUYU_USE_PRECOMPILED_HEADERS OFF CACHE BOOL "" FORCE)
-    endif()
-endif()
-if (SUYU_USE_PRECOMPILED_HEADERS)
-    message(STATUS "Using Precompiled Headers.")
-    set(CMAKE_PCH_INSTANTIATE_TEMPLATES ON)
-endif()
+option(YUZU_USE_BUNDLED_OPENSSL "Download bundled OpenSSL build" ${DEFAULT_YUZU_USE_BUNDLED_OPENSSL})
 
+if (ANDROID AND YUZU_DOWNLOAD_ANDROID_VVL)
+    AddJsonPackage(vulkan-validation-layers)
 
-# Default to a Release build
-get_property(IS_MULTI_CONFIG GLOBAL PROPERTY GENERATOR_IS_MULTI_CONFIG)
-if (NOT IS_MULTI_CONFIG AND NOT CMAKE_BUILD_TYPE)
-    set(CMAKE_BUILD_TYPE "Release" CACHE STRING "Choose the type of build, options are: Debug Release RelWithDebInfo MinSizeRel." FORCE)
-    message(STATUS "Defaulting to a Release build")
+    set(abi ${CMAKE_ANDROID_ARCH_ABI})
+
+    set(vvl_lib_path "${CMAKE_CURRENT_SOURCE_DIR}/src/android/app/src/main/jniLibs/${abi}/")
+    file(COPY "${vulkan-validation-layers_SOURCE_DIR}/${abi}/libVkLayer_khronos_validation.so"
+        DESTINATION "${vvl_lib_path}")
 endif()
 
 if(EXISTS ${PROJECT_SOURCE_DIR}/hooks/pre-commit AND NOT EXISTS ${PROJECT_SOURCE_DIR}/.git/hooks/pre-commit)
@@ -211,108 +281,76 @@ if(EXISTS ${PROJECT_SOURCE_DIR}/hooks/pre-commit AND NOT EXISTS ${PROJECT_SOURCE
     endif()
 endif()
 
-if(ENABLE_NXDUMPTOOL)
-    add_subdirectory(externals/nxdumptool)
-endif()
-
-# Sanity check : Check that all submodules are present
-# =======================================================================
-
-function(check_submodules_present)
-    file(READ "${PROJECT_SOURCE_DIR}/.gitmodules" gitmodules)
-    string(REGEX MATCHALL "path *= *[^ \t\r\n]*" gitmodules ${gitmodules})
-    foreach(module ${gitmodules})
-        string(REGEX REPLACE "path *= *" "" module ${module})
-        if (NOT EXISTS "${PROJECT_SOURCE_DIR}/${module}/.git")
-            message(FATAL_ERROR "Git submodule ${module} not found. "
-                    "Please run: \ngit submodule update --init --recursive")
-        endif()
-    endforeach()
-endfunction()
-
-if(EXISTS ${PROJECT_SOURCE_DIR}/.gitmodules AND SUYU_CHECK_SUBMODULES)
-    check_submodules_present()
-endif()
-configure_file(${PROJECT_SOURCE_DIR}/dist/compatibility_list/compatibility_list.qrc
-               ${PROJECT_BINARY_DIR}/dist/compatibility_list/compatibility_list.qrc
-               COPYONLY)
-if (EXISTS ${PROJECT_SOURCE_DIR}/dist/compatibility_list/compatibility_list.json)
-    configure_file("${PROJECT_SOURCE_DIR}/dist/compatibility_list/compatibility_list.json"
-                   "${PROJECT_BINARY_DIR}/dist/compatibility_list/compatibility_list.json"
-                   COPYONLY)
-endif()
-if (ENABLE_COMPATIBILITY_LIST_DOWNLOAD AND NOT EXISTS ${PROJECT_BINARY_DIR}/dist/compatibility_list/compatibility_list.json)
-    message(STATUS "Downloading compatibility list for suyu...")
-    file(DOWNLOAD
-        https://api.suyu.dev/gamedb/
-        "${PROJECT_BINARY_DIR}/dist/compatibility_list/compatibility_list.json" SHOW_PROGRESS)
-endif()
-if (NOT EXISTS ${PROJECT_BINARY_DIR}/dist/compatibility_list/compatibility_list.json)
-    file(WRITE ${PROJECT_BINARY_DIR}/dist/compatibility_list/compatibility_list.json "")
-endif()
-
-# Detect current compilation architecture and create standard definitions
-# =======================================================================
-
-include(CheckSymbolExists)
-function(detect_architecture symbol arch)
-    if (NOT DEFINED ARCHITECTURE)
-        set(CMAKE_REQUIRED_QUIET 1)
-        check_symbol_exists("${symbol}" "" ARCHITECTURE_${arch})
-        unset(CMAKE_REQUIRED_QUIET)
-
-        # The output variable needs to be unique across invocations otherwise
-        # CMake's crazy scope rules will keep it defined
-        if (ARCHITECTURE_${arch})
-            set(ARCHITECTURE "${arch}" PARENT_SCOPE)
-            set(ARCHITECTURE_${arch} 1 PARENT_SCOPE)
-            add_definitions(-DARCHITECTURE_${arch}=1)
-        endif()
-    endif()
-endfunction()
-
-if (NOT ENABLE_GENERIC)
-    if (MSVC)
-        detect_architecture("_M_AMD64" x86_64)
-        detect_architecture("_M_IX86" x86)
-        detect_architecture("_M_ARM" arm)
-        detect_architecture("_M_ARM64" arm64)
-    else()
-        detect_architecture("__x86_64__" x86_64)
-        detect_architecture("__i386__" x86)
-        detect_architecture("__arm__" arm)
-        detect_architecture("__aarch64__" arm64)
-    endif()
-endif()
-
-if (NOT DEFINED ARCHITECTURE)
-    set(ARCHITECTURE "GENERIC")
-    set(ARCHITECTURE_GENERIC 1)
-    add_definitions(-DARCHITECTURE_GENERIC=1)
-endif()
-message(STATUS "Target architecture: ${ARCHITECTURE}")
-
-if (UNIX)
-    add_definitions(-DSUYU_UNIX=1)
-endif()
-
-if (ARCHITECTURE_arm64 AND (ANDROID OR ${CMAKE_SYSTEM_NAME} STREQUAL "Linux"))
+if (ARCHITECTURE_arm64 AND (ANDROID OR PLATFORM_LINUX))
     set(HAS_NCE 1)
-    add_definitions(-DHAS_NCE=1)
+    add_compile_definitions(HAS_NCE=1)
+endif()
+
+if (YUZU_ROOM)
+    add_compile_definitions(YUZU_ROOM)
+endif()
+
+if (UNIX AND NOT (PLATFORM_LINUX OR WIN32))
+    if(CXX_APPLE OR CXX_CLANG)
+        # libc++ has stop_token and jthread as experimental
+        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fexperimental-library")
+        set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fexperimental-library")
+    else()
+        # Uses glibc, mostly?
+        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -D_LIBCPP_ENABLE_EXPERIMENTAL=1")
+        set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -D_LIBCPP_ENABLE_EXPERIMENTAL=1")
+    endif()
+endif()
+
+# Build/optimization presets
+if (CXX_GCC OR CXX_CLANG)
+    if (ARCHITECTURE_x86_64)
+        # See https://gcc.gnu.org/onlinedocs/gcc/x86-Options.html
+        # Generic supports Pentium Pro instruction set and above
+        # TODO: if a value is unknown, pass that as march and mtune
+        set(YUZU_BUILD_PRESET "custom" CACHE STRING "Build preset to use. One of: custom, generic, v3, zen2, zen4, native")
+
+        if (${YUZU_BUILD_PRESET} STREQUAL "generic")
+            set(march x86-64)
+            set(mtune generic)
+        elseif (${YUZU_BUILD_PRESET} STREQUAL "v3")
+            set(march x86-64-v3)
+            set(mtune generic)
+        elseif (${YUZU_BUILD_PRESET} STREQUAL "zen2")
+            set(march znver2)
+            set(mtune znver2)
+        elseif (${YUZU_BUILD_PRESET} STREQUAL "zen4")
+            set(march znver4)
+            set(mtune znver4)
+        endif()
+    elseif(ARCHITECTURE_arm64)
+        # See https://gcc.gnu.org/onlinedocs/gcc/AArch64-Options.html
+        set(YUZU_BUILD_PRESET "custom" CACHE STRING "Build preset to use. One of: custom, generic, armv9, native")
+        set(mtune generic)
+
+        if (${YUZU_BUILD_PRESET} STREQUAL "generic")
+            set(march armv8-a)
+        elseif (${YUZU_BUILD_PRESET} STREQUAL "armv9")
+            set(march armv9-a)
+        endif()
+    endif()
+
+    if ("${YUZU_BUILD_PRESET}" STREQUAL "native")
+        set(march native)
+        set(mtune native)
+    endif()
+
+    if (DEFINED march AND DEFINED mtune)
+        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -march=${march} -mtune=${mtune}")
+        set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -march=${march} -mtune=${mtune}")
+    endif()
 endif()
 
 # Configure C++ standard
 # ===========================
 
-if (MSVC)
-    add_compile_options($<$<COMPILE_LANGUAGE:CXX>:/std:c++20>)
-
-    # boost still makes use of deprecated result_of.
-    add_definitions(-D_HAS_DEPRECATED_RESULT_OF)
-else()
-    set(CMAKE_CXX_STANDARD 20)
-    set(CMAKE_CXX_STANDARD_REQUIRED ON)
-endif()
+set(CMAKE_CXX_STANDARD 20)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 # Output binaries to bin/
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR}/bin)
@@ -320,164 +358,112 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR}/bin)
 # System imported libraries
 # =======================================================================
 
-# Enforce the search mode of non-required packages for better and shorter failure messages
-# Boost with flexible component search - try all required components
-if(NOT WIN32 AND NOT APPLE)
-    set(Boost_USE_STATIC_LIBS ON)
-endif()
+# Prefer the -pthread flag on Linux.
+set(THREADS_PREFER_PTHREAD_FLAG ON)
+find_package(Threads REQUIRED)
 
-find_package(Boost 1.79.0 QUIET COMPONENTS context)
-if(NOT Boost_FOUND)
-    # Fallback: try without version requirement
-    find_package(Boost QUIET COMPONENTS context)
-    if(NOT Boost_FOUND)
-        # Final fallback: use headers only
-        find_package(Boost 1.79.0 QUIET)
-    endif()
-endif()
-
-if(NOT Boost_FOUND)
-    message(FATAL_ERROR "Boost library not found. Please install Boost >= 1.79.0 or enable bundled package management")
-endif()
-
-find_package(enet 1.3 MODULE)
-find_package(fmt 9 REQUIRED)
-# LLVM is optional and only used for demangling in debug/logging
-# Commented out as it's no longer in vcpkg dependencies and can cause build issues
-# find_package(LLVM 17.0.2 MODULE COMPONENTS Demangle)
-find_package(lz4 REQUIRED)
-find_package(nlohmann_json 3.8 REQUIRED)
-find_package(Opus 1.3 MODULE)
 find_package(RenderDoc MODULE)
-find_package(SimpleIni MODULE)
-find_package(stb MODULE)
-find_package(VulkanMemoryAllocator CONFIG)
-find_package(ZLIB 1.2 REQUIRED)
-find_package(zstd 1.5 REQUIRED)
 
-if (NOT SUYU_USE_EXTERNAL_VULKAN_HEADERS)
-    find_package(VulkanHeaders 1.3.274 REQUIRED)
-endif()
+# openssl funniness
+if (YUZU_USE_BUNDLED_OPENSSL)
+    set(BUILD_SHARED_LIBS OFF)
+    AddJsonPackage(openssl-ci)
+else()
+    AddJsonPackage(openssl)
+    set(OPENSSL_BUILD_VERBOSE ON)
+    set(OPENSSL_CONFIGURE_VERBOSE ON)
 
-if (NOT SUYU_USE_EXTERNAL_VULKAN_UTILITY_LIBRARIES)
-    find_package(VulkanUtilityLibraries REQUIRED)
-endif()
-
-if (NOT SUYU_USE_EXTERNAL_VULKAN_SPIRV_TOOLS)
-    find_package(PkgConfig REQUIRED)
-    pkg_check_modules(SPIRV-Tools REQUIRED SPIRV-Tools)
-endif()
-
-if (ENABLE_LIBUSB)
-    find_package(libusb 1.0.24 MODULE)
-endif()
-
-if (ARCHITECTURE_x86 OR ARCHITECTURE_x86_64)
-    find_package(xbyak 7 CONFIG QUIET)
-    if (NOT xbyak_FOUND)
-        add_subdirectory(externals/xbyak EXCLUDE_FROM_ALL)
+    if (OpenSSL_ADDED)
+        AddJsonPackage(openssl-cmake)
     endif()
 endif()
 
-if (ARCHITECTURE_arm64)
-    find_package(oaknut 2.0.1 CONFIG)
+if (OpenSSL_ADDED)
+    add_compile_definitions(YUZU_BUNDLED_OPENSSL)
 endif()
 
-if (ARCHITECTURE_x86_64 OR ARCHITECTURE_arm64)
-    find_package(dynarmic 6.4.0 CONFIG)
-endif()
+message(STATUS "Fetching needed dependencies with CPM")
 
-if (ENABLE_CUBEB)
-    find_package(cubeb CONFIG)
-endif()
+set(BUILD_SHARED_LIBS OFF)
+set(BUILD_TESTING OFF)
+set(ENABLE_TESTING OFF)
 
-if (USE_DISCORD_PRESENCE)
-    find_package(DiscordRPC MODULE)
-endif()
+# boost
+set(BOOST_INCLUDE_LIBRARIES algorithm icl pool container heap asio headers process filesystem crc variant)
 
-if (ENABLE_WEB_SERVICE)
-    find_package(cpp-jwt 1.4 CONFIG)
-endif()
+AddJsonPackage(boost)
 
-if (ENABLE_WEB_SERVICE OR USE_DISCORD_PRESENCE)
-    find_package(httplib 0.12 MODULE COMPONENTS OpenSSL)
-endif()
+# really annoying thing where boost::headers doesn't work with cpm
+# TODO(crueter) investigate
+set(BOOST_NO_HEADERS ${Boost_ADDED})
 
-if (SUYU_TESTS)
-    find_package(Catch2 3.0.1 REQUIRED)
-endif()
-
-# boost:asio has functions that require AcceptEx et al
-if (MINGW)
-    find_library(MSWSOCK_LIBRARY mswsock REQUIRED)
-endif()
-
-if(ENABLE_OPENSSL)
-    find_package(OpenSSL 1.1.1 REQUIRED)
-endif()
-
-if (UNIX AND NOT APPLE)
-    find_package(gamemode 1.7 MODULE)
-endif()
-
-# Please consider this as a stub
-if(ENABLE_QT6 AND Qt6_LOCATION)
-    list(APPEND CMAKE_PREFIX_PATH "${Qt6_LOCATION}")
-endif()
-
-
-function(set_suyu_qt_components)
-    # Best practice is to ask for all components at once, so they are from the same version
-    set(SUYU_QT_COMPONENTS2 Core Widgets Concurrent)
-    if (${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
-        list(APPEND SUYU_QT_COMPONENTS2 DBus)
+if (Boost_ADDED)
+    if (MSVC OR ANDROID)
+        add_compile_definitions(YUZU_BOOST_v1)
     endif()
-    if (SUYU_USE_QT_MULTIMEDIA)
-        list(APPEND SUYU_QT_COMPONENTS2 Multimedia)
-    endif()
-    if (SUYU_USE_QT_WEB_ENGINE)
-        list(APPEND SUYU_QT_COMPONENTS2 WebEngineCore WebEngineWidgets)
-    endif()
-    if (ENABLE_QT_TRANSLATION)
-        list(APPEND SUYU_QT_COMPONENTS2 LinguistTools)
-    endif()
-    if (USE_DISCORD_PRESENCE)
-        list(APPEND SUYU_QT_COMPONENTS2 Network)
-    endif()
-    # Network is also needed for MCP server
-    if (NOT "Network" IN_LIST SUYU_QT_COMPONENTS2)
-        list(APPEND SUYU_QT_COMPONENTS2 Network)
-    endif()
-    set(SUYU_QT_COMPONENTS ${SUYU_QT_COMPONENTS2} PARENT_SCOPE)
-endfunction(set_suyu_qt_components)
 
-# find SDL2 exports a bunch of variables that are needed, so its easier to do this outside of the suyu_find_package
-if (ENABLE_SDL2)
-    if (SUYU_USE_BUNDLED_SDL2)
-        # Detect toolchain and platform
-        if ((MSVC_VERSION GREATER_EQUAL 1920 AND MSVC_VERSION LESS 1940) AND ARCHITECTURE_x86_64)
-            set(SDL2_VER "SDL2-2.28.2")
-        else()
-            message(FATAL_ERROR "No bundled SDL2 binaries for your toolchain. Disable SUYU_USE_BUNDLED_SDL2 and provide your own.")
+    if (NOT MSVC OR CXX_CLANG)
+        # boost sucks
+        if (PLATFORM_SUN)
+            add_compile_options($<$<COMPILE_LANGUAGE:C,CXX>:-pthreads>)
         endif()
 
-        if (DEFINED SDL2_VER)
-            download_bundled_external("sdl2/" ${SDL2_VER} SDL2_PREFIX)
-        endif()
-
-        set(SDL2_FOUND YES)
-        set(SDL2_INCLUDE_DIR "${SDL2_PREFIX}/include" CACHE PATH "Path to SDL2 headers")
-        set(SDL2_LIBRARY "${SDL2_PREFIX}/lib/x64/SDL2.lib" CACHE PATH "Path to SDL2 library")
-        set(SDL2_DLL_DIR "${SDL2_PREFIX}/lib/x64/" CACHE PATH "Path to SDL2.dll")
-
-        add_library(SDL2::SDL2 INTERFACE IMPORTED)
-        target_link_libraries(SDL2::SDL2 INTERFACE "${SDL2_LIBRARY}")
-        target_include_directories(SDL2::SDL2 INTERFACE "${SDL2_INCLUDE_DIR}")
-    elseif (SUYU_USE_EXTERNAL_SDL2)
-        message(STATUS "Using SDL2 from externals.")
-    else()
-        find_package(SDL2 2.26.4 REQUIRED)
+        target_compile_options(boost_heap INTERFACE $<$<COMPILE_LANGUAGE:C,CXX>:-Wno-shadow>)
+        target_compile_options(boost_icl INTERFACE $<$<COMPILE_LANGUAGE:C,CXX>:-Wno-shadow>)
+        target_compile_options(boost_asio INTERFACE
+            $<$<COMPILE_LANGUAGE:C,CXX>:-Wno-conversion>
+            $<$<COMPILE_LANGUAGE:C,CXX>:-Wno-implicit-fallthrough>
+        )
     endif()
+endif()
+
+# fmt
+AddJsonPackage(fmt)
+
+# lz4
+AddJsonPackage(lz4)
+
+if (lz4_ADDED)
+    add_library(lz4::lz4 ALIAS lz4_static)
+endif()
+
+# zstd
+AddJsonPackage(zstd)
+
+if (zstd_ADDED)
+    add_library(zstd::zstd ALIAS libzstd_static)
+    add_library(zstd::libzstd ALIAS libzstd_static)
+endif()
+
+# nlohmann
+AddJsonPackage(nlohmann)
+
+if (NOT YUZU_STATIC_ROOM)
+    # zlib
+    AddJsonPackage(zlib)
+
+    if (ZLIB_ADDED)
+        add_library(ZLIB::ZLIB ALIAS zlibstatic)
+    endif()
+
+    # Opus
+    AddJsonPackage(opus)
+
+    if (Opus_ADDED)
+        if (MSVC AND CXX_CLANG)
+            target_compile_options(opus PRIVATE
+                $<$<COMPILE_LANGUAGE:C,CXX>:-Wno-implicit-function-declaration>
+            )
+        endif()
+    endif()
+
+    if (NOT TARGET Opus::opus)
+        add_library(Opus::opus ALIAS opus)
+    endif()
+endif()
+
+if(NOT TARGET Boost::headers)
+    AddJsonPackage(boost_headers)
 endif()
 
 # List of all FFmpeg components required
@@ -486,248 +472,6 @@ set(FFmpeg_COMPONENTS
     avfilter
     avutil
     swscale)
-
-if (UNIX AND NOT APPLE AND NOT ANDROID)
-    find_package(PkgConfig REQUIRED)
-    pkg_check_modules(LIBVA libva)
-endif()
-if (NOT SUYU_USE_BUNDLED_FFMPEG)
-    # Use system installed FFmpeg
-    find_package(FFmpeg 4.3 REQUIRED QUIET COMPONENTS ${FFmpeg_COMPONENTS})
-endif()
-
-if (WIN32 AND SUYU_CRASH_DUMPS)
-    set(BREAKPAD_VER "breakpad-c89f9dd")
-    download_bundled_external("breakpad/" ${BREAKPAD_VER} BREAKPAD_PREFIX)
-
-    set(BREAKPAD_CLIENT_INCLUDE_DIR "${BREAKPAD_PREFIX}/include")
-    set(BREAKPAD_CLIENT_LIBRARY "${BREAKPAD_PREFIX}/lib/libbreakpad_client.lib")
-
-    add_library(libbreakpad_client INTERFACE IMPORTED)
-    target_link_libraries(libbreakpad_client INTERFACE "${BREAKPAD_CLIENT_LIBRARY}")
-    target_include_directories(libbreakpad_client INTERFACE "${BREAKPAD_CLIENT_INCLUDE_DIR}")
-endif()
-
-# Prefer the -pthread flag on Linux.
-set(THREADS_PREFER_PTHREAD_FLAG ON)
-find_package(Threads REQUIRED)
-
-add_subdirectory(externals)
-
-# Qt5 requires that we find components, so it doesn't fit our pretty little find package function
-# Qt6 sets Vulkan::Headers, so Qt search has to come after externals, so it doesn't get to do it.
-if(ENABLE_QT)
-    set(QT_VERSION 5.15)
-    # These are used to specify minimum versions
-    set(QT5_VERSION 5.15)
-    set(QT6_VERSION 6.3.1)
-
-    set_suyu_qt_components()
-    if (ENABLE_QT6)
-        find_package(Qt6 ${QT6_VERSION} COMPONENTS ${SUYU_QT_COMPONENTS})
-    endif()
-    if (Qt6_FOUND)
-        message(STATUS "suyu/CMakeLists.txt: Qt6Widgets_VERSION ${Qt6Widgets_VERSION}, setting QT_VERSION")
-        set(QT_VERSION ${Qt6Widgets_VERSION})
-        set(QT_MAJOR_VERSION 6)
-        # Qt6 sets cxx_std_17 and we need to undo that
-        set_target_properties(Qt6::Platform PROPERTIES INTERFACE_COMPILE_FEATURES "")
-    else()
-        message(STATUS "suyu/CMakeLists.txt: Qt6 not found/not selected, trying for Qt5")
-        # When Qt6 partially found, need this set to use Qt5 when not specifying version
-        set(QT_DEFAULT_MAJOR_VERSION 5)
-        set(QT_MAJOR_VERSION 5)
-
-        set(SUYU_USE_QT_MULTIMEDIA ON)
-        # Check for system Qt on Linux, fallback to bundled Qt
-        if (UNIX AND NOT APPLE)
-            if (NOT SUYU_USE_BUNDLED_QT)
-                find_package(Qt5 ${QT5_VERSION} COMPONENTS Widgets DBus Multimedia)
-            endif()
-            if (${CMAKE_SYSTEM_NAME} STREQUAL "Linux" AND (NOT Qt5_FOUND OR SUYU_USE_BUNDLED_QT))
-                # Check for dependencies, then enable bundled Qt download
-
-                # Check that the system GLIBCXX version is compatible
-                find_program(OBJDUMP objdump)
-                if (NOT OBJDUMP)
-                    message(FATAL_ERROR "Required program `objdump` not found.")
-                endif()
-                find_library(LIBSTDCXX libstdc++.so.6)
-                execute_process(
-                    COMMAND
-                        ${OBJDUMP} -T ${LIBSTDCXX}
-                    COMMAND
-                        grep GLIBCXX_3.4.28
-                    COMMAND
-                        sed "s/[0-9a-f]*.*  //"
-                    COMMAND
-                        sed "s/ .*//"
-                    COMMAND
-                        sort -u
-                    OUTPUT_VARIABLE
-                        GLIBCXX_MET
-                )
-                if (NOT GLIBCXX_MET)
-                    message(FATAL_ERROR "Qt too old or not found, and bundled Qt package is not \
-                        compatible with this system. Either install Qt ${QT_VERSION}, or provide the path \
-                        to Qt by setting the variable Qt5_ROOT.")
-                endif()
-
-                # Check for headers
-                find_package(PkgConfig REQUIRED)
-                pkg_check_modules(QT_DEP_GLU QUIET glu>=9.0.0)
-                if (NOT QT_DEP_GLU_FOUND)
-                    message(FATAL_ERROR "Qt bundled package dependency `glu` not found. \
-                        Perhaps `libglu1-mesa-dev` needs to be installed?")
-                endif()
-                pkg_check_modules(QT_DEP_MESA QUIET dri>=20.0.8)
-                if (NOT QT_DEP_MESA_FOUND)
-                    message(FATAL_ERROR "Qt bundled package dependency `dri` not found. \
-                        Perhaps `mesa-common-dev` needs to be installed?")
-                endif()
-
-                # Check for X libraries
-                set(BUNDLED_QT_REQUIREMENTS
-                    libxcb-icccm.so.4
-                    libxcb-image.so.0
-                    libxcb-keysyms.so.1
-                    libxcb-randr.so.0
-                    libxcb-render-util.so.0
-                    libxcb-render.so.0
-                    libxcb-shape.so.0
-                    libxcb-shm.so.0
-                    libxcb-sync.so.1
-                    libxcb-xfixes.so.0
-                    libxcb-xinerama.so.0
-                    libxcb-xkb.so.1
-                    libxcb.so.1
-                    libxkbcommon-x11.so.0
-                    libxkbcommon.so.0
-                )
-                set(UNRESOLVED_QT_DEPS "")
-                foreach (REQUIREMENT ${BUNDLED_QT_REQUIREMENTS})
-                    find_library(BUNDLED_QT_${REQUIREMENT} ${REQUIREMENT})
-                    if (NOT BUNDLED_QT_${REQUIREMENT})
-                        set(UNRESOLVED_QT_DEPS ${UNRESOLVED_QT_DEPS} ${REQUIREMENT})
-                    endif()
-                    unset(BUNDLED_QT_${REQUIREMENT})
-                endforeach()
-                unset(BUNDLED_QT_REQUIREMENTS)
-
-                if (NOT "${UNRESOLVED_QT_DEPS}" STREQUAL "")
-                    message(FATAL_ERROR "Bundled Qt package missing required dependencies: ${UNRESOLVED_QT_DEPS}")
-                endif()
-
-                set(SUYU_USE_BUNDLED_QT ON CACHE BOOL "Download bundled Qt" FORCE)
-            endif()
-            if (SUYU_USE_BUNDLED_QT)
-                # Binary package currently does not support Qt webengine, so make sure it's disabled
-                set(SUYU_USE_QT_WEB_ENGINE OFF CACHE BOOL "Use Qt Webengine" FORCE)
-            endif()
-        endif()
-
-        set(SUYU_QT_NO_CMAKE_SYSTEM_PATH)
-
-        if(SUYU_USE_BUNDLED_QT)
-            if ((MSVC_VERSION GREATER_EQUAL 1920 AND MSVC_VERSION LESS 1940) AND ARCHITECTURE_x86_64)
-                set(QT_BUILD qt-5.15.2-msvc2019_64)
-            elseif ((${CMAKE_SYSTEM_NAME} STREQUAL "Linux") AND NOT MINGW AND ARCHITECTURE_x86_64)
-                set(QT_BUILD qt5_5_15_2)
-            else()
-                message(FATAL_ERROR "No bundled Qt binaries for your toolchain. Disable SUYU_USE_BUNDLED_QT and provide your own.")
-            endif()
-
-            if (DEFINED QT_BUILD)
-                download_bundled_external("qt/" ${QT_BUILD} QT_PREFIX)
-            endif()
-
-            set(QT_PREFIX_HINT HINTS "${QT_PREFIX}")
-
-            set(SUYU_QT_NO_CMAKE_SYSTEM_PATH "NO_CMAKE_SYSTEM_PATH")
-            # Binary package for Qt5 has Qt Multimedia
-            set(SUYU_USE_QT_MULTIMEDIA ON CACHE BOOL "Use Qt Multimedia" FORCE)
-        endif()
-
-        set_suyu_qt_components()
-        find_package(Qt5 ${QT5_VERSION} COMPONENTS ${SUYU_QT_COMPONENTS} ${QT_PREFIX_HINT} ${SUYU_QT_NO_CMAKE_SYSTEM_PATH})
-    endif()
-
-endif()
-
-# Platform-specific library requirements
-# ======================================
-
-if (APPLE)
-    # Umbrella framework for everything GUI-related
-    find_library(COCOA_LIBRARY Cocoa)
-    find_library(IOKIT_LIBRARY IOKit)
-    find_library(COREVIDEO_LIBRARY CoreVideo)
-    set(PLATFORM_LIBRARIES ${COCOA_LIBRARY} ${IOKIT_LIBRARY} ${COREVIDEO_LIBRARY})
-elseif (WIN32)
-    # Target Windows 10
-    add_definitions(-D_WIN32_WINNT=0x0A00 -DWINVER=0x0A00)
-    set(PLATFORM_LIBRARIES winmm ws2_32 iphlpapi)
-    if (MINGW)
-        # PSAPI is the Process Status API
-        set(PLATFORM_LIBRARIES ${PLATFORM_LIBRARIES} psapi imm32 version)
-    endif()
-elseif (CMAKE_SYSTEM_NAME MATCHES "^(Linux|kFreeBSD|GNU|SunOS|FreeBSD|OpenBSD|NetBSD)$")
-    set(PLATFORM_LIBRARIES rt)
-endif()
-
-# Setup a custom clang-format target (if clang-format can be found) that will run
-# against all the src files. This should be used before making a pull request.
-# =======================================================================
-
-set(CLANG_FORMAT_POSTFIX "-15")
-find_program(CLANG_FORMAT
-    NAMES clang-format${CLANG_FORMAT_POSTFIX}
-          clang-format
-    PATHS ${PROJECT_BINARY_DIR}/externals)
-# if find_program doesn't find it, try to download from externals
-if (NOT CLANG_FORMAT)
-    if (WIN32 AND NOT CMAKE_CROSSCOMPILING)
-        message(STATUS "Clang format not found! Downloading...")
-        set(CLANG_FORMAT "${PROJECT_BINARY_DIR}/externals/clang-format${CLANG_FORMAT_POSTFIX}.exe")
-        file(DOWNLOAD
-            https://git.suyu.dev/suyu/ext-windows-bin/raw/branch/master/clang-format${CLANG_FORMAT_POSTFIX}.exe
-            "${CLANG_FORMAT}" SHOW_PROGRESS
-            STATUS DOWNLOAD_SUCCESS)
-        if (NOT DOWNLOAD_SUCCESS EQUAL 0)
-            message(WARNING "Could not download clang format! Disabling the clang format target")
-            file(REMOVE ${CLANG_FORMAT})
-            unset(CLANG_FORMAT)
-        endif()
-    else()
-        message(WARNING "Clang format not found! Disabling the clang format target")
-    endif()
-endif()
-
-if (CLANG_FORMAT)
-    # Check if target already exists (e.g., from cubeb or other external library)
-    if(NOT TARGET clang-format)
-        set(SRCS ${PROJECT_SOURCE_DIR}/src)
-        set(CCOMMENT "Running clang format against all the .h and .cpp files in src/")
-        if (WIN32)
-            add_custom_target(clang-format
-                COMMAND powershell.exe -Command "Get-ChildItem '${SRCS}/*' -Include *.cpp,*.h -Recurse | Foreach {&'${CLANG_FORMAT}' -i $_.fullname}"
-                COMMENT ${CCOMMENT})
-        elseif(MINGW)
-            add_custom_target(clang-format
-                COMMAND find `cygpath -u ${SRCS}` -iname *.h -o -iname *.cpp | xargs `cygpath -u ${CLANG_FORMAT}` -i
-                COMMENT ${CCOMMENT})
-        else()
-            add_custom_target(clang-format
-                COMMAND find ${SRCS} -iname *.h -o -iname *.cpp | xargs ${CLANG_FORMAT} -i
-                COMMENT ${CCOMMENT})
-        endif()
-        unset(SRCS)
-        unset(CCOMMENT)
-    endif()
-endif()
-
-# Include source code
-# ===================
 
 # This function should be passed a list of all files in a target. It will automatically generate
 # file groups following the directory hierarchy, so that the layout of the files in IDEs matches the
@@ -747,10 +491,175 @@ function(create_target_directory_groups target_name)
     endforeach()
 endfunction()
 
-# Prevent boost from linking against libs when building
-if(TARGET Boost::headers)
-    target_link_libraries(Boost::headers INTERFACE Boost::disable_autolinking)
+# Platform-specific library requirements
+# Put these BEFORE EXTERNALS or Boost WILL die
+# =============================================
+
+if (APPLE)
+    foreach(fw Carbon Metal Cocoa IOKit CoreVideo CoreMedia Security UniformTypeIdentifiers)
+        find_library(${fw}_LIBRARY ${fw} REQUIRED)
+        list(APPEND PLATFORM_LIBRARIES ${${fw}_LIBRARY})
+    endforeach()
+elseif (WIN32)
+    # Target Windows 10
+    add_compile_definitions(_WIN32_WINNT=0x0A00 WINVER=0x0A00)
+    set(PLATFORM_LIBRARIES ${PLATFORM_LIBRARIES} winmm iphlpapi ws2_32 wlanapi)
+    if (MINGW)
+        # PSAPI is the Process Status API
+        set(PLATFORM_LIBRARIES ${PLATFORM_LIBRARIES} psapi imm32 version crypt32 rpcrt4 gdi32 wldap32 mswsock)
+    endif()
+elseif (PLATFORM_MANAGARM)
+    set(PLATFORM_LIBRARIES iconv intl)
+elseif (PLATFORM_HAIKU)
+    # Haiku is so special :)
+    set(PLATFORM_LIBRARIES bsd /boot/system/lib/libnetwork.so)
+elseif (CMAKE_SYSTEM_NAME MATCHES "^(Linux|kFreeBSD|GNU|SunOS)$")
+    set(PLATFORM_LIBRARIES rt)
 endif()
+
+message(STATUS "Platform Libraries: ${PLATFORM_LIBRARIES}")
+
+add_subdirectory(externals)
+
+# pass targets from externals
+# TODO(crueter): CPMUtil Propagate func?
+find_package(enet)
+find_package(unordered_dense REQUIRED)
+
+if (ARCHITECTURE_x86 OR ARCHITECTURE_x86_64)
+    find_package(xbyak)
+endif()
+
+if (NOT YUZU_STATIC_ROOM)
+    find_package(libusb)
+    find_package(VulkanMemoryAllocator)
+    find_package(VulkanUtilityLibraries)
+    find_package(SimpleIni)
+    find_package(sirit)
+    find_package(gamemode)
+    find_package(frozen)
+
+    if (ARCHITECTURE_riscv64)
+        find_package(biscuit)
+    endif()
+
+    if (ENABLE_WEB_SERVICE OR ENABLE_UPDATE_CHECKER)
+        find_package(cpp-jwt)
+    endif()
+
+    if (ARCHITECTURE_arm64 OR DYNARMIC_TESTS)
+        find_package(oaknut)
+    endif()
+
+    if (NOT ANDROID)
+        find_package(SDL3)
+    endif()
+
+    if (USE_DISCORD_PRESENCE)
+        find_package(DiscordRPC)
+    endif()
+
+    if (ENABLE_CUBEB)
+        find_package(cubeb)
+    endif()
+
+    if (YUZU_TESTS OR DYNARMIC_TESTS)
+        find_package(Catch2)
+    endif()
+endif()
+
+# Qt stuff
+if (ENABLE_QT)
+    if (YUZU_USE_BUNDLED_QT)
+        AddQt(Eden-CI/Qt 6.11.1)
+    else()
+        message(STATUS "Using system Qt")
+        if (NOT Qt6_DIR)
+            set(Qt6_DIR "" CACHE PATH "Additional path to search for Qt6 libraries like C:/Qt/6.8.3/msvc2022_64/lib/cmake/Qt6")
+        endif()
+        list(APPEND CMAKE_PREFIX_PATH "${Qt6_DIR}")
+    endif()
+
+    find_package(Qt6 REQUIRED COMPONENTS Core)
+
+    if (NOT DEFINED QT_TARGET_PATH)
+        get_target_property(qtcore_path Qt6::Core LOCATION_Release)
+        string(FIND "${qtcore_path}" "/bin/" qtcore_path_bin_pos REVERSE)
+        string(FIND "${qtcore_path}" "/lib/" qtcore_path_lib_pos REVERSE)
+        if (qtcore_path_bin_pos GREATER qtcore_path_lib_pos)
+            string(SUBSTRING "${qtcore_path}" 0 ${qtcore_path_bin_pos} QT_TARGET_PATH)
+        else()
+            string(SUBSTRING "${qtcore_path}" 0 ${qtcore_path_lib_pos} QT_TARGET_PATH)
+        endif()
+    endif()
+
+    if (NOT DEFINED QT_HOST_PATH)
+        set(QT_HOST_PATH "${QT_TARGET_PATH}")
+    endif()
+
+    message(STATUS "Using target Qt at ${QT_TARGET_PATH}")
+    message(STATUS "Using host Qt at ${QT_HOST_PATH}")
+
+    ## Components ##
+
+    # Best practice is to ask for all components at once, so they are from the same version
+    set(YUZU_QT_COMPONENTS Core Widgets Charts Concurrent Gui)
+    if (PLATFORM_LINUX OR PLATFORM_FREEBSD)
+        list(APPEND YUZU_QT_COMPONENTS DBus)
+        # yes Qt, we get it
+        set(QT_NO_PRIVATE_MODULE_WARNING ON)
+        list(APPEND YUZU_QT_OPTIONAL GuiPrivate)
+    endif()
+
+    if (YUZU_USE_QT_MULTIMEDIA)
+        list(APPEND YUZU_QT_COMPONENTS Multimedia)
+    endif()
+
+    if (YUZU_USE_QT_WEB_ENGINE)
+        list(APPEND YUZU_QT_COMPONENTS WebEngineCore WebEngineWidgets)
+    endif()
+
+    if (ENABLE_QT_TRANSLATION)
+        list(APPEND YUZU_QT_COMPONENTS LinguistTools)
+    endif()
+
+    find_package(Qt6 REQUIRED COMPONENTS ${YUZU_QT_COMPONENTS} OPTIONAL_COMPONENTS ${YUZU_QT_OPTIONAL})
+    set(QT_MAJOR_VERSION 6)
+    # Qt6 sets cxx_std_17 and we need to undo that
+    set_target_properties(Qt6::Platform PROPERTIES INTERFACE_COMPILE_FEATURES "")
+
+    ## Qt Externals ##
+
+    # QuaZip
+    AddJsonPackage(quazip)
+endif()
+
+if (NOT YUZU_STATIC_ROOM AND NOT (YUZU_USE_BUNDLED_FFMPEG OR YUZU_USE_EXTERNAL_FFMPEG))
+    # Use system installed FFmpeg
+    find_package(FFmpeg REQUIRED QUIET COMPONENTS ${FFmpeg_COMPONENTS})
+
+    # TODO(crueter): Version
+    set_property(GLOBAL APPEND PROPERTY CPM_PACKAGE_NAMES FFmpeg)
+    set_property(GLOBAL APPEND PROPERTY CPM_PACKAGE_SHAS "unknown (system)")
+    set_property(GLOBAL APPEND PROPERTY CPM_PACKAGE_URLS "https://github.com/FFmpeg/FFmpeg")
+endif()
+
+if (WIN32 AND YUZU_CRASH_DUMPS)
+    message(STATUS "YUZU_CRASH_DUMPS is unimplemented on Windows. Check back later.")
+    # set(BREAKPAD_VER "breakpad-c89f9dd")
+    # download_bundled_external("breakpad/" ${BREAKPAD_VER} "breakpad-win" BREAKPAD_PREFIX "c89f9dd")
+
+    # set(BREAKPAD_CLIENT_INCLUDE_DIR "${BREAKPAD_PREFIX}/include")
+    # set(BREAKPAD_CLIENT_LIBRARY "${BREAKPAD_PREFIX}/lib/libbreakpad_client.lib")
+
+    # add_library(libbreakpad_client INTERFACE IMPORTED)
+    # target_link_libraries(libbreakpad_client INTERFACE "${BREAKPAD_CLIENT_LIBRARY}")
+    # target_include_directories(libbreakpad_client INTERFACE "${BREAKPAD_CLIENT_INCLUDE_DIR}")
+endif()
+
+# Include source code
+# ===================
+
 # Adjustments for MSVC + Ninja
 if (MSVC AND CMAKE_GENERATOR STREQUAL "Ninja")
     add_compile_options(
@@ -760,35 +669,40 @@ if (MSVC AND CMAKE_GENERATOR STREQUAL "Ninja")
     )
 endif()
 
-if (SUYU_USE_FASTER_LD AND CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
-    # We will assume that if the compiler is GCC, it will attempt to use ld.bfd by default.
-    # Try to pick a faster linker.
-    find_program(LLD lld)
-    find_program(MOLD mold)
-
-    if (MOLD AND CMAKE_CXX_COMPILER_VERSION VERSION_GREATER_EQUAL "12.1")
-        message(STATUS "Selecting mold as linker")
-        add_link_options("-fuse-ld=mold")
-    elseif (LLD)
-        message(STATUS "Selecting lld as linker")
-        add_link_options("-fuse-ld=lld")
+# Adjustments for clang-cl
+if (MSVC AND CXX_CLANG)
+    if (ARCHITECTURE_x86_64)
+        set(FILE_ARCH x86_64)
+    elseif (ARCHITECTURE_arm64)
+        set(FILE_ARCH aarch64)
+    else()
+        message(FATAL_ERROR "clang-cl: Unsupported architecture ${ARCHITECTURE}")
     endif()
+
+    AddJsonPackage(llvm-mingw)
+    set(LIB_PATH "${llvm-mingw_SOURCE_DIR}/libclang_rt.builtins-${FILE_ARCH}.a")
+
+    add_library(llvm-mingw-runtime STATIC IMPORTED)
+    set_target_properties(llvm-mingw-runtime PROPERTIES
+        IMPORTED_LOCATION "${LIB_PATH}")
+
+    link_libraries(llvm-mingw-runtime)
 endif()
 
 add_subdirectory(src)
 
-if(ENABLE_NXOPTIMIZER AND TARGET suyu AND TARGET nx-optimizer)
-    add_dependencies(suyu nx-optimizer)
-    target_compile_definitions(suyu PRIVATE SUYU_ENABLE_NXOPTIMIZER=1)
+if (ENABLE_DEBUG_TOOLS)
+    add_subdirectory(tools/maxwell-disas)
+    add_subdirectory(tools/maxwell-spirv)
+    add_subdirectory(tools/maxwell-ir)
 endif()
 
-# Set suyu project or suyu-cmd project as default StartUp Project in Visual Studio depending on whether QT is enabled or not
+# Set yuzu project or yuzu-cmd project as default StartUp Project in Visual Studio depending on whether QT is enabled or not
 if(ENABLE_QT)
-    set_property(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} PROPERTY VS_STARTUP_PROJECT suyu)
+    set_property(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} PROPERTY VS_STARTUP_PROJECT yuzu)
 else()
-    set_property(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} PROPERTY VS_STARTUP_PROJECT suyu-cmd)
+    set_property(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} PROPERTY VS_STARTUP_PROJECT yuzu-cmd)
 endif()
-
 
 # Installation instructions
 # =========================
@@ -798,28 +712,24 @@ endif()
 # https://specifications.freedesktop.org/icon-theme-spec/icon-theme-spec-latest.html
 # https://specifications.freedesktop.org/shared-mime-info-spec/shared-mime-info-spec-latest.html
 # https://www.freedesktop.org/software/appstream/docs/
+
+# TODO: Icon/install handling n such should be put into dist/CMakeLists.txt
 if(ENABLE_QT AND UNIX AND NOT APPLE)
-    install(FILES "dist/dev.suyu_emu.suyu.desktop"
-            DESTINATION "share/applications")
-    install(FILES "dist/suyu.svg"
-            DESTINATION "share/icons/hicolor/scalable/apps"
-            RENAME "dev.suyu_emu.suyu.svg")
-    install(FILES "dist/dev.suyu_emu.suyu.xml"
-            DESTINATION "share/mime/packages")
-    install(FILES "dist/dev.suyu_emu.suyu.metainfo.xml"
-            DESTINATION "share/metainfo")
+    install(FILES "dist/dev.eden_emu.eden.desktop"
+        DESTINATION "share/applications")
+    install(FILES "dist/dev.eden_emu.eden.svg"
+        DESTINATION "share/icons/hicolor/scalable/apps")
+
+    # TODO: these files need to be updated.
+    install(FILES "dist/dev.eden_emu.eden.xml"
+        DESTINATION "share/mime/packages")
+    install(FILES "dist/dev.eden_emu.eden.metainfo.xml"
+        DESTINATION "share/metainfo")
 endif()
 
-# Enable CCACHE. Linux only for now.
-if (USE_CCACHE)
-  find_program(CCACHE_PROGRAM ccache)
-  if(CCACHE_PROGRAM)
-    set_property(GLOBAL PROPERTY RULE_LAUNCH_COMPILE "${CCACHE_PROGRAM}")
-    if (SUYU_USE_PRECOMPILED_HEADERS)
-      message(NOTICE "To make use of CCache, set SUYU_USE_PRECOMPILED_HEADERS to OFF or else, it will barely be functional")
-    endif()
-    message(STATUS "CCache found.")
-  else()
-    message(STATUS "CCache has not been found and it will not be used. Install CCache or set USE_CCACHE to OFF")
-  endif()
+if (YUZU_INSTALL_UDEV_RULES)
+    include(GNUInstallDirs)
+
+    install(FILES "dist/72-eden-input.rules"
+        DESTINATION "${CMAKE_INSTALL_LIBDIR}/udev/rules.d")
 endif()

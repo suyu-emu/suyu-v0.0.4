@@ -2,18 +2,23 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android">
 
     <item
-        android:id="@+id/menu_toggle_fps"
-        android:title="@string/emulation_fps_counter"
+        android:id="@+id/menu_show_stats_overlay"
+        android:title="@string/show_stats_overlay"
         android:checkable="true" />
 
     <item
-        android:id="@+id/thermal_indicator"
-        android:title="@string/emulation_thermal_indicator"
+        android:id="@+id/menu_show_soc_overlay"
+        android:title="@string/show_soc_overlay"
         android:checkable="true" />
 
     <item
         android:id="@+id/menu_edit_overlay"
         android:title="@string/emulation_touch_overlay_edit" />
+
+    <item
+        android:id="@+id/menu_snap_to_grid"
+        android:title="@string/emulation_snap_to_grid"
+        android:checkable="true" />
 
     <item
         android:id="@+id/menu_adjust_overlay"

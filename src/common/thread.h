@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: 2013 Dolphin Emulator Project
 // SPDX-FileCopyrightText: 2014 Citra Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
@@ -31,16 +34,10 @@ public:
         is_set = false;
     }
 
-    bool WaitFor(const std::chrono::nanoseconds& time) {
-        std::unique_lock lk{mutex};
-        if (!condvar.wait_for(lk, time, [this] { return is_set.load(); }))
-            return false;
-        is_set = false;
-        return true;
-    }
+    bool WaitFor(const std::chrono::nanoseconds time);
 
-    template <class Clock, class Duration>
-    bool WaitUntil(const std::chrono::time_point<Clock, Duration>& time) {
+    template<class Clock, class Duration>
+    bool WaitUntil(const std::chrono::time_point<Clock, Duration> time) {
         std::unique_lock lk{mutex};
         if (!condvar.wait_until(lk, time, [this] { return is_set.load(); }))
             return false;
@@ -60,9 +57,9 @@ public:
     }
 
 private:
+    alignas(64) std::atomic<bool> is_set{false};
     std::condition_variable condvar;
     std::mutex mutex;
-    std::atomic_bool is_set{false};
 };
 
 class Barrier {
@@ -80,7 +77,7 @@ public:
             condvar.notify_all();
             return true;
         } else {
-            CondvarWait(condvar, lk, token,
+            condvar.wait(lk, token,
                         [this, current_generation] { return current_generation != generation; });
             return !token.stop_requested();
         }
@@ -103,7 +100,7 @@ enum class ThreadPriority : u32 {
 };
 
 void SetCurrentThreadPriority(ThreadPriority new_priority);
-
 void SetCurrentThreadName(const char* name);
+void PinCurrentThreadToPerformanceCore(size_t core_id);
 
 } // namespace Common

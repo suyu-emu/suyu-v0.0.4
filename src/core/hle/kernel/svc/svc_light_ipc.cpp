@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2023 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -14,12 +17,12 @@ namespace Kernel::Svc {
 Result SendSyncRequestLight(Core::System& system, Handle session_handle, u32* args) {
     // Get the light client session from its handle.
     KScopedAutoObject session = GetCurrentProcess(system.Kernel())
-                                    .GetHandleTable()
-                                    .GetObject<KLightClientSession>(session_handle);
+        .GetHandleTable()
+        .GetObject<KLightClientSession>(system.Kernel(), session_handle);
     R_UNLESS(session.IsNotNull(), ResultInvalidHandle);
 
     // Send the request.
-    R_TRY(session->SendSyncRequest(args));
+    R_TRY(session->SendSyncRequest(system.Kernel(), args));
 
     R_SUCCEED();
 }
@@ -27,12 +30,12 @@ Result SendSyncRequestLight(Core::System& system, Handle session_handle, u32* ar
 Result ReplyAndReceiveLight(Core::System& system, Handle session_handle, u32* args) {
     // Get the light server session from its handle.
     KScopedAutoObject session = GetCurrentProcess(system.Kernel())
-                                    .GetHandleTable()
-                                    .GetObject<KLightServerSession>(session_handle);
+        .GetHandleTable()
+        .GetObject<KLightServerSession>(system.Kernel(), session_handle);
     R_UNLESS(session.IsNotNull(), ResultInvalidHandle);
 
     // Handle the request.
-    R_TRY(session->ReplyAndReceive(args));
+    R_TRY(session->ReplyAndReceive(system.Kernel(), args));
 
     R_SUCCEED();
 }

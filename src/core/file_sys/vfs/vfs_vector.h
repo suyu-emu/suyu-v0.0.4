@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2018 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -45,7 +48,7 @@ public:
     }
 
     std::size_t Read(u8* data_, std::size_t length, std::size_t offset) const override {
-        const auto read = std::min(length, size - offset);
+        const auto read = (std::min)(length, size - offset);
         std::memcpy(data_, data.data() + offset, read);
         return read;
     }

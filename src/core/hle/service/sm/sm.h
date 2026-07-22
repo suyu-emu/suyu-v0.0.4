@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2018 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -7,9 +10,9 @@
 #include <memory>
 #include <mutex>
 #include <string>
-#include <unordered_map>
+#include <ankerl/unordered_dense.h>
+#include <concepts>
 
-#include "common/concepts.h"
 #include "core/hle/kernel/k_port.h"
 #include "core/hle/kernel/svc.h"
 #include "core/hle/result.h"
@@ -44,6 +47,7 @@ private:
     void RegisterServiceCmif(HLERequestContext& ctx);
     void RegisterServiceTipc(HLERequestContext& ctx);
     void UnregisterService(HLERequestContext& ctx);
+    void AtmosphereHasService(HLERequestContext& ctx);
 
     Result GetServiceImpl(Kernel::KClientSession** out_client_session, HLERequestContext& ctx);
     void RegisterServiceImpl(HLERequestContext& ctx, std::string name, u32 max_session_count,
@@ -63,7 +67,7 @@ public:
     Result UnregisterService(const std::string& name);
     Result GetServicePort(Kernel::KClientPort** out_client_port, const std::string& name);
 
-    template <Common::DerivedFrom<SessionRequestHandler> T>
+    template <std::derived_from<SessionRequestHandler> T>
     std::shared_ptr<T> GetService(const std::string& name, bool block = false) const {
         std::unique_lock l{lock};
         auto it = registered_services.find(name);
@@ -81,7 +85,6 @@ public:
                 it = registered_services.find(name);
             }
         }
-
         return std::static_pointer_cast<T>(it->second());
     }
 
@@ -97,8 +100,8 @@ private:
 
     /// Map of registered services, retrieved using GetServicePort.
     mutable std::mutex lock;
-    std::unordered_map<std::string, SessionRequestHandlerFactory> registered_services;
-    std::unordered_map<std::string, Kernel::KClientPort*> service_ports;
+    ankerl::unordered_dense::map<std::string, SessionRequestHandlerFactory> registered_services;
+    ankerl::unordered_dense::map<std::string, Kernel::KClientPort*> service_ports;
 
     /// Kernel context
     Kernel::KernelCore& kernel;

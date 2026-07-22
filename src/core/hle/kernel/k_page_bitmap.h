@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2021 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -11,6 +14,7 @@
 #include "common/bit_util.h"
 #include "common/common_types.h"
 #include "common/tiny_mt.h"
+#include "common/random.h"
 #include "core/hle/kernel/k_system_control.h"
 
 namespace Kernel {
@@ -20,7 +24,7 @@ public:
     class RandomBitGenerator {
     public:
         RandomBitGenerator() {
-            m_rng.Initialize(static_cast<u32>(KSystemControl::GenerateRandomU64()));
+            m_rng.Initialize(u32(Common::Random::Random64(0)));
         }
 
         u64 SelectRandomBit(u64 bitmap) {
@@ -83,7 +87,7 @@ public:
                 }
 
                 // Determine how many bits to take this round.
-                const auto cur_bits = std::min(num_bits, m_bits_available);
+                const auto cur_bits = (std::min)(num_bits, m_bits_available);
 
                 // Generate mask for our current bits.
                 const u64 mask = (static_cast<u64>(1) << cur_bits) - 1;

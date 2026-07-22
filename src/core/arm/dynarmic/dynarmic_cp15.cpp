@@ -1,8 +1,11 @@
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: 2017 Citra Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
-#include <fmt/format.h>
-#include "common/logging/log.h"
+#include <fmt/ranges.h>
+#include "common/logging.h"
 #include "core/arm/dynarmic/arm_dynarmic_32.h"
 #include "core/arm/dynarmic/dynarmic_cp15.h"
 #include "core/core.h"
@@ -56,12 +59,10 @@ CallbackOrAccessOneWord DynarmicCP15::CompileSendOneWord(bool two, unsigned opc1
 #if defined(_MSC_VER) && defined(ARCHITECTURE_x86_64)
                     _mm_mfence();
                     _mm_lfence();
-#elif defined(ARCHITECTURE_x86_64)
-                    asm volatile("mfence\n\tlfence\n\t" : : : "memory");
-#elif defined(ARCHITECTURE_arm64)
-                    asm volatile("dsb sy\n\t" : : : "memory");
+#elif defined(_MSC_VER) && defined(ARCHITECTURE_arm64)
+                    _Memory_barrier();
 #else
-#error Unsupported architecture
+                    __sync_synchronize();
 #endif
                     return 0;
                 },
@@ -73,12 +74,10 @@ CallbackOrAccessOneWord DynarmicCP15::CompileSendOneWord(bool two, unsigned opc1
                 [](void*, std::uint32_t, std::uint32_t) -> std::uint64_t {
 #if defined(_MSC_VER) && defined(ARCHITECTURE_x86_64)
                     _mm_mfence();
-#elif defined(ARCHITECTURE_x86_64)
-                    asm volatile("mfence\n\t" : : : "memory");
-#elif defined(ARCHITECTURE_arm64)
-                    asm volatile("dmb sy\n\t" : : : "memory");
+#elif defined(_MSC_VER) && defined(ARCHITECTURE_arm64)
+                    _Memory_barrier();
 #else
-#error Unsupported architecture
+                    __sync_synchronize();
 #endif
                     return 0;
                 },

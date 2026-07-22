@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2018 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -18,7 +21,8 @@ ACC_SU::ACC_SU(std::shared_ptr<Module> module_, std::shared_ptr<ProfileManager> 
         {5, &ACC_SU::GetProfile, "GetProfile"},
         {6, nullptr, "GetProfileDigest"},
         {50, &ACC_SU::IsUserRegistrationRequestPermitted, "IsUserRegistrationRequestPermitted"},
-        {51, &ACC_SU::TrySelectUserWithoutInteraction, "TrySelectUserWithoutInteraction"},
+        {51, &ACC_SU::TrySelectUserWithoutInteractionDeprecated, "TrySelectUserWithoutInteractionDeprecated"},
+        {52, &ACC_SU::TrySelectUserWithoutInteraction, "TrySelectUserWithoutInteraction"}, // 19.0.0+
         {60, &ACC_SU::ListOpenContextStoredUsers, "ListOpenContextStoredUsers"},
         {99, nullptr, "DebugActivateOpenContextRetention"},
         {100, nullptr, "GetUserRegistrationNotifier"},
@@ -43,18 +47,24 @@ ACC_SU::ACC_SU(std::shared_ptr<Module> module_, std::shared_ptr<ProfileManager> 
         {200, &ACC_SU::BeginUserRegistration, "BeginUserRegistration"},
         {201, &ACC_SU::CompleteUserRegistration, "CompleteUserRegistration"},
         {202, nullptr, "CancelUserRegistration"},
-        {203, nullptr, "DeleteUser"},
-        {204, nullptr, "SetUserPosition"},
+        {203, &ACC_SU::DeleteUser, "DeleteUser"},
+        {204, &ACC_SU::SetUserPosition, "SetUserPosition"},
         {205, &ACC_SU::GetProfileEditor, "GetProfileEditor"},
         {206, nullptr, "CompleteUserRegistrationForcibly"},
         {210, nullptr, "CreateFloatingRegistrationRequest"},
         {211, nullptr, "CreateProcedureToRegisterUserWithNintendoAccount"},
         {212, nullptr, "ResumeProcedureToRegisterUserWithNintendoAccount"},
         {230, nullptr, "AuthenticateServiceAsync"},
-        {250, nullptr, "GetBaasAccountAdministrator"},
+        {250, &ACC_SU::GetBaasAccountAdministrator, "GetBaasAccountAdministrator"},
         {290, nullptr, "ProxyProcedureForGuestLoginWithNintendoAccount"},
         {291, nullptr, "ProxyProcedureForFloatingRegistrationWithNintendoAccount"},
         {299, nullptr, "SuspendBackgroundDaemon"},
+        {400, nullptr, "SetPinCode"}, // 18.0.0+
+        {401, &ACC_SU::GetPinCodeLength, "GetPinCodeLength"}, // 18.0.0+
+        {402, nullptr, "GetPinCode"}, // 18.0.0+
+        {410, nullptr, "GetPinCodeErrorCount"}, // 18.0.0+
+        {411, nullptr, "ResetPinCodeErrorCount"}, // 18.0.0+
+        {412, nullptr, "IncrementPinCodeErrorCount"}, // 18.0.0+
         {900, nullptr, "SetUserUnqualifiedForDebug"},
         {901, nullptr, "UnsetUserUnqualifiedForDebug"},
         {902, nullptr, "ListUsersUnqualifiedForDebug"},

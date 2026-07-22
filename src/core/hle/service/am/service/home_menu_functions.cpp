@@ -1,13 +1,16 @@
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2024 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "core/hle/result.h"
 #include "core/hle/service/am/applet_manager.h"
-#include "core/hle/service/am/am_results.h"
 #include "core/hle/service/am/service/home_menu_functions.h"
-#include "core/hle/service/am/service/storage.h"
 #include "core/hle/service/am/window_system.h"
 #include "core/hle/service/cmif_serialization.h"
+#include "core/hle/service/am/am_results.h"
+#include "core/hle/service/am/service/storage.h"
 
 namespace Service::AM {
 
@@ -77,15 +80,15 @@ Result IHomeMenuFunctions::GetPopFromGeneralChannelEvent(
     R_SUCCEED();
 }
 
-Result IHomeMenuFunctions::IsSleepEnabled(Out<bool> out_is_sleep_enabled) {
+Result IHomeMenuFunctions::IsSleepEnabled(Out<bool> out_is_sleep_enbaled) {
     LOG_INFO(Service_AM, "called");
-    *out_is_sleep_enabled = false;
+    *out_is_sleep_enbaled = false;
     R_SUCCEED();
 }
 
-Result IHomeMenuFunctions::IsRebootEnabled(Out<bool> out_is_reboot_enabled) {
+Result IHomeMenuFunctions::IsRebootEnabled(Out<bool> out_is_reboot_enbaled) {
     LOG_INFO(Service_AM, "called");
-    *out_is_reboot_enabled = true;
+    *out_is_reboot_enbaled = true;
     R_SUCCEED();
 }
 

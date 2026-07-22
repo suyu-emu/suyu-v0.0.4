@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2020 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -30,6 +33,7 @@ enum class ControllerAppletVersion : u32_le {
     Version5 = 0x5, // 6.0.0 - 7.0.1
     Version7 = 0x7, // 8.0.0 - 10.2.0
     Version8 = 0x8, // 11.0.0+
+    Version9 = 0x9,
 };
 
 enum class ControllerSupportMode : u8 {

@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2020 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -50,11 +53,17 @@ enum : u8 {
     StencilTestEnable,
     PrimitiveRestartEnable,
     RasterizerDiscardEnable,
+    ConservativeRasterizationMode,
+    LineRasterizationMode,
+    LineStippleEnable,
+    LineStippleParams,
     DepthBiasEnable,
     StateEnable,
     LogicOp,
     LogicOpEnable,
     DepthClampEnable,
+    AlphaToCoverageEnable,
+    AlphaToOneEnable,
 
     Blending,
     BlendEnable,
@@ -64,7 +73,7 @@ enum : u8 {
 
     Last,
 };
-static_assert(Last <= std::numeric_limits<u8>::max());
+static_assert(Last <= (std::numeric_limits<u8>::max)());
 
 } // namespace Dirty
 
@@ -86,6 +95,10 @@ public:
 
     void InvalidateScissors() {
         (*flags)[Dirty::Scissors] = true;
+    }
+
+    void InvalidateStateEnableFlag() {
+        (*flags)[Dirty::StateEnable] = true;
     }
 
     bool TouchViewports() {
@@ -200,9 +213,16 @@ public:
         return Exchange(Dirty::RasterizerDiscardEnable, false);
     }
 
-    bool TouchDepthBiasEnable() {
-        return Exchange(Dirty::DepthBiasEnable, false);
+    bool TouchConservativeRasterizationMode()
+    {
+        return Exchange(Dirty::ConservativeRasterizationMode, false);
     }
+
+    bool TouchLineStippleEnable() { return Exchange(Dirty::LineStippleEnable, false); }
+
+    bool TouchLineStipple() { return Exchange(Dirty::LineStippleParams, false); }
+
+    bool TouchDepthBiasEnable() { return Exchange(Dirty::DepthBiasEnable, false); }
 
     bool TouchLogicOpEnable() {
         return Exchange(Dirty::LogicOpEnable, false);
@@ -210,6 +230,14 @@ public:
 
     bool TouchDepthClampEnable() {
         return Exchange(Dirty::DepthClampEnable, false);
+    }
+
+    bool TouchAlphaToCoverageEnable() {
+        return Exchange(Dirty::AlphaToCoverageEnable, false);
+    }
+
+    bool TouchAlphaToOneEnable() {
+        return Exchange(Dirty::AlphaToOneEnable, false);
     }
 
     bool TouchDepthCompareOp() {
@@ -246,6 +274,10 @@ public:
 
     bool TouchLogicOp() {
         return Exchange(Dirty::LogicOp, false);
+    }
+
+    bool TouchLineRasterizationMode() {
+        return Exchange(Dirty::LineRasterizationMode, false);
     }
 
     bool ChangePrimitiveTopology(Maxwell::PrimitiveTopology new_topology) {

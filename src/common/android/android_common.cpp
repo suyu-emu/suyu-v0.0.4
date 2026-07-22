@@ -1,6 +1,9 @@
 // SPDX-FileCopyrightText: Copyright 2023 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
+// SPDX-FileCopyrightText: 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 #include "android_common.h"
 
 #include <string>
@@ -34,6 +37,15 @@ jstring ToJString(JNIEnv* env, std::string_view str) {
                           static_cast<jint>(converted_string.size()));
 }
 
+jobjectArray ToJStringArray(JNIEnv* env, const std::vector<std::string>& strs) {
+    jobjectArray array =
+            env->NewObjectArray(static_cast<jsize>(strs.size()), env->FindClass("java/lang/String"), env->NewStringUTF(""));
+    for (std::size_t i = 0; i < strs.size(); ++i) {
+        env->SetObjectArrayElement(array, static_cast<jsize>(i), ToJString(env, strs[i]));
+    }
+    return array;
+}
+
 jstring ToJString(JNIEnv* env, std::u16string_view str) {
     return ToJString(env, Common::UTF16ToUTF8(str));
 }
@@ -52,14 +64,6 @@ s32 GetJInteger(JNIEnv* env, jobject jinteger) {
 
 jobject ToJInteger(JNIEnv* env, s32 value) {
     return env->NewObject(GetIntegerClass(), GetIntegerConstructor(), value);
-}
-
-s64 GetJLong(JNIEnv* env, jobject jlong) {
-    return env->GetLongField(jlong, GetIntegerValueField());
-}
-
-jobject ToJLong(JNIEnv* env, s64 value) {
-    return env->NewObject(GetLongClass(), GetLongConstructor(), value);
 }
 
 bool GetJBoolean(JNIEnv* env, jobject jboolean) {

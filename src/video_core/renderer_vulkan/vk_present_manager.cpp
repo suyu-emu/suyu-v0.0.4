@@ -1,7 +1,9 @@
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2023 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
-#include "common/microprofile.h"
 #include "common/settings.h"
 #include "common/thread.h"
 #include "core/frontend/emu_window.h"
@@ -10,11 +12,10 @@
 #include "video_core/renderer_vulkan/vk_swapchain.h"
 #include "video_core/vulkan_common/vulkan_device.h"
 #include "video_core/vulkan_common/vulkan_surface.h"
+#include "video_core/vulkan_common/vulkan_wrapper.h"
 
 namespace Vulkan {
 
-MICROPROFILE_DEFINE(Vulkan_WaitPresent, "Vulkan", "Wait For Present", MP_RGB(128, 128, 128));
-MICROPROFILE_DEFINE(Vulkan_CopyToSwapchain, "Vulkan", "Copy to swapchain", MP_RGB(192, 255, 192));
 
 namespace {
 
@@ -85,8 +86,8 @@ bool CanBlitToSwapchain(const vk::PhysicalDevice& physical_device, VkFormat form
             },
         .extent =
             {
-                .width = std::min(frame_width, swapchain_width),
-                .height = std::min(frame_height, swapchain_height),
+                .width = (std::min)(frame_width, swapchain_width),
+                .height = (std::min)(frame_height, swapchain_height),
                 .depth = 1,
             },
     };
@@ -95,14 +96,22 @@ bool CanBlitToSwapchain(const vk::PhysicalDevice& physical_device, VkFormat form
 } // Anonymous namespace
 
 PresentManager::PresentManager(const vk::Instance& instance_,
-                               Core::Frontend::EmuWindow& render_window_, const Device& device_,
-                               MemoryAllocator& memory_allocator_, Scheduler& scheduler_,
-                               Swapchain& swapchain_, vk::SurfaceKHR& surface_)
-    : instance{instance_}, render_window{render_window_}, device{device_},
-      memory_allocator{memory_allocator_}, scheduler{scheduler_}, swapchain{swapchain_},
-      surface{surface_}, blit_supported{CanBlitToSwapchain(device.GetPhysical(),
-                                                           swapchain.GetImageViewFormat())},
-      use_present_thread{Settings::values.async_presentation.GetValue()} {
+                               Core::Frontend::EmuWindow& render_window_,
+                               const Device& device_,
+                               MemoryAllocator& memory_allocator_,
+                               Scheduler& scheduler_,
+                               Swapchain& swapchain_,
+                               vk::SurfaceKHR& surface_)
+    : instance{instance_}
+    , render_window{render_window_}
+    , device{device_}
+    , memory_allocator{memory_allocator_}
+    , scheduler{scheduler_}
+    , swapchain{swapchain_}
+    , surface{surface_}
+    , blit_supported{CanBlitToSwapchain(device.GetPhysical(), swapchain.GetImageViewFormat())}
+    , use_present_thread{Settings::values.async_presentation.GetValue()}
+{
     SetImageCount();
 
     auto& dld = device.GetLogical();
@@ -129,7 +138,7 @@ PresentManager::PresentManager(const vk::Instance& instance_,
             .pNext = nullptr,
             .flags = VK_FENCE_CREATE_SIGNALED_BIT,
         });
-        free_queue.push(&frame);
+        free_queue.push_back(&frame);
     }
 
     if (use_present_thread) {
@@ -140,7 +149,6 @@ PresentManager::PresentManager(const vk::Instance& instance_,
 PresentManager::~PresentManager() = default;
 
 Frame* PresentManager::GetRenderFrame() {
-    MICROPROFILE_SCOPE(Vulkan_WaitPresent);
 
     // Wait for free presentation frames
     std::unique_lock lock{free_mutex};
@@ -148,7 +156,7 @@ Frame* PresentManager::GetRenderFrame() {
 
     // Take the frame from the queue
     Frame* frame = free_queue.front();
-    free_queue.pop();
+    free_queue.pop_front();
 
     // Wait for the presentation to be finished so all frame resources are free
     frame->present_done.Wait();
@@ -158,18 +166,17 @@ Frame* PresentManager::GetRenderFrame() {
 }
 
 void PresentManager::Present(Frame* frame) {
-    if (!use_present_thread) {
+    if (use_present_thread) {
+        scheduler.Record([this, frame](vk::CommandBuffer) {
+            std::unique_lock lock{queue_mutex};
+            present_queue.push_back(frame);
+            frame_cv.notify_one();
+        });
+    } else {
         scheduler.WaitWorker();
         CopyToSwapchain(frame);
-        free_queue.push(frame);
-        return;
+        free_queue.push_back(frame);
     }
-
-    scheduler.Record([this, frame](vk::CommandBuffer) {
-        std::unique_lock lock{queue_mutex};
-        present_queue.push(frame);
-        frame_cv.notify_one();
-    });
 }
 
 void PresentManager::RecreateFrame(Frame* frame, u32 width, u32 height, VkFormat image_view_format,
@@ -182,7 +189,7 @@ void PresentManager::RecreateFrame(Frame* frame, u32 width, u32 height, VkFormat
     frame->image = memory_allocator.CreateImage({
         .sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO,
         .pNext = nullptr,
-        .flags = VK_IMAGE_CREATE_MUTABLE_FORMAT_BIT,
+        .flags = VK_IMAGE_CREATE_MUTABLE_FORMAT_BIT | VK_IMAGE_CREATE_EXTENDED_USAGE_BIT,
         .imageType = VK_IMAGE_TYPE_2D,
         .format = swapchain.GetImageFormat(),
         .extent =
@@ -261,34 +268,30 @@ void PresentManager::PresentThread(std::stop_token token) {
     Common::SetCurrentThreadName("VulkanPresent");
     while (!token.stop_requested()) {
         std::unique_lock lock{queue_mutex};
-
         // Wait for presentation frames
-        Common::CondvarWait(frame_cv, lock, token, [this] { return !present_queue.empty(); });
-        if (token.stop_requested()) {
-            return;
+        frame_cv.wait(lock, token, [this] { return !present_queue.empty(); });
+        if (!token.stop_requested()) {
+            // Take the frame and notify anyone waiting
+            Frame* frame = present_queue.front();
+            present_queue.pop_front();
+            frame_cv.notify_one();
+
+            // By exchanging the lock ownership we take the swapchain lock
+            // before the queue lock goes out of scope. This way the swapchain
+            // lock in WaitPresent is guaranteed to occur after here.
+            std::exchange(lock, std::unique_lock{swapchain_mutex});
+            CopyToSwapchain(frame);
+
+            // Free the frame for reuse
+            std::scoped_lock fl{free_mutex};
+            free_queue.push_back(frame);
+            free_cv.notify_one();
         }
-
-        // Take the frame and notify anyone waiting
-        Frame* frame = present_queue.front();
-        present_queue.pop();
-        frame_cv.notify_one();
-
-        // By exchanging the lock ownership we take the swapchain lock
-        // before the queue lock goes out of scope. This way the swapchain
-        // lock in WaitPresent is guaranteed to occur after here.
-        std::exchange(lock, std::unique_lock{swapchain_mutex});
-
-        CopyToSwapchain(frame);
-
-        // Free the frame for reuse
-        std::scoped_lock fl{free_mutex};
-        free_queue.push(frame);
-        free_cv.notify_one();
     }
 }
 
 void PresentManager::RecreateSwapchain(Frame* frame) {
-    swapchain.Create(*surface, frame->width, frame->height);
+    swapchain.Create(*surface, frame->width, frame->height); // Pass raw pointer
     SetImageCount();
 }
 
@@ -306,7 +309,9 @@ void PresentManager::CopyToSwapchain(Frame* frame) {
         try {
             // Recreate surface and swapchain if needed.
             if (requires_recreation) {
+#ifdef __ANDROID__
                 surface = CreateSurface(instance, render_window.GetWindowInfo());
+#endif
                 RecreateSwapchain(frame);
             }
 
@@ -323,7 +328,6 @@ void PresentManager::CopyToSwapchain(Frame* frame) {
 }
 
 void PresentManager::CopyToSwapchainImpl(Frame* frame) {
-    MICROPROFILE_SCOPE(Vulkan_CopyToSwapchain);
 
     // If the size of the incoming frames has changed, recreate the swapchain
     // to account for that.
@@ -425,7 +429,7 @@ void PresentManager::CopyToSwapchainImpl(Frame* frame) {
         },
     };
 
-    cmdbuf.PipelineBarrier(VK_PIPELINE_STAGE_ALL_COMMANDS_BIT, VK_PIPELINE_STAGE_TRANSFER_BIT, {},
+    cmdbuf.PipelineBarrier(vk::PIPELINE_STAGE_GRAPHICS_COMPUTE_TRANSFER, VK_PIPELINE_STAGE_TRANSFER_BIT, {},
                            {}, {}, pre_barriers);
 
     if (blit_supported) {
@@ -449,8 +453,8 @@ void PresentManager::CopyToSwapchainImpl(Frame* frame) {
     const std::array wait_semaphores = {present_semaphore, *frame->render_ready};
 
     static constexpr std::array<VkPipelineStageFlags, 2> wait_stage_masks{
-        VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
-        VK_PIPELINE_STAGE_ALL_COMMANDS_BIT,
+        VK_PIPELINE_STAGE_TRANSFER_BIT,
+        VK_PIPELINE_STAGE_TRANSFER_BIT,
     };
 
     const VkSubmitInfo submit_info{

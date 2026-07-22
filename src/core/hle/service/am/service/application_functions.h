@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2024 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -41,7 +44,6 @@ private:
                               u64 normal_size, u64 journal_size);
     Result GetSaveDataSizeMax(Out<u64> out_max_normal_size, Out<u64> out_max_journal_size);
     Result GetCacheStorageMax(Out<u32> out_cache_storage_index_max, Out<u64> out_max_journal_size);
-    Result GetDeviceSaveDataSizeMax(Out<u64> out_max_normal_size, Out<u64> out_max_journal_size);
     Result BeginBlockingHomeButtonShortAndLongPressed(s64 unused);
     Result EndBlockingHomeButtonShortAndLongPressed();
     Result BeginBlockingHomeButton(s64 timeout_ns);
@@ -51,6 +53,7 @@ private:
     Result IsGamePlayRecordingSupported(Out<bool> out_is_game_play_recording_supported);
     Result InitializeGamePlayRecording(
         u64 transfer_memory_size, InCopyHandle<Kernel::KTransferMemory> transfer_memory_handle);
+    Result SetMediaPlaybackStateForApplication(bool enabled);
     Result SetGamePlayRecordingState(GamePlayRecordingState game_play_recording_state);
     Result EnableApplicationCrashReport(bool enabled);
     Result InitializeApplicationCopyrightFrameBuffer(
@@ -77,7 +80,9 @@ private:
     Result TryPopFromFriendInvitationStorageChannel(Out<SharedPointer<IStorage>> out_storage);
     Result GetNotificationStorageChannelEvent(OutCopyHandle<Kernel::KReadableEvent> out_event);
     Result GetHealthWarningDisappearedSystemEvent(OutCopyHandle<Kernel::KReadableEvent> out_event);
-    Result GetUnknownEvent(OutCopyHandle<Kernel::KReadableEvent> out_event);
+    Result CreateApplicationAndRequestToStart(u64 application_id);
+    Result GetUnknownEvent210(OutCopyHandle<Kernel::KReadableEvent> out_event);
+    Result Unknown330(Out<u8> out);
     Result PrepareForJit();
 
     const std::shared_ptr<Applet> m_applet;

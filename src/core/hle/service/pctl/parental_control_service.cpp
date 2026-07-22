@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2024 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -21,7 +24,7 @@ IParentalControlService::IParentalControlService(Core::System& system_, Capabili
         {1002, D<&IParentalControlService::ConfirmLaunchApplicationPermission>, "ConfirmLaunchApplicationPermission"},
         {1003, D<&IParentalControlService::ConfirmResumeApplicationPermission>, "ConfirmResumeApplicationPermission"},
         {1004, D<&IParentalControlService::ConfirmSnsPostPermission>, "ConfirmSnsPostPermission"},
-        {1005, nullptr, "ConfirmSystemSettingsPermission"},
+        {1005, D<&IParentalControlService::ConfirmSystemSettingsPermission>, "ConfirmSystemSettingsPermission"},
         {1006, D<&IParentalControlService::IsRestrictionTemporaryUnlocked>, "IsRestrictionTemporaryUnlocked"},
         {1007, nullptr, "RevertRestrictionTemporaryUnlocked"},
         {1008, nullptr, "EnterRestrictedSystemSettings"},
@@ -35,6 +38,10 @@ IParentalControlService::IParentalControlService(Core::System& system_, Capabili
         {1016, nullptr, "ConfirmShowNewsPermission"},
         {1017, D<&IParentalControlService::EndFreeCommunication>, "EndFreeCommunication"},
         {1018, D<&IParentalControlService::IsFreeCommunicationAvailable>, "IsFreeCommunicationAvailable"},
+        {1019, D<&IParentalControlService::ConfirmLaunchApplicationPermission>, "ConfirmLaunchApplicationPermission"},
+        {1020, nullptr, "ConfirmLaunchSharedApplicationPermission"}, //20.0.0+
+        {1021, nullptr, "TryBeginFreeCommunicationForStreamPlay"}, //21.0.0+
+        {1022, nullptr, "EndFreeCommunicationForStreamPlay"}, //21.0.0+
         {1031, D<&IParentalControlService::IsRestrictionEnabled>, "IsRestrictionEnabled"},
         {1032, D<&IParentalControlService::GetSafetyLevel>, "GetSafetyLevel"},
         {1033, nullptr, "SetSafetyLevel"},
@@ -52,6 +59,8 @@ IParentalControlService::IParentalControlService(Core::System& system_, Capabili
         {1047, nullptr, "NotifyApplicationDownloadStarted"},
         {1048, nullptr, "NotifyNetworkProfileCreated"},
         {1049, nullptr, "ResetFreeCommunicationApplicationList"},
+        {1050, nullptr, "AddToFreeCommunicationApplicationList"}, //20.0.0+
+        {1051, nullptr, "NotifyApplicationDownloadStarted"}, //20.0.0+
         {1061, D<&IParentalControlService::ConfirmStereoVisionRestrictionConfigurable>, "ConfirmStereoVisionRestrictionConfigurable"},
         {1062, D<&IParentalControlService::GetStereoVisionRestriction>, "GetStereoVisionRestriction"},
         {1063, D<&IParentalControlService::SetStereoVisionRestriction>, "SetStereoVisionRestriction"},
@@ -77,11 +86,12 @@ IParentalControlService::IParentalControlService(Core::System& system_, Capabili
         {1451, D<&IParentalControlService::StartPlayTimer>, "StartPlayTimer"},
         {1452, D<&IParentalControlService::StopPlayTimer>, "StopPlayTimer"},
         {1453, D<&IParentalControlService::IsPlayTimerEnabled>, "IsPlayTimerEnabled"},
-        {1454, nullptr, "GetPlayTimerRemainingTime"},
+        {1454, D<&IParentalControlService::GetPlayTimerRemainingTime>, "GetPlayTimerRemainingTime"},
         {1455, D<&IParentalControlService::IsRestrictedByPlayTimer>, "IsRestrictedByPlayTimer"},
-        {1456, D<&IParentalControlService::GetPlayTimerSettings>, "GetPlayTimerSettings"},
+        {1456, D<&IParentalControlService::GetPlayTimerSettingsOld>, "GetPlayTimerSettingsOld"},
         {1457, D<&IParentalControlService::GetPlayTimerEventToRequestSuspension>, "GetPlayTimerEventToRequestSuspension"},
         {1458, D<&IParentalControlService::IsPlayTimerAlarmDisabled>, "IsPlayTimerAlarmDisabled"},
+        {1459, D<&IParentalControlService::GetPlayTimerRemainingTimeDisplayInfo>, "GetPlayTimerRemainingTimeDisplayInfo"},
         {1471, nullptr, "NotifyWrongPinCodeInputManyTimes"},
         {1472, nullptr, "CancelNetworkRequest"},
         {1473, D<&IParentalControlService::GetUnlinkedEvent>, "GetUnlinkedEvent"},
@@ -105,7 +115,7 @@ IParentalControlService::IParentalControlService(Core::System& system_, Capabili
         {1954, nullptr, "IsBedtimeAlarmEnabled"}, // 18.0.0+
         {1955, nullptr, "GetBedtimeAlarmTime"}, // 18.0.0+
         {1956, nullptr, "GetBedtimeAlarmTimeHour"}, // 18.0.0+
-        {1967, nullptr, "GetBedtimeAlarmTimeMinute"}, // 18.0.0+
+        {1957, nullptr, "GetBedtimeAlarmTimeMinute"}, // 18.0.0+
         {2001, nullptr, "RequestPairingAsync"},
         {2002, nullptr, "FinishRequestPairing"},
         {2003, nullptr, "AuthorizePairingAsync"},
@@ -121,9 +131,17 @@ IParentalControlService::IParentalControlService(Core::System& system_, Capabili
         {2013, nullptr, "SynchronizeParentalControlSettingsAsync"},
         {2014, nullptr, "FinishSynchronizeParentalControlSettings"},
         {2015, nullptr, "FinishSynchronizeParentalControlSettingsWithLastUpdated"},
-        {2016, nullptr, "RequestUpdateExemptionListAsync"},
-        {145601, nullptr, "GetPlayTimerSettingsVer2"}, // 18.0.0+
-        {195101, nullptr, "SetPlayTimerSettingsForDebugVer2"}, // 18.0.0+
+        {2016, nullptr, "RequestUpdateExemptionListAsync"}, //5.0.0+
+        {145601, D<&IParentalControlService::GetPlayTimerSettings>, "GetPlayTimerSettings"}, // 18.0.0+
+        {2017, nullptr, "AuthorizePairingAsync"}, //19.0.0+
+        {2019, nullptr, "RequestUpdateDeviceUsersBackground"}, //19.0.0+
+        {2021, nullptr, "RequestCopyPairingAsync"}, //20.0.0+
+        {2022, nullptr, "FinishRequestCopyPairing"}, //20.0.0+
+        {2023, nullptr, "IsFromPairingActiveDevice"}, //20.0.0+
+        {2024, nullptr, "RollbackCopyPairing"}, //21.0.0+
+        {3001, nullptr, "GetErrorContextChangedEvent"}, //20.0.0+
+        {145601, D<&IParentalControlService::GetPlayTimerSettings>, "GetPlayTimerSettings"}, // 18.0.0+
+        {195101, D<&IParentalControlService::SetPlayTimerSettings>, "SetPlayTimerSettingsForDebug"}, //18.0.0+
     };
     // clang-format on
     RegisterHandlers(functions);
@@ -241,6 +259,11 @@ Result IParentalControlService::ConfirmSnsPostPermission() {
     R_THROW(PCTL::ResultNoFreeCommunication);
 }
 
+Result IParentalControlService::ConfirmSystemSettingsPermission() {
+    LOG_WARNING(Service_PCTL, "(STUBBED) called");
+    R_SUCCEED();
+}
+
 Result IParentalControlService::IsRestrictionTemporaryUnlocked(
     Out<bool> out_is_temporary_unlocked) {
     *out_is_temporary_unlocked = false;
@@ -269,7 +292,7 @@ Result IParentalControlService::EndFreeCommunication() {
 }
 
 Result IParentalControlService::IsFreeCommunicationAvailable() {
-    LOG_WARNING(Service_PCTL, "(STUBBED) called");
+    LOG_DEBUG(Service_PCTL, "(STUBBED) called");
 
     if (!CheckFreeCommunicationPermissionImpl()) {
         R_THROW(PCTL::ResultNoFreeCommunication);
@@ -371,16 +394,34 @@ Result IParentalControlService::IsPlayTimerEnabled(Out<bool> out_is_play_timer_e
     R_SUCCEED();
 }
 
+Result IParentalControlService::GetPlayTimerRemainingTime(Out<s32> out_remaining_time) {
+    LOG_WARNING(Service_PCTL, "(STUBBED) called");
+    *out_remaining_time = std::numeric_limits<s32>::max();
+    R_SUCCEED();
+}
+
 Result IParentalControlService::IsRestrictedByPlayTimer(Out<bool> out_is_restricted_by_play_timer) {
     *out_is_restricted_by_play_timer = false;
     LOG_WARNING(Service_PCTL, "(STUBBED) called, restricted={}", *out_is_restricted_by_play_timer);
     R_SUCCEED();
 }
 
-Result IParentalControlService::GetPlayTimerSettings(
-    Out<PlayTimerSettings> out_play_timer_settings) {
+Result IParentalControlService::GetPlayTimerSettingsOld(
+    Out<PlayTimerSettingsOld> out_play_timer_settings) {
     LOG_WARNING(Service_PCTL, "(STUBBED) called");
     *out_play_timer_settings = {};
+    R_SUCCEED();
+}
+
+Result IParentalControlService::GetPlayTimerSettings(Out<PlayTimerSettings> out_play_timer_settings) {
+    LOG_WARNING(Service_PCTL, "(STUBBED) called");
+    *out_play_timer_settings = raw_play_timer_settings;
+    R_SUCCEED();
+}
+
+Result IParentalControlService::SetPlayTimerSettings(PlayTimerSettings play_timer_settings) {
+    LOG_WARNING(Service_PCTL, "(STUBBED) called");
+    raw_play_timer_settings = play_timer_settings;
     R_SUCCEED();
 }
 
@@ -395,6 +436,11 @@ Result IParentalControlService::IsPlayTimerAlarmDisabled(Out<bool> out_play_time
     *out_play_timer_alarm_disabled = false;
     LOG_INFO(Service_PCTL, "called, is_play_timer_alarm_disabled={}",
              *out_play_timer_alarm_disabled);
+    R_SUCCEED();
+}
+
+Result IParentalControlService::GetPlayTimerRemainingTimeDisplayInfo(/* Out 0x18 */) {
+    LOG_INFO(Service_PCTL, "called");
     R_SUCCEED();
 }
 

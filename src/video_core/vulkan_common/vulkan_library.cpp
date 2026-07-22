@@ -1,11 +1,14 @@
-// SPDX-FileCopyrightText: Copyright 2020 suyu Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
+// SPDX-FileCopyrightText: Copyright 2020 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
 #include <string>
 
 #include "common/dynamic_library.h"
 #include "common/fs/path_util.h"
-#include "common/logging/log.h"
+#include "common/logging.h"
 #include "video_core/vulkan_common/vulkan_library.h"
 
 namespace Vulkan {
@@ -13,7 +16,7 @@ namespace Vulkan {
 std::shared_ptr<Common::DynamicLibrary> OpenLibrary(
     [[maybe_unused]] Core::Frontend::GraphicsContext* context) {
     LOG_DEBUG(Render_Vulkan, "Looking for a Vulkan library");
-#if defined(ANDROID) && defined(ARCHITECTURE_arm64)
+#if defined(__ANDROID__) && defined(ARCHITECTURE_arm64)
     // Android manages its Vulkan driver from the frontend.
     return context->GetDriverLibrary();
 #else

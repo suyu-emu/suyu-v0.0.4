@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 /* This file is part of the dynarmic project.
@@ -9,6 +9,7 @@
 #include <algorithm>
 #include <cstdio>
 #include <map>
+#include <bit>
 
 #include <ankerl/unordered_dense.h>
 #include "boost/container/small_vector.hpp"
@@ -27,13 +28,12 @@
 #include "dynarmic/ir/opcodes.h"
 #include "dynarmic/ir/opt_passes.h"
 #include "dynarmic/ir/type.h"
-#include "mcl/bit/swap.hpp"
-#include "mcl/bit/rotate.hpp"
+#include "dynarmic/mcl/bit.hpp"
 
 namespace Dynarmic::Optimization {
 
 static void ConstantMemoryReads(IR::Block& block, A32::UserCallbacks* cb) {
-    for (auto& inst : block) {
+    for (auto& inst : block.instructions) {
         switch (inst.GetOpcode()) {
         case IR::Opcode::A32ReadMemory8:
         case IR::Opcode::A64ReadMemory8: {
@@ -131,7 +131,7 @@ static void FlagsPass(IR::Block& block) {
 
     A32::IREmitter ir{block, A32::LocationDescriptor{block.Location()}, {}};
 
-    for (auto inst = block.rbegin(); inst != block.rend(); ++inst) {
+    for (auto inst = block.instructions.rbegin(); inst != block.instructions.rend(); ++inst) {
         auto const opcode = inst->GetOpcode();
         switch (opcode) {
         case IR::Opcode::A32GetCFlag: {
@@ -318,7 +318,7 @@ static void RegisterPass(IR::Block& block) {
     // Location and version don't matter here.
     A32::IREmitter ir{block, A32::LocationDescriptor{block.Location()}, {}};
 
-    for (auto inst = block.begin(); inst != block.end(); ++inst) {
+    for (auto inst = block.instructions.begin(); inst != block.instructions.end(); ++inst) {
         auto const opcode = inst->GetOpcode();
         switch (opcode) {
         case IR::Opcode::A32GetRegister: {
@@ -448,7 +448,7 @@ static void A64CallbackConfigPass(IR::Block& block, const A64::UserConfig& conf)
         return;
     }
 
-    for (auto& inst : block) {
+    for (auto& inst : block.instructions) {
         if (inst.GetOpcode() != IR::Opcode::A64DataCacheOperationRaised) {
             continue;
         }
@@ -485,6 +485,16 @@ static void A64CallbackConfigPass(IR::Block& block, const A64::UserConfig& conf)
     }
 }
 
+// Tiny helper to avoid the need to store based off the opcode
+// bit size all over the place within folding functions.
+static void ReplaceUsesWith(IR::Inst& inst, bool is_32_bit, u64 value) {
+    if (is_32_bit) {
+        inst.ReplaceUsesWith(IR::Value{u32(value)});
+    } else {
+        inst.ReplaceUsesWith(IR::Value{value});
+    }
+}
+
 static void A64GetSetElimination(IR::Block& block) {
     using Iterator = IR::Block::iterator;
 
@@ -501,8 +511,8 @@ static void A64GetSetElimination(IR::Block& block) {
     struct RegisterInfo {
         IR::Value register_value;
         TrackingType tracking_type;
-        bool set_instruction_present = false;
         Iterator last_set_instruction;
+        bool set_instruction_present = false;
     };
     std::array<RegisterInfo, 31> reg_info;
     std::array<RegisterInfo, 32> vec_info;
@@ -514,59 +524,58 @@ static void A64GetSetElimination(IR::Block& block) {
             info.last_set_instruction->Invalidate();
             block.Instructions().erase(info.last_set_instruction);
         }
-
         info.register_value = value;
         info.tracking_type = tracking_type;
         info.set_instruction_present = true;
         info.last_set_instruction = set_inst;
     };
-
-    const auto do_get = [](RegisterInfo& info, Iterator get_inst, TrackingType tracking_type) {
-        const auto do_nothing = [&] {
+    const auto do_get = [&block](RegisterInfo& info, Iterator get_inst, TrackingType tracking_type) {
+        if (!info.register_value.IsEmpty() && info.tracking_type == tracking_type) {
+            get_inst->ReplaceUsesWith(info.register_value);
+        } else if (!info.register_value.IsEmpty()
+            && tracking_type == TrackingType::W
+            && info.tracking_type == TrackingType::X) {
+            // A sequence like
+            // SetX r1 -> GetW r1, is just reading off the lowest 32-bits of the register
+            if (info.register_value.IsImmediate()) {
+                ReplaceUsesWith(*get_inst, true, u32(info.register_value.GetImmediateAsU64()));
+            } else {
+                A64::IREmitter ir{block};
+                ir.SetInsertionPointBefore(&*get_inst);
+                get_inst->ReplaceUsesWith(ir.LeastSignificantWord(IR::U64{info.register_value}));
+            }
+        } else {
             info = {};
             info.register_value = IR::Value(&*get_inst);
             info.tracking_type = tracking_type;
-        };
-
-        if (info.register_value.IsEmpty()) {
-            do_nothing();
-            return;
         }
-
-        if (info.tracking_type == tracking_type) {
-            get_inst->ReplaceUsesWith(info.register_value);
-            return;
-        }
-
-        do_nothing();
     };
-
-    for (auto inst = block.begin(); inst != block.end(); ++inst) {
+    for (auto inst = block.instructions.begin(); inst != block.instructions.end(); ++inst) {
         auto const opcode = inst->GetOpcode();
         switch (opcode) {
         case IR::Opcode::A64GetW: {
             const size_t index = A64::RegNumber(inst->GetArg(0).GetA64RegRef());
-            do_get(reg_info.at(index), inst, TrackingType::W);
+            do_get(reg_info[index], inst, TrackingType::W);
             break;
         }
         case IR::Opcode::A64GetX: {
             const size_t index = A64::RegNumber(inst->GetArg(0).GetA64RegRef());
-            do_get(reg_info.at(index), inst, TrackingType::X);
+            do_get(reg_info[index], inst, TrackingType::X);
             break;
         }
         case IR::Opcode::A64GetS: {
             const size_t index = A64::VecNumber(inst->GetArg(0).GetA64VecRef());
-            do_get(vec_info.at(index), inst, TrackingType::S);
+            do_get(vec_info[index], inst, TrackingType::S);
             break;
         }
         case IR::Opcode::A64GetD: {
             const size_t index = A64::VecNumber(inst->GetArg(0).GetA64VecRef());
-            do_get(vec_info.at(index), inst, TrackingType::D);
+            do_get(vec_info[index], inst, TrackingType::D);
             break;
         }
         case IR::Opcode::A64GetQ: {
             const size_t index = A64::VecNumber(inst->GetArg(0).GetA64VecRef());
-            do_get(vec_info.at(index), inst, TrackingType::Q);
+            do_get(vec_info[index], inst, TrackingType::Q);
             break;
         }
         case IR::Opcode::A64GetSP: {
@@ -579,27 +588,27 @@ static void A64GetSetElimination(IR::Block& block) {
         }
         case IR::Opcode::A64SetW: {
             const size_t index = A64::RegNumber(inst->GetArg(0).GetA64RegRef());
-            do_set(reg_info.at(index), inst->GetArg(1), inst, TrackingType::W);
+            do_set(reg_info[index], inst->GetArg(1), inst, TrackingType::W);
             break;
         }
         case IR::Opcode::A64SetX: {
             const size_t index = A64::RegNumber(inst->GetArg(0).GetA64RegRef());
-            do_set(reg_info.at(index), inst->GetArg(1), inst, TrackingType::X);
+            do_set(reg_info[index], inst->GetArg(1), inst, TrackingType::X);
             break;
         }
         case IR::Opcode::A64SetS: {
             const size_t index = A64::VecNumber(inst->GetArg(0).GetA64VecRef());
-            do_set(vec_info.at(index), inst->GetArg(1), inst, TrackingType::S);
+            do_set(vec_info[index], inst->GetArg(1), inst, TrackingType::S);
             break;
         }
         case IR::Opcode::A64SetD: {
             const size_t index = A64::VecNumber(inst->GetArg(0).GetA64VecRef());
-            do_set(vec_info.at(index), inst->GetArg(1), inst, TrackingType::D);
+            do_set(vec_info[index], inst->GetArg(1), inst, TrackingType::D);
             break;
         }
         case IR::Opcode::A64SetQ: {
             const size_t index = A64::VecNumber(inst->GetArg(0).GetA64VecRef());
-            do_set(vec_info.at(index), inst->GetArg(1), inst, TrackingType::Q);
+            do_set(vec_info[index], inst->GetArg(1), inst, TrackingType::Q);
             break;
         }
         case IR::Opcode::A64SetSP: {
@@ -629,54 +638,7 @@ static void A64GetSetElimination(IR::Block& block) {
     }
 }
 
-static void A64MergeInterpretBlocksPass(IR::Block& block, A64::UserCallbacks* cb) {
-    const auto is_interpret_instruction = [cb](A64::LocationDescriptor location) {
-        const auto instruction = cb->MemoryReadCode(location.PC());
-        if (!instruction)
-            return false;
-
-        IR::Block new_block{location};
-        A64::TranslateSingleInstruction(new_block, location, *instruction);
-
-        if (!new_block.Instructions().empty())
-            return false;
-
-        const IR::Terminal terminal = new_block.GetTerminal();
-        if (auto term = boost::get<IR::Term::Interpret>(&terminal)) {
-            return term->next == location;
-        }
-
-        return false;
-    };
-
-    IR::Terminal terminal = block.GetTerminal();
-    auto term = boost::get<IR::Term::Interpret>(&terminal);
-    if (!term)
-        return;
-
-    A64::LocationDescriptor location{term->next};
-    size_t num_instructions = 1;
-
-    while (is_interpret_instruction(location.AdvancePC(static_cast<int>(num_instructions * 4)))) {
-        num_instructions++;
-    }
-
-    term->num_instructions = num_instructions;
-    block.ReplaceTerminal(terminal);
-    block.CycleCount() += num_instructions - 1;
-}
-
 using Op = Dynarmic::IR::Opcode;
-
-// Tiny helper to avoid the need to store based off the opcode
-// bit size all over the place within folding functions.
-static void ReplaceUsesWith(IR::Inst& inst, bool is_32_bit, u64 value) {
-    if (is_32_bit) {
-        inst.ReplaceUsesWith(IR::Value{u32(value)});
-    } else {
-        inst.ReplaceUsesWith(IR::Value{value});
-    }
-}
 
 static IR::Value Value(bool is_32_bit, u64 value) {
     return is_32_bit ? IR::Value{u32(value)} : IR::Value{value};
@@ -825,24 +787,30 @@ static void FoldCountLeadingZeros(IR::Inst& inst, bool is_32_bit) {
 /// Folds division operations based on the following:
 ///
 /// 1. x / 0 -> 0 (NOTE: This is an ARM-specific behavior defined in the architecture reference manual)
-/// 2. imm_x / imm_y -> result
-/// 3. x / 1 -> x
+/// 2a. 0x8000_0000 / 0xFFFF_FFFF -> 0x8000_0000 (NOTE: More ARM bullshit)
+/// 2b. 0x8000_0000_0000_0000 / 0xFFFF_FFFF_FFFF_FFFF -> 0x8000_0000_0000_0000
+/// 3. imm_x / imm_y -> result
+/// 4. x / 1 -> x
 ///
 static void FoldDivide(IR::Inst& inst, bool is_32_bit, bool is_signed) {
     const auto rhs = inst.GetArg(1);
-
-    if (rhs.IsZero()) {
-        ReplaceUsesWith(inst, is_32_bit, 0);
-        return;
-    }
-
     const auto lhs = inst.GetArg(0);
-    if (lhs.IsImmediate() && rhs.IsImmediate()) {
+    if (lhs.IsZero() || rhs.IsZero()) {
+        ReplaceUsesWith(inst, is_32_bit, u64(0));
+   } else if (!is_32_bit && lhs.IsUnsignedImmediate(u64(1ULL << 63)) && rhs.IsUnsignedImmediate(u64(-1))) {
+       ReplaceUsesWith(inst, is_32_bit, u64(1ULL << 63));
+    } else if (is_32_bit && lhs.IsUnsignedImmediate(u32(1ULL << 31)) && rhs.IsUnsignedImmediate(u32(-1))) {
+        ReplaceUsesWith(inst, is_32_bit, u64(1ULL << 31));
+    } else if (lhs.IsImmediate() && rhs.IsImmediate()) {
         if (is_signed) {
-            const s64 result = lhs.GetImmediateAsS64() / rhs.GetImmediateAsS64();
-            ReplaceUsesWith(inst, is_32_bit, static_cast<u64>(result));
+            auto const dl = lhs.GetImmediateAsS64();
+            auto const dr = rhs.GetImmediateAsS64();
+            const s64 result = dl / dr;
+            ReplaceUsesWith(inst, is_32_bit, u64(result));
         } else {
-            const u64 result = lhs.GetImmediateAsU64() / rhs.GetImmediateAsU64();
+            auto const dl = lhs.GetImmediateAsU64();
+            auto const dr = rhs.GetImmediateAsU64();
+            const u64 result = dl / dr;
             ReplaceUsesWith(inst, is_32_bit, result);
         }
     } else if (rhs.IsUnsignedImmediate(1)) {
@@ -1041,8 +1009,13 @@ static void FoldZeroExtendXToLong(IR::Inst& inst) {
 }
 
 static void ConstantPropagation(IR::Block& block) {
-    for (auto& inst : block) {
+    for (auto& inst : block.instructions) {
         auto const opcode = inst.GetOpcode();
+        // skip NZCV so we dont end up discarding side effects :)
+        // TODO(lizzie): hey stupid maybe fix the A64 codegen for folded constants AND
+        // redirect the mfer properly?!??! just saying :)
+        if (IR::MayGetNZCVFromOp(opcode) && inst.GetAssociatedPseudoOperation(IR::Opcode::GetNZCVFromOp))
+            continue;
         switch (opcode) {
         case Op::LeastSignificantWord:
             FoldLeastSignificantWord(inst);
@@ -1099,14 +1072,14 @@ static void ConstantPropagation(IR::Block& block) {
                 ReplaceUsesWith(inst, false, Safe::ArithmeticShiftRight<u64>(inst.GetArg(0).GetU64(), inst.GetArg(1).GetU8()));
             }
             break;
-        case Op::RotateRight32:
+        case Op::BitRotateRight32:
             if (FoldShifts(inst)) {
-                ReplaceUsesWith(inst, true, mcl::bit::rotate_right<u32>(inst.GetArg(0).GetU32(), inst.GetArg(1).GetU8()));
+                ReplaceUsesWith(inst, true, std::rotr<u32>(inst.GetArg(0).GetU32(), inst.GetArg(1).GetU8()));
             }
             break;
-        case Op::RotateRight64:
+        case Op::BitRotateRight64:
             if (FoldShifts(inst)) {
-                ReplaceUsesWith(inst, false, mcl::bit::rotate_right<u64>(inst.GetArg(0).GetU64(), inst.GetArg(1).GetU8()));
+                ReplaceUsesWith(inst, false, std::rotr<u64>(inst.GetArg(0).GetU64(), inst.GetArg(1).GetU8()));
             }
             break;
         case Op::LogicalShiftLeftMasked32:
@@ -1141,12 +1114,12 @@ static void ConstantPropagation(IR::Block& block) {
             break;
         case Op::RotateRightMasked32:
             if (inst.AreAllArgsImmediates()) {
-                ReplaceUsesWith(inst, true, mcl::bit::rotate_right<u32>(inst.GetArg(0).GetU32(), inst.GetArg(1).GetU32()));
+                ReplaceUsesWith(inst, true, std::rotr<u32>(inst.GetArg(0).GetU32(), inst.GetArg(1).GetU32()));
             }
             break;
         case Op::RotateRightMasked64:
             if (inst.AreAllArgsImmediates()) {
-                ReplaceUsesWith(inst, false, mcl::bit::rotate_right<u64>(inst.GetArg(0).GetU64(), inst.GetArg(1).GetU64()));
+                ReplaceUsesWith(inst, false, std::rotr<u64>(inst.GetArg(0).GetU64(), inst.GetArg(1).GetU64()));
             }
             break;
         case Op::Add32:
@@ -1221,43 +1194,34 @@ static void ConstantPropagation(IR::Block& block) {
 static void DeadCodeElimination(IR::Block& block) {
     // We iterate over the instructions in reverse order.
     // This is because removing an instruction reduces the number of uses for earlier instructions.
-    for (auto it = block.rbegin(); it != block.rend(); ++it)
+    for (auto it = block.instructions.rbegin(); it != block.instructions.rend(); ++it)
         if (!it->HasUses() && !MayHaveSideEffects(it->GetOpcode()))
             it->Invalidate();
 }
 
 static void IdentityRemovalPass(IR::Block& block) {
     boost::container::small_vector<IR::Inst*, 128> to_invalidate;
-
-    auto iter = block.begin();
-    while (iter != block.end()) {
-        IR::Inst& inst = *iter;
-
-        const size_t num_args = inst.NumArgs();
-        for (size_t i = 0; i < num_args; i++) {
-            while (true) {
-                IR::Value arg = inst.GetArg(i);
-                if (!arg.IsIdentity())
-                    break;
-                inst.SetArg(i, arg.GetInst()->GetArg(0));
+    for (auto it = block.instructions.begin(); it != block.instructions.end();) {
+        auto const num_args = it->NumArgs();
+        for (size_t i = 0; i < num_args; ++i)
+            if (IR::Value arg = it->GetArg(i); arg.IsIdentity()) {
+                do arg = arg.GetInst()->GetArg(0); while (arg.IsIdentity());
+                it->SetArg(i, arg);
             }
-        }
-
-        if (inst.GetOpcode() == IR::Opcode::Identity || inst.GetOpcode() == IR::Opcode::Void) {
-            iter = block.Instructions().erase(inst);
-            to_invalidate.push_back(&inst);
+        if (it->GetOpcode() == IR::Opcode::Identity || it->GetOpcode() == IR::Opcode::Void) {
+            to_invalidate.push_back(&*it);
+            it = block.Instructions().erase(it);
         } else {
-            ++iter;
+            ++it;
         }
     }
-    for (IR::Inst* inst : to_invalidate) {
+    for (IR::Inst* const inst : to_invalidate)
         inst->Invalidate();
-    }
 }
 
 static void NamingPass(IR::Block& block) {
     u32 name = 1;
-    for (auto& inst : block)
+    for (auto& inst : block.instructions)
         inst.SetName(name++);
 }
 
@@ -1406,7 +1370,7 @@ static void PolyfillPass(IR::Block& block, const PolyfillOptions& polyfill) {
 
     IR::IREmitter ir{block};
 
-    for (auto& inst : block) {
+    for (auto& inst : block.instructions) {
         ir.SetInsertionPointBefore(&inst);
 
         switch (inst.GetOpcode()) {
@@ -1462,7 +1426,7 @@ static void PolyfillPass(IR::Block& block, const PolyfillOptions& polyfill) {
 }
 
 static void VerificationPass(const IR::Block& block) {
-    for (auto const& inst : block) {
+    for (auto const& inst : block.instructions) {
         for (size_t i = 0; i < inst.NumArgs(); i++) {
             const IR::Type t1 = inst.GetArg(i).GetType();
             const IR::Type t2 = IR::GetArgTypeOf(inst.GetOpcode(), i);
@@ -1470,7 +1434,7 @@ static void VerificationPass(const IR::Block& block) {
         }
     }
     ankerl::unordered_dense::map<IR::Inst*, size_t> actual_uses;
-    for (auto const& inst : block) {
+    for (auto const& inst : block.instructions) {
         for (size_t i = 0; i < inst.NumArgs(); i++)
             if (IR::Value const arg = inst.GetArg(i); !arg.IsImmediate())
                 actual_uses[arg.GetInst()]++;
@@ -1482,11 +1446,11 @@ static void VerificationPass(const IR::Block& block) {
 void Optimize(IR::Block& block, const A32::UserConfig& conf, const Optimization::PolyfillOptions& polyfill_options) {
     Optimization::PolyfillPass(block, polyfill_options);
     Optimization::NamingPass(block);
-    if (conf.HasOptimization(OptimizationFlag::GetSetElimination)) [[likely]] {
+    if (conf.HasOptimization(OptimizationFlag::GetSetElimination)) {
         Optimization::A32GetSetElimination(block, {.convert_nzc_to_nz = true});
         Optimization::DeadCodeElimination(block);
     }
-    if (conf.HasOptimization(OptimizationFlag::ConstProp)) [[likely]] {
+    if (conf.HasOptimization(OptimizationFlag::ConstProp)) {
         Optimization::ConstantMemoryReads(block, conf.callbacks);
         Optimization::ConstantPropagation(block);
         Optimization::DeadCodeElimination(block);
@@ -1501,17 +1465,15 @@ void Optimize(IR::Block& block, const A64::UserConfig& conf, const Optimization:
     Optimization::PolyfillPass(block, polyfill_options);
     Optimization::A64CallbackConfigPass(block, conf);
     Optimization::NamingPass(block);
-    if (conf.HasOptimization(OptimizationFlag::GetSetElimination) && !conf.check_halt_on_memory_access) [[likely]] {
+    if (conf.HasOptimization(OptimizationFlag::GetSetElimination) && !conf.check_halt_on_memory_access) {
         Optimization::A64GetSetElimination(block);
         Optimization::DeadCodeElimination(block);
     }
-    if (conf.HasOptimization(OptimizationFlag::ConstProp)) [[likely]] {
+    if (conf.HasOptimization(OptimizationFlag::ConstProp)) {
         Optimization::ConstantPropagation(block);
         Optimization::DeadCodeElimination(block);
     }
-    if (conf.HasOptimization(OptimizationFlag::MiscIROpt)) [[likely]] {
-        Optimization::A64MergeInterpretBlocksPass(block, conf.callbacks);
-    }
+    Optimization::IdentityRemovalPass(block);
     if (!conf.HasOptimization(OptimizationFlag::DisableVerification)) {
         Optimization::VerificationPass(block);
     }

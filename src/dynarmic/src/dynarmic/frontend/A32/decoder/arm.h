@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 /* This file is part of the dynarmic project.
@@ -15,8 +15,8 @@
 #include <optional>
 #include <vector>
 
-#include <mcl/bit/bit_count.hpp>
-#include "dynarmic/common/common_types.h"
+#include "dynarmic/mcl/bit.hpp"
+#include "common/common_types.h"
 
 #include "dynarmic/frontend/decoder/decoder_detail.h"
 #include "dynarmic/frontend/decoder/matcher.h"
@@ -26,54 +26,41 @@ namespace Dynarmic::A32 {
 template<typename Visitor>
 using ArmMatcher = Decoder::Matcher<Visitor, u32>;
 
-template<typename Visitor>
-using ArmDecodeTable = std::array<std::vector<ArmMatcher<Visitor>>, 0x1000>;
-
-namespace detail {
-inline size_t ToFastLookupIndexArm(u32 instruction) noexcept {
-    return ((instruction >> 4) & 0x00F) | ((instruction >> 16) & 0xFF0);
-}
-}  // namespace detail
-
-template<typename V>
-constexpr ArmDecodeTable<V> GetArmDecodeTable() noexcept {
-    std::vector<ArmMatcher<V>> list = {
-#define INST(fn, name, bitstring) DYNARMIC_DECODER_GET_MATCHER(ArmMatcher, fn, name, Decoder::detail::StringToArray<32>(bitstring)),
+template<typename V, typename ReturnType>
+static std::optional<ReturnType> DecodeArm(V& visitor, u32 instruction) noexcept {
+    auto const make_fast_index = [](u32 a) {
+        return ((a >> 4) & 0x00F) | ((a >> 16) & 0xFF0);
+    };
+    struct Handler {
+        bool (*fn)(V&, u32);
+        u32 mask;
+        u32 expect;
+    };
+    alignas(64) static const std::array<std::vector<Handler>, 0x1000> table = [&] {
+        std::array<std::vector<Handler>, 0x1000> t{};
+        for (size_t i = 0; i < t.size(); ++i) {
+#define INST(fn, name, bitstring) \
+    do { \
+        auto const [mask, expect] = DYNARMIC_DECODER_GET_MATCHER(ArmMatcher, fn, name, Decoder::detail::StringToArray<32>(bitstring)); \
+        if ((i & make_fast_index(mask)) == make_fast_index(expect)) { \
+            t[i].emplace_back([](V& visitor, u32 instruction) -> bool { \
+                return DYNARMIC_DECODER_GET_MATCHER_FUNCTION(ArmMatcher, fn, name, Decoder::detail::StringToArray<32>(bitstring)); \
+            }, mask, expect); \
+        } \
+    } while (0);
 #include "./arm.inc"
 #undef INST
-    };
-
-    // If a matcher has more bits in its mask it is more specific, so it should come first.
-    std::stable_sort(list.begin(), list.end(), [](const auto& matcher1, const auto& matcher2) {
-        return mcl::bit::count_ones(matcher1.GetMask()) > mcl::bit::count_ones(matcher2.GetMask());
-    });
-
-    ArmDecodeTable<V> table{};
-    for (size_t i = 0; i < table.size(); ++i) {
-        for (auto matcher : list) {
-            const auto expect = detail::ToFastLookupIndexArm(matcher.GetExpected());
-            const auto mask = detail::ToFastLookupIndexArm(matcher.GetMask());
-            if ((i & mask) == expect) {
-                table[i].push_back(matcher);
-            }
         }
-    }
-    return table;
+        return t;
+    }();
+    for (auto const& e : table[make_fast_index(instruction)])
+        if ((instruction & e.mask) == e.expect)
+            return e.fn(visitor, instruction);
+    return std::nullopt;
 }
 
 template<typename V>
-std::optional<std::reference_wrapper<const ArmMatcher<V>>> DecodeArm(u32 instruction) noexcept {
-    alignas(64) static const auto table = GetArmDecodeTable<V>();
-    const auto matches_instruction = [instruction](const auto& matcher) {
-        return matcher.Matches(instruction);
-    };
-    const auto& subtable = table[detail::ToFastLookupIndexArm(instruction)];
-    auto iter = std::find_if(subtable.begin(), subtable.end(), matches_instruction);
-    return iter != subtable.end() ? std::optional<std::reference_wrapper<const ArmMatcher<V>>>(*iter) : std::nullopt;
-}
-
-template<typename V>
-std::optional<std::string_view> GetNameARM(u32 inst) noexcept {
+static std::optional<std::string_view> GetNameArm(u32 inst) noexcept {
     std::vector<std::pair<std::string_view, ArmMatcher<V>>> list = {
 #define INST(fn, name, bitstring) { name, DYNARMIC_DECODER_GET_MATCHER(ArmMatcher, fn, name, Decoder::detail::StringToArray<32>(bitstring)) },
 #include "./arm.inc"

@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2021 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -111,6 +114,10 @@ void EmitINeg64(EmitContext& ctx, IR::Inst& inst, Register value) {
 
 void EmitIAbs32(EmitContext& ctx, IR::Inst& inst, ScalarS32 value) {
     ctx.Add("ABS.S {},{};", inst, value);
+}
+
+void EmitIAbs64(EmitContext& ctx, IR::Inst& inst, ScalarS32 value) {
+    ctx.Add("ABS.S64 {},{};", inst, value);
 }
 
 void EmitShiftLeftLogical32(EmitContext& ctx, IR::Inst& inst, ScalarU32 base, ScalarU32 shift) {

@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 /* This file is part of the dynarmic project.
@@ -8,18 +8,11 @@
 
 #include "dynarmic/frontend/A64/translate/impl/impl.h"
 
-#include <mcl/bit/bit_count.hpp>
-#include <mcl/bit/bit_field.hpp>
-#include <mcl/bit/rotate.hpp>
+#include "dynarmic/mcl/bit.hpp"
 
 #include "dynarmic/ir/terminal.h"
 
 namespace Dynarmic::A64 {
-
-bool TranslatorVisitor::InterpretThisInstruction() {
-    ir.SetTerm(IR::Term::Interpret(*ir.current_location));
-    return false;
-}
 
 bool TranslatorVisitor::UnpredictableInstruction() {
     return RaiseException(Exception::UnpredictableInstruction);
@@ -62,7 +55,7 @@ std::optional<TranslatorVisitor::BitMasks> TranslatorVisitor::DecodeBitMasks(boo
     const size_t esize = size_t{1} << len;
     const u64 welem = mcl::bit::ones<u64>(S + 1);
     const u64 telem = mcl::bit::ones<u64>(d + 1);
-    const u64 wmask = mcl::bit::rotate_right(mcl::bit::replicate_element<u64>(esize, welem), R);
+    const u64 wmask = std::rotr(mcl::bit::replicate_element<u64>(esize, welem), R);
     const u64 tmask = mcl::bit::replicate_element<u64>(esize, telem);
 
     return BitMasks{wmask, tmask};

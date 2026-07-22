@@ -7,19 +7,21 @@
     android:background="?attr/colorSurface">
 
     <androidx.coordinatorlayout.widget.CoordinatorLayout
+        android:id="@+id/coordinatorLayout"
         android:layout_width="match_parent"
         android:layout_height="match_parent">
 
         <com.google.android.material.appbar.AppBarLayout
             android:id="@+id/appbar_drivers"
+            style="@style/Widget.Eden.TransparentTopAppBarLayout"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:fitsSystemWindows="true"
-            android:touchscreenBlocksFocus="false"
-            app:liftOnScrollTargetViewId="@id/list_drivers">
+            android:touchscreenBlocksFocus="false">
 
             <com.google.android.material.appbar.MaterialToolbar
                 android:id="@+id/toolbar_drivers"
+                style="@style/Widget.Eden.TransparentTopToolbar"
                 android:layout_width="match_parent"
                 android:layout_height="?attr/actionBarSize"
                 android:touchscreenBlocksFocus="false"
@@ -46,5 +48,15 @@
         app:icon="@drawable/ic_add"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent" />
+
+    <com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton
+        android:id="@+id/button_fetch"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom|start"
+        android:text="@string/fetch"
+        app:icon="@drawable/ic_import"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: 2023 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
@@ -9,17 +12,19 @@
 #include <mutex>
 #include <span>
 #include <type_traits>
+// TODO: find out which don't require stable iters
 #include <unordered_map>
-#include <unordered_set>
+#include <ankerl/unordered_dense.h>
 #include <vector>
 #include <boost/container/small_vector.hpp>
+#include <boost/container/static_vector.hpp>
 #include <queue>
 
 #include "common/common_types.h"
 #include "common/hash.h"
 #include "common/literals.h"
 #include "common/lru_cache.h"
-#include "common/polyfill_ranges.h"
+#include <ranges>
 #include "common/scratch_buffer.h"
 #include "common/slot_vector.h"
 #include "common/thread_worker.h"
@@ -63,7 +68,7 @@ struct AsyncDecodeContext {
     std::atomic_bool complete;
 };
 
-using TextureCacheGPUMap = std::unordered_map<u64, std::vector<ImageId>, Common::IdentityHash<u64>>;
+using TextureCacheGPUMap = ankerl::unordered_dense::map<u64, std::vector<ImageId>, Common::IdentityHash<u64>>;
 
 class TextureCacheChannelInfo : public ChannelInfo {
 public:
@@ -72,27 +77,26 @@ public:
     TextureCacheChannelInfo(const TextureCacheChannelInfo& state) = delete;
     TextureCacheChannelInfo& operator=(const TextureCacheChannelInfo&) = delete;
 
-    DescriptorTable<TICEntry> graphics_image_table{gpu_memory};
-    DescriptorTable<TSCEntry> graphics_sampler_table{gpu_memory};
-    std::vector<SamplerId> graphics_sampler_ids;
-    std::vector<ImageViewId> graphics_image_view_ids;
+    DescriptorTable<TICEntry> graphics_image_table;
+    DescriptorTable<TSCEntry> graphics_sampler_table;
+    DescriptorTable<TICEntry> compute_image_table;
+    DescriptorTable<TSCEntry> compute_sampler_table;
 
-    DescriptorTable<TICEntry> compute_image_table{gpu_memory};
-    DescriptorTable<TSCEntry> compute_sampler_table{gpu_memory};
-    std::vector<SamplerId> compute_sampler_ids;
-    std::vector<ImageViewId> compute_image_view_ids;
-
+    // TODO: still relies on bad iterators :(
     std::unordered_map<TICEntry, ImageViewId> image_views;
     std::unordered_map<TSCEntry, SamplerId> samplers;
 
-    TextureCacheGPUMap* gpu_page_table;
-    TextureCacheGPUMap* sparse_page_table;
+    ankerl::unordered_dense::map<u32, SamplerId> sampler_ids;
+    ankerl::unordered_dense::map<u32, ImageViewId> image_view_ids;
+
+    TextureCacheGPUMap* gpu_page_table = nullptr;
+    TextureCacheGPUMap* sparse_page_table = nullptr;
 };
 
 template <class P>
 class TextureCache : public VideoCommon::ChannelSetupCaches<TextureCacheChannelInfo> {
     /// Address shift for caching images into a hash table
-    static constexpr u64 SUYU_PAGEBITS = 20;
+    static constexpr u64 YUZU_PAGEBITS = 20;
 
     /// Enables debugging features to the texture cache
     static constexpr bool ENABLE_VALIDATION = P::ENABLE_VALIDATION;
@@ -107,7 +111,12 @@ class TextureCache : public VideoCommon::ChannelSetupCaches<TextureCacheChannelI
 
     static constexpr size_t UNSET_CHANNEL{(std::numeric_limits<size_t>::max)()};
 
+#ifdef YUZU_LEGACY
+    static constexpr s64 TARGET_THRESHOLD = 3_GiB;
+#else
     static constexpr s64 TARGET_THRESHOLD = 4_GiB;
+#endif
+
     static constexpr s64 DEFAULT_EXPECTED_MEMORY = 1_GiB + 125_MiB;
     static constexpr s64 DEFAULT_CRITICAL_MEMORY = 1_GiB + 625_MiB;
     static constexpr size_t GC_EMERGENCY_COUNTS = 2;
@@ -120,6 +129,17 @@ class TextureCache : public VideoCommon::ChannelSetupCaches<TextureCacheChannelI
     using Framebuffer = typename P::Framebuffer;
     using AsyncBuffer = typename P::AsyncBuffer;
     using BufferType = typename P::BufferType;
+
+    struct PendingUnswizzle {
+        ImageId image_id;
+        VideoCommon::ImageInfo info;
+        size_t current_offset = 0;
+        size_t total_size = 0;
+        AsyncBuffer staging_buffer;
+        size_t last_submitted_offset = 0;
+        size_t bytes_per_slice;
+        bool initialized = false;
+    };
 
     struct BlitImages {
         ImageId dst_id;
@@ -146,27 +166,17 @@ public:
     /// Mark an image as modified from the GPU
     void MarkModification(ImageId id) noexcept;
 
-    /// Fill image_view_ids with the graphics images in indices
-    template <bool has_blacklists>
-    void FillGraphicsImageViews(std::span<ImageViewInOut> views);
-
-    /// Fill image_view_ids with the compute images in indices
-    void FillComputeImageViews(std::span<ImageViewInOut> views);
+    /// Fill image_view_ids with the graphics/compute images in indices
+    void FillImageViews(std::span<ImageViewInOut> views, bool compute, bool blacklist = true);
 
     /// Handle feedback loops during draws.
     void CheckFeedbackLoop(std::span<const ImageViewInOut> views);
 
-    /// Get the sampler from the graphics descriptor table in the specified index
-    Sampler* GetGraphicsSampler(u32 index);
+    /// Get the sampler from the graphics/compute descriptor table in the specified index
+    Sampler* GetSampler(u32 index, bool compute);
 
-    /// Get the sampler from the compute descriptor table in the specified index
-    Sampler* GetComputeSampler(u32 index);
-
-    /// Get the sampler id from the graphics descriptor table in the specified index
-    SamplerId GetGraphicsSamplerId(u32 index);
-
-    /// Get the sampler id from the compute descriptor table in the specified index
-    SamplerId GetComputeSamplerId(u32 index);
+    /// Get the sampler id from the graphics/compute descriptor table in the specified index
+    SamplerId GetSamplerId(u32 index, bool compute);
 
     /// Return a constant reference to the given sampler id
     [[nodiscard]] const Sampler& GetSampler(SamplerId id) const noexcept;
@@ -174,11 +184,8 @@ public:
     /// Return a reference to the given sampler id
     [[nodiscard]] Sampler& GetSampler(SamplerId id) noexcept;
 
-    /// Refresh the state for graphics image view and sampler descriptors
-    void SynchronizeGraphicsDescriptors();
-
-    /// Refresh the state for compute image view and sampler descriptors
-    void SynchronizeComputeDescriptors();
+    /// Refresh the state for graphics/compute image view and sampler descriptors
+    void SynchronizeDescriptors(bool compute);
 
     /// Updates the Render Targets if they can be rescaled
     /// @retval True if the Render Targets have been rescaled.
@@ -257,8 +264,8 @@ private:
     template <typename Func>
     static void ForEachCPUPage(DAddr addr, size_t size, Func&& func) {
         static constexpr bool RETURNS_BOOL = std::is_same_v<std::invoke_result<Func, u64>, bool>;
-        const u64 page_end = (addr + size - 1) >> SUYU_PAGEBITS;
-        for (u64 page = addr >> SUYU_PAGEBITS; page <= page_end; ++page) {
+        const u64 page_end = (addr + size - 1) >> YUZU_PAGEBITS;
+        for (u64 page = addr >> YUZU_PAGEBITS; page <= page_end; ++page) {
             if constexpr (RETURNS_BOOL) {
                 if (func(page)) {
                     break;
@@ -272,8 +279,8 @@ private:
     template <typename Func>
     static void ForEachGPUPage(GPUVAddr addr, size_t size, Func&& func) {
         static constexpr bool RETURNS_BOOL = std::is_same_v<std::invoke_result<Func, u64>, bool>;
-        const u64 page_end = (addr + size - 1) >> SUYU_PAGEBITS;
-        for (u64 page = addr >> SUYU_PAGEBITS; page <= page_end; ++page) {
+        const u64 page_end = (addr + size - 1) >> YUZU_PAGEBITS;
+        for (u64 page = addr >> YUZU_PAGEBITS; page <= page_end; ++page) {
             if constexpr (RETURNS_BOOL) {
                 if (func(page)) {
                     break;
@@ -289,15 +296,8 @@ private:
     /// Runs the Garbage Collector.
     void RunGarbageCollector();
 
-    /// Fills image_view_ids in the image views in indices
-    template <bool has_blacklists>
-    void FillImageViews(DescriptorTable<TICEntry>& table,
-                        std::span<ImageViewId> cached_image_view_ids,
-                        std::span<ImageViewInOut> views);
-
     /// Find or create an image view in the guest descriptor table
-    ImageViewId VisitImageView(DescriptorTable<TICEntry>& table,
-                               std::span<ImageViewId> cached_image_view_ids, u32 index);
+    ImageViewId VisitImageView(u32 index, bool compute);
 
     /// Find or create a framebuffer with the given render target parameters
     FramebufferId GetFramebufferId(const RenderTargets& key);
@@ -308,9 +308,6 @@ private:
     /// Upload data from guest to an image
     template <typename StagingBuffer>
     void UploadImageContents(Image& image, StagingBuffer& staging_buffer);
-
-    /// Find or create an image view from a guest descriptor
-    [[nodiscard]] ImageViewId FindImageView(const TICEntry& config);
 
     /// Create a new image view from a guest descriptor
     [[nodiscard]] ImageViewId CreateImageView(const TICEntry& config);
@@ -339,7 +336,7 @@ private:
         const Tegra::Engines::Fermi2D::Config& copy);
 
     /// Find or create a sampler from a guest descriptor sampler
-    [[nodiscard]] SamplerId FindSampler(const TSCEntry& config);
+    [[nodiscard]] SamplerId FindSampler(const TSCEntry& config, bool compute);
 
     /// Find or create an image view for the given color buffer index
     [[nodiscard]] ImageViewId FindColorBuffer(size_t index);
@@ -421,6 +418,12 @@ private:
 
     void QueueAsyncDecode(Image& image, ImageId image_id);
     void TickAsyncDecode();
+    void EnforceSamplerBudget();
+    void TrimInactiveSamplers(size_t budget);
+    std::optional<size_t> QuerySamplerBudget() const;
+
+    void QueueAsyncUnswizzle(Image& image, ImageId image_id);
+    void TickAsyncUnswizzle();
 
     Runtime& runtime;
 
@@ -428,11 +431,20 @@ private:
     std::deque<TextureCacheGPUMap> gpu_page_table_storage;
 
     RenderTargets render_targets;
+    u64 render_targets_serial = 0;
+    u32 rt_active_mask = 0;
+    std::array<ImageId, 8> rt_image_id{};
+    ImageId rt_depth_image_id{};
+    u64 texture_bindings_serial = 0;
+    u64 last_feedback_loop_serial = 0;
+    u64 last_feedback_texture_serial = 0;
+    bool last_feedback_loop_result = false;
+    FramebufferId last_framebuffer_id{};
+    u64 last_framebuffer_serial = 0;
 
-    std::unordered_map<RenderTargets, FramebufferId> framebuffers;
-
-    std::unordered_map<u64, std::vector<ImageMapId>, Common::IdentityHash<u64>> page_table;
-    std::unordered_map<ImageId, boost::container::small_vector<ImageViewId, 16>> sparse_views;
+    ankerl::unordered_dense::map<RenderTargets, FramebufferId> framebuffers;
+    ankerl::unordered_dense::map<u64, std::vector<ImageMapId>, Common::IdentityHash<u64>> page_table;
+    ankerl::unordered_dense::map<ImageId, boost::container::small_vector<ImageViewId, 16>> sparse_views;
 
     DAddr virtual_invalid_space{};
 
@@ -442,6 +454,9 @@ private:
     u64 minimum_memory;
     u64 expected_memory;
     u64 critical_memory;
+    size_t gpu_unswizzle_maxsize = 0;
+    size_t swizzle_chunk_size = 0;
+    u32 swizzle_slices_per_batch = 0;
 
     struct BufferDownload {
         GPUVAddr address;
@@ -476,35 +491,43 @@ private:
     };
     Common::LeastRecentlyUsedCache<LRUItemParams> lru_cache;
 
+ #ifdef YUZU_LEGACY
+    static constexpr size_t TICKS_TO_DESTROY = 6;
+ #else
     static constexpr size_t TICKS_TO_DESTROY = 8;
+#endif
     DelayedDestructionRing<Image, TICKS_TO_DESTROY> sentenced_images;
     DelayedDestructionRing<ImageView, TICKS_TO_DESTROY> sentenced_image_view;
     DelayedDestructionRing<Framebuffer, TICKS_TO_DESTROY> sentenced_framebuffers;
 
-    std::unordered_map<GPUVAddr, ImageAllocId> image_allocs_table;
+    ankerl::unordered_dense::map<GPUVAddr, ImageAllocId> image_allocs_table;
 
     Common::ScratchBuffer<u8> swizzle_data_buffer;
     Common::ScratchBuffer<u8> unswizzle_data_buffer;
 
     u64 modification_tick = 0;
     u64 frame_tick = 0;
+    u64 last_sampler_gc_frame = (std::numeric_limits<u64>::max)();
 
     Common::ThreadWorker texture_decode_worker{1, "TextureDecoder"};
     std::vector<std::unique_ptr<AsyncDecodeContext>> async_decodes;
 
+    std::deque<PendingUnswizzle> unswizzle_queue;
+    u8 current_unswizzle_frame;
+
     // Join caching
     boost::container::small_vector<ImageId, 4> join_overlap_ids;
-    std::unordered_set<ImageId> join_overlaps_found;
+    ankerl::unordered_dense::set<ImageId> join_overlaps_found;
     boost::container::small_vector<ImageId, 4> join_left_aliased_ids;
     boost::container::small_vector<ImageId, 4> join_right_aliased_ids;
-    std::unordered_set<ImageId> join_ignore_textures;
+    ankerl::unordered_dense::set<ImageId> join_ignore_textures;
     boost::container::small_vector<ImageId, 4> join_bad_overlap_ids;
     struct JoinCopy {
         bool is_alias;
         ImageId id;
     };
     boost::container::small_vector<JoinCopy, 4> join_copies_to_do;
-    std::unordered_map<ImageId, size_t> join_alias_indices;
+    ankerl::unordered_dense::map<ImageId, size_t> join_alias_indices;
 };
 
 } // namespace VideoCommon

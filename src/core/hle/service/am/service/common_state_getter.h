@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2024 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -43,7 +46,6 @@ private:
     Result GetOperationMode(Out<OperationMode> out_operation_mode);
     Result GetPerformanceMode(Out<APM::PerformanceMode> out_performance_mode);
     Result GetBootMode(Out<PM::SystemBootMode> out_boot_mode);
-    Result GetCradleFwVersion(OutArray<uint32_t, 4> out_version);
     Result IsVrModeEnabled(Out<bool> out_is_vr_mode_enabled);
     Result SetVrModeEnabled(bool is_vr_mode_enabled);
     Result SetLcdBacklighOffEnabled(bool is_lcd_backlight_off_enabled);
@@ -59,7 +61,7 @@ private:
                                     OutArray<AppletId, BufferAttr_HipcMapAlias> out_applet_ids);
     Result GetSettingsPlatformRegion(Out<Set::PlatformRegion> out_settings_platform_region);
     Result SetRequestExitToLibraryAppletAtExecuteNextProgramEnabled();
-    Result PushToGeneralChannel(SharedPointer<IStorage> storage);
+    Result PushToGeneralChannel(SharedPointer<IStorage> storage); // cmd 20
     Result SetHandlingHomeButtonShortPressedEnabled(bool enabled);
     Result Unknown610();
     Result Unknown611();

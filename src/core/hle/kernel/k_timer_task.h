@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2022 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -7,6 +10,7 @@
 
 namespace Kernel {
 
+class KernelCore;
 class KTimerTask : public Common::IntrusiveRedBlackTreeBaseNode<KTimerTask> {
 public:
     static constexpr int Compare(const KTimerTask& lhs, const KTimerTask& rhs) {
@@ -30,7 +34,7 @@ public:
     // NOTE: This is virtual in Nintendo's kernel. Prior to 13.0.0, KWaitObject was also a
     // TimerTask; this is no longer the case. Since this is now KThread exclusive, we have
     // devirtualized (see inline declaration for this inside k_thread.h).
-    void OnTimer();
+    void OnTimer(KernelCore& kernel);
 
 private:
     // Absolute time in nanoseconds

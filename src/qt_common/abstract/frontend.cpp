@@ -1,46 +1,27 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 #include "frontend.h"
-#include "qt_common/qt_common.h"
-
-#ifdef YUZU_QT_WIDGETS
-#include <QFileDialog>
-#endif
 
 namespace QtCommon::Frontend {
 
-StandardButton ShowMessage(
-    Icon icon, const QString &title, const QString &text, StandardButtons buttons, QObject *parent)
-{
-#ifdef YUZU_QT_WIDGETS
-    QMessageBox *box = new QMessageBox(icon, title, text, buttons, (QWidget *) parent);
-    return static_cast<QMessageBox::StandardButton>(box->exec());
-#endif
-    // TODO(crueter): If Qt Widgets is disabled...
-    // need a way to reference icon/buttons too
+const QString GetOpenFileName(const QString& title, const QString& dir, const QString& filter,
+                              QString* selectedFilter) {
+    return QFileDialog::getOpenFileName(rootObject, title, dir, filter, selectedFilter);
 }
 
-const QString GetOpenFileName(const QString &title,
-                              const QString &dir,
-                              const QString &filter,
-                              QString *selectedFilter,
-                              Options options)
-{
-#ifdef YUZU_QT_WIDGETS
-    return QFileDialog::getOpenFileName((QWidget *) rootObject, title, dir, filter, selectedFilter, options);
-#endif
+const QStringList GetOpenFileNames(const QString& title, const QString& dir, const QString& filter,
+                                   QString* selectedFilter) {
+    return QFileDialog::getOpenFileNames(rootObject, title, dir, filter, selectedFilter);
 }
 
-const QString GetSaveFileName(const QString &title,
-                              const QString &dir,
-                              const QString &filter,
-                              QString *selectedFilter,
-                              Options options)
-{
-#ifdef YUZU_QT_WIDGETS
-    return QFileDialog::getSaveFileName((QWidget *) rootObject, title, dir, filter, selectedFilter, options);
-#endif
+const QString GetSaveFileName(const QString& title, const QString& dir, const QString& filter,
+                              QString* selectedFilter) {
+    return QFileDialog::getSaveFileName(rootObject, title, dir, filter, selectedFilter);
+}
+
+const QString GetExistingDirectory(const QString& caption, const QString& dir) {
+    return QFileDialog::getExistingDirectory(rootObject, caption, dir);
 }
 
 } // namespace QtCommon::Frontend

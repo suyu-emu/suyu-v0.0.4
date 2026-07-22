@@ -1,3 +1,5 @@
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
 // SPDX-FileCopyrightText: 2002 Niels Provos <provos@citi.umich.edu>
 // SPDX-License-Identifier: BSD-2-Clause
 
@@ -21,9 +23,11 @@
  * The maximum height of a red-black tree is 2lg (n+1).
  */
 
+#include <cstdint>
+
 namespace Common::freebsd {
 
-enum class RBColor {
+enum class RBColor : std::uint8_t {
     RB_BLACK = 0,
     RB_RED = 1,
 };

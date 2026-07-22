@@ -1,7 +1,17 @@
+# SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+# SPDX-License-Identifier: GPL-3.0-or-later
+
 # SPDX-FileCopyrightText: 2020 yuzu Emulator Project
 # SPDX-License-Identifier: GPL-2.0-or-later
 
-if (MINGW OR (${CMAKE_SYSTEM_NAME} MATCHES "Linux") OR APPLE)
+AddJsonPackage(libusb)
+
+if (NOT libusb_ADDED)
+    return()
+endif()
+
+# TODO: *BSD fails to compile--may need different configs/symbols
+if (MINGW OR PLATFORM_LINUX OR APPLE)
     set(LIBUSB_FOUND ON CACHE BOOL "libusb is present" FORCE)
     set(LIBUSB_VERSION "1.0.24" CACHE STRING "libusb version string" FORCE)
 
@@ -19,8 +29,8 @@ if (MINGW OR (${CMAKE_SYSTEM_NAME} MATCHES "Linux") OR APPLE)
         message(FATAL_ERROR "Required program `libtoolize` not found.")
     endif()
 
-    set(LIBUSB_PREFIX "${CMAKE_CURRENT_BINARY_DIR}/libusb")
-    set(LIBUSB_SRC_DIR "${CMAKE_CURRENT_SOURCE_DIR}/libusb")
+    set(LIBUSB_PREFIX "${libusb_BINARY_DIR}")
+    set(LIBUSB_SRC_DIR "${libusb_SOURCE_DIR}")
 
     # Workarounds for MSYS/MinGW
     if (MSYS)
@@ -118,27 +128,27 @@ else() # MINGW OR (${CMAKE_SYSTEM_NAME} MATCHES "Linux")
     endif()
 
     add_library(usb
-        libusb/libusb/core.c
-        libusb/libusb/core.c
-        libusb/libusb/descriptor.c
-        libusb/libusb/hotplug.c
-        libusb/libusb/io.c
-        libusb/libusb/strerror.c
-        libusb/libusb/sync.c
+        ${libusb_SOURCE_DIR}/libusb/core.c
+        ${libusb_SOURCE_DIR}/libusb/core.c
+        ${libusb_SOURCE_DIR}/libusb/descriptor.c
+        ${libusb_SOURCE_DIR}/libusb/hotplug.c
+        ${libusb_SOURCE_DIR}/libusb/io.c
+        ${libusb_SOURCE_DIR}/libusb/strerror.c
+        ${libusb_SOURCE_DIR}/libusb/sync.c
     )
     set_target_properties(usb PROPERTIES VERSION 1.0.24)
     if(WIN32)
         target_include_directories(usb
             BEFORE
             PUBLIC
-              libusb/libusb
+              ${libusb_SOURCE_DIR}/libusb
 
             PRIVATE
               "${CMAKE_CURRENT_BINARY_DIR}"
         )
 
         if (NOT MINGW)
-            target_include_directories(usb BEFORE PRIVATE libusb/msvc)
+            target_include_directories(usb BEFORE PRIVATE ${libusb_SOURCE_DIR}/msvc)
         endif()
 
     else()
@@ -148,7 +158,7 @@ else() # MINGW OR (${CMAKE_SYSTEM_NAME} MATCHES "Linux")
             BEFORE
 
             PUBLIC
-              libusb/libusb
+              ${libusb_SOURCE_DIR}/libusb
 
             PRIVATE
               "${CMAKE_CURRENT_BINARY_DIR}"
@@ -157,15 +167,15 @@ else() # MINGW OR (${CMAKE_SYSTEM_NAME} MATCHES "Linux")
 
     if(WIN32 OR CYGWIN)
         target_sources(usb PRIVATE
-          libusb/libusb/os/threads_windows.c
-          libusb/libusb/os/windows_winusb.c
-          libusb/libusb/os/windows_usbdk.c
-          libusb/libusb/os/windows_common.c
+          ${libusb_SOURCE_DIR}/libusb/os/threads_windows.c
+          ${libusb_SOURCE_DIR}/libusb/os/windows_winusb.c
+          ${libusb_SOURCE_DIR}/libusb/os/windows_usbdk.c
+          ${libusb_SOURCE_DIR}/libusb/os/windows_common.c
         )
         set(OS_WINDOWS TRUE)
     elseif(APPLE)
         target_sources(usb PRIVATE
-            libusb/libusb/os/darwin_usb.c
+            ${libusb_SOURCE_DIR}/libusb/os/darwin_usb.c
         )
         find_library(COREFOUNDATION_LIBRARY CoreFoundation)
         find_library(IOKIT_LIBRARY IOKit)
@@ -178,20 +188,20 @@ else() # MINGW OR (${CMAKE_SYSTEM_NAME} MATCHES "Linux")
         set(OS_DARWIN TRUE)
     elseif(ANDROID)
         target_sources(usb PRIVATE
-            libusb/libusb/os/linux_usbfs.c
-            libusb/libusb/os/linux_netlink.c
+            ${libusb_SOURCE_DIR}/libusb/os/linux_usbfs.c
+            ${libusb_SOURCE_DIR}/libusb/os/linux_netlink.c
         )
         find_library(LOG_LIBRARY log)
         target_link_libraries(usb PRIVATE ${LOG_LIBRARY})
         set(OS_LINUX TRUE)
     elseif(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
         target_sources(usb PRIVATE
-            libusb/libusb/os/linux_usbfs.c
+            ${libusb_SOURCE_DIR}/libusb/os/linux_usbfs.c
         )
         find_package(Libudev)
         if(LIBUDEV_FOUND)
             target_sources(usb PRIVATE
-                libusb/libusb/os/linux_udev.c
+                ${libusb_SOURCE_DIR}/libusb/os/linux_udev.c
             )
             target_link_libraries(usb PRIVATE "${LIBUDEV_LIBRARIES}")
             target_include_directories(usb PRIVATE "${LIBUDEV_INCLUDE_DIR}")
@@ -199,30 +209,30 @@ else() # MINGW OR (${CMAKE_SYSTEM_NAME} MATCHES "Linux")
             set(USE_UDEV TRUE)
         else()
             target_sources(usb PRIVATE
-                libusb/libusb/os/linux_netlink.c
+                ${libusb_SOURCE_DIR}/libusb/os/linux_netlink.c
             )
         endif()
         set(OS_LINUX TRUE)
     elseif(${CMAKE_SYSTEM_NAME} MATCHES "NetBSD")
         target_sources(usb PRIVATE
-            libusb/libusb/os/netbsd_usb.c
+            ${libusb_SOURCE_DIR}/libusb/os/netbsd_usb.c
         )
         set(OS_NETBSD TRUE)
     elseif(${CMAKE_SYSTEM_NAME} MATCHES "OpenBSD")
         target_sources(usb PRIVATE
-            libusb/libusb/os/openbsd_usb.c
+            ${libusb_SOURCE_DIR}/libusb/os/openbsd_usb.c
         )
         set(OS_OPENBSD TRUE)
     endif()
 
     if(UNIX)
         target_sources(usb PRIVATE
-            libusb/libusb/os/events_posix.c
-            libusb/libusb/os/threads_posix.c
+            ${libusb_SOURCE_DIR}/libusb/os/events_posix.c
+            ${libusb_SOURCE_DIR}/libusb/os/threads_posix.c
         )
         find_package(Threads REQUIRED)
         if(THREADS_HAVE_PTHREAD_ARG)
-          target_compile_options(usb PUBLIC "-pthread")
+          target_compile_options(usb PUBLIC $<$<COMPILE_LANGUAGE:C,CXX>:-pthread>)
         endif()
         if(CMAKE_THREAD_LIBS_INIT)
           target_link_libraries(usb PRIVATE "${CMAKE_THREAD_LIBS_INIT}")
@@ -230,9 +240,15 @@ else() # MINGW OR (${CMAKE_SYSTEM_NAME} MATCHES "Linux")
         set(THREADS_POSIX TRUE)
     elseif(WIN32)
         target_sources(usb PRIVATE
-            libusb/libusb/os/events_windows.c
-            libusb/libusb/os/threads_windows.c
+            ${libusb_SOURCE_DIR}/libusb/os/events_windows.c
+            ${libusb_SOURCE_DIR}/libusb/os/threads_windows.c
         )
+    endif()
+
+    if(UNIX)
+        set(PLATFORM_POSIX TRUE)
+    else()
+        set(PLATFORM_WINDOWS TRUE)
     endif()
 
     include(CheckFunctionExists)

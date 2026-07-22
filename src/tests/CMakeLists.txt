@@ -1,35 +1,39 @@
+# SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+# SPDX-License-Identifier: GPL-3.0-or-later
+
 # SPDX-FileCopyrightText: 2018 yuzu Emulator Project
 # SPDX-License-Identifier: GPL-2.0-or-later
 
-if (SUYU_TESTS)
-    add_executable(tests
-        common/assert.cpp
-        common/bit_field.cpp
-        common/cityhash.cpp
-        common/container_hash.cpp
-        common/fibers.cpp
-        common/host_memory.cpp
-        common/param_package.cpp
-        common/range_map.cpp
-        common/ring_buffer.cpp
-        common/scratch_buffer.cpp
-        common/unique_function.cpp
-        core/core_timing.cpp
-        core/crypto/test_sha_util.cpp
-        core/internal_network/network.cpp
-        precompiled_headers.h
-        video_core/memory_tracker.cpp
-        input_common/calibration_configuration_job.cpp
-    )
+add_executable(tests
+    common/bit_field.cpp
+    common/cityhash.cpp
+    common/container_hash.cpp
+    common/fibers.cpp
+    common/host_memory.cpp
+    common/param_package.cpp
+    common/range_map.cpp
+    common/ring_buffer.cpp
+    common/scratch_buffer.cpp
+    common/undefined_fix.cpp
+    common/unique_function.cpp
+    core/core_timing.cpp
+    core/internal_network/network.cpp
+    video_core/memory_tracker.cpp
+    input_common/calibration_configuration_job.cpp
+)
 
-    create_target_directory_groups(tests)
+create_target_directory_groups(tests)
 
-    target_link_libraries(tests PRIVATE common core input_common)
-    target_link_libraries(tests PRIVATE ${PLATFORM_LIBRARIES} Catch2::Catch2WithMain Threads::Threads)
+target_link_libraries(tests PRIVATE common core input_common video_core)
+target_link_libraries(tests PRIVATE ${PLATFORM_LIBRARIES} Catch2::Catch2WithMain Threads::Threads)
 
-    add_test(NAME tests COMMAND tests)
+add_test(NAME tests COMMAND tests)
 
-    if (SUYU_USE_PRECOMPILED_HEADERS)
-        target_precompile_headers(tests PRIVATE precompiled_headers.h)
-    endif()
+# needed for vma
+if (NOT MSVC)
+    target_compile_options(tests PRIVATE
+        $<$<COMPILE_LANGUAGE:C,CXX>:-Wno-conversion>
+        $<$<COMPILE_LANGUAGE:C,CXX>:-Wno-unused-variable>
+        $<$<COMPILE_LANGUAGE:C,CXX>:-Wno-unused-parameter>
+        $<$<COMPILE_LANGUAGE:C,CXX>:-Wno-missing-field-initializers>)
 endif()

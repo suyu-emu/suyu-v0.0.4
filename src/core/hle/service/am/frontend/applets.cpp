@@ -1,5 +1,5 @@
-// SPDX-FileCopyrightText: Copyright 2018 yuzu Emulator Project
-// SPDX-License-Identifier: GPL-2.0-or-later
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
 
 #include <cstring>
 
@@ -10,6 +10,7 @@
 #include "core/frontend/applets/error.h"
 #include "core/frontend/applets/general.h"
 #include "core/frontend/applets/mii_edit.h"
+#include "core/frontend/applets/net_connect.h"
 #include "core/frontend/applets/profile_select.h"
 #include "core/frontend/applets/software_keyboard.h"
 #include "core/frontend/applets/web_browser.h"
@@ -22,6 +23,7 @@
 #include "core/hle/service/am/frontend/applet_error.h"
 #include "core/hle/service/am/frontend/applet_general.h"
 #include "core/hle/service/am/frontend/applet_mii_edit.h"
+#include "core/hle/service/am/frontend/applet_net_connect.h"
 #include "core/hle/service/am/frontend/applet_profile_select.h"
 #include "core/hle/service/am/frontend/applet_software_keyboard.h"
 #include "core/hle/service/am/frontend/applet_web_browser.h"
@@ -50,22 +52,22 @@ void FrontendApplet::Initialize() {
 
 std::shared_ptr<IStorage> FrontendApplet::PopInData() {
     std::shared_ptr<IStorage> ret;
-    applet.lock()->caller_applet_broker->GetInData().Pop(&ret);
+    applet.lock()->caller_applet_broker->GetInData().Pop(system.Kernel(), &ret);
     return ret;
 }
 
 std::shared_ptr<IStorage> FrontendApplet::PopInteractiveInData() {
     std::shared_ptr<IStorage> ret;
-    applet.lock()->caller_applet_broker->GetInteractiveInData().Pop(&ret);
+    applet.lock()->caller_applet_broker->GetInteractiveInData().Pop(system.Kernel(), &ret);
     return ret;
 }
 
 void FrontendApplet::PushOutData(std::shared_ptr<IStorage> storage) {
-    applet.lock()->caller_applet_broker->GetOutData().Push(storage);
+    applet.lock()->caller_applet_broker->GetOutData().Push(system.Kernel(), storage);
 }
 
 void FrontendApplet::PushInteractiveOutData(std::shared_ptr<IStorage> storage) {
-    applet.lock()->caller_applet_broker->GetInteractiveOutData().Push(storage);
+    applet.lock()->caller_applet_broker->GetInteractiveOutData().Push(system.Kernel(), storage);
 }
 
 void FrontendApplet::Exit() {
@@ -73,7 +75,7 @@ void FrontendApplet::Exit() {
 
     std::scoped_lock lk{applet_->lock};
     applet_->is_completed = true;
-    applet_->state_changed_event.Signal();
+    applet_->state_changed_event.Signal(system.Kernel());
 }
 
 FrontendAppletSet::FrontendAppletSet() = default;
@@ -83,12 +85,13 @@ FrontendAppletSet::FrontendAppletSet(CabinetApplet cabinet_applet,
                                      MiiEdit mii_edit_,
                                      ParentalControlsApplet parental_controls_applet,
                                      PhotoViewer photo_viewer_, ProfileSelect profile_select_,
-                                     SoftwareKeyboard software_keyboard_, WebBrowser web_browser_)
+                                     SoftwareKeyboard software_keyboard_, WebBrowser web_browser_, NetConnect net_connect_)
     : cabinet{std::move(cabinet_applet)}, controller{std::move(controller_applet)},
       error{std::move(error_applet)}, mii_edit{std::move(mii_edit_)},
       parental_controls{std::move(parental_controls_applet)},
       photo_viewer{std::move(photo_viewer_)}, profile_select{std::move(profile_select_)},
-      software_keyboard{std::move(software_keyboard_)}, web_browser{std::move(web_browser_)} {}
+      software_keyboard{std::move(software_keyboard_)}, web_browser{std::move(web_browser_)},
+      net_connect{std::move(net_connect_)} {}
 
 FrontendAppletSet::~FrontendAppletSet() = default;
 
@@ -148,6 +151,10 @@ void FrontendAppletHolder::SetFrontendAppletSet(FrontendAppletSet set) {
     if (set.web_browser != nullptr) {
         frontend.web_browser = std::move(set.web_browser);
     }
+
+    if (set.net_connect != nullptr) {
+        frontend.net_connect = std::move(set.net_connect);
+    }
 }
 
 void FrontendAppletHolder::SetCabinetMode(NFP::CabinetMode mode) {
@@ -197,6 +204,10 @@ void FrontendAppletHolder::SetDefaultAppletsIfMissing() {
     if (frontend.web_browser == nullptr) {
         frontend.web_browser = std::make_unique<Core::Frontend::DefaultWebBrowserApplet>();
     }
+
+    if (frontend.net_connect == nullptr) {
+        frontend.net_connect = std::make_unique<Core::Frontend::DefaultNetConnectApplet>();
+    }
 }
 
 void FrontendAppletHolder::ClearAll() {
@@ -218,8 +229,7 @@ std::shared_ptr<FrontendApplet> FrontendAppletHolder::GetApplet(std::shared_ptr<
     case AppletId::ProfileSelect:
         return std::make_shared<ProfileSelect>(system, applet, mode, *frontend.profile_select);
     case AppletId::SoftwareKeyboard:
-        return std::make_shared<SoftwareKeyboard>(system, applet, mode,
-                                                  *frontend.software_keyboard);
+        return std::make_shared<SoftwareKeyboard>(system, applet, mode, *frontend.software_keyboard);
     case AppletId::MiiEdit:
         return std::make_shared<MiiEdit>(system, applet, mode, *frontend.mii_edit);
     case AppletId::Web:
@@ -227,13 +237,15 @@ std::shared_ptr<FrontendApplet> FrontendAppletHolder::GetApplet(std::shared_ptr<
     case AppletId::OfflineWeb:
     case AppletId::LoginShare:
     case AppletId::WebAuth:
+    case AppletId::Lhub:
         return std::make_shared<WebBrowser>(system, applet, mode, *frontend.web_browser);
     case AppletId::PhotoViewer:
         return std::make_shared<PhotoViewer>(system, applet, mode, *frontend.photo_viewer);
+    case AppletId::NetConnect:
+        return std::make_shared<NetConnect>(system, applet, mode, *frontend.net_connect);
     default:
-        UNIMPLEMENTED_MSG(
-            "No backend implementation exists for applet_id={:02X}! Falling back to stub applet.",
-            static_cast<u8>(id));
+        LOG_ERROR(Service_AM, "No backend implementation exists for applet_id={:02X} program_id={:016X}"
+                              "Falling back to stub applet", static_cast<u8>(id), applet->program_id);
         return std::make_shared<StubApplet>(system, applet, id, mode);
     }
 }

@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2024 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -25,9 +28,9 @@ Event& LifecycleManager::GetHDCPStateChangedEvent() {
     return m_hdcp_state_changed_event;
 }
 
-void LifecycleManager::PushUnorderedMessage(AppletMessage message) {
+void LifecycleManager::PushUnorderedMessage(Kernel::KernelCore& kernel, AppletMessage message) {
     m_unordered_messages.push_back(message);
-    this->SignalSystemEventIfNeeded();
+    this->SignalSystemEventIfNeeded(kernel);
 }
 
 AppletMessage LifecycleManager::PopMessageInOrderOfPriority() {
@@ -141,36 +144,48 @@ bool LifecycleManager::ShouldSignalSystemEvent() {
            m_has_album_screen_shot_taken || m_has_album_recording_saved;
 }
 
-void LifecycleManager::OnOperationAndPerformanceModeChanged() {
+void LifecycleManager::OnOperationAndPerformanceModeChanged(Kernel::KernelCore& kernel) {
     if (m_operation_mode_changed_notification_enabled) {
         m_has_operation_mode_changed = true;
     }
     if (m_performance_mode_changed_notification_enabled) {
         m_has_performance_mode_changed = true;
     }
-    m_operation_mode_changed_system_event.Signal();
-    this->SignalSystemEventIfNeeded();
+    m_operation_mode_changed_system_event.Signal(kernel);
+    this->SignalSystemEventIfNeeded(kernel);
 }
 
-void LifecycleManager::SignalSystemEventIfNeeded() {
+void LifecycleManager::SignalSystemEventIfNeeded(Kernel::KernelCore& kernel) {
     // Check our cached value for the system event.
     const bool applet_message_available = m_applet_message_available;
 
     // If it's not current, we need to do an update, either clearing or signaling.
     if (applet_message_available != this->ShouldSignalSystemEvent()) {
         if (!applet_message_available) {
-            m_system_event.Signal();
+            m_system_event.Signal(kernel);
             m_applet_message_available = true;
         } else {
-            m_system_event.Clear();
+            m_system_event.Clear(kernel);
             m_applet_message_available = false;
         }
     }
 }
 
-bool LifecycleManager::PopMessage(AppletMessage* out_message) {
+void LifecycleManager::ResetForRelaunch() {
+    m_unordered_messages.clear();
+
+    m_activity_state = ActivityState::BackgroundVisible;
+    m_requested_focus_state = FocusState{};
+    m_acknowledged_focus_state = FocusState{};
+    m_has_focus_state_changed = true;
+
+    m_suspend_mode = SuspendMode::NoOverride;
+    m_forced_suspend = false;
+}
+
+bool LifecycleManager::PopMessage(Kernel::KernelCore& kernel, AppletMessage* out_message) {
     const auto message = this->PopMessageInOrderOfPriority();
-    this->SignalSystemEventIfNeeded();
+    this->SignalSystemEventIfNeeded(kernel);
 
     *out_message = message;
     return message != AppletMessage::None;
@@ -371,6 +386,10 @@ bool LifecycleManager::UpdateRequestedFocusState() {
     if (new_state != m_requested_focus_state) {
         // Mark the focus state as ready for update.
         m_requested_focus_state = new_state;
+
+        if (m_is_application) {
+            m_has_focus_state_changed = true;
+        }
 
         // We changed the focus state.
         return true;

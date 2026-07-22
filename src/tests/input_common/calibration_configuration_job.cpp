@@ -1,10 +1,13 @@
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2020 yuzu Emulator Project
-// SPDX-FileCopyrightText: Copyright 2025 citron Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
 #include <array>
 #include <string>
 #include <thread>
+#include <utility>
 #include <boost/asio.hpp>
 #include <boost/crc.hpp>
 #include <catch2/catch_test_macros.hpp>
@@ -12,19 +15,16 @@
 #include "input_common/drivers/udp_client.h"
 #include "input_common/helpers/udp_protocol.h"
 
+
 class FakeCemuhookServer {
 public:
     FakeCemuhookServer()
         : socket(io_context, boost::asio::ip::udp::endpoint(boost::asio::ip::udp::v4(), 0)) {}
 
     ~FakeCemuhookServer() {
-        is_running = false;
         boost::system::error_code error_code;
         socket.shutdown(boost::asio::socket_base::shutdown_both, error_code);
         socket.close();
-        if (handler.joinable()) {
-            handler.join();
-        }
     }
 
     u16 GetPort() {
@@ -41,10 +41,9 @@ public:
             sizeof(InputCommon::CemuhookUDP::Message<InputCommon::CemuhookUDP::Response::PadData>);
 
         REQUIRE(touch_movement_path.size() > 0);
-        is_running = true;
-        handler = std::thread([touch_movement_path, this]() {
+        handler = std::jthread([touch_movement_path, this](std::stop_token stoken) {
             auto current_touch_position = touch_movement_path.begin();
-            while (is_running) {
+            while (!stoken.stop_requested()) {
                 boost::asio::ip::udp::endpoint sender_endpoint;
                 boost::system::error_code error_code;
                 auto received_size = socket.receive_from(boost::asio::buffer(receive_buffer),
@@ -87,8 +86,7 @@ private:
     boost::asio::ip::udp::socket socket;
     std::array<u8, InputCommon::CemuhookUDP::MAX_PACKET_SIZE> send_buffer;
     std::array<u8, InputCommon::CemuhookUDP::MAX_PACKET_SIZE> receive_buffer;
-    bool is_running = false;
-    std::thread handler;
+    std::jthread handler;
 };
 
 TEST_CASE("CalibrationConfigurationJob completed", "[input_common]") {

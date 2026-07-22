@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 package org.yuzu.yuzu_emu.features.settings.ui
@@ -6,10 +6,10 @@ package org.yuzu.yuzu_emu.features.settings.ui
 import android.annotation.SuppressLint
 import android.os.Build
 import android.widget.Toast
-import androidx.preference.PreferenceManager
 import org.yuzu.yuzu_emu.NativeLibrary
 import org.yuzu.yuzu_emu.R
 import org.yuzu.yuzu_emu.YuzuApplication
+import org.yuzu.yuzu_emu.activities.EmulationActivity
 import org.yuzu.yuzu_emu.features.input.NativeInput
 import org.yuzu.yuzu_emu.features.input.model.AnalogDirection
 import org.yuzu.yuzu_emu.features.input.model.NativeAnalog
@@ -28,6 +28,8 @@ import org.yuzu.yuzu_emu.features.settings.model.StringSetting
 import org.yuzu.yuzu_emu.features.settings.model.view.*
 import org.yuzu.yuzu_emu.utils.InputHandler
 import org.yuzu.yuzu_emu.utils.NativeConfig
+import org.yuzu.yuzu_emu.utils.DirectoryInitialization
+import org.yuzu.yuzu_emu.utils.FullscreenHelper
 import androidx.core.content.edit
 import androidx.fragment.app.FragmentActivity
 import org.yuzu.yuzu_emu.fragments.MessageDialogFragment
@@ -56,17 +58,43 @@ class SettingsFragmentPresenter(
         val pairedSettingKey = item.setting.pairedSettingKey
 
         if (pairedSettingKey.isNotEmpty()) {
+            val needsGlobal = getNeedsGlobalForKey(pairedSettingKey)
             val pairedSettingValue = NativeConfig.getBoolean(
                 pairedSettingKey,
-                if (NativeLibrary.isRunning() && !NativeConfig.isPerGameConfigLoaded()) {
-                    !NativeConfig.usingGlobal(pairedSettingKey)
-                } else {
-                    NativeConfig.usingGlobal(pairedSettingKey)
-                }
+                needsGlobal
             )
             if (!pairedSettingValue) return
         }
         add(item)
+    }
+
+    private fun getNeedsGlobalForKey(key: String): Boolean {
+        return if (NativeLibrary.isRunning() && !NativeConfig.isPerGameConfigLoaded()) {
+            !NativeConfig.usingGlobal(key)
+        } else {
+            NativeConfig.usingGlobal(key)
+        }
+    }
+
+    private fun isSharpnessScalingFilterSelected(): Boolean {
+        val needsGlobal = getNeedsGlobalForKey(IntSetting.RENDERER_SCALING_FILTER.key)
+        val selectedFilter = IntSetting.RENDERER_SCALING_FILTER.getInt(needsGlobal)
+        return selectedFilter in resolveSharpnessScalingFilterValues()
+    }
+
+    private fun resolveSharpnessScalingFilterValues(): Set<Int> {
+        val names = context.resources.getStringArray(R.array.rendererScalingFilterNames)
+        val values = context.resources.getIntArray(R.array.rendererScalingFilterValues)
+        val sharpnessFilterNames = setOf(
+            context.getString(R.string.scaling_filter_fsr),
+            context.getString(R.string.scaling_filter_sgsr),
+            context.getString(R.string.scaling_filter_sgsr_edge),
+        )
+        return names.asSequence()
+            .mapIndexedNotNull { index, name ->
+                if (name in sharpnessFilterNames && index in values.indices) values[index] else null
+            }
+            .toSet()
     }
 
     // Allows you to show/hide abstract settings based on the paired setting key
@@ -107,8 +135,9 @@ class SettingsFragmentPresenter(
             MenuTag.SECTION_INPUT_PLAYER_EIGHT -> addInputPlayer(sl, 7)
             MenuTag.SECTION_APP_SETTINGS -> addThemeSettings(sl)
             MenuTag.SECTION_DEBUG -> addDebugSettings(sl)
-            MenuTag.SECTION_EDEN_VEIL -> addEdenVeilSettings(sl)
+            MenuTag.SECTION_FREEDRENO -> addFreedrenoSettings(sl)
             MenuTag.SECTION_APPLETS -> addAppletSettings(sl)
+            MenuTag.SECTION_CUSTOM_PATHS -> addCustomPathsSettings(sl)
         }
         settingsList = sl
         adapter.submitList(settingsList) {
@@ -181,20 +210,22 @@ class SettingsFragmentPresenter(
             )
             add(
                 SubmenuSetting(
-                    titleId = R.string.eden_veil,
-                    descriptionId = R.string.eden_veil_description,
-                    iconId = R.drawable.ic_eden_veil,
-                    menuKey = MenuTag.SECTION_EDEN_VEIL
-                )
-            )
-            add(
-                SubmenuSetting(
                     titleId = R.string.applets_menu,
                     descriptionId = R.string.applets_menu_description,
                     iconId = R.drawable.ic_applet,
                     menuKey = MenuTag.SECTION_APPLETS
                 )
             )
+            if (!NativeConfig.isPerGameConfigLoaded()) {
+                add(
+                    SubmenuSetting(
+                        titleId = R.string.preferences_custom_paths,
+                        descriptionId = R.string.preferences_custom_paths_description,
+                        iconId = R.drawable.ic_folder_open,
+                        menuKey = MenuTag.SECTION_CUSTOM_PATHS
+                    )
+                )
+            }
             add(
                 RunnableSetting(
                     titleId = R.string.reset_to_default,
@@ -211,36 +242,78 @@ class SettingsFragmentPresenter(
             add(StringSetting.DEVICE_NAME.key)
             add(BooleanSetting.RENDERER_USE_SPEED_LIMIT.key)
             add(ShortSetting.RENDERER_SPEED_LIMIT.key)
+            add(ShortSetting.RENDERER_TURBO_SPEED_LIMIT.key)
+            add(ShortSetting.RENDERER_SLOW_SPEED_LIMIT.key)
             add(BooleanSetting.USE_DOCKED_MODE.key)
             add(IntSetting.REGION_INDEX.key)
             add(IntSetting.LANGUAGE_INDEX.key)
             add(BooleanSetting.USE_CUSTOM_RTC.key)
             add(LongSetting.CUSTOM_RTC.key)
 
-            add(HeaderSetting(R.string.network))
-            add(StringSetting.WEB_TOKEN.key)
-            add(StringSetting.WEB_USERNAME.key)
+            add(HeaderSetting(R.string.cpu))
+            add(IntSetting.FAST_CPU_TIME.key)
+            add(BooleanSetting.CORE_SYNC_CORE_SPEED.key)
+
+            add(IntSetting.MEMORY_LAYOUT.key)
+            add(BooleanSetting.USE_CUSTOM_CPU_TICKS.key)
+            add(IntSetting.CPU_TICKS.key)
+
+            if (!NativeConfig.isPerGameConfigLoaded()) {
+                add(HeaderSetting(R.string.network))
+                add(StringSetting.WEB_TOKEN.key)
+                add(StringSetting.WEB_USERNAME.key)
+            }
         }
     }
 
+    // TODO(crueter): sub-submenus?
     private fun addGraphicsSettings(sl: ArrayList<SettingsItem>) {
         sl.apply {
-            add(HeaderSetting(R.string.backend))
+            // add(IntSetting.RENDERER_NVDEC_EMULATION.key)
+
+            add(IntSetting.RENDERER_RESOLUTION.key)
+            add(IntSetting.RENDERER_VSYNC.key)
+            add(IntSetting.RENDERER_SCALING_FILTER.key)
+            if (isSharpnessScalingFilterSelected()) {
+                add(IntSetting.FSR_SHARPENING_SLIDER.key)
+            }
+            add(IntSetting.RENDERER_ANTI_ALIASING.key)
+
+            add(HeaderSetting(R.string.advanced))
 
             add(IntSetting.RENDERER_ACCURACY.key)
-            add(IntSetting.RENDERER_RESOLUTION.key)
+            add(IntSetting.DMA_ACCURACY.key)
+            add(IntSetting.GPU_FENCE_BEHAVIOR.key)
+            add(IntSetting.MAX_ANISOTROPY.key)
+            add(IntSetting.RENDERER_VRAM_USAGE_MODE.key)
+            add(IntSetting.RENDERER_ASTC_DECODE_METHOD.key)
+
+            add(BooleanSetting.SYNC_MEMORY_OPERATIONS.key)
             add(BooleanSetting.RENDERER_USE_DISK_SHADER_CACHE.key)
             add(BooleanSetting.RENDERER_FORCE_MAX_CLOCK.key)
-            add(BooleanSetting.RENDERER_ASYNCHRONOUS_SHADERS.key)
             add(BooleanSetting.RENDERER_REACTIVE_FLUSHING.key)
+            add(BooleanSetting.ENABLE_BUFFER_HISTORY.key)
+            add(BooleanSetting.ENABLE_GPU_BUFFER_READBACK.key)
+            add(BooleanSetting.USE_OPTIMIZED_VERTEX_BUFFERS.key)
 
-            add(HeaderSetting(R.string.processing))
+            add(HeaderSetting(R.string.hacks))
 
-            add(IntSetting.RENDERER_VSYNC.key)
-            add(IntSetting.RENDERER_ANTI_ALIASING.key)
-            add(IntSetting.MAX_ANISOTROPY.key)
-            add(IntSetting.RENDERER_SCALING_FILTER.key)
-            add(IntSetting.FSR_SHARPENING_SLIDER.key)
+            add(IntSetting.FAST_GPU_TIME.key)
+            add(BooleanSetting.SKIP_CPU_INNER_INVALIDATION.key)
+            add(BooleanSetting.FIX_BLOOM_EFFECTS.key)
+            add(BooleanSetting.EMULATE_BGR565.key)
+            add(BooleanSetting.RESCALE_HACK.key)
+            add(BooleanSetting.RENDERER_ASYNCHRONOUS_SHADERS.key)
+            add(IntSetting.ANDROID_PIPELINE_WORKERS.key)
+            add(BooleanSetting.RENDERER_ASYNCHRONOUS_GPU_EMULATION.key)
+            add(BooleanSetting.RENDERER_ASYNC_PRESENTATION.key)
+            add(SettingsItem.GPU_UNSWIZZLE_COMBINED)
+
+            add(HeaderSetting(R.string.extensions))
+
+            add(IntSetting.RENDERER_DYNA_STATE.key)
+            add(BooleanSetting.RENDERER_VERTEX_INPUT_DYNAMIC_STATE.key)
+            add(IntSetting.RENDERER_SAMPLE_SHADING.key)
 
             add(HeaderSetting(R.string.display))
 
@@ -272,8 +345,22 @@ class SettingsFragmentPresenter(
 
     private fun addInputOverlaySettings(sl: ArrayList<SettingsItem>) {
         sl.apply {
+            add(BooleanSetting.SHOW_INPUT_OVERLAY.key)
+            add(BooleanSetting.OVERLAY_SNAP_TO_GRID.key)
+            add(IntSetting.OVERLAY_GRID_SIZE.key)
+            add(
+                LaunchableSetting(
+                    titleId = R.string.edit_overlay_layout,
+                    descriptionId = R.string.edit_overlay_layout_description,
+                    launchIntent = { context ->
+                        EmulationActivity.launchForOverlayEdit(context)
+                    }
+                )
+            )
+            add(HeaderSetting(R.string.input_overlay_behavior))
             add(BooleanSetting.ENABLE_INPUT_OVERLAY_AUTO_HIDE.key)
             add(IntSetting.INPUT_OVERLAY_AUTO_HIDE.key)
+            add(BooleanSetting.HIDE_OVERLAY_ON_CONTROLLER_INPUT.key)
         }
     }
 
@@ -285,6 +372,8 @@ class SettingsFragmentPresenter(
             add(IntSetting.SOC_OVERLAY_POSITION.key)
 
             add(HeaderSetting(R.string.stats_overlay_items))
+            add(BooleanSetting.SHOW_BUILD_ID.key)
+            add(BooleanSetting.SHOW_DRIVER_VERSION.key)
             add(BooleanSetting.SHOW_DEVICE_MODEL.key)
             add(BooleanSetting.SHOW_GPU_MODEL.key)
 
@@ -449,47 +538,16 @@ class SettingsFragmentPresenter(
         }
     }
 
-    private fun addEdenVeilSettings(sl: ArrayList<SettingsItem>) {
-        sl.apply {
-            add(HeaderSetting(R.string.veil_extensions))
-            add(ByteSetting.RENDERER_DYNA_STATE.key)
-            add(BooleanSetting.RENDERER_PROVOKING_VERTEX.key)
-            add(BooleanSetting.RENDERER_DESCRIPTOR_INDEXING.key)
-            add(BooleanSetting.RENDERER_SAMPLE_SHADING.key)
-            add(IntSetting.RENDERER_SAMPLE_SHADING_FRACTION.key)
-
-            add(HeaderSetting(R.string.veil_renderer))
-            add(BooleanSetting.RENDERER_EARLY_RELEASE_FENCES.key)
-            add(IntSetting.DMA_ACCURACY.key)
-            add(BooleanSetting.BUFFER_REORDER_DISABLE.key)
-            add(BooleanSetting.FRAME_INTERPOLATION.key)
-            add(BooleanSetting.RENDERER_FAST_GPU.key)
-            add(IntSetting.FAST_GPU_TIME.key)
-            add(IntSetting.RENDERER_SHADER_BACKEND.key)
-            add(IntSetting.RENDERER_NVDEC_EMULATION.key)
-            add(IntSetting.RENDERER_ASTC_DECODE_METHOD.key)
-            add(IntSetting.RENDERER_ASTC_RECOMPRESSION.key)
-            add(IntSetting.RENDERER_VRAM_USAGE_MODE.key)
-            add(IntSetting.RENDERER_OPTIMIZE_SPIRV_OUTPUT.key)
-
-            add(HeaderSetting(R.string.veil_misc))
-            add(BooleanSetting.USE_FAST_CPU_TIME.key)
-            add(IntSetting.FAST_CPU_TIME.key)
-            add(BooleanSetting.USE_CUSTOM_CPU_TICKS.key)
-            add(IntSetting.CPU_TICKS.key)
-            add(BooleanSetting.SKIP_CPU_INNER_INVALIDATION.key)
-            add(BooleanSetting.CPUOPT_UNSAFE_HOST_MMU.key)
-            add(BooleanSetting.USE_LRU_CACHE.key)
-            add(BooleanSetting.CORE_SYNC_CORE_SPEED.key)
-            add(BooleanSetting.SYNC_MEMORY_OPERATIONS.key)
-            add(IntSetting.MEMORY_LAYOUT.key)
-        }
+    private fun addFreedrenoSettings(sl: ArrayList<SettingsItem>) {
+        // No additional settings needed here - the SubmenuSetting handles navigation
+        // This method is kept for consistency with other menu sections
     }
 
     private fun addAppletSettings(sl: ArrayList<SettingsItem>) {
         sl.apply {
             add(IntSetting.SWKBD_APPLET.key)
             add(BooleanSetting.AIRPLANE_MODE.key)
+            add(BooleanSetting.ENABLE_OVERLAY.key)
         }
     }
     private fun addInputPlayer(sl: ArrayList<SettingsItem>, playerIndex: Int) {
@@ -1027,36 +1085,23 @@ class SettingsFragmentPresenter(
                     IntSetting.THEME.getValueAsString()
 
                 override val defaultValue: Int = IntSetting.THEME.defaultValue
-                override fun reset() = IntSetting.THEME.setInt(defaultValue)
+                override fun reset() {
+                    IntSetting.THEME.setInt(defaultValue)
+                    settingsViewModel.setShouldRecreate(true)
+                }
             }
 
+            add(HeaderSetting(R.string.app_settings))
+            add(IntSetting.APP_LANGUAGE.key)
+
             if (NativeLibrary.isUpdateCheckerEnabled()) {
-                add(HeaderSetting(R.string.app_settings))
                 add(BooleanSetting.ENABLE_UPDATE_CHECKS.key)
             }
 
+            add(BooleanSetting.ENABLE_QUICK_SETTINGS.key)
+            add(BooleanSetting.INVERT_CONFIRM_BACK_CONTROLLER_BUTTONS.key)
+
             add(HeaderSetting(R.string.theme_and_color))
-
-
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-                add(
-                    SingleChoiceSetting(
-                        theme,
-                        titleId = R.string.change_app_theme,
-                        choicesId = R.array.themeEntriesA12,
-                        valuesId = R.array.themeValuesA12
-                    )
-                )
-            } else {
-                add(
-                    SingleChoiceSetting(
-                        theme,
-                        titleId = R.string.change_app_theme,
-                        choicesId = R.array.themeEntries,
-                        valuesId = R.array.themeValues
-                    )
-                )
-            }
 
             val themeMode: AbstractIntSetting = object : AbstractIntSetting {
                 override fun getInt(needsGlobal: Boolean): Int = IntSetting.THEME_MODE.getInt()
@@ -1079,28 +1124,6 @@ class SettingsFragmentPresenter(
                 }
             }
 
-            val staticThemeColor: AbstractIntSetting = object : AbstractIntSetting {
-                val preferences = PreferenceManager.getDefaultSharedPreferences(
-                    YuzuApplication.appContext
-                )
-                override fun getInt(needsGlobal: Boolean): Int =
-                    preferences.getInt(Settings.PREF_STATIC_THEME_COLOR, 0)
-                override fun setInt(value: Int) {
-                    preferences.edit() { putInt(Settings.PREF_STATIC_THEME_COLOR, value) }
-                    settingsViewModel.setShouldRecreate(true)
-                }
-
-                override val key: String = Settings.PREF_STATIC_THEME_COLOR
-                override val isRuntimeModifiable: Boolean = true
-                override fun getValueAsString(needsGlobal: Boolean): String =
-                    preferences.getInt(Settings.PREF_STATIC_THEME_COLOR, 0).toString()
-                override val defaultValue: Any = 0
-                override fun reset() {
-                    preferences.edit() { putInt(Settings.PREF_STATIC_THEME_COLOR, 0) }
-                    settingsViewModel.setShouldRecreate(true)
-                }
-            }
-
             add(
                 SingleChoiceSetting(
                     themeMode,
@@ -1110,14 +1133,59 @@ class SettingsFragmentPresenter(
                 )
             )
 
-            add(
-                SingleChoiceSetting(
-                    staticThemeColor,
-                    titleId = R.string.static_theme_color,
-                    choicesId = R.array.staticThemeNames,
-                    valuesId = R.array.staticThemeValues
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                add(
+                    SingleChoiceSetting(
+                        theme,
+                        titleId = R.string.change_app_theme,
+                        choicesId = R.array.themeEntriesA12,
+                        valuesId = R.array.themeValuesA12
+                    )
                 )
-            )
+            } else {
+                add(
+                    SingleChoiceSetting(
+                        theme,
+                        titleId = R.string.change_app_theme,
+                        choicesId = R.array.themeEntries,
+                        valuesId = R.array.themeValues
+                    )
+                )
+            }
+
+            val staticThemeColor: AbstractIntSetting = object : AbstractIntSetting {
+                override fun getInt(needsGlobal: Boolean): Int =
+                    IntSetting.STATIC_THEME_COLOR.getInt(needsGlobal)
+
+                override fun setInt(value: Int) {
+                    IntSetting.STATIC_THEME_COLOR.setInt(value)
+                    settingsViewModel.setShouldRecreate(true)
+                }
+
+                override val key: String = IntSetting.STATIC_THEME_COLOR.key
+                override val isRuntimeModifiable: Boolean = true
+
+                override fun getValueAsString(needsGlobal: Boolean): String =
+                    IntSetting.STATIC_THEME_COLOR.getValueAsString(needsGlobal)
+
+                override val defaultValue: Any = IntSetting.STATIC_THEME_COLOR.defaultValue
+
+                override fun reset() {
+                    IntSetting.STATIC_THEME_COLOR.reset()
+                    settingsViewModel.setShouldRecreate(true)
+                }
+            }
+
+            if (IntSetting.THEME.getInt() != 1) {
+                add(
+                    SingleChoiceSetting(
+                        staticThemeColor,
+                        titleId = R.string.static_theme_color,
+                        choicesId = R.array.staticThemeNames,
+                        valuesId = R.array.staticThemeValues
+                    )
+                )
+            }
 
             val blackBackgrounds: AbstractBooleanSetting = object : AbstractBooleanSetting {
                 override fun getBoolean(needsGlobal: Boolean): Boolean =
@@ -1150,23 +1218,126 @@ class SettingsFragmentPresenter(
                     descriptionId = R.string.use_black_backgrounds_description
                 )
             )
+
+            val fullscreenSetting: AbstractBooleanSetting = object : AbstractBooleanSetting {
+                override fun getBoolean(needsGlobal: Boolean): Boolean =
+                    FullscreenHelper.isFullscreenEnabled(context)
+
+                override fun setBoolean(value: Boolean) {
+                    FullscreenHelper.setFullscreenEnabled(context, value)
+                    settingsViewModel.setShouldRecreate(true)
+                }
+
+                override val key: String = Settings.PREF_APP_FULLSCREEN
+                override val isRuntimeModifiable: Boolean = true
+                override val pairedSettingKey: String = ""
+                override val isSwitchable: Boolean = false
+                override var global: Boolean = true
+                override val isSaveable: Boolean = true
+                override val defaultValue: Boolean = Settings.APP_FULLSCREEN_DEFAULT
+
+                override fun getValueAsString(needsGlobal: Boolean): String =
+                    getBoolean(needsGlobal).toString()
+
+                override fun reset() {
+                    setBoolean(defaultValue)
+                }
+            }
+
+            add(
+                SwitchSetting(
+                    fullscreenSetting,
+                    titleId = R.string.fullscreen_mode,
+                    descriptionId = R.string.fullscreen_mode_description
+                )
+            )
+
+            add(HeaderSetting(R.string.buttons))
+            add(BooleanSetting.ENABLE_FOLDER_BUTTON.key)
+            add(BooleanSetting.ENABLE_QLAUNCH_BUTTON.key)
+            if (!NativeLibrary.isFirmwareAvailable()) {
+                BooleanSetting.ENABLE_QLAUNCH_BUTTON.setBoolean(false)
+            }
         }
     }
 
     private fun addDebugSettings(sl: ArrayList<SettingsItem>) {
         sl.apply {
             add(HeaderSetting(R.string.gpu))
+
             add(IntSetting.RENDERER_BACKEND.key)
             add(BooleanSetting.RENDERER_DEBUG.key)
+            add(BooleanSetting.RENDERER_PATCH_OLD_QCOM_DRIVERS.key)
+            add(BooleanSetting.BUFFER_REORDER_DISABLE.key)
 
             add(HeaderSetting(R.string.cpu))
+
             add(IntSetting.CPU_BACKEND.key)
             add(IntSetting.CPU_ACCURACY.key)
             add(BooleanSetting.USE_AUTO_STUB.key)
             add(SettingsItem.FASTMEM_COMBINED)
+            add(BooleanSetting.CPUOPT_UNSAFE_HOST_MMU.key)
 
-            add(HeaderSetting(R.string.log))
-            add(BooleanSetting.DEBUG_FLUSH_BY_LINE.key)
+            if (!NativeConfig.isPerGameConfigLoaded()) {
+                add(HeaderSetting(R.string.log))
+
+                add(BooleanSetting.DEBUG_FLUSH_BY_LINE.key)
+            }
+
+            add(HeaderSetting(R.string.general))
+
+            add(ShortSetting.DEBUG_KNOBS.key)
+            add(StringSetting.PROGRAM_ARGS.key)
+
+            if (!NativeConfig.isPerGameConfigLoaded()) {
+                add(HeaderSetting(R.string.gpu_logging_header))
+                add(ByteSetting.GPU_LOG_LEVEL.key)
+                add(BooleanSetting.GPU_LOG_VULKAN_CALLS.key)
+                add(BooleanSetting.DUMP_GUEST_SHADERS.key)
+                add(BooleanSetting.GPU_LOG_SHADER_DUMPS.key)
+                add(BooleanSetting.DUMP_MACROS.key)
+                add(BooleanSetting.GPU_LOG_MEMORY_TRACKING.key)
+                add(BooleanSetting.GPU_LOG_DRIVER_DEBUG.key)
+                add(IntSetting.GPU_LOG_RING_BUFFER_SIZE.key)
+            }
+        }
+    }
+
+    private fun addCustomPathsSettings(sl: ArrayList<SettingsItem>) {
+        sl.apply {
+            add(
+                PathSetting(
+                    titleId = R.string.custom_save_directory,
+                    descriptionId = R.string.custom_save_directory_description,
+                    iconId = R.drawable.ic_save,
+                    pathType = PathSetting.PathType.SAVE_DATA,
+                    defaultPathGetter = { NativeConfig.getDefaultSaveDir() },
+                    currentPathGetter = { NativeConfig.getSaveDir() },
+                    pathSetter = { path -> NativeConfig.setSaveDir(path) }
+                )
+            )
+            add(
+                PathSetting(
+                    titleId = R.string.custom_nand_directory,
+                    descriptionId = R.string.custom_nand_directory_description,
+                    iconId = R.drawable.ic_folder_open,
+                    pathType = PathSetting.PathType.NAND,
+                    defaultPathGetter = { DirectoryInitialization.userDirectory + "/nand" },
+                    currentPathGetter = { NativeConfig.getNandDir() },
+                    pathSetter = { path -> NativeConfig.setNandDir(path) }
+                )
+            )
+            add(
+                PathSetting(
+                    titleId = R.string.custom_sdmc_directory,
+                    descriptionId = R.string.custom_sdmc_directory_description,
+                    iconId = R.drawable.ic_folder_open,
+                    pathType = PathSetting.PathType.SDMC,
+                    defaultPathGetter = { DirectoryInitialization.userDirectory + "/sdmc" },
+                    currentPathGetter = { NativeConfig.getSdmcDir() },
+                    pathSetter = { path -> NativeConfig.setSdmcDir(path) }
+                )
+            )
         }
     }
 }

@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 package org.yuzu.yuzu_emu.dialogs
@@ -20,6 +20,8 @@ import org.yuzu.yuzu_emu.databinding.DialogChatBinding
 import org.yuzu.yuzu_emu.databinding.ItemChatMessageBinding
 import org.yuzu.yuzu_emu.features.settings.model.StringSetting
 import org.yuzu.yuzu_emu.network.NetPlayManager
+import org.yuzu.yuzu_emu.utils.CompatUtils
+import org.yuzu.yuzu_emu.utils.FullscreenHelper
 import java.text.SimpleDateFormat
 import java.util.*
 
@@ -34,6 +36,13 @@ class ChatDialog(context: Context) : BottomSheetDialog(context) {
     private lateinit var binding: DialogChatBinding
     private lateinit var chatAdapter: ChatAdapter
     private val handler = Handler(Looper.getMainLooper())
+    private val hideSystemBars: Boolean by lazy {
+        runCatching {
+            FullscreenHelper.shouldHideSystemBars(CompatUtils.findActivity(context))
+        }.getOrElse {
+            FullscreenHelper.isFullscreenEnabled(context)
+        }
+    }
 
     // TODO(alekpop, crueter): Top drawer for message notifications, perhaps use system notifs?
     // TODO(alekpop, crueter): Context menu actions for chat users
@@ -41,6 +50,7 @@ class ChatDialog(context: Context) : BottomSheetDialog(context) {
     @SuppressLint("NotifyDataSetChanged")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        setOnShowListener { applyFullscreenMode() }
         binding = DialogChatBinding.inflate(LayoutInflater.from(context))
         setContentView(binding.root)
 
@@ -75,6 +85,11 @@ class ChatDialog(context: Context) : BottomSheetDialog(context) {
         }
     }
 
+    override fun onStart() {
+        super.onStart()
+        applyFullscreenMode()
+    }
+
     override fun dismiss() {
         NetPlayManager.setChatOpen(false)
         super.dismiss()
@@ -107,6 +122,12 @@ class ChatDialog(context: Context) : BottomSheetDialog(context) {
 
     private fun scrollToBottom() {
         binding.chatRecyclerView.scrollToPosition(chatAdapter.itemCount - 1)
+    }
+
+    private fun applyFullscreenMode() {
+        window?.let { window ->
+            FullscreenHelper.applyToWindow(window, hideSystemBars)
+        }
     }
 }
 

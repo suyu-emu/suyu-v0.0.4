@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2021 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -13,11 +16,13 @@ namespace {
 
 class ThreadQueueImplForKLightConditionVariable final : public KThreadQueue {
 public:
-    ThreadQueueImplForKLightConditionVariable(KernelCore& kernel, KThread::WaiterList* wl,
-                                              bool term)
-        : KThreadQueue(kernel), m_wait_list(wl), m_allow_terminating_thread(term) {}
+    ThreadQueueImplForKLightConditionVariable(KernelCore& kernel, KThread::WaiterList* wl, bool term)
+        : KThreadQueue(kernel)
+        , m_wait_list(wl)
+        , m_allow_terminating_thread(term)
+    {}
 
-    void CancelWait(KThread* waiting_thread, Result wait_result, bool cancel_timer_task) override {
+    virtual void CancelWait(KernelCore& kernel, KThread* waiting_thread, Result wait_result, bool cancel_timer_task) override {
         // Only process waits if we're allowed to.
         if (ResultTerminationRequested == wait_result && m_allow_terminating_thread) {
             return;
@@ -27,7 +32,7 @@ public:
         m_wait_list->erase(m_wait_list->iterator_to(*waiting_thread));
 
         // Invoke the base cancel wait handler.
-        KThreadQueue::CancelWait(waiting_thread, wait_result, cancel_timer_task);
+        KThreadQueue::CancelWait(kernel, waiting_thread, wait_result, cancel_timer_task);
     }
 
 private:
@@ -61,7 +66,7 @@ void KLightConditionVariable::Wait(KLightLock* lock, s64 timeout, bool allow_ter
 
         // Begin waiting.
         wait_queue.SetHardwareTimer(timer);
-        owner->BeginWait(std::addressof(wait_queue));
+        owner->BeginWait(m_kernel, std::addressof(wait_queue));
     }
 
     // Re-acquire the lock.
@@ -73,7 +78,7 @@ void KLightConditionVariable::Broadcast() {
 
     // Signal all threads.
     for (auto it = m_wait_list.begin(); it != m_wait_list.end(); it = m_wait_list.erase(it)) {
-        it->EndWait(ResultSuccess);
+        it->EndWait(m_kernel, ResultSuccess);
     }
 }
 

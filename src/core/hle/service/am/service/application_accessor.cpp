@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2024 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -66,7 +69,7 @@ Result IApplicationAccessor::RequestExit() {
 
     std::scoped_lock lk{m_applet->lock};
     if (m_applet->exit_locked) {
-        m_applet->lifecycle_manager.RequestExit();
+        m_applet->lifecycle_manager.RequestExit(system.Kernel());
         m_applet->UpdateSuspensionStateLocked(true);
     } else {
         m_applet->process->Terminate();
@@ -115,7 +118,7 @@ Result IApplicationAccessor::GetApplicationControlProperty(
     R_TRY(system.GetARPManager().GetControlProperty(&nacp, m_applet->program_id));
 
     std::memcpy(out_control_property.data(), nacp.data(),
-                std::min(out_control_property.size(), nacp.size()));
+                (std::min)(out_control_property.size(), nacp.size()));
 
     R_SUCCEED();
 }

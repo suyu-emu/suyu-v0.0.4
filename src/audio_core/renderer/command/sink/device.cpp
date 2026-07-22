@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2022 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -20,8 +23,8 @@ void DeviceSinkCommand::Dump([[maybe_unused]] const AudioRenderer::CommandListPr
 }
 
 void DeviceSinkCommand::Process(const AudioRenderer::CommandListProcessor& processor) {
-    constexpr s32 min = std::numeric_limits<s16>::min();
-    constexpr s32 max = std::numeric_limits<s16>::max();
+    constexpr s32 min = (std::numeric_limits<s16>::min)();
+    constexpr s32 max = (std::numeric_limits<s16>::max)();
 
     auto stream{processor.GetOutputSinkStream()};
     stream->SetSystemChannels(input_count);

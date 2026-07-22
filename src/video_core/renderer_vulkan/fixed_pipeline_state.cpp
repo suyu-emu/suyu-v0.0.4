@@ -1,14 +1,18 @@
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2019 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
 #include <algorithm>
 #include <cstring>
-
-#include "common/bit_cast.h"
+#include <bit>
+#include <numeric>
+#include <ranges>
 #include "common/cityhash.h"
 #include "common/common_types.h"
-#include "common/polyfill_ranges.h"
-#include "video_core/engines/draw_manager.h"
+#include "common/settings.h"
+#include "video_core/engines/maxwell_3d.h"
 #include "video_core/renderer_vulkan/fixed_pipeline_state.h"
 #include "video_core/renderer_vulkan/vk_state_tracker.h"
 
@@ -35,6 +39,55 @@ constexpr std::array POLYGON_OFFSET_ENABLE_LUT = {
     POLYGON, // Patches
 };
 
+constexpr std::array TOPOLOGY_CLASS_REPRESENTATIVE_LUT = {
+    Maxwell::PrimitiveTopology::Points,              // Points
+    Maxwell::PrimitiveTopology::Lines,               // Lines
+    Maxwell::PrimitiveTopology::LineLoop,            // LineLoop
+    Maxwell::PrimitiveTopology::LineStrip,           // LineStrip
+    Maxwell::PrimitiveTopology::Triangles,           // Triangles
+    Maxwell::PrimitiveTopology::Triangles,           // TriangleStrip
+    Maxwell::PrimitiveTopology::Triangles,           // TriangleFan
+    Maxwell::PrimitiveTopology::Triangles,           // Quads
+    Maxwell::PrimitiveTopology::Triangles,           // QuadStrip
+    Maxwell::PrimitiveTopology::Triangles,           // Polygon
+    Maxwell::PrimitiveTopology::LinesAdjacency,      // LinesAdjacency
+    Maxwell::PrimitiveTopology::LinesAdjacency,      // LineStripAdjacency
+    Maxwell::PrimitiveTopology::TrianglesAdjacency,  // TrianglesAdjacency
+    Maxwell::PrimitiveTopology::TrianglesAdjacency,  // TriangleStripAdjacency
+    Maxwell::PrimitiveTopology::Patches,             // Patches
+};
+
+bool IsDualSourceBlendFactor(Maxwell::Blend::Factor factor) {
+    using F = Maxwell::Blend::Factor;
+    switch (factor) {
+    case F::Source1Color_D3D:
+    case F::OneMinusSource1Color_D3D:
+    case F::Source1Alpha_D3D:
+    case F::OneMinusSource1Alpha_D3D:
+    case F::Source1Color_GL:
+    case F::OneMinusSource1Color_GL:
+    case F::Source1Alpha_GL:
+    case F::OneMinusSource1Alpha_GL:
+        return true;
+    default:
+        return false;
+    }
+}
+
+bool ComputeAttachment0DualSourceBlend(const Maxwell& regs) {
+    if (!regs.blend.enable[0]) {
+        return false;
+    }
+    const auto uses_dual_source = [](const auto& blend) {
+        return IsDualSourceBlendFactor(blend.color_source) ||
+               IsDualSourceBlendFactor(blend.color_dest) ||
+               IsDualSourceBlendFactor(blend.alpha_source) ||
+               IsDualSourceBlendFactor(blend.alpha_dest);
+    };
+    return regs.blend_per_target_enabled ? uses_dual_source(regs.blend_per_target[0])
+                                         : uses_dual_source(regs.blend);
+}
+
 void RefreshXfbState(VideoCommon::TransformFeedbackState& state, const Maxwell& regs) {
     std::ranges::transform(regs.transform_feedback.controls, state.layouts.begin(),
                            [](const auto& layout) {
@@ -50,14 +103,18 @@ void RefreshXfbState(VideoCommon::TransformFeedbackState& state, const Maxwell& 
 
 void FixedPipelineState::Refresh(Tegra::Engines::Maxwell3D& maxwell3d, DynamicFeatures& features) {
     const Maxwell& regs = maxwell3d.regs;
-    const auto topology_ = maxwell3d.draw_manager->GetDrawState().topology;
+    const auto topology_ = maxwell3d.draw_manager.draw_state.topology;
+
+    driver_id = features.driver_id;
+    driver_version = features.driver_version;
 
     raw1 = 0;
     extended_dynamic_state.Assign(features.has_extended_dynamic_state ? 1 : 0);
     extended_dynamic_state_2.Assign(features.has_extended_dynamic_state_2 ? 1 : 0);
-    extended_dynamic_state_2_extra.Assign(features.has_extended_dynamic_state_2_extra ? 1 : 0);
+    extended_dynamic_state_2_logic_op.Assign(features.has_extended_dynamic_state_2_logic_op ? 1 : 0);
     extended_dynamic_state_3_blend.Assign(features.has_extended_dynamic_state_3_blend ? 1 : 0);
     extended_dynamic_state_3_enables.Assign(features.has_extended_dynamic_state_3_enables ? 1 : 0);
+    color_write_enable_dynamic.Assign(features.has_color_write_enable ? 1 : 0);
     dynamic_vertex_input.Assign(features.has_dynamic_vertex_input ? 1 : 0);
     xfb_enabled.Assign(regs.transform_feedback_enabled != 0);
     ndc_minus_one_to_one.Assign(regs.depth_mode == Maxwell::DepthMode::MinusOneToOne ? 1 : 0);
@@ -67,8 +124,13 @@ void FixedPipelineState::Refresh(Tegra::Engines::Maxwell3D& maxwell3d, DynamicFe
     tessellation_clockwise.Assign(regs.tessellation.params.output_primitives.Value() ==
                                   Maxwell::Tessellation::OutputPrimitives::Triangles_CW);
     patch_control_points_minus_one.Assign(regs.patch_vertices - 1);
-    topology.Assign(topology_);
+    const bool can_collapse_topology_class =
+        features.has_extended_dynamic_state && features.has_extended_dynamic_state_2;
+    topology.Assign(can_collapse_topology_class
+                        ? TOPOLOGY_CLASS_REPRESENTATIVE_LUT[static_cast<size_t>(topology_)]
+                        : topology_);
     msaa_mode.Assign(regs.anti_alias_samples_mode);
+    attachment0_dual_source_blend.Assign(ComputeAttachment0DualSourceBlend(regs) ? 1 : 0);
 
     raw2 = 0;
 
@@ -79,18 +141,46 @@ void FixedPipelineState::Refresh(Tegra::Engines::Maxwell3D& maxwell3d, DynamicFe
     depth_enabled.Assign(regs.zeta_enable != 0 ? 1 : 0);
     depth_format.Assign(static_cast<u32>(regs.zeta.format));
     y_negate.Assign(regs.window_origin.mode != Maxwell::WindowOrigin::Mode::UpperLeft ? 1 : 0);
-    provoking_vertex_last.Assign(regs.provoking_vertex == Maxwell::ProvokingVertex::Last ? 1 : 0);
+
+    bool use_last_provoking_vertex = false;
+    const bool provoking_vertex_available = features.has_provoking_vertex;
+    const bool supports_first_mode = features.has_provoking_vertex_first_mode;
+    const bool supports_last_mode = features.has_provoking_vertex_last_mode;
+    const bool transform_feedback_active = regs.transform_feedback_enabled != 0;
+    const bool tf_preserves_provoking_vertex = features.has_provoking_vertex_tf_preserve;
+
+    if (provoking_vertex_available && (supports_first_mode || supports_last_mode)) {
+        use_last_provoking_vertex = regs.provoking_vertex == Maxwell::ProvokingVertex::Last;
+
+        if (transform_feedback_active && !tf_preserves_provoking_vertex) {
+            use_last_provoking_vertex = false;
+        }
+
+        if (use_last_provoking_vertex && !supports_last_mode) {
+            use_last_provoking_vertex = false;
+        } else if (!use_last_provoking_vertex && !supports_first_mode) {
+            use_last_provoking_vertex = true;
+        }
+    }
+
+    provoking_vertex_last.Assign(use_last_provoking_vertex ? 1 : 0);
     conservative_raster_enable.Assign(regs.conservative_raster_enable != 0 ? 1 : 0);
     smooth_lines.Assign(regs.line_anti_alias_enable != 0 ? 1 : 0);
     alpha_to_coverage_enabled.Assign(regs.anti_alias_alpha_control.alpha_to_coverage != 0 ? 1 : 0);
     alpha_to_one_enabled.Assign(regs.anti_alias_alpha_control.alpha_to_one != 0 ? 1 : 0);
     app_stage.Assign(maxwell3d.engine_state);
 
+    depth_bounds_min = static_cast<u32>(regs.depth_bounds[0]);
+    depth_bounds_max = static_cast<u32>(regs.depth_bounds[1]);
+
+    line_stipple_factor = regs.line_stipple_params.factor;
+    line_stipple_pattern = regs.line_stipple_params.pattern;
+
     for (size_t i = 0; i < regs.rt.size(); ++i) {
         color_formats[i] = static_cast<u8>(regs.rt[i].format);
     }
-    alpha_test_ref = Common::BitCast<u32>(regs.alpha_test_ref);
-    point_size = Common::BitCast<u32>(regs.point_size);
+    alpha_test_ref = std::bit_cast<u32>(regs.alpha_test_ref);
+    point_size = std::bit_cast<u32>(regs.point_size);
 
     if (maxwell3d.dirty.flags[Dirty::VertexInput]) {
         if (features.has_dynamic_vertex_input) {
@@ -147,7 +237,7 @@ void FixedPipelineState::Refresh(Tegra::Engines::Maxwell3D& maxwell3d, DynamicFe
             return static_cast<u16>(array.stride.Value());
         });
     }
-    if (!extended_dynamic_state_2_extra) {
+    if (!extended_dynamic_state_2_logic_op) {
         dynamic_state.Refresh2(regs, topology_, extended_dynamic_state_2);
     }
     if (!extended_dynamic_state_3_blend) {
@@ -155,12 +245,19 @@ void FixedPipelineState::Refresh(Tegra::Engines::Maxwell3D& maxwell3d, DynamicFe
             maxwell3d.dirty.flags[Dirty::Blending] = false;
             for (size_t index = 0; index < attachments.size(); ++index) {
                 attachments[index].Refresh(regs, index);
+                auto& attachment = attachments[index];
+                if (color_write_enable_dynamic && attachment.mask_r == 0 &&
+                    attachment.mask_g == 0 && attachment.mask_b == 0 &&
+                    attachment.mask_a == 0) {
+                    attachment.mask_r.Assign(1);
+                    attachment.mask_g.Assign(1);
+                    attachment.mask_b.Assign(1);
+                    attachment.mask_a.Assign(1);
+                }
             }
         }
     }
-    if (!extended_dynamic_state_3_enables) {
-        dynamic_state.Refresh3(regs);
-    }
+    dynamic_state.Refresh3(regs, features);
     if (xfb_enabled) {
         RefreshXfbState(xfb_state, regs);
     }
@@ -191,6 +288,19 @@ void FixedPipelineState::BlendingAttachment::Refresh(const Maxwell& regs, size_t
     };
 
     if (!regs.blend_per_target_enabled) {
+        // Temporary workaround for games that use iterated blending
+        // even when dynamic blending is off so overrides work with EDS = 0 as well
+        if (regs.iterated_blend.enable && Settings::values.use_squashed_iterated_blend) {
+            equation_rgb.Assign(PackBlendEquation(Maxwell::Blend::Equation::Add_GL));
+            equation_a.Assign(PackBlendEquation(Maxwell::Blend::Equation::Add_GL));
+            factor_source_rgb.Assign(PackBlendFactor(Maxwell::Blend::Factor::One_GL));
+            factor_dest_rgb.Assign(PackBlendFactor(Maxwell::Blend::Factor::One_GL));
+            factor_source_a.Assign(
+                PackBlendFactor(Maxwell::Blend::Factor::OneMinusSourceColor_GL));
+            factor_dest_a.Assign(PackBlendFactor(Maxwell::Blend::Factor::Zero_GL));
+            enable.Assign(1);
+            return;
+        }
         setup_blend(regs.blend);
         return;
     }
@@ -250,14 +360,22 @@ void FixedPipelineState::DynamicState::Refresh2(const Maxwell& regs,
     depth_bias_enable.Assign(enabled_lut[POLYGON_OFFSET_ENABLE_LUT[topology_index]] != 0 ? 1 : 0);
 }
 
-void FixedPipelineState::DynamicState::Refresh3(const Maxwell& regs) {
-    logic_op_enable.Assign(regs.logic_op.enable != 0 ? 1 : 0);
-    depth_clamp_disabled.Assign(regs.viewport_clip_control.geometry_clip ==
-                                    Maxwell::ViewportClipControl::GeometryClip::Passthrough ||
-                                regs.viewport_clip_control.geometry_clip ==
-                                    Maxwell::ViewportClipControl::GeometryClip::FrustumXYZ ||
-                                regs.viewport_clip_control.geometry_clip ==
-                                    Maxwell::ViewportClipControl::GeometryClip::FrustumZ);
+void FixedPipelineState::DynamicState::Refresh3(const Maxwell& regs,
+                                                const DynamicFeatures& features) {
+    if (!features.has_dynamic_state3_logic_op_enable) {
+        logic_op_enable.Assign(regs.logic_op.enable != 0 ? 1 : 0);
+    }
+    if (!features.has_dynamic_state3_depth_clamp_enable) {
+        depth_clamp_disabled.Assign(regs.viewport_clip_control.geometry_clip ==
+                                        Maxwell::ViewportClipControl::GeometryClip::Passthrough ||
+                                    regs.viewport_clip_control.geometry_clip ==
+                                        Maxwell::ViewportClipControl::GeometryClip::FrustumXYZ ||
+                                    regs.viewport_clip_control.geometry_clip ==
+                                        Maxwell::ViewportClipControl::GeometryClip::FrustumZ);
+    }
+    if (!features.has_dynamic_state3_line_stipple_enable) {
+        line_stipple_enable.Assign(regs.line_stipple_enable);
+    }
 }
 
 size_t FixedPipelineState::Hash() const noexcept {

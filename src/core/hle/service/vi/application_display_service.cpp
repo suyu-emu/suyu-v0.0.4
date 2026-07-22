@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2024 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -60,35 +63,37 @@ IApplicationDisplayService::~IApplicationDisplayService() {
 
 Result IApplicationDisplayService::GetRelayService(
     Out<SharedPointer<Nvnflinger::IHOSBinderDriver>> out_relay_service) {
-    LOG_DEBUG(Service_VI, "called");
+    LOG_WARNING(Service_VI, "(STUBBED) called");
     R_RETURN(m_container->GetBinderDriver(out_relay_service));
 }
 
 Result IApplicationDisplayService::GetSystemDisplayService(
     Out<SharedPointer<ISystemDisplayService>> out_system_display_service) {
-    LOG_DEBUG(Service_VI, "called");
+    LOG_WARNING(Service_VI, "(STUBBED) called");
     *out_system_display_service = std::make_shared<ISystemDisplayService>(system, m_container);
     R_SUCCEED();
 }
 
 Result IApplicationDisplayService::GetManagerDisplayService(
     Out<SharedPointer<IManagerDisplayService>> out_manager_display_service) {
-    LOG_DEBUG(Service_VI, "called");
+    LOG_WARNING(Service_VI, "(STUBBED) called");
     *out_manager_display_service = std::make_shared<IManagerDisplayService>(system, m_container);
     R_SUCCEED();
 }
 
 Result IApplicationDisplayService::GetIndirectDisplayTransactionService(
     Out<SharedPointer<Nvnflinger::IHOSBinderDriver>> out_indirect_display_transaction_service) {
-    LOG_DEBUG(Service_VI, "called");
+    LOG_WARNING(Service_VI, "(STUBBED) called");
     R_RETURN(m_container->GetBinderDriver(out_indirect_display_transaction_service));
 }
 
 Result IApplicationDisplayService::OpenDisplay(Out<u64> out_display_id, DisplayName display_name) {
     LOG_DEBUG(Service_VI, "called with display_name={}", display_name.data());
 
+    // Ensure the display name is null-terminated
     display_name[display_name.size() - 1] = '\0';
 
+    // According to switchbrew, only "Default", "External", "Edid", "Internal" and "Null" are valid
     const std::array<std::string_view, 5> valid_names = {
         "Default", "External", "Edid", "Internal", "Null"
     };
@@ -101,7 +106,7 @@ Result IApplicationDisplayService::OpenDisplay(Out<u64> out_display_id, DisplayN
         }
     }
 
-    R_UNLESS(valid_name, VI::ResultOperationFailed);
+    R_UNLESS(valid_name, ResultOperationFailed);
 
     R_RETURN(m_container->OpenDisplay(out_display_id, display_name));
 }
@@ -154,7 +159,7 @@ Result IApplicationDisplayService::SetLayerScalingMode(NintendoScaleMode scale_m
 
 Result IApplicationDisplayService::ListDisplays(
     Out<u64> out_count, OutArray<DisplayInfo, BufferAttr_HipcMapAlias> out_displays) {
-    LOG_DEBUG(Service_VI, "called");
+    LOG_WARNING(Service_VI, "(STUBBED) called");
 
     if (out_displays.size() > 0) {
         out_displays[0] = DisplayInfo{};
@@ -172,8 +177,7 @@ Result IApplicationDisplayService::OpenLayer(Out<u64> out_size,
                                              ClientAppletResourceUserId aruid) {
     display_name[display_name.size() - 1] = '\0';
 
-    LOG_INFO(Service_VI, "OpenLayer called. layer_id={}, aruid={:#x}, display={}",
-             layer_id, aruid.pid, display_name.data());
+    LOG_DEBUG(Service_VI, "called. layer_id={}, aruid={:#x}", layer_id, aruid.pid);
 
     u64 display_id;
     R_TRY(m_container->OpenDisplay(&display_id, display_name));
@@ -191,7 +195,7 @@ Result IApplicationDisplayService::OpenLayer(Out<u64> out_size,
 
     const auto buffer = parcel.Serialize();
     std::memcpy(out_native_window.data(), buffer.data(),
-                std::min(out_native_window.size(), buffer.size()));
+                (std::min)(out_native_window.size(), buffer.size()));
     *out_size = buffer.size();
 
     R_SUCCEED();
@@ -225,7 +229,7 @@ Result IApplicationDisplayService::CreateStrayLayer(
 
     const auto buffer = parcel.Serialize();
     std::memcpy(out_native_window.data(), buffer.data(),
-                std::min(out_native_window.size(), buffer.size()));
+                (std::min)(out_native_window.size(), buffer.size()));
 
     *out_size = buffer.size();
 
@@ -233,7 +237,7 @@ Result IApplicationDisplayService::CreateStrayLayer(
 }
 
 Result IApplicationDisplayService::DestroyStrayLayer(u64 layer_id) {
-    LOG_DEBUG(Service_VI, "called. layer_id={}", layer_id);
+    LOG_WARNING(Service_VI, "(STUBBED) called. layer_id={}", layer_id);
 
     {
         std::scoped_lock lk{m_lock};

@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2018 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -75,7 +78,7 @@ std::pair<EntryType, std::string> GetEntry(const RomFSTraversalContext& ctx, siz
     }
     std::memcpy(&entry, data + offset, sizeof(EntryType));
 
-    const size_t name_length = std::min(entry_end + entry.name_length, size) - entry_end;
+    const size_t name_length = (std::min)(entry_end + entry.name_length, size) - entry_end;
     std::string name(reinterpret_cast<const char*>(data + entry_end), name_length);
 
     return {entry, std::move(name)};

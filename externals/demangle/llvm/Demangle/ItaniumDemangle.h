@@ -1259,7 +1259,7 @@ class ParameterPack final : public Node {
   // Setup OutputBuffer for a pack expansion, unless we're already expanding
   // one.
   void initializePackExpansion(OutputBuffer &OB) const {
-    if (OB.CurrentPackMax == std::numeric_limits<unsigned>::max()) {
+    if (OB.CurrentPackMax == (std::numeric_limits<unsigned>::max)()) {
       OB.CurrentPackMax = static_cast<unsigned>(Data.size());
       OB.CurrentPackIndex = 0;
     }
@@ -1353,7 +1353,7 @@ public:
   const Node *getChild() const { return Child; }
 
   void printLeft(OutputBuffer &OB) const override {
-    constexpr unsigned Max = std::numeric_limits<unsigned>::max();
+    constexpr unsigned Max = (std::numeric_limits<unsigned>::max)();
     ScopedOverride<unsigned> SavePackIdx(OB.CurrentPackIndex, Max);
     ScopedOverride<unsigned> SavePackMax(OB.CurrentPackMax, Max);
     size_t StreamPos = OB.getCurrentPosition();

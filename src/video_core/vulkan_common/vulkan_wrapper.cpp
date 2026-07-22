@@ -1,4 +1,7 @@
-// SPDX-FileCopyrightText: Copyright 2020 suyu Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
+// SPDX-FileCopyrightText: Copyright 2020 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
 #include <algorithm>
@@ -8,7 +11,7 @@
 #include <vector>
 
 #include "common/common_types.h"
-#include "common/logging/log.h"
+#include "common/logging.h"
 #include "video_core/vulkan_common/vk_enum_string_helper.h"
 #include "video_core/vulkan_common/vma.h"
 #include "video_core/vulkan_common/vulkan_wrapper.h"
@@ -120,6 +123,7 @@ void Load(VkDevice device, DeviceDispatch& dld) noexcept {
     X(vkCmdEndDebugUtilsLabelEXT);
     X(vkCmdFillBuffer);
     X(vkCmdPipelineBarrier);
+    X(vkCmdPipelineBarrier2);
     X(vkCmdPushConstants);
     X(vkCmdPushDescriptorSetWithTemplateKHR);
     X(vkCmdSetBlendConstants);
@@ -141,6 +145,11 @@ void Load(VkDevice device, DeviceDispatch& dld) noexcept {
     X(vkCmdSetDepthWriteEnableEXT);
     X(vkCmdSetPrimitiveRestartEnableEXT);
     X(vkCmdSetRasterizerDiscardEnableEXT);
+    X(vkCmdSetAlphaToCoverageEnableEXT);
+    X(vkCmdSetAlphaToOneEnableEXT);
+    X(vkCmdSetConservativeRasterizationModeEXT);
+    X(vkCmdSetLineRasterizationModeEXT);
+    X(vkCmdSetLineStippleEnableEXT);
     X(vkCmdSetDepthBiasEnableEXT);
     X(vkCmdSetLogicOpEnableEXT);
     X(vkCmdSetDepthClampEnableEXT);
@@ -153,8 +162,10 @@ void Load(VkDevice device, DeviceDispatch& dld) noexcept {
     X(vkCmdSetStencilTestEnableEXT);
     X(vkCmdSetVertexInputEXT);
     X(vkCmdSetColorWriteMaskEXT);
+    X(vkCmdSetColorWriteEnableEXT);
     X(vkCmdSetColorBlendEnableEXT);
     X(vkCmdSetColorBlendEquationEXT);
+    X(vkCmdResetQueryPool);
     X(vkCmdResolveImage);
     X(vkCreateBuffer);
     X(vkCreateBufferView);
@@ -218,6 +229,7 @@ void Load(VkDevice device, DeviceDispatch& dld) noexcept {
     X(vkGetSemaphoreCounterValue);
     X(vkMapMemory);
     X(vkQueueSubmit);
+    X(vkQueueSubmit2);
     X(vkResetFences);
     X(vkResetQueryPool);
     X(vkSetDebugUtilsObjectNameEXT);
@@ -243,6 +255,14 @@ void Load(VkDevice device, DeviceDispatch& dld) noexcept {
     if (!dld.vkCmdDrawIndirectCount) {
         Proc(dld.vkCmdDrawIndirectCount, dld, "vkCmdDrawIndirectCountKHR", device);
         Proc(dld.vkCmdDrawIndexedIndirectCount, dld, "vkCmdDrawIndexedIndirectCountKHR", device);
+    }
+
+    // Synchronization2 is core in Vulkan 1.3, otherwise requires VK_KHR_synchronization2
+    if (!dld.vkCmdPipelineBarrier2) {
+        Proc(dld.vkCmdPipelineBarrier2, dld, "vkCmdPipelineBarrier2KHR", device);
+    }
+    if (!dld.vkQueueSubmit2) {
+        Proc(dld.vkQueueSubmit2, dld, "vkQueueSubmit2KHR", device);
     }
 #undef X
 }
@@ -281,6 +301,7 @@ bool Load(VkInstance instance, InstanceDispatch& dld) noexcept {
     X(vkDestroyDebugReportCallbackEXT);
     X(vkDestroySurfaceKHR);
     X(vkGetPhysicalDeviceFeatures2);
+    X(vkGetPhysicalDeviceFormatProperties2);
     X(vkGetPhysicalDeviceProperties2);
     X(vkGetPhysicalDeviceSurfaceCapabilitiesKHR);
     X(vkGetPhysicalDeviceSurfaceFormatsKHR);
@@ -427,14 +448,15 @@ Instance Instance::Create(u32 version, Span<const char*> layers, Span<const char
 #else
     constexpr VkFlags ci_flags{};
 #endif
-
+    // DO NOT TOUCH, breaks RNDA3!!
+    // Don't know why, but gloom + yellow line glitch appears
     const VkApplicationInfo application_info{
         .sType = VK_STRUCTURE_TYPE_APPLICATION_INFO,
         .pNext = nullptr,
-        .pApplicationName = "suyu Emulator",
-        .applicationVersion = VK_MAKE_VERSION(0, 1, 0),
-        .pEngineName = "suyu Emulator",
-        .engineVersion = VK_MAKE_VERSION(0, 1, 0),
+        .pApplicationName = "yuzu Emulator",
+        .applicationVersion = VK_MAKE_VERSION(1, 3, 0),
+        .pEngineName = "yuzu Emulator",
+        .engineVersion = VK_MAKE_VERSION(1, 3, 0),
         .apiVersion = VK_API_VERSION_1_3,
     };
     const VkInstanceCreateInfo ci{
@@ -565,6 +587,7 @@ DescriptorSets DescriptorPool::Allocate(const VkDescriptorSetAllocateInfo& ai) c
     case VK_SUCCESS:
         return DescriptorSets(std::move(sets), num, owner, handle, *dld);
     case VK_ERROR_OUT_OF_POOL_MEMORY:
+    case VK_ERROR_FRAGMENTED_POOL:
         return {};
     default:
         throw Exception(result);
@@ -589,6 +612,7 @@ CommandBuffers CommandPool::Allocate(std::size_t num_buffers, VkCommandBufferLev
     case VK_SUCCESS:
         return CommandBuffers(std::move(buffers), num_buffers, owner, handle, *dld);
     case VK_ERROR_OUT_OF_POOL_MEMORY:
+    case VK_ERROR_FRAGMENTED_POOL:
         return {};
     default:
         throw Exception(result);
@@ -714,10 +738,15 @@ PipelineLayout Device::CreatePipelineLayout(const VkPipelineLayoutCreateInfo& ci
     return PipelineLayout(object, handle, *dld);
 }
 
-Pipeline Device::CreateGraphicsPipeline(const VkGraphicsPipelineCreateInfo& ci,
-                                        VkPipelineCache cache) const {
-    VkPipeline object;
-    Check(dld->vkCreateGraphicsPipelines(handle, cache, 1, &ci, nullptr, &object));
+Pipeline Device::CreateGraphicsPipeline(const VkGraphicsPipelineCreateInfo& ci, VkPipelineCache cache) const {
+    VkPipeline object = VK_NULL_HANDLE;
+    auto const result = dld->vkCreateGraphicsPipelines(handle, cache, 1, &ci, nullptr, &object);
+    // Adreno 5xx drivers do not properly return when a graphics pipeline fails to be created
+    // Some (unkown) Mali drivers also do not properly return
+    // This result code is out of spec, but should be handled as "kinda working"
+    if (result == VK_INCOMPLETE)
+        return Pipeline(object, handle, *dld);
+    Check(result);
     return Pipeline(object, handle, *dld);
 }
 
@@ -888,6 +917,23 @@ VkFormatProperties PhysicalDevice::GetFormatProperties(VkFormat format) const no
     return properties;
 }
 
+VkFormatProperties3 PhysicalDevice::GetFormatProperties3(VkFormat format) const noexcept {
+    VkFormatProperties3 properties3{
+        .sType = VK_STRUCTURE_TYPE_FORMAT_PROPERTIES_3,
+        .pNext = nullptr,
+        .linearTilingFeatures = 0,
+        .optimalTilingFeatures = 0,
+        .bufferFeatures = 0,
+    };
+    VkFormatProperties2 properties2{
+        .sType = VK_STRUCTURE_TYPE_FORMAT_PROPERTIES_2,
+        .pNext = &properties3,
+        .formatProperties = {},
+    };
+    dld->vkGetPhysicalDeviceFormatProperties2(physical_device, format, &properties2);
+    return properties3;
+}
+
 std::vector<VkExtensionProperties> PhysicalDevice::EnumerateDeviceExtensionProperties() const {
     u32 num;
     dld->vkEnumerateDeviceExtensionProperties(physical_device, nullptr, &num, nullptr);
@@ -997,6 +1043,66 @@ std::optional<std::vector<VkLayerProperties>> EnumerateInstanceLayerProperties(
         return std::nullopt;
     }
     return properties;
+}
+
+std::string GetDriverName(VkPhysicalDeviceDriverProperties driver) {
+    switch (driver.driverID) {
+    case VK_DRIVER_ID_AMD_PROPRIETARY:
+        return "AMD";
+    case VK_DRIVER_ID_AMD_OPEN_SOURCE:
+        return "AMDVLK";
+    case VK_DRIVER_ID_MESA_RADV:
+        return "RADV";
+    case VK_DRIVER_ID_NVIDIA_PROPRIETARY:
+        return "Nvidia";
+    case VK_DRIVER_ID_INTEL_PROPRIETARY_WINDOWS:
+        return "Intel";
+    case VK_DRIVER_ID_INTEL_OPEN_SOURCE_MESA:
+        return "ANV";
+    case VK_DRIVER_ID_IMAGINATION_PROPRIETARY:
+        return "PowerVR";
+    case VK_DRIVER_ID_QUALCOMM_PROPRIETARY:
+        return "Qualcomm";
+    case VK_DRIVER_ID_ARM_PROPRIETARY:
+        return "Mali";
+    case VK_DRIVER_ID_SAMSUNG_PROPRIETARY:
+        return "Xclipse";
+    case VK_DRIVER_ID_GOOGLE_SWIFTSHADER:
+        return "SwiftShader";
+    case VK_DRIVER_ID_BROADCOM_PROPRIETARY:
+        return "Broadcom";
+    case VK_DRIVER_ID_MESA_LLVMPIPE:
+        return "llvmpipe";
+    case VK_DRIVER_ID_MOLTENVK:
+        return "MoltenVK";
+    case VK_DRIVER_ID_VERISILICON_PROPRIETARY:
+        return "Vivante";
+    case VK_DRIVER_ID_MESA_TURNIP:
+        return "Turnip";
+    case VK_DRIVER_ID_MESA_V3DV:
+        return "V3DV";
+    case VK_DRIVER_ID_MESA_PANVK:
+        return "PanVK";
+    case VK_DRIVER_ID_MESA_VENUS:
+        return "Venus";
+    case VK_DRIVER_ID_MESA_DOZEN:
+        return "Dozen";
+    case VK_DRIVER_ID_MESA_NVK:
+        return "NVK";
+    case VK_DRIVER_ID_IMAGINATION_OPEN_SOURCE_MESA:
+        return "PVR";
+    case VK_DRIVER_ID_MESA_HONEYKRISP:
+        return "HoneyKrisp";
+    case VK_DRIVER_ID_MESA_KOSMICKRISP:
+        return "KosmicKrisp";
+    case VK_DRIVER_ID_GGP_PROPRIETARY:
+    case VK_DRIVER_ID_COREAVI_PROPRIETARY:
+    case VK_DRIVER_ID_JUICE_PROPRIETARY:
+    case VK_DRIVER_ID_VULKAN_SC_EMULATION_ON_VULKAN:
+    case VK_DRIVER_ID_MAX_ENUM:
+    default:
+        return driver.driverName;
+    }
 }
 
 } // namespace Vulkan::vk

@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 /* This file is part of the dynarmic project.
@@ -14,7 +14,7 @@
 #include <string>
 
 #include <fmt/format.h>
-#include "dynarmic/common/assert.h"
+#include "common/assert.h"
 #include "dynarmic/frontend/A32/a32_types.h"
 #include "dynarmic/frontend/A64/a64_types.h"
 #include "dynarmic/ir/cond.h"
@@ -22,13 +22,10 @@
 
 namespace Dynarmic::IR {
 
-Block::Block(const LocationDescriptor& location)
-    : location{location},
-    end_location{location},
-    cond{Cond::AL}
-{
-
-}
+Block::Block(LocationDescriptor location) noexcept
+    : location{location}
+    , end_location{location}
+{}
 
 /// Prepends a new instruction to this basic block before the insertion point,
 /// handling any allocations necessary to do so.
@@ -44,13 +41,13 @@ Block::iterator Block::PrependNewInst(iterator insertion_point, Opcode opcode, s
     // hugely benefit from the coherency of faster allocations...
     IR::Inst* inst;
     if (inlined_inst.size() < inlined_inst.max_size()) {
-        inst = &inlined_inst[inlined_inst.size()];
         inlined_inst.emplace_back(opcode);
+        inst = &inlined_inst[inlined_inst.size() - 1];
     } else {
         if (pooled_inst.empty() || pooled_inst.back().size() == pooled_inst.back().max_size())
             pooled_inst.emplace_back();
-        inst = &pooled_inst.back()[pooled_inst.back().size()];
         pooled_inst.back().emplace_back(opcode);
+        inst = &pooled_inst.back()[pooled_inst.back().size() - 1];
     }
     DEBUG_ASSERT(args.size() == inst->NumArgs());
     std::for_each(args.begin(), args.end(), [&inst, index = size_t(0)](const auto& arg) mutable {
@@ -60,13 +57,25 @@ Block::iterator Block::PrependNewInst(iterator insertion_point, Opcode opcode, s
     return instructions.insert_before(insertion_point, inst);
 }
 
+void Block::Reset(LocationDescriptor location_) noexcept {
+    mcl::intrusive_list<IR::Inst> tmp = {};
+    instructions.swap(tmp);
+    inlined_inst.clear();
+    pooled_inst.clear();
+    cond_failed.reset();
+    location = location_;
+    end_location = location_;
+    cond = Cond::AL;
+    terminal = Term::Invalid{};
+    cond_failed_cycle_count = 0;
+    cycle_count = 0;
+    ASSERT(instructions.size() == 0);
+}
+
 static std::string TerminalToString(const Terminal& terminal_variant) noexcept {
     struct : boost::static_visitor<std::string> {
         std::string operator()(const Term::Invalid&) const {
             return "<invalid terminal>";
-        }
-        std::string operator()(const Term::Interpret& terminal) const {
-            return fmt::format("Interpret{{{}}}", terminal.next);
         }
         std::string operator()(const Term::ReturnToDispatch&) const {
             return "ReturnToDispatch{}";
@@ -100,57 +109,39 @@ std::string DumpBlock(const IR::Block& block) noexcept {
     std::string ret = fmt::format("Block: location={}-{}\n", block.Location(), block.EndLocation())
         + fmt::format("cycles={}", block.CycleCount())
         + fmt::format(", entry_cond={}", A64::CondToString(block.GetCondition()));
-    if (block.GetCondition() != Cond::AL) {
+    if (block.GetCondition() != Cond::AL)
         ret += fmt::format(", cond_fail={}", block.ConditionFailedLocation());
-    }
     ret += '\n';
 
     const auto arg_to_string = [](const IR::Value& arg) -> std::string {
         if (arg.IsEmpty()) {
             return "<null>";
         } else if (!arg.IsImmediate()) {
-            if (const unsigned name = arg.GetInst()->GetName()) {
+            if (auto const name = arg.GetInst()->GetName())
                 return fmt::format("%{}", name);
-            }
-            return fmt::format("%<unnamed inst {:016x}>", reinterpret_cast<u64>(arg.GetInst()));
+            return fmt::format("%<unnamed inst {:016x}>", u64(arg.GetInst()));
         }
         switch (arg.GetType()) {
-        case Type::U1:
-            return fmt::format("#{}", arg.GetU1() ? '1' : '0');
-        case Type::U8:
-            return fmt::format("#{}", arg.GetU8());
-        case Type::U16:
-            return fmt::format("#{:#x}", arg.GetU16());
-        case Type::U32:
-            return fmt::format("#{:#x}", arg.GetU32());
-        case Type::U64:
-            return fmt::format("#{:#x}", arg.GetU64());
-        case Type::U128:
-            return fmt::format("#<u128 imm>");
-        case Type::A32Reg:
-            return A32::RegToString(arg.GetA32RegRef());
-        case Type::A32ExtReg:
-            return A32::ExtRegToString(arg.GetA32ExtRegRef());
-        case Type::A64Reg:
-            return A64::RegToString(arg.GetA64RegRef());
-        case Type::A64Vec:
-            return A64::VecToString(arg.GetA64VecRef());
-        case Type::CoprocInfo:
-            return fmt::format("#<coproc>");
-        case Type::NZCVFlags:
-            return fmt::format("#<NZCV flags>");
-        case Type::Cond:
-            return fmt::format("#<cond={}>", A32::CondToString(arg.GetCond()));
-        case Type::Table:
-            return fmt::format("#<table>");
-        case Type::AccType:
-            return fmt::format("#<acc-type={}>", u32(arg.GetAccType()));
-        default:
-            return fmt::format("<unknown immediate type {}>", arg.GetType());
+        case Type::U1: return fmt::format("#{}", arg.GetU1() ? '1' : '0');
+        case Type::U8: return fmt::format("#{}", arg.GetU8());
+        case Type::U16: return fmt::format("#{:#x}", arg.GetU16());
+        case Type::U32: return fmt::format("#{:#x}", arg.GetU32());
+        case Type::U64: return fmt::format("#{:#x}", arg.GetU64());
+        case Type::U128: return fmt::format("#<u128 imm>");
+        case Type::A32Reg: return A32::RegToString(arg.GetA32RegRef());
+        case Type::A32ExtReg: return A32::ExtRegToString(arg.GetA32ExtRegRef());
+        case Type::A64Reg: return A64::RegToString(arg.GetA64RegRef());
+        case Type::A64Vec: return A64::VecToString(arg.GetA64VecRef());
+        case Type::CoprocInfo: return fmt::format("$coproc{}", arg.GetCoprocInfo()[0]);
+        case Type::NZCVFlags: return fmt::format("$nzcv");
+        case Type::Cond: return fmt::format("$cond={}", A32::CondToString(arg.GetCond()));
+        case Type::Table: return fmt::format("$table");
+        case Type::AccType: return fmt::format("$acc-type={}", u32(arg.GetAccType()));
+        default: return fmt::format("<unknown immediate type {}>", arg.GetType());
         }
     };
 
-    for (const auto& inst : block) {
+    for (const auto& inst : block.instructions) {
         const Opcode op = inst.GetOpcode();
 
         ret += fmt::format("[{:016x}] ", reinterpret_cast<u64>(&inst));
@@ -180,13 +171,9 @@ std::string DumpBlock(const IR::Block& block) noexcept {
             }
         }
 
-        ret += fmt::format(" (uses: {})", inst.UseCount());
-
-        ret += '\n';
+        ret += fmt::format(" (uses: {})", inst.UseCount()) + '\n';
     }
-
     ret += "terminal = " + TerminalToString(block.GetTerminal()) + '\n';
-
     return ret;
 }
 

@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2021 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -509,7 +512,7 @@ void VisitUsages(Info& info, IR::Inst& inst) {
             u32 element_size = GetElementSize(info.used_constant_buffer_types, inst.GetOpcode());
             u32& size{info.constant_buffer_used_sizes[index.U32()]};
             if (offset.IsImmediate()) {
-                size = Common::AlignUp(std::max(size, offset.U32() + element_size), 16u);
+                size = Common::AlignUp((std::max)(size, offset.U32() + element_size), 16u);
             } else {
                 size = 0x10'000;
             }
@@ -566,6 +569,8 @@ void VisitUsages(Info& info, IR::Inst& inst) {
     case IR::Opcode::ImageRead: {
         const auto flags{inst.Flags<IR::TextureInstInfo>()};
         info.uses_typeless_image_reads |= flags.image_format == ImageFormat::Typeless;
+        info.uses_image_1d |=
+            flags.type == TextureType::Color1D || flags.type == TextureType::ColorArray1D;
         info.uses_sparse_residency |=
             inst.GetAssociatedPseudoOperation(IR::Opcode::GetSparseFromOp) != nullptr;
         break;
@@ -574,6 +579,8 @@ void VisitUsages(Info& info, IR::Inst& inst) {
         const auto flags{inst.Flags<IR::TextureInstInfo>()};
         info.uses_typeless_image_writes |= flags.image_format == ImageFormat::Typeless;
         info.uses_image_buffers |= flags.type == TextureType::Buffer;
+        info.uses_image_1d |=
+            flags.type == TextureType::Color1D || flags.type == TextureType::ColorArray1D;
         break;
     }
     case IR::Opcode::SubgroupEqMask:
@@ -758,9 +765,13 @@ void VisitUsages(Info& info, IR::Inst& inst) {
     case IR::Opcode::ImageAtomicAnd32:
     case IR::Opcode::ImageAtomicOr32:
     case IR::Opcode::ImageAtomicXor32:
-    case IR::Opcode::ImageAtomicExchange32:
+    case IR::Opcode::ImageAtomicExchange32: {
+        const auto flags{inst.Flags<IR::TextureInstInfo>()};
         info.uses_atomic_image_u32 = true;
+        info.uses_image_1d |=
+            flags.type == TextureType::Color1D || flags.type == TextureType::ColorArray1D;
         break;
+    }
     default:
         break;
     }

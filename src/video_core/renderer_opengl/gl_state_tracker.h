@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2019 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -79,7 +82,7 @@ enum : u8 {
 
     Last
 };
-static_assert(Last <= std::numeric_limits<u8>::max());
+static_assert(Last <= (std::numeric_limits<u8>::max)());
 
 } // namespace Dirty
 

@@ -1,7 +1,10 @@
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2024 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-#include "common/logging/log.h"
+#include "common/logging.h"
 #include "core/hle/service/btm/btm_system_core.h"
 #include "core/hle/service/cmif_serialization.h"
 #include "core/hle/service/set/system_settings_server.h"
@@ -26,7 +29,7 @@ IBtmSystemCore::IBtmSystemCore(Core::System& system_)
         {10, nullptr, "StartAudioDeviceDiscovery"},
         {11, nullptr, "StopAudioDeviceDiscovery"},
         {12, nullptr, "IsDiscoveryingAudioDevice"},
-        {13, nullptr, "GetDiscoveredAudioDevice"},
+        {13, C<&IBtmSystemCore::GetDiscoveredAudioDevice>, "GetDiscoveredAudioDevice"},
         {14, C<&IBtmSystemCore::AcquireAudioDeviceConnectionEvent>, "AcquireAudioDeviceConnectionEvent"},
         {15, nullptr, "ConnectAudioDevice"},
         {16, nullptr, "IsConnectingAudioDevice"},
@@ -87,6 +90,11 @@ Result IBtmSystemCore::AcquireRadioEvent(Out<bool> out_is_valid,
 
     *out_is_valid = true;
     *out_event = &radio_event->GetReadableEvent();
+    R_SUCCEED();
+}
+
+Result IBtmSystemCore::GetDiscoveredAudioDevice(OutArray<std::array<u8, 0xFF>, BufferAttr_HipcPointer> out_audio_devices, s32 count, Out<s32> out_total) {
+    LOG_WARNING(Service_BTM, "(STUBBED) called");
     R_SUCCEED();
 }
 

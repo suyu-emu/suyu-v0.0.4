@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2021 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -78,6 +81,18 @@ public:
         const GraphicsPipelineCacheKey& key, std::array<vk::ShaderModule, NUM_STAGES> stages,
         const std::array<const Shader::Info*, NUM_STAGES>& infos);
 
+    bool HasDynamicVertexInput() const noexcept { return key.state.dynamic_vertex_input; }
+    bool SupportsAlphaToCoverage() const noexcept {
+        return fragment_has_color0_output;
+    }
+
+    bool SupportsAlphaToOne() const noexcept {
+        return fragment_has_color0_output;
+    }
+
+    bool UsesExtendedDynamicState() const noexcept {
+        return key.state.extended_dynamic_state != 0;
+    }
     GraphicsPipeline& operator=(GraphicsPipeline&&) noexcept = delete;
     GraphicsPipeline(GraphicsPipeline&&) noexcept = delete;
 
@@ -86,8 +101,8 @@ public:
 
     void AddTransition(GraphicsPipeline* transition);
 
-    void Configure(bool is_indexed) {
-        configure_func(this, is_indexed);
+    bool Configure(bool is_indexed) {
+        return configure_func(this, is_indexed);
     }
 
     [[nodiscard]] GraphicsPipeline* Next(const GraphicsPipelineCacheKey& current_key) noexcept {
@@ -105,7 +120,7 @@ public:
 
     template <typename Spec>
     static auto MakeConfigureSpecFunc() {
-        return [](GraphicsPipeline* pl, bool is_indexed) { pl->ConfigureImpl<Spec>(is_indexed); };
+        return [](GraphicsPipeline* pl, bool is_indexed) { return pl->ConfigureImpl<Spec>(is_indexed); };
     }
 
     void SetEngine(Tegra::Engines::Maxwell3D* maxwell3d_, Tegra::MemoryManager* gpu_memory_) {
@@ -115,7 +130,7 @@ public:
 
 private:
     template <typename Spec>
-    void ConfigureImpl(bool is_indexed);
+    bool ConfigureImpl(bool is_indexed);
 
     void ConfigureDraw(const RescalingPushConstant& rescaling,
                        const RenderAreaPushConstant& render_are);
@@ -134,7 +149,7 @@ private:
     Scheduler& scheduler;
     GuestDescriptorQueue& guest_descriptor_queue;
 
-    void (*configure_func)(GraphicsPipeline*, bool){};
+    bool (*configure_func)(GraphicsPipeline*, bool){};
 
     std::vector<GraphicsPipelineCacheKey> transition_keys;
     std::vector<GraphicsPipeline*> transitions;
@@ -144,8 +159,10 @@ private:
     std::array<Shader::Info, NUM_STAGES> stage_infos;
     std::array<u32, 5> enabled_uniform_buffer_masks{};
     VideoCommon::UniformBufferSizes uniform_buffer_sizes{};
+    u32 num_descriptor_entries{};
     size_t num_image_elements{};
     u32 num_textures{};
+    bool fragment_has_color0_output{};
 
     vk::DescriptorSetLayout descriptor_set_layout;
     DescriptorAllocator descriptor_allocator;

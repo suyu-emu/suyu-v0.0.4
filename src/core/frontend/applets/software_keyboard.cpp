@@ -1,9 +1,12 @@
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2021 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
 #include <thread>
 
-#include "common/logging/log.h"
+#include "common/logging.h"
 #include "common/string_util.h"
 #include "core/frontend/applets/software_keyboard.h"
 
@@ -65,7 +68,7 @@ void DefaultSoftwareKeyboardApplet::ShowNormalKeyboard() const {
     LOG_WARNING(Service_AM,
                 "(STUBBED) called, backend requested to show the normal software keyboard.");
 
-    SubmitNormalText(u"suyu");
+    SubmitNormalText(u"Eden");
 }
 
 void DefaultSoftwareKeyboardApplet::ShowTextCheckDialog(
@@ -100,7 +103,7 @@ void DefaultSoftwareKeyboardApplet::ShowInlineKeyboard(
              appear_parameters.key_top_as_floating, appear_parameters.enable_backspace_button,
              appear_parameters.enable_return_button, appear_parameters.disable_cancel_button);
 
-    std::thread([this] { SubmitInlineText(u"suyu"); }).detach();
+    std::thread([this] { SubmitInlineText(u"Eden"); }).detach();
 }
 
 void DefaultSoftwareKeyboardApplet::HideInlineKeyboard() const {

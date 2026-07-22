@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2019 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -9,10 +12,6 @@
 #include "common/common_types.h"
 #include "core/frontend/emu_window.h"
 #include "shader_recompiler/stage.h"
-
-namespace Settings {
-enum class ShaderBackend : u32;
-};
 
 namespace OpenGL {
 
@@ -46,6 +45,10 @@ public:
 
     u32 GetMaxComputeSharedMemorySize() const {
         return max_compute_shared_memory_size;
+    }
+
+    u32 GetMaxUserClipDistances() const {
+        return max_user_clip_distances;
     }
 
     u32 GetMaxGLASMStorageBufferBlocks() const {
@@ -168,10 +171,6 @@ public:
         return has_bool_ref_bug;
     }
 
-    Settings::ShaderBackend GetShaderBackend() const {
-        return shader_backend;
-    }
-
     bool IsAmd() const {
         return vendor_name == "ATI Technologies Inc.";
     }
@@ -207,8 +206,7 @@ private:
     u32 max_varyings{};
     u32 max_compute_shared_memory_size{};
     u32 max_glasm_storage_buffer_blocks{};
-
-    Settings::ShaderBackend shader_backend{};
+    u32 max_user_clip_distances{};
 
     bool has_warp_intrinsics{};
     bool has_shader_ballot{};

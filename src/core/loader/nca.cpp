@@ -1,7 +1,12 @@
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2018 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
 #include <utility>
+#include <openssl/err.h>
+#include <openssl/evp.h>
 
 #include "common/hex_util.h"
 #include "common/scope_exit.h"
@@ -14,9 +19,19 @@
 #include "core/hle/service/filesystem/filesystem.h"
 #include "core/loader/deconstructed_rom_directory.h"
 #include "core/loader/nca.h"
-#include "mbedtls/sha256.h"
+#include "common/literals.h"
 
 namespace Loader {
+
+static u32 CalculatePointerBufferSize(size_t heap_size) {
+    if (heap_size > 1073741824) { // Games with 1 GiB
+        return 0x10000;
+    } else if (heap_size > 536870912) { // Games with 512 MiB
+        return 0xC000;
+    } else {
+        return 0x8000; // Default for all other games
+    }
+}
 
 AppLoader_NCA::AppLoader_NCA(FileSys::VirtualFile file_)
     : AppLoader(std::move(file_)), nca(std::make_unique<FileSys::NCA>(file)) {}
@@ -52,8 +67,6 @@ AppLoader_NCA::LoadResult AppLoader_NCA::Load(Kernel::KProcess& process, Core::S
     if (exefs == nullptr) {
         LOG_INFO(Loader, "No ExeFS found in NCA, looking for ExeFS from update");
 
-        // This NCA may be a sparse base of an installed title.
-        // Try to fetch the ExeFS from the installed update.
         const auto& installed = system.GetContentProvider();
         const auto update_nca = installed.GetEntry(FileSys::GetUpdateTitleID(nca->GetTitleId()),
                                                    FileSys::ContentRecordType::Program);
@@ -69,11 +82,37 @@ AppLoader_NCA::LoadResult AppLoader_NCA::Load(Kernel::KProcess& process, Core::S
 
     directory_loader = std::make_unique<AppLoader_DeconstructedRomDirectory>(exefs, true);
 
+    // Read heap size from main.npdm in ExeFS
+    u64 heap_size = 0;
+
+    if (exefs) {
+        const auto npdm_file = exefs->GetFile("main.npdm");
+        if (npdm_file) {
+            auto npdm_data = npdm_file->ReadAllBytes();
+            if (npdm_data.size() >= 0x30) {
+                heap_size = *reinterpret_cast<const u64*>(&npdm_data[0x28]);
+                LOG_INFO(Loader, "Read heap size {:#x} bytes from main.npdm", heap_size);
+            } else {
+                LOG_WARNING(Loader, "main.npdm too small to read heap size!");
+            }
+        } else {
+            LOG_WARNING(Loader, "No main.npdm found in ExeFS!");
+        }
+    }
+
+    // Set pointer buffer size based on heap size
+    process.SetPointerBufferSize(CalculatePointerBufferSize(heap_size));
+
+    // Load modules
     const auto load_result = directory_loader->Load(process, system);
     if (load_result.first != ResultStatus::Success) {
         return load_result;
     }
 
+    LOG_INFO(Loader, "Set pointer buffer size to {:#x} bytes for ProgramID {:#018x} (Heap size: {:#x})",
+             process.GetPointerBufferSize(), nca->GetTitleId(), heap_size);
+
+    // Register the process in the file system controller
     system.GetFileSystemController().RegisterProcess(
         process.GetProcessId(), nca->GetTitleId(),
         std::make_shared<FileSys::RomFSFactory>(*this, system.GetContentProvider(),
@@ -95,9 +134,8 @@ ResultStatus AppLoader_NCA::VerifyIntegrity(std::function<bool(size_t, size_t)> 
     const auto name = file->GetName();
 
     // We won't try to verify meta NCAs.
-    if (name.ends_with(".cnmt.nca")) {
+    if (name.ends_with(".cnmt.nca"))
         return ResultStatus::Success;
-    }
 
     // Check if we can verify this file. NCAs should be named after their hashes.
     if (!name.ends_with(".nca") || name.size() != NcaFileNameWithHashLength) {
@@ -113,14 +151,17 @@ ResultStatus AppLoader_NCA::VerifyIntegrity(std::function<bool(size_t, size_t)> 
     std::vector<u8> buffer(4_MiB);
 
     // Initialize sha256 verification context.
-    mbedtls_sha256_context ctx;
-    mbedtls_sha256_init(&ctx);
-    mbedtls_sha256_starts_ret(&ctx, 0);
+    EVP_MD_CTX* ctx = EVP_MD_CTX_new();
+    if (!ctx)
+        return ResultStatus::ErrorNotInitialized;
 
     // Ensure we maintain a clean state on exit.
     SCOPE_EXIT {
-        mbedtls_sha256_free(&ctx);
+        EVP_MD_CTX_free(ctx);
     };
+
+    if (!EVP_DigestInit_ex(ctx, EVP_sha256(), nullptr))
+        return ResultStatus::ErrorIntegrityVerificationFailed;
 
     // Declare counters.
     const size_t total_size = file->GetSize();
@@ -129,11 +170,13 @@ ResultStatus AppLoader_NCA::VerifyIntegrity(std::function<bool(size_t, size_t)> 
     // Begin iterating the file.
     while (processed_size < total_size) {
         // Refill the buffer.
-        const size_t intended_read_size = std::min(buffer.size(), total_size - processed_size);
+        const size_t intended_read_size = (std::min)(buffer.size(), total_size - processed_size);
         const size_t read_size = file->Read(buffer.data(), intended_read_size, processed_size);
 
         // Update the hash function with the buffer contents.
-        mbedtls_sha256_update_ret(&ctx, buffer.data(), read_size);
+        if (!EVP_DigestUpdate(ctx, buffer.data(), read_size)) {
+            return ResultStatus::ErrorIntegrityVerificationFailed;
+        }
 
         // Update counters.
         processed_size += read_size;
@@ -146,7 +189,10 @@ ResultStatus AppLoader_NCA::VerifyIntegrity(std::function<bool(size_t, size_t)> 
 
     // Finalize context and compute the output hash.
     std::array<u8, NcaSha256HashLength> output_hash;
-    mbedtls_sha256_finish_ret(&ctx, output_hash.data());
+    unsigned int output_len = 0;
+    if (!EVP_DigestFinal_ex(ctx, output_hash.data(), &output_len)) {
+        return ResultStatus::ErrorIntegrityVerificationFailed;
+    }
 
     // Compare to expected.
     if (std::memcmp(input_hash.data(), output_hash.data(), NcaSha256HalfHashLength) != 0) {

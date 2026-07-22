@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 // SPDX-FileCopyrightText: 2023 yuzu Emulator Project
@@ -18,12 +18,18 @@ import android.content.IntentFilter
 import android.content.res.Configuration
 import android.graphics.Rect
 import android.graphics.drawable.Icon
+import android.hardware.input.InputManager
 import android.hardware.Sensor
 import android.hardware.SensorEvent
 import android.hardware.SensorEventListener
 import android.hardware.SensorManager
 import android.os.Build
 import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
+import androidx.navigation.NavOptions
+import org.yuzu.yuzu_emu.fragments.EmulationFragment
+import org.yuzu.yuzu_emu.utils.CustomSettingsHandler
 import android.util.Rational
 import android.view.InputDevice
 import android.view.KeyEvent
@@ -63,11 +69,12 @@ import kotlin.math.roundToInt
 import org.yuzu.yuzu_emu.utils.ForegroundService
 import androidx.core.os.BundleCompat
 
-class EmulationActivity : AppCompatActivity(), SensorEventListener {
+class EmulationActivity : AppCompatActivity(), SensorEventListener, InputManager.InputDeviceListener {
     private lateinit var binding: ActivityEmulationBinding
 
     var isActivityRecreated = false
     private lateinit var nfcReader: NfcReader
+    private lateinit var inputManager: InputManager
 
     private var touchDownTime: Long = 0
     private val maxTapDuration = 500L
@@ -85,12 +92,40 @@ class EmulationActivity : AppCompatActivity(), SensorEventListener {
     private val emulationViewModel: EmulationViewModel by viewModels()
 
     private var foregroundService: Intent? = null
+    private val mainHandler = Handler(Looper.getMainLooper())
+    private var pendingRomSwapIntent: Intent? = null
+    private var isWaitingForRomSwapStop = false
+    private var romSwapNativeStopped = false
+    private var romSwapThreadStopped = false
+    private var romSwapGeneration = 0
+    private var hasEmulationSession = processHasEmulationSession
+    private val romSwapStopTimeoutRunnable = Runnable { onRomSwapStopTimeout() }
+
+    private fun onRomSwapStopTimeout() {
+        if (!isWaitingForRomSwapStop) {
+            return
+        }
+        Log.warning("[EmulationActivity] ROM swap stop timed out; retrying native stop and continuing to wait")
+        NativeLibrary.stopEmulation()
+        scheduleRomSwapStopTimeout()
+    }
+
+    private fun scheduleRomSwapStopTimeout() {
+        mainHandler.removeCallbacks(romSwapStopTimeoutRunnable)
+        mainHandler.postDelayed(romSwapStopTimeoutRunnable, ROM_SWAP_STOP_TIMEOUT_MS)
+    }
+
+    override fun attachBaseContext(base: Context) {
+        super.attachBaseContext(YuzuApplication.applyLanguage(base))
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         Log.gameLaunched = true
         ThemeHelper.setTheme(this)
 
         super.onCreate(savedInstanceState)
+
+        NativeConfig.reloadGlobalConfig()
 
         InputHandler.updateControllerData()
         val players = NativeConfig.getInputSettings(true)
@@ -122,9 +157,29 @@ class EmulationActivity : AppCompatActivity(), SensorEventListener {
         binding = ActivityEmulationBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
+        val launchIntent = Intent(intent)
+        val shouldDeferLaunchForSwap = hasEmulationSession && isSwapIntent(launchIntent)
+        if (shouldDeferLaunchForSwap) {
+            Log.info("[EmulationActivity] onCreate detected existing session; deferring new game setup for swap")
+            emulationViewModel.setIsEmulationStopping(true)
+            emulationViewModel.setEmulationStopped(false)
+        }
+
         val navHostFragment =
             supportFragmentManager.findFragmentById(R.id.fragment_container) as NavHostFragment
-        navHostFragment.navController.setGraph(R.navigation.emulation_navigation, intent.extras)
+        val initialArgs = if (shouldDeferLaunchForSwap) {
+            Bundle(intent.extras ?: Bundle()).apply {
+                processSessionGame?.let { putParcelable("game", it) }
+            }
+        } else {
+            intent.extras
+        }
+        navHostFragment.navController.setGraph(R.navigation.emulation_navigation, initialArgs)
+        if (shouldDeferLaunchForSwap) {
+            mainHandler.post {
+                handleSwapIntent(launchIntent)
+            }
+        }
 
         isActivityRecreated = savedInstanceState != null
 
@@ -135,6 +190,9 @@ class EmulationActivity : AppCompatActivity(), SensorEventListener {
 
         nfcReader = NfcReader(this)
         nfcReader.initialize()
+
+        inputManager = getSystemService(INPUT_SERVICE) as InputManager
+        inputManager.registerInputDeviceListener(this, null)
 
         foregroundService = Intent(this, ForegroundService::class.java)
         startForegroundService(foregroundService)
@@ -190,21 +248,23 @@ class EmulationActivity : AppCompatActivity(), SensorEventListener {
         nfcReader.startScanning()
         startMotionSensorListener()
         InputHandler.updateControllerData()
+        notifyPhysicalControllerState()
 
         buildPictureInPictureParams()
     }
 
     override fun onPause() {
-        super.onPause()
         nfcReader.stopScanning()
         stopMotionSensorListener()
+        super.onPause()
     }
 
     override fun onDestroy() {
+        mainHandler.removeCallbacks(romSwapStopTimeoutRunnable)
         super.onDestroy()
+        inputManager.unregisterInputDeviceListener(this)
         stopForegroundService(this)
         NativeLibrary.playTimeManagerStop()
-
     }
 
     override fun onUserLeaveHint() {
@@ -219,22 +279,138 @@ class EmulationActivity : AppCompatActivity(), SensorEventListener {
 
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
-        setIntent(intent)
-
-        // Reset navigation graph with new intent data to recreate EmulationFragment
-        val navHostFragment =
-            supportFragmentManager.findFragmentById(R.id.fragment_container) as NavHostFragment
-        navHostFragment.navController.setGraph(R.navigation.emulation_navigation, intent.extras)
-
+        handleSwapIntent(intent)
         nfcReader.onNewIntent(intent)
         InputHandler.updateControllerData()
     }
 
+    private fun isSwapIntent(intent: Intent): Boolean {
+        return when {
+            intent.getBooleanExtra(EXTRA_OVERLAY_GAMELESS_EDIT_MODE, false) -> false
+            intent.action == CustomSettingsHandler.CUSTOM_CONFIG_ACTION -> true
+            intent.data != null -> true
+            else -> {
+                val extras = intent.extras
+                extras != null &&
+                    BundleCompat.getParcelable(extras, EXTRA_SELECTED_GAME, Game::class.java) != null
+            }
+        }
+    }
+
+    private fun handleSwapIntent(intent: Intent) {
+        if (!isSwapIntent(intent)) {
+            return
+        }
+
+            pendingRomSwapIntent = Intent(intent)
+
+            if (!isWaitingForRomSwapStop) {
+                Log.info("[EmulationActivity] Begin ROM swap: data=${intent.data}")
+                isWaitingForRomSwapStop = true
+                romSwapNativeStopped = false
+                romSwapThreadStopped = false
+                romSwapGeneration += 1
+                val thisSwapGeneration = romSwapGeneration
+                emulationViewModel.setIsEmulationStopping(true)
+                emulationViewModel.setEmulationStopped(false)
+                val navHostFragment =
+                    supportFragmentManager.findFragmentById(R.id.fragment_container) as? NavHostFragment
+                val childFragmentManager = navHostFragment?.childFragmentManager
+                val stoppingFragmentForSwap =
+                    (childFragmentManager?.primaryNavigationFragment as? EmulationFragment) ?:
+                    childFragmentManager
+                        ?.fragments
+                        ?.asReversed()
+                        ?.firstOrNull {
+                            it is EmulationFragment &&
+                                it.isAdded &&
+                            it.view != null &&
+                            !it.isRemoving
+                        } as? EmulationFragment
+
+                val hasSessionForSwap = hasEmulationSession || stoppingFragmentForSwap != null
+
+                if (!hasSessionForSwap) {
+                    romSwapNativeStopped = true
+                    romSwapThreadStopped = true
+                } else {
+                    if (stoppingFragmentForSwap != null) {
+                        stoppingFragmentForSwap.stopForRomSwap()
+                        stoppingFragmentForSwap.notifyWhenEmulationThreadStops {
+                            if (!isWaitingForRomSwapStop || romSwapGeneration != thisSwapGeneration) {
+                                return@notifyWhenEmulationThreadStops
+                            }
+                            romSwapThreadStopped = true
+                            Log.info("[EmulationActivity] ROM swap thread stop acknowledged")
+                            launchPendingRomSwap(force = false)
+                        }
+                    } else {
+                        Log.warning("[EmulationActivity] ROM swap stop target fragment not found; requesting native stop")
+                        romSwapThreadStopped = true
+                        NativeLibrary.stopEmulation()
+                    }
+
+                    scheduleRomSwapStopTimeout()
+                }
+            }
+
+            launchPendingRomSwap(force = false)
+    }
+
+    private fun launchPendingRomSwap(force: Boolean) {
+        if (!isWaitingForRomSwapStop) {
+            return
+        }
+        if (!force && (!romSwapNativeStopped || !romSwapThreadStopped)) {
+            return
+        }
+        val swapIntent = pendingRomSwapIntent ?: return
+        Log.info("[EmulationActivity] Launching pending ROM swap: data=${swapIntent.data}")
+        pendingRomSwapIntent = null
+        isWaitingForRomSwapStop = false
+        romSwapNativeStopped = false
+        romSwapThreadStopped = false
+        mainHandler.removeCallbacks(romSwapStopTimeoutRunnable)
+        applyGameLaunchIntent(swapIntent)
+    }
+
+    private fun applyGameLaunchIntent(intent: Intent) {
+        hasEmulationSession = true
+        processHasEmulationSession = true
+        emulationViewModel.setIsEmulationStopping(false)
+        emulationViewModel.setEmulationStopped(false)
+        setIntent(Intent(intent))
+        val navHostFragment =
+            supportFragmentManager.findFragmentById(R.id.fragment_container) as NavHostFragment
+        val navController = navHostFragment.navController
+        val startArgs = intent.extras?.let { Bundle(it) } ?: Bundle()
+        val navOptions = NavOptions.Builder()
+            .setPopUpTo(R.id.emulationFragment, true)
+            .build()
+
+        runCatching {
+            navController.navigate(R.id.emulationFragment, startArgs, navOptions)
+        }.onFailure {
+            Log.warning("[EmulationActivity] ROM swap navigate fallback to setGraph: ${it.message}")
+            navController.setGraph(R.navigation.emulation_navigation, startArgs)
+        }
+    }
+
     override fun dispatchKeyEvent(event: KeyEvent): Boolean {
-        if (event.source and InputDevice.SOURCE_JOYSTICK != InputDevice.SOURCE_JOYSTICK &&
-            event.source and InputDevice.SOURCE_GAMEPAD != InputDevice.SOURCE_GAMEPAD &&
-            event.source and InputDevice.SOURCE_KEYBOARD != InputDevice.SOURCE_KEYBOARD &&
-            event.source and InputDevice.SOURCE_MOUSE != InputDevice.SOURCE_MOUSE
+
+        if (event.keyCode == KeyEvent.KEYCODE_VOLUME_UP ||
+            event.keyCode == KeyEvent.KEYCODE_VOLUME_DOWN) {
+            return super.dispatchKeyEvent(event)
+        }
+
+        val isPhysicalKeyboard = event.source and InputDevice.SOURCE_KEYBOARD == InputDevice.SOURCE_KEYBOARD &&
+                                event.device?.isVirtual == false
+
+        val isControllerInput = InputHandler.isPhysicalGameController(event.device)
+
+        if (!isControllerInput &&
+            event.source and InputDevice.SOURCE_MOUSE != InputDevice.SOURCE_MOUSE &&
+            !isPhysicalKeyboard
         ) {
             return super.dispatchKeyEvent(event)
         }
@@ -243,12 +419,17 @@ class EmulationActivity : AppCompatActivity(), SensorEventListener {
             return super.dispatchKeyEvent(event)
         }
 
+        if (isControllerInput && event.action == KeyEvent.ACTION_DOWN) {
+            notifyControllerInput()
+        }
+
         return InputHandler.dispatchKeyEvent(event)
     }
 
     override fun dispatchGenericMotionEvent(event: MotionEvent): Boolean {
-        if (event.source and InputDevice.SOURCE_JOYSTICK != InputDevice.SOURCE_JOYSTICK &&
-            event.source and InputDevice.SOURCE_GAMEPAD != InputDevice.SOURCE_GAMEPAD &&
+        val isControllerInput = InputHandler.isPhysicalGameController(event.device)
+
+        if (!isControllerInput &&
             event.source and InputDevice.SOURCE_KEYBOARD != InputDevice.SOURCE_KEYBOARD &&
             event.source and InputDevice.SOURCE_MOUSE != InputDevice.SOURCE_MOUSE
         ) {
@@ -264,10 +445,57 @@ class EmulationActivity : AppCompatActivity(), SensorEventListener {
             return true
         }
 
+        if (isControllerInput) {
+            notifyControllerInput()
+        }
+
         return InputHandler.dispatchGenericMotionEvent(event)
     }
 
+    private fun notifyControllerInput() {
+        val navHostFragment =
+            supportFragmentManager.findFragmentById(R.id.fragment_container) as? NavHostFragment
+        val emulationFragment =
+            navHostFragment?.childFragmentManager?.fragments?.firstOrNull() as? org.yuzu.yuzu_emu.fragments.EmulationFragment
+        emulationFragment?.onControllerInputDetected()
+    }
+
+    private fun isGameController(deviceId: Int): Boolean {
+        return InputHandler.isPhysicalGameController(InputDevice.getDevice(deviceId))
+    }
+
+    override fun onInputDeviceAdded(deviceId: Int) {
+        if (isGameController(deviceId)) {
+            InputHandler.updateControllerData()
+            notifyPhysicalControllerState()
+        }
+    }
+
+    override fun onInputDeviceRemoved(deviceId: Int) {
+        InputHandler.updateControllerData()
+        notifyPhysicalControllerState()
+    }
+
+    override fun onInputDeviceChanged(deviceId: Int) {
+        if (isGameController(deviceId)) {
+            InputHandler.updateControllerData()
+            notifyPhysicalControllerState()
+        }
+    }
+
+    private fun notifyPhysicalControllerState() {
+        val navHostFragment =
+            supportFragmentManager.findFragmentById(R.id.fragment_container) as? NavHostFragment
+        val emulationFragment =
+            navHostFragment?.childFragmentManager?.fragments?.firstOrNull() as? org.yuzu.yuzu_emu.fragments.EmulationFragment
+        emulationFragment?.onPhysicalControllerStateChanged(InputHandler.androidControllers.isNotEmpty())
+    }
+
     override fun onSensorChanged(event: SensorEvent) {
+        if (!NativeLibrary.isRunning() || NativeLibrary.isPaused()) {
+            return
+        }
+
         val rotation = this.display?.rotation
         if (rotation == Surface.ROTATION_90) {
             flipMotionOrientation = true
@@ -506,10 +734,12 @@ class EmulationActivity : AppCompatActivity(), SensorEventListener {
             when (event.action) {
                 MotionEvent.ACTION_DOWN -> {
                     touchDownTime = System.currentTimeMillis()
-                    // show overlay immediately on touch and cancel timer
-                    if (!emulationViewModel.drawerOpen.value) {
+                    // show overlay immediately on touch and cancel timer when only auto-hide is enabled
+                    if (!emulationViewModel.drawerOpen.value &&
+                        BooleanSetting.ENABLE_INPUT_OVERLAY_AUTO_HIDE.getBoolean() &&
+                        !BooleanSetting.HIDE_OVERLAY_ON_CONTROLLER_INPUT.getBoolean()) {
                         fragment.handler.removeCallbacksAndMessages(null)
-                        fragment.showOverlay()
+                        fragment.toggleOverlay(true)
                     }
                 }
                 MotionEvent.ACTION_UP -> {
@@ -531,19 +761,48 @@ class EmulationActivity : AppCompatActivity(), SensorEventListener {
     }
 
     fun onEmulationStarted() {
+        if (Looper.myLooper() != Looper.getMainLooper()) {
+            mainHandler.post { onEmulationStarted() }
+            return
+        }
+        hasEmulationSession = true
+        processHasEmulationSession = true
         emulationViewModel.setEmulationStarted(true)
+        emulationViewModel.setIsEmulationStopping(false)
+        emulationViewModel.setEmulationStopped(false)
         NativeLibrary.playTimeManagerStart()
 
     }
 
     fun onEmulationStopped(status: Int) {
-        if (status == 0 && emulationViewModel.programChanged.value == -1) {
+        if (Looper.myLooper() != Looper.getMainLooper()) {
+            mainHandler.post { onEmulationStopped(status) }
+            return
+        }
+        hasEmulationSession = false
+        processHasEmulationSession = false
+        if (isWaitingForRomSwapStop) {
+            romSwapNativeStopped = true
+            Log.info("[EmulationActivity] ROM swap native stop acknowledged")
+            launchPendingRomSwap(force = false)
+        } else if (status == 0 && emulationViewModel.programChanged.value == -1) {
+            processSessionGame = null
             finish()
+        } else if (!isWaitingForRomSwapStop) {
+            processSessionGame = null
         }
         emulationViewModel.setEmulationStopped(true)
     }
 
+    fun updateSessionGame(game: Game?) {
+        processSessionGame = game
+    }
+
     fun onProgramChanged(programIndex: Int) {
+        if (Looper.myLooper() != Looper.getMainLooper()) {
+            mainHandler.post { onProgramChanged(programIndex) }
+            return
+        }
         emulationViewModel.setProgramChanged(programIndex)
     }
 
@@ -566,6 +825,12 @@ class EmulationActivity : AppCompatActivity(), SensorEventListener {
 
     companion object {
         const val EXTRA_SELECTED_GAME = "SelectedGame"
+        const val EXTRA_OVERLAY_GAMELESS_EDIT_MODE = "overlayGamelessEditMode"
+        private const val ROM_SWAP_STOP_TIMEOUT_MS = 5000L
+        @Volatile
+        private var processHasEmulationSession = false
+        @Volatile
+        private var processSessionGame: Game? = null
 
         fun stopForegroundService(activity: Activity) {
             val startIntent = Intent(activity, ForegroundService::class.java)
@@ -577,6 +842,12 @@ class EmulationActivity : AppCompatActivity(), SensorEventListener {
             val launcher = Intent(activity, EmulationActivity::class.java)
             launcher.putExtra(EXTRA_SELECTED_GAME, game)
             activity.startActivity(launcher)
+        }
+
+        fun launchForOverlayEdit(context: Context): Intent {
+            return Intent(context, EmulationActivity::class.java).apply {
+                putExtra(EXTRA_OVERLAY_GAMELESS_EDIT_MODE, true)
+            }
         }
 
         private fun areCoordinatesOutside(view: View?, x: Float, y: Float): Boolean {

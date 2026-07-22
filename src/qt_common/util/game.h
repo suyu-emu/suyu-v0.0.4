@@ -1,8 +1,7 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-#ifndef QT_GAME_UTIL_H
-#define QT_GAME_UTIL_H
+#pragma once
 
 #include <QObject>
 #include <QStandardPaths>
@@ -29,27 +28,18 @@ enum class ShortcutTarget {
     Applications,
 };
 
-enum class ShortcutMessages{
-    Fullscreen = 0,
-    Success = 1,
-    Volatile = 2,
-    Failed = 3
-};
+enum class ShortcutMessages { Fullscreen = 0, Success = 1, Volatile = 2, Failed = 3 };
 
-bool CreateShortcutLink(const std::filesystem::path& shortcut_path,
-                        const std::string& comment,
+bool CreateShortcutLink(const std::filesystem::path& shortcut_path, const std::string& comment,
                         const std::filesystem::path& icon_path,
-                        const std::filesystem::path& command,
-                        const std::string& arguments,
-                        const std::string& categories,
-                        const std::string& keywords,
+                        const std::filesystem::path& command, const std::string& arguments,
+                        const std::string& categories, const std::string& keywords,
                         const std::string& name);
 
-bool MakeShortcutIcoPath(const u64 program_id,
-                         const std::string_view game_file_name,
+bool MakeShortcutIcoPath(const u64 program_id, const std::string_view game_file_name,
                          std::filesystem::path& out_icon_path);
 
-void OpenSuyuFolder(const Common::FS::SuyuPath &path);
+void OpenEdenFolder(const Common::FS::EdenPath& path);
 void OpenRootDataFolder();
 void OpenNANDFolder();
 void OpenSaveFolder();
@@ -71,16 +61,19 @@ void RemoveCacheStorage(u64 program_id);
 void ResetMetadata(bool show_message = true);
 
 // Shortcuts //
-void CreateShortcut(const std::string& game_path,
-                    const u64 program_id,
-                    const std::string& game_title_,
-                    const ShortcutTarget& target,
-                    std::string arguments_,
-                    const bool needs_title);
+void CreateShortcut(const std::string& game_path, const u64 program_id,
+                    const std::string& game_title_, const ShortcutTarget& target,
+                    std::string arguments_, const bool needs_title);
 
 std::string GetShortcutPath(ShortcutTarget target);
 void CreateHomeMenuShortcut(ShortcutTarget target);
 
-}
+/**
+ * Saves a windows icon to a file
+ * @param path The icons path
+ * @param image The image to save
+ * @return bool If the operation succeeded
+ */
+[[nodiscard]] bool SaveIconToFile(const std::filesystem::path& icon_path, const QImage& image);
 
-#endif // QT_GAME_UTIL_H
+} // namespace QtCommon::Game

@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2021 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -36,7 +39,7 @@ void TranslatorVisitor::BRK(u64) {
     ThrowNotImplemented(Opcode::BRK);
 }
 
-void TranslatorVisitor::CAL() {
+void TranslatorVisitor::CAL(u64) {
     // CAL is a no-op
 }
 
@@ -46,6 +49,10 @@ void TranslatorVisitor::CCTL(u64) {
 
 void TranslatorVisitor::CCTLL(u64) {
     ThrowNotImplemented(Opcode::CCTLL);
+}
+
+void TranslatorVisitor::CCTLT(u64) {
+    ThrowNotImplemented(Opcode::CCTLT);
 }
 
 void TranslatorVisitor::CONT(u64) {
@@ -148,7 +155,7 @@ void TranslatorVisitor::JMP(u64) {
     ThrowNotImplemented(Opcode::JMP);
 }
 
-void TranslatorVisitor::KIL() {
+void TranslatorVisitor::KIL(u64) {
     // KIL is a no-op
 }
 
@@ -165,14 +172,14 @@ void TranslatorVisitor::LONGJMP(u64) {
 }
 
 void TranslatorVisitor::NOP(u64) {
-    // NOP is No-Op.
+    // NOP is a no-op
 }
 
-void TranslatorVisitor::PBK() {
+void TranslatorVisitor::PBK(u64) {
     // PBK is a no-op
 }
 
-void TranslatorVisitor::PCNT() {
+void TranslatorVisitor::PCNT(u64) {
     // PCNT is a no-op
 }
 
@@ -232,7 +239,7 @@ void TranslatorVisitor::SETLMEMBASE(u64) {
     ThrowNotImplemented(Opcode::SETLMEMBASE);
 }
 
-void TranslatorVisitor::SSY() {
+void TranslatorVisitor::SSY(u64) {
     // SSY is a no-op
 }
 

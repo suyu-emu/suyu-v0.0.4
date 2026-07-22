@@ -1,12 +1,11 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-#ifndef QT_PATH_UTIL_H
-#define QT_PATH_UTIL_H
+#pragma once
 
-#include "common/common_types.h"
 #include <QObject>
+#include "common/common_types.h"
 
-namespace QtCommon::Path { bool OpenShaderCache(u64 program_id, QObject *parent); }
-
-#endif // QT_PATH_UTIL_H
+namespace QtCommon::Path {
+bool OpenShaderCache(u64 program_id, QObject* parent);
+}

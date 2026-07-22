@@ -1,7 +1,10 @@
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2020 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
-#include "common/logging/log.h"
+#include "common/logging.h"
 #include "core/core.h"
 #include "core/hle/service/caps/caps_manager.h"
 #include "core/hle/service/caps/caps_su.h"
@@ -30,8 +33,7 @@ IScreenShotApplicationService::IScreenShotApplicationService(
 
 IScreenShotApplicationService::~IScreenShotApplicationService() = default;
 
-Result IScreenShotApplicationService::SetShimLibraryVersion(ShimLibraryVersion library_version,
-                                                            ClientAppletResourceUserId aruid) {
+Result IScreenShotApplicationService::SetShimLibraryVersion(ShimLibraryVersion library_version, ClientAppletResourceUserId aruid) {
     LOG_WARNING(Service_Capture, "(STUBBED) called. library_version={}, applet_resource_user_id={}",
                 library_version, aruid.pid);
     R_SUCCEED();

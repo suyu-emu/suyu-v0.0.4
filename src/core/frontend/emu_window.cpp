@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: 2014 Citra Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -28,11 +31,11 @@ std::pair<f32, f32> EmuWindow::MapToTouchScreen(u32 framebuffer_x, u32 framebuff
 }
 
 std::pair<u32, u32> EmuWindow::ClipToTouchScreen(u32 new_x, u32 new_y) const {
-    new_x = std::max(new_x, framebuffer_layout.screen.left);
-    new_x = std::min(new_x, framebuffer_layout.screen.right - 1);
+    new_x = (std::max)(new_x, framebuffer_layout.screen.left);
+    new_x = (std::min)(new_x, framebuffer_layout.screen.right - 1);
 
-    new_y = std::max(new_y, framebuffer_layout.screen.top);
-    new_y = std::min(new_y, framebuffer_layout.screen.bottom - 1);
+    new_y = (std::max)(new_y, framebuffer_layout.screen.top);
+    new_y = (std::min)(new_y, framebuffer_layout.screen.bottom - 1);
 
     return std::make_pair(new_x, new_y);
 }

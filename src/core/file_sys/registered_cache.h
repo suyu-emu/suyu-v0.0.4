@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2018 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -6,21 +9,22 @@
 #include <array>
 #include <functional>
 #include <memory>
-#include <mutex>
+#include <optional>
 #include <string>
 #include <vector>
+#include <ankerl/unordered_dense.h>
 #include <boost/container/flat_map.hpp>
 #include "common/common_types.h"
 #include "core/crypto/key_manager.h"
 #include "core/file_sys/vfs/vfs.h"
+#include "core/file_sys/nca_metadata.h"
 
 namespace FileSys {
+class ExternalContentProvider;
 class CNMT;
 class NCA;
 class NSP;
 class XCI;
-
-enum class ContentRecordType : u8;
 enum class NCAContentType : u8;
 enum class TitleType : u8;
 
@@ -47,6 +51,13 @@ struct ContentProviderEntry {
     ContentRecordType type;
 
     std::string DebugInfo() const;
+};
+
+struct ExternalUpdateEntry {
+    u64 title_id;
+    u32 version;
+    std::string version_string;
+    std::array<VirtualFile, size_t(ContentRecordType::Count)> files;
 };
 
 constexpr u64 GetUpdateTitleID(u64 base_title_id) {
@@ -165,8 +176,8 @@ public:
                                const VfsCopyFunction& copy = &VfsRawCopy);
 
     // Due to the fact that we must use Meta-type NCAs to determine the existence of files, this
-    // poses quite a challenge. Instead of creating a new meta NCA for this file, suyu will create a
-    // dir inside the NAND called 'suyu_meta' and store the raw CNMT there.
+    // poses quite a challenge. Instead of creating a new meta NCA for this file, yuzu will create a
+    // dir inside the NAND called 'yuzu_meta' and store the raw CNMT there.
     // TODO(DarkLordZach): Author real meta-type NCAs and install those.
     InstallResult InstallEntry(const NCA& nca, TitleType type, bool overwrite_if_exists = false,
                                const VfsCopyFunction& copy = &VfsRawCopy);
@@ -185,23 +196,23 @@ private:
                             std::function<bool(const CNMT&, const ContentRecord&)> filter) const;
     std::vector<NcaID> AccumulateFiles() const;
     void ProcessFiles(const std::vector<NcaID>& ids);
-    void AccumulateSuyuMeta();
+    void AccumulateYuzuMeta();
     std::optional<NcaID> GetNcaIDFromMetadata(u64 title_id, ContentRecordType type) const;
     VirtualFile GetFileAtID(NcaID id) const;
     VirtualFile OpenFileOrDirectoryConcat(const VirtualDir& open_dir, std::string_view path) const;
     InstallResult RawInstallNCA(const NCA& nca, const VfsCopyFunction& copy,
                                 bool overwrite_if_exists, std::optional<NcaID> override_id = {});
-    bool RawInstallSuyuMeta(const CNMT& cnmt);
+    bool RawInstallYuzuMeta(const CNMT& cnmt);
 
     VirtualDir dir;
     ContentProviderParsingFunction parser;
 
     // maps tid -> NcaID of meta
-    std::map<u64, NcaID> meta_id;
+    ankerl::unordered_dense::map<u64, NcaID> meta_id;
     // maps tid -> meta
-    std::map<u64, CNMT> meta;
-    // maps tid -> meta for CNMT in suyu_meta
-    std::map<u64, CNMT> suyu_meta;
+    ankerl::unordered_dense::map<u64, CNMT> meta;
+    // maps tid -> meta for CNMT in yuzu_meta
+    ankerl::unordered_dense::map<u64, CNMT> yuzu_meta;
 };
 
 enum class ContentProviderUnionSlot {
@@ -209,6 +220,8 @@ enum class ContentProviderUnionSlot {
     UserNAND,       ///< User NAND
     SDMC,           ///< SD Card
     FrontendManual, ///< Frontend-defined game list or similar
+    External,       ///< External content from NSP/XCI files in configured directories
+    Count,
 };
 
 // Combines multiple ContentProvider(s) (i.e. SysNAND, UserNAND, SDMC) into one interface.
@@ -217,8 +230,6 @@ public:
     ~ContentProviderUnion() override;
 
     void SetSlot(ContentProviderUnionSlot slot, ContentProvider* provider);
-    void ClearSlot(ContentProviderUnionSlot slot);
-
     void Refresh() override;
     bool HasEntry(u64 title_id, ContentRecordType type) const override;
     std::optional<u32> GetEntryVersion(u64 title_id) const override;
@@ -229,17 +240,19 @@ public:
         std::optional<TitleType> title_type, std::optional<ContentRecordType> record_type,
         std::optional<u64> title_id) const override;
 
+    const ExternalContentProvider* GetExternalProvider() const;
+    [[nodiscard]] inline const ContentProvider* GetSlotProvider(ContentProviderUnionSlot slot) const {
+        return providers[size_t(slot)];
+    }
+
     std::vector<std::pair<ContentProviderUnionSlot, ContentProviderEntry>> ListEntriesFilterOrigin(
         std::optional<ContentProviderUnionSlot> origin = {},
         std::optional<TitleType> title_type = {}, std::optional<ContentRecordType> record_type = {},
         std::optional<u64> title_id = {}) const;
 
-    std::optional<ContentProviderUnionSlot> GetSlotForEntry(u64 title_id,
-                                                            ContentRecordType type) const;
-
+    std::optional<ContentProviderUnionSlot> GetSlotForEntry(u64 title_id, ContentRecordType type) const;
 private:
-    mutable std::mutex providers_mutex;
-    std::map<ContentProviderUnionSlot, ContentProvider*> providers;
+    std::array<ContentProvider*, size_t(ContentProviderUnionSlot::Count)> providers;
 };
 
 class ManualContentProvider : public ContentProvider {
@@ -248,6 +261,10 @@ public:
 
     void AddEntry(TitleType title_type, ContentRecordType content_type, u64 title_id,
                   VirtualFile file);
+    void AddEntryWithVersion(TitleType title_type, ContentRecordType content_type, u64 title_id,
+                             u32 version, const std::string& version_string, VirtualFile file);
+    bool AddEntriesFromContainer(VirtualFile file, bool only_content = false,
+                                 std::optional<u64> base_program_id = std::nullopt);
     void ClearAllEntries();
 
     void Refresh() override;
@@ -260,8 +277,44 @@ public:
         std::optional<TitleType> title_type, std::optional<ContentRecordType> record_type,
         std::optional<u64> title_id) const override;
 
+    std::vector<ExternalUpdateEntry> ListUpdateVersions(u64 title_id) const;
+    VirtualFile GetEntryForVersion(u64 title_id, ContentRecordType type, u32 version) const;
+
 private:
     std::map<std::tuple<TitleType, ContentRecordType, u64>, VirtualFile> entries;
+    std::vector<ExternalUpdateEntry> multi_version_entries;
+};
+
+class ExternalContentProvider : public ContentProvider {
+public:
+    explicit ExternalContentProvider(std::vector<VirtualDir> load_directories = {});
+    ~ExternalContentProvider() override;
+
+    void AddDirectory(VirtualDir directory);
+    void ClearDirectories();
+
+    void Refresh() override;
+    bool HasEntry(u64 title_id, ContentRecordType type) const override;
+    std::optional<u32> GetEntryVersion(u64 title_id) const override;
+    VirtualFile GetEntryUnparsed(u64 title_id, ContentRecordType type) const override;
+    VirtualFile GetEntryRaw(u64 title_id, ContentRecordType type) const override;
+    std::unique_ptr<NCA> GetEntry(u64 title_id, ContentRecordType type) const override;
+    std::vector<ContentProviderEntry> ListEntriesFilter(
+        std::optional<TitleType> title_type, std::optional<ContentRecordType> record_type,
+        std::optional<u64> title_id) const override;
+
+    std::vector<ExternalUpdateEntry> ListUpdateVersions(u64 title_id) const;
+    VirtualFile GetEntryForVersion(u64 title_id, ContentRecordType type, u32 version) const;
+
+private:
+    void ScanDirectory(const VirtualDir& dir);
+    void ProcessNSP(const VirtualFile& file);
+    void ProcessXCI(const VirtualFile& file);
+
+    std::vector<VirtualDir> load_dirs;
+    ankerl::unordered_dense::map<std::tuple<u64, ContentRecordType, TitleType>, VirtualFile> entries;
+    ankerl::unordered_dense::map<u64, u32> versions;
+    std::vector<ExternalUpdateEntry> multi_version_entries;
 };
 
 } // namespace FileSys

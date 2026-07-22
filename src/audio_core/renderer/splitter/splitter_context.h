@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2022 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -101,9 +104,8 @@ public:
      *
      * @param input         - Input buffer with the new info,
      *                        expected to point to a InParameterHeader.
-     * @param consumed_size - Output with the number of bytes consumed from input.
      */
-    bool Update(const u8* input, u32& consumed_size);
+    bool Update(const u8* input);
 
     /**
      * Update the splitters.
@@ -168,11 +170,11 @@ private:
      * @param splitter_destinations - Workbuffer for splitter destinations.
      * @param destination_count     - Number of destinations in the workbuffer.
      * @param splitter_bug_fixed    - Is the splitter bug fixed?
+     * @param behavior               - Behavior info for feature support.
      */
     void Setup(std::span<SplitterInfo> splitter_infos, u32 splitter_info_count,
                SplitterDestinationData* splitter_destinations, u32 destination_count,
-               bool splitter_bug_fixed, bool biquad_filter_parameter_enabled,
-               bool biquad_filter_parameter_float_supported, bool splitter_prev_volume_reset_supported);
+               bool splitter_bug_fixed, const BehaviorInfo& behavior);
 
     /// Workbuffer for splitters
     std::span<SplitterInfo> splitter_infos{};
@@ -184,12 +186,12 @@ private:
     s32 destinations_count{};
     /// Is the splitter bug fixed?
     bool splitter_bug_fixed{};
-    /// Does the input use splitter biquad filter destination parameters?
-    bool biquad_filter_parameter_enabled{};
-    /// Does the input use float splitter biquad coefficients?
-    bool biquad_filter_parameter_float_supported{};
-    /// Does the input explicitly request previous mix-volume reset?
+    /// Is explicit previous mix volume reset supported?
     bool splitter_prev_volume_reset_supported{};
+    /// Is biquad filter parameter for splitter (REV12) supported?
+    bool splitter_biquad_param_supported{};
+    /// Is float coefficient/biquad filter v2b parameter supported?
+    bool splitter_float_coeff_supported{};
 };
 
 } // namespace Renderer

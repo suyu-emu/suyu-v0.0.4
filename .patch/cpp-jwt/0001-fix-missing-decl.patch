@@ -1,0 +1,25 @@
+From ce992811fe8eb5ea7ad37e5b255bfecb0c313928 Mon Sep 17 00:00:00 2001
+From: crueter <crueter@crueter.xyz>
+Date: Sun, 7 Sep 2025 23:43:57 -0400
+Subject: [PATCH] [algorithm] fix missing declaration error
+
+Projects with restrictive error options won't compile without this
+
+Signed-off-by: crueter <crueter@crueter.xyz>
+---
+ include/jwt/algorithm.hpp | 2 ++
+ 1 file changed, 2 insertions(+)
+
+diff --git a/include/jwt/algorithm.hpp b/include/jwt/algorithm.hpp
+index 0e3b843..35347fe 100644
+--- a/include/jwt/algorithm.hpp
++++ b/include/jwt/algorithm.hpp
+@@ -63,6 +63,8 @@ using sign_func_t   = sign_result_t (*) (const jwt::string_view key,
+ using verify_func_t = verify_result_t (*) (const jwt::string_view key,
+                                            const jwt::string_view head,
+                                            const jwt::string_view jwt_sign);
++										   
++verify_result_t is_secret_a_public_key(const jwt::string_view secret);
+ 
+ namespace algo {
+ 

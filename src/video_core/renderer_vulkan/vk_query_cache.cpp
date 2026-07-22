@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2023 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
@@ -7,13 +10,13 @@
 #include <memory>
 #include <span>
 #include <type_traits>
-#include <unordered_map>
+#include <ankerl/unordered_dense.h>
 #include <utility>
 #include <vector>
-
+#include "video_core/renderer_vulkan/vk_texture_cache.h"
 #include "common/bit_util.h"
 #include "common/common_types.h"
-#include "video_core/engines/draw_manager.h"
+#include "video_core/engines/maxwell_3d.h"
 #include "video_core/host1x/gpu_device_memory_manager.h"
 #include "video_core/query_cache/query_cache.h"
 #include "video_core/rasterizer_interface.h"
@@ -38,8 +41,8 @@ class SamplesQueryBank : public VideoCommon::BankBase {
 public:
     static constexpr size_t BANK_SIZE = 256;
     static constexpr size_t QUERY_SIZE = 8;
-    explicit SamplesQueryBank(const Device& device_, size_t index_)
-        : BankBase(BANK_SIZE), device{device_}, index{index_} {
+    explicit SamplesQueryBank(const Device& device_, Scheduler& scheduler_, size_t index_)
+        : BankBase(BANK_SIZE), device{device_}, scheduler{scheduler_}, index{index_} {
         const auto& dev = device.GetLogical();
         query_pool = dev.CreateQueryPool({
             .sType = VK_STRUCTURE_TYPE_QUERY_POOL_CREATE_INFO,
@@ -57,10 +60,26 @@ public:
     void Reset() override {
         ASSERT(references == 0);
         VideoCommon::BankBase::Reset();
-        const auto& dev = device.GetLogical();
-        dev.ResetQueryPool(*query_pool, 0, BANK_SIZE);
+        if (device.IsHostQueryResetSupported()) {
+            const auto& dev = device.GetLogical();
+            dev.ResetQueryPool(*query_pool, 0, BANK_SIZE);
+        } else {
+            scheduler.RequestOutsideRenderPassOperationContext();
+            scheduler.Record([pool = *query_pool](vk::CommandBuffer cmdbuf) {
+                cmdbuf.ResetQueryPool(pool, 0, BANK_SIZE);
+            });
+        }
         host_results.fill(0ULL);
         next_bank = 0;
+    }
+
+    void AddReference(size_t how_many = 1) {
+        BankBase::AddReference(how_many);
+        last_used_tick = scheduler.CurrentTick();
+    }
+
+    [[nodiscard]] bool IsDead() const {
+        return BankBase::IsDead() && scheduler.IsFree(last_used_tick);
     }
 
     void Sync(size_t start, size_t size) {
@@ -95,9 +114,11 @@ public:
 
 private:
     const Device& device;
+    Scheduler& scheduler;
     const size_t index;
     vk::QueryPool query_pool;
     std::array<u64, BANK_SIZE> host_results;
+    u64 last_used_tick{};
 };
 
 using BaseStreamer = VideoCommon::SimpleStreamer<VideoCommon::HostQueryBase>;
@@ -113,26 +134,24 @@ struct HostSyncValues {
 class SamplesStreamer : public BaseStreamer {
 public:
     explicit SamplesStreamer(size_t id_, QueryCacheRuntime& runtime_,
-                             VideoCore::RasterizerInterface* rasterizer_, const Device& device_,
+                             VideoCore::RasterizerInterface* rasterizer_, TextureCache& texture_cache_, const Device& device_,
                              Scheduler& scheduler_, const MemoryAllocator& memory_allocator_,
                              ComputePassDescriptorQueue& compute_pass_descriptor_queue,
                              DescriptorPool& descriptor_pool)
-        : BaseStreamer(id_), runtime{runtime_}, rasterizer{rasterizer_}, device{device_},
+        : BaseStreamer(id_), texture_cache{texture_cache_}, runtime{runtime_}, rasterizer{rasterizer_}, device{device_},
           scheduler{scheduler_}, memory_allocator{memory_allocator_} {
         current_bank = nullptr;
         current_query = nullptr;
         amend_value = 0;
         accumulation_value = 0;
-        queries_prefix_scan_pass = std::make_unique<QueriesPrefixScanPass>(
-            device, scheduler, descriptor_pool, compute_pass_descriptor_queue);
+        queries_prefix_scan_pass.emplace(device, scheduler, descriptor_pool, compute_pass_descriptor_queue);
 
         const VkBufferCreateInfo buffer_ci = {
             .sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO,
             .pNext = nullptr,
             .flags = 0,
             .size = 8,
-            .usage = VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_TRANSFER_SRC_BIT |
-                     VK_BUFFER_USAGE_STORAGE_BUFFER_BIT,
+            .usage = VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_TRANSFER_SRC_BIT | VK_BUFFER_USAGE_STORAGE_BUFFER_BIT,
             .sharingMode = VK_SHARING_MODE_EXCLUSIVE,
             .queueFamilyIndexCount = 0,
             .pQueueFamilyIndices = nullptr,
@@ -150,15 +169,19 @@ public:
         if (has_started) {
             return;
         }
+
         ReserveHostQuery();
+
         scheduler.Record([query_pool = current_query_pool,
-                          query_index = current_bank_slot](vk::CommandBuffer cmdbuf) {
+                                 query_index = current_bank_slot](vk::CommandBuffer cmdbuf) {
             const bool use_precise = Settings::IsGPULevelHigh();
             cmdbuf.BeginQuery(query_pool, static_cast<u32>(query_index),
                               use_precise ? VK_QUERY_CONTROL_PRECISE_BIT : 0);
         });
+
         has_started = true;
     }
+
 
     void PauseCounter() override {
         if (!has_started) {
@@ -182,8 +205,8 @@ public:
         });
         rasterizer->SyncOperation(std::move(func));
         accumulation_since_last_sync = false;
-        first_accumulation_checkpoint = std::min(first_accumulation_checkpoint, num_slots_used);
-        last_accumulation_checkpoint = std::max(last_accumulation_checkpoint, num_slots_used);
+        first_accumulation_checkpoint = (std::min)(first_accumulation_checkpoint, num_slots_used);
+        last_accumulation_checkpoint = (std::max)(last_accumulation_checkpoint, num_slots_used);
     }
 
     void CloseCounter() override {
@@ -223,7 +246,7 @@ public:
         sync_values_stash.emplace_back();
         std::vector<HostSyncValues>* sync_values = &sync_values_stash.back();
         sync_values->reserve(num_slots_used);
-        std::unordered_map<size_t, std::pair<size_t, size_t>> offsets;
+        ankerl::unordered_dense::map<size_t, std::pair<size_t, size_t>> offsets;
         resolve_buffers.clear();
         size_t resolve_buffer_index = ObtainBuffer<true>(num_slots_used);
         resolve_buffers.push_back(resolve_buffer_index);
@@ -291,9 +314,9 @@ public:
 
         if (has_multi_queries) {
             const size_t min_accumulation_limit =
-                std::min(first_accumulation_checkpoint, num_slots_used);
+                (std::min)(first_accumulation_checkpoint, num_slots_used);
             const size_t max_accumulation_limit =
-                std::max(last_accumulation_checkpoint, num_slots_used);
+                (std::max)(last_accumulation_checkpoint, num_slots_used);
             const size_t intermediary_buffer_index = ObtainBuffer<false>(num_slots_used);
             resolve_buffers.push_back(intermediary_buffer_index);
             queries_prefix_scan_pass->Run(*accumulation_buffer, *buffers[intermediary_buffer_index],
@@ -312,7 +335,7 @@ public:
         rasterizer->SyncOperation(std::move(func));
         AbandonCurrentQuery();
         num_slots_used = 0;
-        first_accumulation_checkpoint = std::numeric_limits<size_t>::max();
+        first_accumulation_checkpoint = (std::numeric_limits<size_t>::max)();
         last_accumulation_checkpoint = 0;
         accumulation_since_last_sync = has_multi_queries;
         pending_sync.clear();
@@ -394,28 +417,28 @@ private:
         size_t start_slot = query->start_slot;
         for (size_t i = 0; i < banks_set; i++) {
             auto& the_bank = bank_pool.GetBank(bank_id);
-            size_t amount = std::min(the_bank.Size() - start_slot, size_slots);
+            size_t amount = (std::min)(the_bank.Size() - start_slot, size_slots);
             func(&the_bank, start_slot, amount);
             bank_id = the_bank.next_bank - 1;
             start_slot = 0;
             size_slots -= amount;
         }
     }
-
+    TextureCache& texture_cache;
     template <bool is_ordered, typename Func>
     void ApplyBanksWideOp(std::vector<size_t>& queries, Func&& func) {
         std::conditional_t<is_ordered, std::map<size_t, std::pair<size_t, size_t>>,
-                           std::unordered_map<size_t, std::pair<size_t, size_t>>>
+                           ankerl::unordered_dense::map<size_t, std::pair<size_t, size_t>>>
             indexer;
         for (auto q : queries) {
             auto* query = GetQuery(q);
             ApplyBankOp(query, [&indexer](SamplesQueryBank* bank, size_t start, size_t amount) {
                 auto id_ = bank->GetIndex();
-                auto pair = indexer.try_emplace(id_, std::numeric_limits<size_t>::max(),
-                                                std::numeric_limits<size_t>::min());
+                auto pair = indexer.try_emplace(id_, (std::numeric_limits<size_t>::max)(),
+                                                (std::numeric_limits<size_t>::min)());
                 auto& current_pair = pair.first->second;
-                current_pair.first = std::min(current_pair.first, start);
-                current_pair.second = std::max(current_pair.second, amount + start);
+                current_pair.first = (std::min)(current_pair.first, start);
+                current_pair.second = (std::max)(current_pair.second, amount + start);
             });
         }
         for (auto& cont : indexer) {
@@ -427,7 +450,7 @@ private:
     void ReserveBank() {
         current_bank_id =
             bank_pool.ReserveBank([this](std::deque<SamplesQueryBank>& queue, size_t index) {
-                queue.emplace_back(device, index);
+                queue.emplace_back(device, scheduler, index);
             });
         if (current_bank) {
             current_bank->next_bank = current_bank_id + 1;
@@ -522,7 +545,7 @@ private:
 
     template <bool is_resolve>
     size_t ObtainBuffer(size_t num_needed) {
-        const size_t log_2 = std::max<size_t>(11U, Common::Log2Ceil64(num_needed));
+        const size_t log_2 = std::max<size_t>(11U, Common::Log2Ceil(num_needed));
         if constexpr (is_resolve) {
             if (resolve_table[log_2] != 0) {
                 return resolve_table[log_2] - 1;
@@ -585,8 +608,7 @@ private:
     VideoCommon::HostQueryBase* current_query;
     bool has_started{};
     std::mutex flush_guard;
-
-    std::unique_ptr<QueriesPrefixScanPass> queries_prefix_scan_pass;
+    std::optional<QueriesPrefixScanPass> queries_prefix_scan_pass;
 };
 
 // Transform feedback queries
@@ -617,6 +639,15 @@ public:
         VideoCommon::BankBase::Reset();
     }
 
+    void AddReference(size_t how_many = 1) {
+        BankBase::AddReference(how_many);
+        last_used_tick = scheduler.CurrentTick();
+    }
+
+    [[nodiscard]] bool IsDead() const {
+        return BankBase::IsDead() && scheduler.IsFree(last_used_tick);
+    }
+
     void Sync(StagingBufferRef& stagging_buffer, size_t extra_offset, size_t start, size_t size) {
         scheduler.RequestOutsideRenderPassOperationContext();
         scheduler.Record([this, dst_buffer = stagging_buffer.buffer, extra_offset, start,
@@ -642,6 +673,7 @@ private:
     Scheduler& scheduler;
     const size_t index;
     vk::Buffer buffer;
+    u64 last_used_tick{};
 };
 
 class PrimitivesSucceededStreamer;
@@ -659,13 +691,18 @@ public:
         offsets.fill(0);
         last_queries.fill(0);
         last_queries_stride.fill(1);
+        stream_to_slot.fill(INVALID_SLOT);
+        VkBufferUsageFlags counter_buffer_usage =
+            VK_BUFFER_USAGE_TRANSFER_SRC_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT;
+        if (device.IsExtTransformFeedbackSupported()) {
+            counter_buffer_usage |= VK_BUFFER_USAGE_TRANSFORM_FEEDBACK_COUNTER_BUFFER_BIT_EXT;
+        }
         const VkBufferCreateInfo buffer_ci = {
             .sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO,
             .pNext = nullptr,
             .flags = 0,
             .size = TFBQueryBank::QUERY_SIZE * NUM_STREAMS,
-            .usage = VK_BUFFER_USAGE_TRANSFER_SRC_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT |
-                     VK_BUFFER_USAGE_TRANSFORM_FEEDBACK_COUNTER_BUFFER_BIT_EXT,
+            .usage = counter_buffer_usage,
             .sharingMode = VK_SHARING_MODE_EXCLUSIVE,
             .queueFamilyIndexCount = 0,
             .pQueueFamilyIndices = nullptr,
@@ -685,6 +722,9 @@ public:
     ~TFBCounterStreamer() = default;
 
     void StartCounter() override {
+        if (!device.IsExtTransformFeedbackSupported()) {
+            return;
+        }
         FlushBeginTFB();
         has_started = true;
     }
@@ -699,7 +739,9 @@ public:
 
     void CloseCounter() override {
         if (has_flushed_end_pending) {
-            FlushEndTFB();
+            if (scheduler.IsRenderPassActive()) {
+                FlushEndTFB();
+            }
         }
         runtime.View3DRegs([this](Maxwell3D& maxwell3d) {
             if (maxwell3d.regs.transform_feedback_enabled == 0) {
@@ -715,7 +757,7 @@ public:
 
     void SyncWrites() override {
         CloseCounter();
-        std::unordered_map<size_t, std::vector<HostSyncValues>> sync_values_stash;
+        ankerl::unordered_dense::map<size_t, std::vector<HostSyncValues>> sync_values_stash;
         for (auto q : pending_sync) {
             auto* query = GetQuery(q);
             if (True(query->flags & VideoCommon::QueryFlagBits::IsRewritten)) {
@@ -749,18 +791,33 @@ public:
         if (has_timestamp) {
             new_query->flags |= VideoCommon::QueryFlagBits::HasTimestamp;
         }
+        if (!device.IsExtTransformFeedbackSupported()) {
+            new_query->flags |= VideoCommon::QueryFlagBits::IsFinalValueSynced;
+            return index;
+        }
         if (!subreport_) {
             new_query->flags |= VideoCommon::QueryFlagBits::IsFinalValueSynced;
             return index;
         }
         const size_t subreport = static_cast<size_t>(*subreport_);
+        if (subreport >= NUM_STREAMS) {
+            new_query->flags |= VideoCommon::QueryFlagBits::IsFinalValueSynced;
+            return index;
+        }
         last_queries[subreport] = address;
         if ((streams_mask & (1ULL << subreport)) == 0) {
             new_query->flags |= VideoCommon::QueryFlagBits::IsFinalValueSynced;
             return index;
         }
+        const size_t slot = stream_to_slot[subreport];
+        if (slot >= NUM_STREAMS) {
+            new_query->flags |= VideoCommon::QueryFlagBits::IsFinalValueSynced;
+            return index;
+        }
+        
+        scheduler.RequestOutsideRenderPassOperationContext();
         CloseCounter();
-        auto [bank_slot, data_slot] = ProduceCounterBuffer(subreport);
+        auto [bank_slot, data_slot] = ProduceCounterBuffer(slot);
         new_query->start_bank_id = static_cast<u32>(bank_slot);
         new_query->size_banks = 1;
         new_query->start_slot = static_cast<u32>(data_slot);
@@ -771,6 +828,9 @@ public:
     }
 
     std::optional<std::pair<DAddr, size_t>> GetLastQueryStream(size_t stream) {
+        if (stream >= NUM_STREAMS) {
+            return std::nullopt;
+        }
         if (last_queries[stream] != 0) {
             std::pair<DAddr, size_t> result(last_queries[stream], last_queries_stride[stream]);
             return result;
@@ -780,6 +840,10 @@ public:
 
     Maxwell3D::Regs::PrimitiveTopology GetOutputTopology() const {
         return out_topology;
+    }
+
+    u32 GetPatchVertices() const {
+        return patch_vertices;
     }
 
     bool HasUnsyncedQueries() const override {
@@ -807,7 +871,7 @@ public:
         scheduler.RequestOutsideRenderPassOperationContext();
         scheduler.Record([](vk::CommandBuffer cmdbuf) {
             cmdbuf.PipelineBarrier(VK_PIPELINE_STAGE_TRANSFER_BIT,
-                                   VK_PIPELINE_STAGE_ALL_COMMANDS_BIT, 0, WRITE_BARRIER);
+                                   vk::PIPELINE_STAGE_HOST, 0, WRITE_BARRIER);
         });
 
         std::scoped_lock lk(flush_guard);
@@ -848,35 +912,55 @@ public:
 
 private:
     void FlushBeginTFB() {
+        if (!device.IsExtTransformFeedbackSupported()) [[unlikely]] {
+            return;
+        }
         if (has_flushed_end_pending) [[unlikely]] {
             return;
         }
         has_flushed_end_pending = true;
+        // Refresh buffers state before beginning transform feedback so counters are up-to-date
+        UpdateBuffers();
         if (!has_started || buffers_count == 0) {
+            // No counter buffers available: begin without counters
             scheduler.Record([](vk::CommandBuffer cmdbuf) {
                 cmdbuf.BeginTransformFeedbackEXT(0, 0, nullptr, nullptr);
             });
-            UpdateBuffers();
             return;
         }
+        static constexpr VkMemoryBarrier COUNTER_RESUME_BARRIER{
+            .sType = VK_STRUCTURE_TYPE_MEMORY_BARRIER,
+            .pNext = nullptr,
+            .srcAccessMask = VK_ACCESS_TRANSFORM_FEEDBACK_COUNTER_WRITE_BIT_EXT,
+            .dstAccessMask = VK_ACCESS_TRANSFORM_FEEDBACK_COUNTER_READ_BIT_EXT,
+        };
         scheduler.Record([this, total = static_cast<u32>(buffers_count)](vk::CommandBuffer cmdbuf) {
+            cmdbuf.PipelineBarrier(VK_PIPELINE_STAGE_TRANSFORM_FEEDBACK_BIT_EXT,
+                                   VK_PIPELINE_STAGE_TRANSFORM_FEEDBACK_BIT_EXT, 0,
+                                   COUNTER_RESUME_BARRIER);
             cmdbuf.BeginTransformFeedbackEXT(0, total, counter_buffers.data(), offsets.data());
         });
-        UpdateBuffers();
     }
 
     void FlushEndTFB() {
+        if (!device.IsExtTransformFeedbackSupported()) [[unlikely]] {
+            return;
+        }
         if (!has_flushed_end_pending) [[unlikely]] {
             UNREACHABLE();
             return;
         }
         has_flushed_end_pending = false;
 
+        // Refresh buffer state before ending transform feedback to ensure counters_count is up-to-date.
+        UpdateBuffers();
         if (buffers_count == 0) {
+            LOG_DEBUG(Render_Vulkan, "EndTransformFeedbackEXT called with no counters (buffers_count=0)");
             scheduler.Record([](vk::CommandBuffer cmdbuf) {
                 cmdbuf.EndTransformFeedbackEXT(0, 0, nullptr, nullptr);
             });
         } else {
+            LOG_DEBUG(Render_Vulkan, "EndTransformFeedbackEXT called with counters (buffers_count={})", buffers_count);
             scheduler.Record([this,
                               total = static_cast<u32>(buffers_count)](vk::CommandBuffer cmdbuf) {
                 cmdbuf.EndTransformFeedbackEXT(0, total, counter_buffers.data(), offsets.data());
@@ -887,23 +971,48 @@ private:
     void UpdateBuffers() {
         last_queries.fill(0);
         last_queries_stride.fill(1);
+        stream_to_slot.fill(INVALID_SLOT);
+        streams_mask = 0; // reset previously recorded streams
         runtime.View3DRegs([this](Maxwell3D& maxwell3d) {
             buffers_count = 0;
-            out_topology = maxwell3d.draw_manager->GetDrawState().topology;
+            out_topology = maxwell3d.draw_manager.draw_state.topology;
+            patch_vertices = (std::max)(maxwell3d.regs.patch_vertices, 1U);
+            if (out_topology == Maxwell3D::Regs::PrimitiveTopology::Patches) {
+                switch (maxwell3d.regs.tessellation.params.output_primitives.Value()) {
+                case Maxwell3D::Regs::Tessellation::OutputPrimitives::Points:
+                    out_topology = Maxwell3D::Regs::PrimitiveTopology::Points;
+                    break;
+                case Maxwell3D::Regs::Tessellation::OutputPrimitives::Lines:
+                    out_topology = Maxwell3D::Regs::PrimitiveTopology::LineStrip;
+                    break;
+                case Maxwell3D::Regs::Tessellation::OutputPrimitives::Triangles_CW:
+                case Maxwell3D::Regs::Tessellation::OutputPrimitives::Triangles_CCW:
+                    out_topology = Maxwell3D::Regs::PrimitiveTopology::TriangleStrip;
+                    break;
+                }
+            }
             for (size_t i = 0; i < Maxwell3D::Regs::NumTransformFeedbackBuffers; i++) {
                 const auto& tf = maxwell3d.regs.transform_feedback;
                 if (tf.buffers[i].enable == 0) {
                     continue;
                 }
+                buffers_count = std::max<size_t>(buffers_count, i + 1);
                 const size_t stream = tf.controls[i].stream;
+                if (stream >= last_queries_stride.size()) {
+                    LOG_WARNING(Render_Vulkan, "TransformFeedback stream {} out of range", stream);
+                    continue;
+                }
+                if ((streams_mask & (1ULL << stream)) != 0) {
+                    continue;
+                }
                 last_queries_stride[stream] = tf.controls[i].stride;
+                stream_to_slot[stream] = i;
                 streams_mask |= 1ULL << stream;
-                buffers_count = std::max<size_t>(buffers_count, stream + 1);
             }
         });
     }
 
-    std::pair<size_t, size_t> ProduceCounterBuffer(size_t stream) {
+    std::pair<size_t, size_t> ProduceCounterBuffer(size_t slot_index) {
         if (current_bank == nullptr || current_bank->IsClosed()) {
             current_bank_id =
                 bank_pool.ReserveBank([this](std::deque<TFBQueryBank>& queue, size_t index) {
@@ -929,7 +1038,8 @@ private:
         };
         scheduler.RequestOutsideRenderPassOperationContext();
         scheduler.Record([dst_buffer = current_bank->GetBuffer(),
-                          src_buffer = counter_buffers[stream], src_offset = offsets[stream],
+                          src_buffer = counter_buffers[slot_index],
+                          src_offset = offsets[slot_index],
                           slot](vk::CommandBuffer cmdbuf) {
             cmdbuf.PipelineBarrier(VK_PIPELINE_STAGE_TRANSFORM_FEEDBACK_BIT_EXT,
                                    VK_PIPELINE_STAGE_TRANSFER_BIT, 0, READ_BARRIER);
@@ -948,6 +1058,7 @@ private:
     friend class PrimitivesSucceededStreamer;
 
     static constexpr size_t NUM_STREAMS = 4;
+    static constexpr size_t INVALID_SLOT = NUM_STREAMS;
 
     QueryCacheRuntime& runtime;
     const Device& device;
@@ -977,7 +1088,9 @@ private:
     std::array<VkDeviceSize, NUM_STREAMS> offsets{};
     std::array<DAddr, NUM_STREAMS> last_queries;
     std::array<size_t, NUM_STREAMS> last_queries_stride;
+    std::array<size_t, NUM_STREAMS> stream_to_slot;
     Maxwell3D::Regs::PrimitiveTopology out_topology;
+    u32 patch_vertices{1};
     u64 streams_mask;
 };
 
@@ -998,6 +1111,7 @@ public:
     u64 stride{};
     DAddr dependant_address{};
     Maxwell3D::Regs::PrimitiveTopology topology{Maxwell3D::Regs::PrimitiveTopology::Points};
+    u32 patch_vertices{1};
     size_t dependant_index{};
     bool dependant_manage{};
 };
@@ -1013,6 +1127,10 @@ public:
     }
 
     ~PrimitivesSucceededStreamer() = default;
+
+    void ResetCounter() override {
+        tfb_streamer.ResetCounter();
+    }
 
     size_t WriteCounter(DAddr address, bool has_timestamp, u32 value,
                         std::optional<u32> subreport_) override {
@@ -1031,6 +1149,7 @@ public:
         auto dependant_address_opt = tfb_streamer.GetLastQueryStream(subreport);
         bool must_manage_dependance = false;
         new_query->topology = tfb_streamer.GetOutputTopology();
+        new_query->patch_vertices = tfb_streamer.GetPatchVertices();
         if (dependant_address_opt) {
             auto [dep_address, stride] = *dependant_address_opt;
             new_query->dependant_address = dep_address;
@@ -1051,6 +1170,7 @@ public:
             }
             new_query->stride = 1;
             runtime.View3DRegs([new_query, subreport](Maxwell3D& maxwell3d) {
+                new_query->patch_vertices = (std::max)(maxwell3d.regs.patch_vertices, 1U);
                 for (size_t i = 0; i < Maxwell3D::Regs::NumTransformFeedbackBuffers; i++) {
                     const auto& tf = maxwell3d.regs.transform_feedback;
                     if (tf.buffers[i].enable == 0) {
@@ -1096,40 +1216,57 @@ public:
 
             query->flags |= VideoCommon::QueryFlagBits::IsFinalValueSynced;
             u64 num_vertices = 0;
+            // Protect against stride == 0 (avoid divide-by-zero). Use fallback stride=1 and warn.
+            u64 safe_stride = query->stride == 0 ? 1 : query->stride;
+            if (query->stride == 0) {
+                LOG_WARNING(Render_Vulkan, "TransformFeedback query has stride 0; using 1 to avoid div-by-zero (addr=0x{:x})", query->dependant_address);
+            }
             if (query->dependant_manage) {
                 auto* dependant_query = tfb_streamer.GetQuery(query->dependant_index);
-                num_vertices = dependant_query->value / query->stride;
+                num_vertices = dependant_query->value / safe_stride;
                 tfb_streamer.Free(query->dependant_index);
             } else {
                 u8* pointer = device_memory.GetPointer<u8>(query->dependant_address);
                 if (pointer != nullptr) {
                     u32 result;
                     std::memcpy(&result, pointer, sizeof(u32));
-                    num_vertices = static_cast<u64>(result) / query->stride;
+                    num_vertices = static_cast<u64>(result) / safe_stride;
                 }
             }
             query->value = [&]() -> u64 {
+                const auto saturating_subtract = [](u64 value, u64 amount) {
+                    return value > amount ? value - amount : 0;
+                };
                 switch (query->topology) {
                 case Maxwell3D::Regs::PrimitiveTopology::Points:
                     return num_vertices;
                 case Maxwell3D::Regs::PrimitiveTopology::Lines:
                     return num_vertices / 2;
                 case Maxwell3D::Regs::PrimitiveTopology::LineLoop:
-                    return (num_vertices / 2) + 1;
+                    return num_vertices > 1 ? num_vertices : 0;
                 case Maxwell3D::Regs::PrimitiveTopology::LineStrip:
-                    return num_vertices - 1;
-                case Maxwell3D::Regs::PrimitiveTopology::Patches:
+                    return saturating_subtract(num_vertices, 1);
+                case Maxwell3D::Regs::PrimitiveTopology::LinesAdjacency:
+                    return num_vertices / 4;
+                case Maxwell3D::Regs::PrimitiveTopology::LineStripAdjacency:
+                    return saturating_subtract(num_vertices, 3);
                 case Maxwell3D::Regs::PrimitiveTopology::Triangles:
-                case Maxwell3D::Regs::PrimitiveTopology::TrianglesAdjacency:
                     return num_vertices / 3;
+                case Maxwell3D::Regs::PrimitiveTopology::TrianglesAdjacency:
+                    return num_vertices / 6;
                 case Maxwell3D::Regs::PrimitiveTopology::TriangleFan:
                 case Maxwell3D::Regs::PrimitiveTopology::TriangleStrip:
+                    return saturating_subtract(num_vertices, 2);
                 case Maxwell3D::Regs::PrimitiveTopology::TriangleStripAdjacency:
-                    return num_vertices - 2;
+                    return num_vertices > 4 ? (num_vertices - 4) / 2 : 0;
                 case Maxwell3D::Regs::PrimitiveTopology::Quads:
                     return num_vertices / 4;
+                case Maxwell3D::Regs::PrimitiveTopology::QuadStrip:
+                    return num_vertices > 2 ? (num_vertices - 2) / 2 : 0;
                 case Maxwell3D::Regs::PrimitiveTopology::Polygon:
-                    return 1U;
+                    return num_vertices >= 3 ? 1U : 0U;
+                case Maxwell3D::Regs::PrimitiveTopology::Patches:
+                    return num_vertices / std::max<u64>(query->patch_vertices, 1U);
                 default:
                     return num_vertices;
                 }
@@ -1154,43 +1291,32 @@ private:
 } // namespace
 
 struct QueryCacheRuntimeImpl {
-    QueryCacheRuntimeImpl(QueryCacheRuntime& runtime, VideoCore::RasterizerInterface* rasterizer_,
-                          Tegra::MaxwellDeviceMemoryManager& device_memory_,
-                          Vulkan::BufferCache& buffer_cache_, const Device& device_,
-                          const MemoryAllocator& memory_allocator_, Scheduler& scheduler_,
-                          StagingBufferPool& staging_pool_,
-                          ComputePassDescriptorQueue& compute_pass_descriptor_queue,
-                          DescriptorPool& descriptor_pool)
-        : rasterizer{rasterizer_}, device_memory{device_memory_},
-          buffer_cache{buffer_cache_}, device{device_},
-          memory_allocator{memory_allocator_}, scheduler{scheduler_}, staging_pool{staging_pool_},
-          guest_streamer(0, runtime),
-          sample_streamer(static_cast<size_t>(QueryType::ZPassPixelCount64), runtime, rasterizer,
-                          device, scheduler, memory_allocator, compute_pass_descriptor_queue,
-                          descriptor_pool),
-          tfb_streamer(static_cast<size_t>(QueryType::StreamingByteCount), runtime, device,
-                       scheduler, memory_allocator, staging_pool),
-          primitives_succeeded_streamer(
-              static_cast<size_t>(QueryType::StreamingPrimitivesSucceeded), runtime, tfb_streamer,
-              device_memory_),
-          primitives_needed_minus_succeeded_streamer(
-              static_cast<size_t>(QueryType::StreamingPrimitivesNeededMinusSucceeded), runtime, 0u),
-          hcr_setup{}, hcr_is_set{}, is_hcr_running{}, maxwell3d{} {
+    QueryCacheRuntimeImpl(QueryCacheRuntime& runtime, VideoCore::RasterizerInterface* rasterizer_, Tegra::MaxwellDeviceMemoryManager& device_memory_, Vulkan::BufferCache& buffer_cache_, const Device& device_, const MemoryAllocator& memory_allocator_, Scheduler& scheduler_, StagingBufferPool& staging_pool_, ComputePassDescriptorQueue& compute_pass_descriptor_queue, DescriptorPool& descriptor_pool, TextureCache& texture_cache_)
+        : rasterizer{rasterizer_}, device_memory{device_memory_}, buffer_cache{buffer_cache_}
+        , device{device_}, memory_allocator{memory_allocator_}, scheduler{scheduler_}
+        , staging_pool{staging_pool_}, guest_streamer(0, runtime)
+        , sample_streamer(size_t(QueryType::ZPassPixelCount64), runtime, rasterizer, texture_cache_, device, scheduler, memory_allocator, compute_pass_descriptor_queue, descriptor_pool)
+        , tfb_streamer(size_t(QueryType::StreamingByteCount), runtime, device, scheduler, memory_allocator, staging_pool)
+        , primitives_succeeded_streamer(size_t(QueryType::StreamingPrimitivesSucceeded), runtime, tfb_streamer, device_memory_)
+        , primitives_needed_minus_succeeded_streamer(size_t(QueryType::StreamingPrimitivesNeededMinusSucceeded), runtime, 0u)
+        , hcr_setup{}, hcr_is_set{}, is_hcr_running{}, maxwell3d{} {
 
         hcr_setup.sType = VK_STRUCTURE_TYPE_CONDITIONAL_RENDERING_BEGIN_INFO_EXT;
         hcr_setup.pNext = nullptr;
         hcr_setup.flags = 0;
 
-        conditional_resolve_pass = std::make_unique<ConditionalRenderingResolvePass>(
-            device, scheduler, descriptor_pool, compute_pass_descriptor_queue);
+        VkBufferUsageFlags hcr_buffer_usage = VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_STORAGE_BUFFER_BIT;
+        if (device.IsExtConditionalRendering()) {
+            conditional_resolve_pass.emplace(device, scheduler, descriptor_pool, compute_pass_descriptor_queue);
+            hcr_buffer_usage |= VK_BUFFER_USAGE_CONDITIONAL_RENDERING_BIT_EXT;
+        }
 
         const VkBufferCreateInfo buffer_ci = {
             .sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO,
             .pNext = nullptr,
             .flags = 0,
             .size = sizeof(u32),
-            .usage = VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_STORAGE_BUFFER_BIT |
-                     VK_BUFFER_USAGE_CONDITIONAL_RENDERING_BIT_EXT,
+            .usage = hcr_buffer_usage,
             .sharingMode = VK_SHARING_MODE_EXCLUSIVE,
             .queueFamilyIndexCount = 0,
             .pQueueFamilyIndices = nullptr,
@@ -1220,7 +1346,7 @@ struct QueryCacheRuntimeImpl {
     std::vector<std::vector<VkBufferCopy>> copies_setup;
 
     // Host conditional rendering data
-    std::unique_ptr<ConditionalRenderingResolvePass> conditional_resolve_pass;
+    std::optional<ConditionalRenderingResolvePass> conditional_resolve_pass;
     vk::Buffer hcr_resolve_buffer;
     VkConditionalRenderingBeginInfoEXT hcr_setup;
     VkBuffer hcr_buffer;
@@ -1232,16 +1358,10 @@ struct QueryCacheRuntimeImpl {
     Maxwell3D* maxwell3d;
 };
 
-QueryCacheRuntime::QueryCacheRuntime(VideoCore::RasterizerInterface* rasterizer,
-                                     Tegra::MaxwellDeviceMemoryManager& device_memory_,
-                                     Vulkan::BufferCache& buffer_cache_, const Device& device_,
-                                     const MemoryAllocator& memory_allocator_,
-                                     Scheduler& scheduler_, StagingBufferPool& staging_pool_,
-                                     ComputePassDescriptorQueue& compute_pass_descriptor_queue,
-                                     DescriptorPool& descriptor_pool) {
+QueryCacheRuntime::QueryCacheRuntime(VideoCore::RasterizerInterface* rasterizer, Tegra::MaxwellDeviceMemoryManager& device_memory_, Vulkan::BufferCache& buffer_cache_, const Device& device_, const MemoryAllocator& memory_allocator_, Scheduler& scheduler_, StagingBufferPool& staging_pool_, ComputePassDescriptorQueue& compute_pass_descriptor_queue, DescriptorPool& descriptor_pool, TextureCache& texture_cache_) {
     impl = std::make_unique<QueryCacheRuntimeImpl>(
         *this, rasterizer, device_memory_, buffer_cache_, device_, memory_allocator_, scheduler_,
-        staging_pool_, compute_pass_descriptor_queue, descriptor_pool);
+        staging_pool_, compute_pass_descriptor_queue, descriptor_pool, texture_cache_);
 }
 
 void QueryCacheRuntime::Bind3DEngine(Maxwell3D* maxwell3d) {
@@ -1259,7 +1379,7 @@ void QueryCacheRuntime::EndHostConditionalRendering() {
     PauseHostConditionalRendering();
     impl->hcr_is_set = false;
     impl->is_hcr_running = false;
-    impl->hcr_buffer = nullptr;
+    impl->hcr_buffer = VkBuffer{};
     impl->hcr_offset = 0;
 }
 
@@ -1300,9 +1420,11 @@ void QueryCacheRuntime::HostConditionalRenderingCompareValueImpl(VideoCommon::Lo
     if (impl->hcr_is_set) {
         if (impl->hcr_setup.buffer == impl->hcr_buffer &&
             impl->hcr_setup.offset == impl->hcr_offset) {
-            ResumeHostConditionalRendering();
             return;
         }
+    }
+    bool was_running = impl->is_hcr_running;
+    if (was_running) {
         PauseHostConditionalRendering();
     }
     impl->hcr_setup.buffer = impl->hcr_buffer;
@@ -1310,32 +1432,39 @@ void QueryCacheRuntime::HostConditionalRenderingCompareValueImpl(VideoCommon::Lo
     impl->hcr_setup.flags = is_equal ? VK_CONDITIONAL_RENDERING_INVERTED_BIT_EXT : 0;
     impl->hcr_is_set = true;
     impl->is_hcr_running = false;
-    ResumeHostConditionalRendering();
+    if (was_running) {
+        ResumeHostConditionalRendering();
+    }
 }
 
-void QueryCacheRuntime::HostConditionalRenderingCompareBCImpl(DAddr address, bool is_equal) {
+void QueryCacheRuntime::HostConditionalRenderingCompareBCImpl(DAddr address, bool is_equal,
+                                                              bool compare_to_zero) {
     VkBuffer to_resolve;
     u32 to_resolve_offset;
+    const u32 resolve_size = compare_to_zero ? 8 : 24;
     {
         std::scoped_lock lk(impl->buffer_cache.mutex);
-        static constexpr auto sync_info = VideoCommon::ObtainBufferSynchronize::NoSynchronize;
+        const auto sync_info = VideoCommon::ObtainBufferSynchronize::FullSynchronize;
         const auto post_op = VideoCommon::ObtainBufferOperation::DoNothing;
         const auto [buffer, offset] =
-            impl->buffer_cache.ObtainCPUBuffer(address, 24, sync_info, post_op);
+            impl->buffer_cache.ObtainCPUBuffer(address, resolve_size, sync_info, post_op);
         to_resolve = buffer->Handle();
         to_resolve_offset = static_cast<u32>(offset);
     }
-    if (impl->is_hcr_running) {
+    bool was_running = impl->is_hcr_running;
+    if (was_running) {
         PauseHostConditionalRendering();
     }
     impl->conditional_resolve_pass->Resolve(*impl->hcr_resolve_buffer, to_resolve,
-                                            to_resolve_offset, false);
+                                            to_resolve_offset, compare_to_zero);
     impl->hcr_setup.buffer = *impl->hcr_resolve_buffer;
     impl->hcr_setup.offset = 0;
     impl->hcr_setup.flags = is_equal ? 0 : VK_CONDITIONAL_RENDERING_INVERTED_BIT_EXT;
     impl->hcr_is_set = true;
     impl->is_hcr_running = false;
-    ResumeHostConditionalRendering();
+    if (was_running) {
+        ResumeHostConditionalRendering();
+    }
 }
 
 bool QueryCacheRuntime::HostConditionalRenderingCompareValue(VideoCommon::LookupData object_1,
@@ -1343,7 +1472,7 @@ bool QueryCacheRuntime::HostConditionalRenderingCompareValue(VideoCommon::Lookup
     if (!impl->device.IsExtConditionalRendering()) {
         return false;
     }
-    HostConditionalRenderingCompareValueImpl(object_1, false);
+    HostConditionalRenderingCompareBCImpl(object_1.address, true, true);
     return true;
 }
 
@@ -1389,14 +1518,11 @@ bool QueryCacheRuntime::HostConditionalRenderingCompareValues(VideoCommon::Looku
         return false;
     }
 
-    const bool is_gpu_high = Settings::IsGPULevelHigh();
-    if (!is_gpu_high && impl->device.GetDriverID() == VK_DRIVER_ID_INTEL_PROPRIETARY_WINDOWS) {
-        return true;
-    }
-
     auto driver_id = impl->device.GetDriverID();
-    if (driver_id == VK_DRIVER_ID_QUALCOMM_PROPRIETARY ||
-        driver_id == VK_DRIVER_ID_ARM_PROPRIETARY || driver_id == VK_DRIVER_ID_MESA_TURNIP) {
+    const bool is_gpu_high = Settings::IsGPULevelHigh();
+
+    if ((!is_gpu_high && driver_id == VK_DRIVER_ID_INTEL_PROPRIETARY_WINDOWS) || driver_id == VK_DRIVER_ID_QUALCOMM_PROPRIETARY || driver_id == VK_DRIVER_ID_ARM_PROPRIETARY || driver_id == VK_DRIVER_ID_MESA_TURNIP) {
+        EndHostConditionalRendering();
         return true;
     }
 
@@ -1413,11 +1539,12 @@ bool QueryCacheRuntime::HostConditionalRenderingCompareValues(VideoCommon::Looku
     }
 
     if (!is_gpu_high) {
+        EndHostConditionalRendering();
         return true;
     }
 
     if (!is_in_bc[0] && !is_in_bc[1]) {
-        // Both queries are in query cache, it's best to just flush.
+        EndHostConditionalRendering();
         return true;
     }
     HostConditionalRenderingCompareBCImpl(object_1.address, equal_check);
@@ -1461,13 +1588,13 @@ void QueryCacheRuntime::Barriers(bool is_prebarrier) {
     impl->scheduler.RequestOutsideRenderPassOperationContext();
     if (is_prebarrier) {
         impl->scheduler.Record([](vk::CommandBuffer cmdbuf) {
-            cmdbuf.PipelineBarrier(VK_PIPELINE_STAGE_ALL_COMMANDS_BIT,
+            cmdbuf.PipelineBarrier(vk::PIPELINE_STAGE_GRAPHICS_COMPUTE_TRANSFER,
                                    VK_PIPELINE_STAGE_TRANSFER_BIT, 0, READ_BARRIER);
         });
     } else {
         impl->scheduler.Record([](vk::CommandBuffer cmdbuf) {
             cmdbuf.PipelineBarrier(VK_PIPELINE_STAGE_TRANSFER_BIT,
-                                   VK_PIPELINE_STAGE_ALL_COMMANDS_BIT, 0, WRITE_BARRIER);
+                                   vk::PIPELINE_STAGE_GRAPHICS_COMPUTE_TRANSFER_HOST, 0, WRITE_BARRIER);
         });
     }
 }
@@ -1560,8 +1687,7 @@ void QueryCacheRuntime::SyncValues(std::span<SyncValuesType> values, VkBuffer ba
     }
 
     impl->scheduler.RequestOutsideRenderPassOperationContext();
-    impl->scheduler.Record([src_buffer, dst_buffers = std::move(impl->buffers_to_upload_to),
-                            vk_copies = std::move(impl->copies_setup)](vk::CommandBuffer cmdbuf) {
+    impl->scheduler.Record([src_buffer, dst_buffers = std::move(impl->buffers_to_upload_to), vk_copies = std::move(impl->copies_setup)](vk::CommandBuffer cmdbuf) {
         size_t size = dst_buffers.size();
         for (size_t i = 0; i < size; i++) {
             cmdbuf.CopyBuffer(src_buffer, dst_buffers[i].first, vk_copies[i]);

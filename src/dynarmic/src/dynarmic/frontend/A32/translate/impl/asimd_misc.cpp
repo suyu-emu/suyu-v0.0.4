@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 /* This file is part of the dynarmic project.
@@ -8,9 +8,8 @@
 
 #include <vector>
 
-#include "dynarmic/common/assert.h"
-#include <mcl/bit/bit_count.hpp>
-#include <mcl/bit/bit_field.hpp>
+#include "common/assert.h"
+#include "dynarmic/mcl/bit.hpp"
 
 #include "dynarmic/frontend/A32/translate/impl/a32_translate_impl.h"
 
@@ -80,7 +79,7 @@ bool TranslatorVisitor::asimd_VDUP_scalar(bool D, Imm<4> imm4, size_t Vd, bool Q
         return UndefinedInstruction();
     }
 
-    const size_t imm4_lsb = mcl::bit::lowest_set_bit(imm4.ZeroExtend());
+    const size_t imm4_lsb = std::countr_zero(imm4.ZeroExtend());
     const size_t esize = 8u << imm4_lsb;
     const size_t index = imm4.ZeroExtend() >> (imm4_lsb + 1);
     const auto d = ToVector(Q, Vd, D);

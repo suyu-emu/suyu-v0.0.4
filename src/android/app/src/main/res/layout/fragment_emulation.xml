@@ -6,7 +6,7 @@
     android:layout_height="match_parent"
     android:keepScreenOn="true"
     android:defaultFocusHighlightEnabled="false"
-    tools:context="dev.suyu.suyu_emu.fragments.EmulationFragment"
+    tools:context="org.yuzu.yuzu_emu.fragments.EmulationFragment"
     tools:openDrawer="start">
 
     <androidx.coordinatorlayout.widget.CoordinatorLayout
@@ -19,7 +19,7 @@
             android:layout_height="match_parent">
 
             <!-- This is what everything is rendered to during emulation -->
-            <dev.suyu.suyu_emu.views.FixedRatioSurfaceView
+            <org.yuzu.yuzu_emu.views.FixedRatioSurfaceView
                 android:id="@+id/surface_emulation"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
@@ -109,13 +109,29 @@
         </FrameLayout>
 
         <FrameLayout
+            android:id="@+id/paused_frame_container"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:fitsSystemWindows="false">
+
+            <ImageView
+                android:id="@+id/paused_frame_image"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:contentDescription="@null"
+                android:scaleType="fitCenter"
+                android:visibility="gone" />
+
+        </FrameLayout>
+
+        <FrameLayout
             android:id="@+id/input_container"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:layout_gravity="bottom">
 
             <!-- This is the onscreen input overlay -->
-            <dev.suyu.suyu_emu.overlay.InputOverlay
+            <org.yuzu.yuzu_emu.overlay.InputOverlay
                 android:id="@+id/surface_input_overlay"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
@@ -140,15 +156,25 @@
             android:id="@+id/overlay_container"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:layout_marginHorizontal="20dp"
-            android:fitsSystemWindows="true">
+            android:fitsSystemWindows="false">
+
+            <ImageView
+                android:id="@+id/paused_icon"
+                android:layout_width="64dp"
+                android:layout_height="64dp"
+                android:layout_gravity="center"
+                android:background="@drawable/circle_white"
+                android:contentDescription="@string/emulation_unpause"
+                android:padding="14dp"
+                android:src="@drawable/ic_play"
+                android:visibility="gone"
+                app:tint="@android:color/black" />
 
             <com.google.android.material.textview.MaterialTextView
-                android:id="@+id/show_fps_text"
+                android:id="@+id/show_stats_overlay_text"
                 style="@style/TextAppearance.Material3.BodySmall"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_gravity="left"
                 android:clickable="false"
                 android:focusable="false"
                 android:textColor="@android:color/white"
@@ -157,11 +183,10 @@
                 tools:ignore="RtlHardcoded" />
 
             <com.google.android.material.textview.MaterialTextView
-                android:id="@+id/show_thermals_text"
+                android:id="@+id/show_soc_overlay_text"
                 style="@style/TextAppearance.Material3.BodySmall"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_gravity="right"
                 android:clickable="false"
                 android:focusable="false"
                 android:textColor="@android:color/white"
@@ -174,13 +199,27 @@
     </androidx.coordinatorlayout.widget.CoordinatorLayout>
 
     <com.google.android.material.navigation.NavigationView
-        android:id="@+id/in_game_menu"
+        android:id="@+id/quick_settings_sheet"
         android:layout_width="wrap_content"
         android:layout_height="match_parent"
-        android:layout_gravity="start"
+        android:layout_gravity="end"
         android:focusedByDefault="true"
-        app:headerLayout="@layout/header_in_game"
-        app:menu="@menu/menu_in_game"
-        tools:visibility="gone" />
+        android:background="?attr/colorSurface"
+        tools:visibility="gone">
+
+        <include layout="@layout/layout_quick_settings" />
+
+    </com.google.android.material.navigation.NavigationView>
+
+    <com.google.android.material.navigation.NavigationView
+    android:id="@+id/in_game_menu"
+    android:layout_width="wrap_content"
+    android:layout_height="match_parent"
+    android:layout_gravity="start"
+    android:focusedByDefault="true"
+    app:headerLayout="@layout/header_in_game"
+    app:menu="@menu/menu_in_game"
+    android:background="?attr/colorSurface"
+    tools:visibility="gone" />
 
 </androidx.drawerlayout.widget.DrawerLayout>

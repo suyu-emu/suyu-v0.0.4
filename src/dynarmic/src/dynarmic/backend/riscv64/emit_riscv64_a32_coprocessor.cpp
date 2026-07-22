@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 /* This file is part of the dynarmic project.
  * Copyright (c) 2024 MerryMage
  * SPDX-License-Identifier: 0BSD
@@ -19,37 +22,37 @@ namespace Dynarmic::Backend::RV64 {
 
 template<>
 void EmitIR<IR::Opcode::A32CoprocInternalOperation>(biscuit::Assembler&, EmitContext&, IR::Inst*) {
-    UNIMPLEMENTED();
+    ASSERT(false && "Unimplemented instruction");
 }
 
 template<>
 void EmitIR<IR::Opcode::A32CoprocSendOneWord>(biscuit::Assembler&, EmitContext&, IR::Inst*) {
-    UNIMPLEMENTED();
+    ASSERT(false && "Unimplemented instruction");
 }
 
 template<>
 void EmitIR<IR::Opcode::A32CoprocSendTwoWords>(biscuit::Assembler&, EmitContext&, IR::Inst*) {
-    UNIMPLEMENTED();
+    ASSERT(false && "Unimplemented instruction");
 }
 
 template<>
 void EmitIR<IR::Opcode::A32CoprocGetOneWord>(biscuit::Assembler&, EmitContext&, IR::Inst*) {
-    UNIMPLEMENTED();
+    ASSERT(false && "Unimplemented instruction");
 }
 
 template<>
 void EmitIR<IR::Opcode::A32CoprocGetTwoWords>(biscuit::Assembler&, EmitContext&, IR::Inst*) {
-    UNIMPLEMENTED();
+    ASSERT(false && "Unimplemented instruction");
 }
 
 template<>
 void EmitIR<IR::Opcode::A32CoprocLoadWords>(biscuit::Assembler&, EmitContext&, IR::Inst*) {
-    UNIMPLEMENTED();
+    ASSERT(false && "Unimplemented instruction");
 }
 
 template<>
 void EmitIR<IR::Opcode::A32CoprocStoreWords>(biscuit::Assembler&, EmitContext&, IR::Inst*) {
-    UNIMPLEMENTED();
+    ASSERT(false && "Unimplemented instruction");
 }
 
 }  // namespace Dynarmic::Backend::RV64

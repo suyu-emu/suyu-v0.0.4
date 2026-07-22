@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2021 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -221,6 +224,7 @@ private:
 
     // Converts structs to an u8 vector equivalent
     template <typename T>
+        requires std::is_trivially_copyable_v<T>
     u64 GetData(const T& reply, std::span<u8> out_data) const;
 
     RingConCommands command{RingConCommands::Error};

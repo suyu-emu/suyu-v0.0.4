@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2021 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -42,7 +45,7 @@ Id EmitIAdd32(EmitContext& ctx, IR::Inst* inst, Id a, Id b) {
     SetSignFlag(ctx, inst, result);
     if (IR::Inst * overflow{inst->GetAssociatedPseudoOperation(IR::Opcode::GetOverflowFromOp)}) {
         // https://stackoverflow.com/questions/55468823/how-to-detect-integer-overflow-in-c
-        constexpr u32 s32_max{static_cast<u32>(std::numeric_limits<s32>::max())};
+        constexpr u32 s32_max{static_cast<u32>((std::numeric_limits<s32>::max)())};
         const Id is_positive{ctx.OpSGreaterThanEqual(ctx.U1, a, ctx.u32_zero_value)};
         const Id sub_a{ctx.OpISub(ctx.U32[1], ctx.Const(s32_max), a)};
 
@@ -89,6 +92,10 @@ Id EmitINeg64(EmitContext& ctx, Id value) {
 
 Id EmitIAbs32(EmitContext& ctx, Id value) {
     return ctx.OpSAbs(ctx.U32[1], value);
+}
+
+Id EmitIAbs64(EmitContext& ctx, Id value) {
+    return ctx.OpSAbs(ctx.U64, value);
 }
 
 Id EmitShiftLeftLogical32(EmitContext& ctx, Id base, Id shift) {

@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2019 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -72,7 +75,7 @@ public:
 
     void Finish();
 
-    StagingBufferMap UploadStagingBuffer(size_t size);
+    StagingBufferMap UploadStagingBuffer(size_t size, bool deferred = false);
 
     StagingBufferMap DownloadStagingBuffer(size_t size, bool deferred = false);
 
@@ -116,7 +119,8 @@ public:
                          Tegra::Engines::Fermi2D::Operation operation);
 
     void AccelerateImageUpload(Image& image, const StagingBufferMap& map,
-                               std::span<const VideoCommon::SwizzleParameters> swizzles);
+                               std::span<const VideoCommon::SwizzleParameters> swizzles,
+                               u32 z_start, u32 z_count);
 
     void InsertUploadMemoryBarrier();
 
@@ -153,7 +157,7 @@ private:
     UtilShaders util_shaders;
     FormatConversionPass format_conversion_pass;
 
-    std::array<std::unordered_map<GLenum, FormatProperties>, 3> format_properties;
+    std::array<ankerl::unordered_dense::map<GLenum, FormatProperties>, 3> format_properties;
     bool has_broken_texture_view_formats = false;
 
     OGLTexture null_image_1d_array;
@@ -222,6 +226,8 @@ public:
     bool ScaleUp(bool ignore = false);
 
     bool ScaleDown(bool ignore = false);
+
+    u64 allocation_tick;
 
 private:
     void CopyBufferToImage(const VideoCommon::BufferImageCopy& copy, size_t buffer_offset);
@@ -296,7 +302,7 @@ private:
 
     std::array<GLuint, Shader::NUM_TEXTURE_TYPES> views{};
     std::vector<OGLTextureView> stored_views;
-    std::unique_ptr<StorageViews> storage_views;
+    std::optional<StorageViews> storage_views;
     GLenum internal_format = GL_NONE;
     GLuint default_handle = 0;
     u32 buffer_size = 0;

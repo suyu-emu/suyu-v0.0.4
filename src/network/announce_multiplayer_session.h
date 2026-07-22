@@ -1,3 +1,5 @@
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
 // SPDX-FileCopyrightText: Copyright 2017 Citra Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -15,7 +17,6 @@
 
 namespace Network {
 class Room;
-class RoomNetwork;
 } // namespace Network
 
 namespace Core {
@@ -28,7 +29,8 @@ namespace Core {
 class AnnounceMultiplayerSession {
 public:
     using CallbackHandle = std::shared_ptr<std::function<void(const WebService::WebResult&)>>;
-    AnnounceMultiplayerSession(Network::RoomNetwork& room_network_);
+
+    AnnounceMultiplayerSession();
     ~AnnounceMultiplayerSession();
 
     /**
@@ -70,7 +72,9 @@ public:
     /**
      * Whether the announce session is still running
      */
-    bool IsRunning() const;
+    [[nodiscard]] bool IsRunning() const {
+        return announce_multiplayer_thread.has_value();
+    }
 
     /**
      * Recreates the backend, updating the credentials.
@@ -80,19 +84,14 @@ public:
 
 private:
     void UpdateBackendData(std::shared_ptr<Network::Room> room);
-    void AnnounceMultiplayerLoop();
 
     Common::Event shutdown_event;
-    std::mutex callback_mutex;
     std::set<CallbackHandle> error_callbacks;
-    std::unique_ptr<std::thread> announce_multiplayer_thread;
-
+    std::optional<std::jthread> announce_multiplayer_thread;
     /// Backend interface that logs fields
     std::unique_ptr<AnnounceMultiplayerRoom::Backend> backend;
-
+    std::mutex callback_mutex;
     std::atomic_bool registered = false; ///< Whether the room has been registered
-
-    Network::RoomNetwork& room_network;
 };
 
 } // namespace Core

@@ -1,3 +1,5 @@
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
 // SPDX-FileCopyrightText: Copyright 2017 Citra Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -5,12 +7,13 @@
 #include <atomic>
 #include <iomanip>
 #include <mutex>
+#include <random>
 #include <regex>
 #include <shared_mutex>
 #include <sstream>
 #include <thread>
-#include "common/logging/log.h"
-#include "common/random.h"
+#include "common/polyfill_thread.h"
+#include "common/logging.h"
 #include "enet/enet.h"
 #include "network/packet.h"
 #include "network/room.h"
@@ -20,8 +23,6 @@ namespace Network {
 
 class Room::RoomImpl {
 public:
-
-
     ENetHost* server = nullptr; ///< Network interface.
 
     std::atomic<State> state{State::Closed}; ///< Current state of the room.
@@ -48,16 +49,14 @@ public:
     IPBanList ip_ban_list;             ///< List of banned IP addresses
     mutable std::mutex ban_list_mutex; ///< Mutex for the ban lists
 
-    RoomImpl() = default;
+    RoomImpl() {}
 
     /// Thread that receives and dispatches network packets
-    std::unique_ptr<std::thread> room_thread;
+    std::optional<std::jthread> room_thread;
 
     /// Verification backend of the room
     std::unique_ptr<VerifyUser::Backend> verify_backend;
 
-    /// Thread function that will receive and dispatch messages until the room is destroyed.
-    void ServerLoop();
     void StartLoop();
 
     /**
@@ -237,59 +236,57 @@ public:
 };
 
 // RoomImpl
-void Room::RoomImpl::ServerLoop() {
-    while (state != State::Closed) {
-        ENetEvent event;
-        if (enet_host_service(server, &event, 5) > 0) {
-            switch (event.type) {
-            case ENET_EVENT_TYPE_RECEIVE:
-                switch (event.packet->data[0]) {
-                case IdJoinRequest:
-                    HandleJoinRequest(&event);
+void Room::RoomImpl::StartLoop() {
+    room_thread.emplace([&](std::stop_token stoken) {
+        while (state != State::Closed) {
+            ENetEvent event;
+            if (enet_host_service(server, &event, 5) > 0) {
+                switch (event.type) {
+                case ENET_EVENT_TYPE_RECEIVE:
+                    switch (event.packet->data[0]) {
+                    case IdJoinRequest:
+                        HandleJoinRequest(&event);
+                        break;
+                    case IdSetGameInfo:
+                        HandleGameInfoPacket(&event);
+                        break;
+                    case IdProxyPacket:
+                        HandleProxyPacket(&event);
+                        break;
+                    case IdLdnPacket:
+                        HandleLdnPacket(&event);
+                        break;
+                    case IdChatMessage:
+                        HandleChatPacket(&event);
+                        break;
+                    // Moderation
+                    case IdModKick:
+                        HandleModKickPacket(&event);
+                        break;
+                    case IdModBan:
+                        HandleModBanPacket(&event);
+                        break;
+                    case IdModUnban:
+                        HandleModUnbanPacket(&event);
+                        break;
+                    case IdModGetBanList:
+                        HandleModGetBanListPacket(&event);
+                        break;
+                    }
+                    enet_packet_destroy(event.packet);
                     break;
-                case IdSetGameInfo:
-                    HandleGameInfoPacket(&event);
+                case ENET_EVENT_TYPE_DISCONNECT:
+                    HandleClientDisconnection(event.peer);
                     break;
-                case IdProxyPacket:
-                    HandleProxyPacket(&event);
-                    break;
-                case IdLdnPacket:
-                    HandleLdnPacket(&event);
-                    break;
-                case IdChatMessage:
-                    HandleChatPacket(&event);
-                    break;
-                // Moderation
-                case IdModKick:
-                    HandleModKickPacket(&event);
-                    break;
-                case IdModBan:
-                    HandleModBanPacket(&event);
-                    break;
-                case IdModUnban:
-                    HandleModUnbanPacket(&event);
-                    break;
-                case IdModGetBanList:
-                    HandleModGetBanListPacket(&event);
+                case ENET_EVENT_TYPE_NONE:
+                case ENET_EVENT_TYPE_CONNECT:
                     break;
                 }
-                enet_packet_destroy(event.packet);
-                break;
-            case ENET_EVENT_TYPE_DISCONNECT:
-                HandleClientDisconnection(event.peer);
-                break;
-            case ENET_EVENT_TYPE_NONE:
-            case ENET_EVENT_TYPE_CONNECT:
-                break;
             }
         }
-    }
-    // Close the connection to all members:
-    SendCloseMessage();
-}
-
-void Room::RoomImpl::StartLoop() {
-    room_thread = std::make_unique<std::thread>(&Room::RoomImpl::ServerLoop, this);
+        // Close the connection to all members:
+        SendCloseMessage();
+    });
 }
 
 void Room::RoomImpl::HandleJoinRequest(const ENetEvent* event) {
@@ -807,15 +804,16 @@ void Room::RoomImpl::BroadcastRoomInformation() {
 }
 
 IPv4Address Room::RoomImpl::GenerateFakeIPAddress() {
-    IPv4Address result_ip{192, 168, 0, 0};
-    std::uniform_int_distribution<> dis(0x01, 0xFE); // Random byte between 1 and 0xFE
-    do {
-        for (std::size_t i = 2; i < result_ip.size(); ++i) {
-            result_ip[i] = static_cast<u8>(dis(Common::Random::GetMT19937()));
+    // An IP address is valid if it is not already taken by anybody else in the room.
+    std::lock_guard lock(member_mutex);
+    for (u8 i = 0x01; i < 0xFF; ++i)
+        for (u8 j = 0x01; j < 0xFF; ++j) {
+            IPv4Address addr{192, 168, i, j};
+            if (std::all_of(members.begin(), members.end(), [&addr](auto const& member) { return member.fake_ip != addr; }))
+                return addr;
         }
-    } while (!IsValidFakeIPAddress(result_ip));
-
-    return result_ip;
+    LOG_ERROR(Network, "All addresses are taken");
+    return IPv4Address{192, 168, 0, 0};
 }
 
 void Room::RoomImpl::HandleProxyPacket(const ENetEvent* event) {
@@ -948,7 +946,7 @@ void Room::RoomImpl::HandleChatPacket(const ENetEvent* event) {
     }
 
     // Limit the size of chat messages to MaxMessageSize
-    message.resize(std::min(static_cast<u32>(message.size()), MaxMessageSize));
+    message.resize((std::min)(static_cast<u32>(message.size()), MaxMessageSize));
 
     Packet out_packet;
     out_packet.Write(static_cast<u8>(IdChatMessage));
@@ -1129,7 +1127,6 @@ void Room::SetVerifyUID(const std::string& uid) {
 
 void Room::Destroy() {
     room_impl->state = State::Closed;
-    room_impl->room_thread->join();
     room_impl->room_thread.reset();
 
     if (room_impl->server) {

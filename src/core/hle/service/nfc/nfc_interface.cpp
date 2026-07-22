@@ -1,7 +1,10 @@
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2022 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
-#include "common/logging/log.h"
+#include "common/logging.h"
 #include "core/core.h"
 #include "core/hle/kernel/k_event.h"
 #include "core/hle/service/ipc_helpers.h"
@@ -140,7 +143,7 @@ void NfcInterface::AttachAvailabilityChangeEvent(HLERequestContext& ctx) {
 
     IPC::ResponseBuilder rb{ctx, 2, 1};
     rb.Push(ResultSuccess);
-    rb.PushCopyObjects(GetManager()->AttachAvailabilityChangeEvent());
+    rb.PushCopyObjects(ctx, GetManager()->AttachAvailabilityChangeEvent());
 }
 
 void NfcInterface::StartDetection(HLERequestContext& ctx) {
@@ -200,7 +203,7 @@ void NfcInterface::AttachActivateEvent(HLERequestContext& ctx) {
 
     IPC::ResponseBuilder rb{ctx, 2, 1};
     rb.Push(result);
-    rb.PushCopyObjects(out_event);
+    rb.PushCopyObjects(ctx, out_event);
 }
 
 void NfcInterface::AttachDeactivateEvent(HLERequestContext& ctx) {
@@ -214,7 +217,7 @@ void NfcInterface::AttachDeactivateEvent(HLERequestContext& ctx) {
 
     IPC::ResponseBuilder rb{ctx, 2, 1};
     rb.Push(result);
-    rb.PushCopyObjects(out_event);
+    rb.PushCopyObjects(ctx, out_event);
 }
 
 void NfcInterface::SetNfcEnabled(HLERequestContext& ctx) {

@@ -1,8 +1,11 @@
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2019 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "common/common_types.h"
-#include "common/logging/log.h"
+#include "common/logging.h"
 #include "video_core/texture_cache/format_lookup_table.h"
 
 namespace VideoCommon {
@@ -188,6 +191,29 @@ PixelFormat PixelFormatFromTextureInfo(TextureFormat format, ComponentType red, 
         return PixelFormat::BC6H_SFLOAT;
     case Hash(TextureFormat::BC6H_U16, FLOAT):
         return PixelFormat::BC6H_UFLOAT;
+    /* ETC2 */
+    case Hash(TextureFormat::ETC2_RGB, UNORM, LINEAR):
+        return PixelFormat::ETC2_RGB_UNORM;
+    case Hash(TextureFormat::ETC2_RGB_PTA, UNORM, LINEAR):
+        return PixelFormat::ETC2_RGB_PTA_UNORM;
+    case Hash(TextureFormat::ETC2_RGBA, UNORM, LINEAR):
+        return PixelFormat::ETC2_RGBA_UNORM;
+    case Hash(TextureFormat::ETC2_RGB, UNORM, SRGB):
+        return PixelFormat::ETC2_RGB_SRGB;
+    case Hash(TextureFormat::ETC2_RGB_PTA, UNORM, SRGB):
+        return PixelFormat::ETC2_RGB_PTA_SRGB;
+    case Hash(TextureFormat::ETC2_RGBA, UNORM, SRGB):
+        return PixelFormat::ETC2_RGBA_SRGB;
+    /* EAC */
+    case Hash(TextureFormat::EAC, UNORM):
+        return PixelFormat::EAC_R11_UNORM;
+    case Hash(TextureFormat::EAC, SNORM):
+        return PixelFormat::EAC_R11_SNORM;
+    case Hash(TextureFormat::EACX2, UNORM):
+        return PixelFormat::EAC_R11G11_UNORM;
+    case Hash(TextureFormat::EACX2, SNORM):
+        return PixelFormat::EAC_R11G11_SNORM;
+    /* ASTC */
     case Hash(TextureFormat::ASTC_2D_4X4, UNORM, LINEAR):
         return PixelFormat::ASTC_2D_4X4_UNORM;
     case Hash(TextureFormat::ASTC_2D_4X4, UNORM, SRGB):

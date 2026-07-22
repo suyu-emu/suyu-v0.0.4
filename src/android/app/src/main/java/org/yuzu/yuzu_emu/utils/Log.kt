@@ -1,7 +1,11 @@
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: 2023 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
 package org.yuzu.yuzu_emu.utils
+import org.yuzu.yuzu_emu.NativeLibrary
 
 import android.os.Build
 
@@ -25,6 +29,15 @@ object Log {
         if (Build.VERSION.SDK_INT > Build.VERSION_CODES.R) {
             info("SoC Manufacturer - ${Build.SOC_MANUFACTURER}")
             info("SoC Model - ${Build.SOC_MODEL}")
+            NativeLibrary.getCpuSummary().split('\n').forEach {
+                info("CPU Info - $it")
+            }
+        }
+        NativeLibrary.getVulkanDriverVersion().split('\n').forEach {
+            info("Vulkan Driver: - $it")
+        }
+        NativeLibrary.getVulkanApiVersion().split('\n').forEach {
+            info("Vulkan API Version: - $it")
         }
         info("Total System Memory - ${MemoryUtil.getDeviceRAM()}")
     }

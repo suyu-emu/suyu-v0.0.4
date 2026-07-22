@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2020 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -68,7 +71,7 @@ public:
         // Repeatedly open references until we've done so for all pages.
         while (num_pages) {
             auto& manager = this->GetManager(address);
-            const size_t cur_pages = std::min(num_pages, manager.GetPageOffsetToEnd(address));
+            const size_t cur_pages = (std::min)(num_pages, manager.GetPageOffsetToEnd(address));
 
             {
                 KScopedLightLock lk(m_pool_locks[static_cast<size_t>(manager.GetPool())]);
@@ -84,7 +87,7 @@ public:
         // Repeatedly open references until we've done so for all pages.
         while (num_pages) {
             auto& manager = this->GetManager(address);
-            const size_t cur_pages = std::min(num_pages, manager.GetPageOffsetToEnd(address));
+            const size_t cur_pages = (std::min)(num_pages, manager.GetPageOffsetToEnd(address));
 
             {
                 KScopedLightLock lk(m_pool_locks[static_cast<size_t>(manager.GetPool())]);
@@ -100,7 +103,7 @@ public:
         // Repeatedly close references until we've done so for all pages.
         while (num_pages) {
             auto& manager = this->GetManager(address);
-            const size_t cur_pages = std::min(num_pages, manager.GetPageOffsetToEnd(address));
+            const size_t cur_pages = (std::min)(num_pages, manager.GetPageOffsetToEnd(address));
 
             {
                 KScopedLightLock lk(m_pool_locks[static_cast<size_t>(manager.GetPool())]);

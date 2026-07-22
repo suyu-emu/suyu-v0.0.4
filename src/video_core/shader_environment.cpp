@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2021 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -14,8 +17,9 @@
 #include "common/div_ceil.h"
 #include "common/fs/fs.h"
 #include "common/fs/path_util.h"
-#include "common/logging/log.h"
-#include "common/polyfill_ranges.h"
+#include "common/logging.h"
+#include "common/settings.h"
+#include <ranges>
 #include "shader_recompiler/environment.h"
 #include "video_core/engines/kepler_compute.h"
 #include "video_core/memory_manager.h"
@@ -56,7 +60,7 @@ static Shader::TextureType ConvertTextureType(const Tegra::Texture::TICEntry& en
     case Tegra::Texture::TextureType::TextureCubeArray:
         return Shader::TextureType::ColorArrayCube;
     default:
-        UNIMPLEMENTED();
+        LOG_ERROR(Shader, "Invalid texture_type={}. Falling back to texture_type={}", static_cast<int>(entry.texture_type.Value()), Shader::TextureType::Color2D);
         return Shader::TextureType::Color2D;
     }
 }
@@ -70,36 +74,36 @@ static Shader::TexturePixelFormat ConvertTexturePixelFormat(const Tegra::Texture
 static std::string_view StageToPrefix(Shader::Stage stage) {
     switch (stage) {
     case Shader::Stage::VertexB:
-        return "VB";
+        return "vs";
     case Shader::Stage::TessellationControl:
-        return "TC";
+        return "tc";
     case Shader::Stage::TessellationEval:
-        return "TE";
+        return "te";
     case Shader::Stage::Geometry:
-        return "GS";
+        return "gs";
     case Shader::Stage::Fragment:
-        return "FS";
+        return "fs";
     case Shader::Stage::Compute:
-        return "CS";
+        return "cs";
     case Shader::Stage::VertexA:
-        return "VA";
+        return "va";
     default:
-        return "UK";
+        return "uk";
     }
 }
 
-static void DumpImpl(u64 pipeline_hash, u64 shader_hash, std::span<const u64> code,
+static void DumpImpl(u64 /*pipeline_hash*/, u64 shader_hash, std::span<const u64> code,
                      [[maybe_unused]] u32 read_highest, [[maybe_unused]] u32 read_lowest,
                      u32 initial_offset, Shader::Stage stage) {
-    const auto shader_dir{Common::FS::GetSuyuPath(Common::FS::SuyuPath::DumpDir)};
-    const auto base_dir{shader_dir / "shaders"};
-    if (!Common::FS::CreateDir(shader_dir) || !Common::FS::CreateDir(base_dir)) {
-        LOG_ERROR(Common_Filesystem, "Failed to create shader dump directories");
+    const auto dump_dir{Common::FS::GetEdenPath(Common::FS::EdenPath::DumpDir)};
+    if (!Common::FS::CreateDir(dump_dir)) {
+        LOG_ERROR(Common_Filesystem, "Failed to create dump directory");
         return;
     }
     const auto prefix = StageToPrefix(stage);
-    const auto name{base_dir /
-                    fmt::format("{:016x}_{}_{:016x}.ash", pipeline_hash, prefix, shader_hash)};
+    const auto name{dump_dir /
+                    fmt::format("{:016x}_{:016x}_{}.ash",
+                                Settings::GetCurrentProgramID(), shader_hash, prefix)};
     std::fstream shader_file(name, std::ios::out | std::ios::binary);
     ASSERT(initial_offset % sizeof(u64) == 0);
     const size_t jump_index = initial_offset / sizeof(u64);
@@ -139,8 +143,8 @@ std::array<u32, 3> GenericEnvironment::WorkgroupSize() const {
 }
 
 u64 GenericEnvironment::ReadInstruction(u32 address) {
-    read_lowest = std::min(read_lowest, address);
-    read_highest = std::max(read_highest, address);
+    read_lowest = (std::min)(read_lowest, address);
+    read_highest = (std::max)(read_highest, address);
 
     if (address >= cached_lowest && address < cached_highest) {
         return code[(address - cached_lowest) / INST_SIZE];
@@ -251,17 +255,23 @@ std::optional<u64> GenericEnvironment::TryFindSize() {
     static constexpr u64 SELF_BRANCH_A = 0xE2400FFFFF87000FULL;
     static constexpr u64 SELF_BRANCH_B = 0xE2400FFFFF07000FULL;
 
+    static constexpr u64 EXIT_VALUE = 0xE30000000007000FULL;
+
+    code.resize(MAXIMUM_SIZE / INST_SIZE);
+
     GPUVAddr guest_addr{program_base + start_address};
     size_t offset{0};
     size_t size{BLOCK_SIZE};
     while (size <= MAXIMUM_SIZE) {
-        code.resize(size / INST_SIZE);
         u64* const data = code.data() + offset / INST_SIZE;
         gpu_memory->ReadBlock(guest_addr, data, BLOCK_SIZE);
         for (size_t index = 0; index < BLOCK_SIZE; index += INST_SIZE) {
             const u64 inst = data[index / INST_SIZE];
             if (inst == SELF_BRANCH_A || inst == SELF_BRANCH_B) {
                 return offset + index;
+            }
+            if (!is_proprietary_driver && inst == EXIT_VALUE) {
+                return offset + index + INST_SIZE;
             }
         }
         guest_addr += BLOCK_SIZE;
@@ -319,7 +329,7 @@ GraphicsEnvironment::GraphicsEnvironment(Tegra::Engines::Maxwell3D& maxwell3d_,
         break;
     }
     const u64 local_size{sph.LocalMemorySize()};
-    ASSERT(local_size <= std::numeric_limits<u32>::max());
+    ASSERT(local_size <= (std::numeric_limits<u32>::max)());
     local_memory_size = static_cast<u32>(local_size) + sph.common3.shader_local_memory_crs_size;
     texture_bound = maxwell3d->regs.bindless_texture_const_buffer_slot;
     is_proprietary_driver = texture_bound == 2;

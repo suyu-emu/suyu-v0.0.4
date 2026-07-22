@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2022 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -12,7 +15,7 @@ static T HexToValue(std::string_view hex) {
     static_assert(std::is_trivially_copyable_v<T>);
     T value{};
     const auto mem{Common::HexStringToVector(hex, false)};
-    std::memcpy(&value, mem.data(), std::min(mem.size(), sizeof(T)));
+    std::memcpy(&value, mem.data(), (std::min)(mem.size(), sizeof(T)));
     return value;
 }
 
@@ -280,7 +283,7 @@ std::string_view GDBStubA32::GetTargetXML() const {
     <reg name="r11" bitsize="32" type="uint32"/>
     <reg name="r12" bitsize="32" type="uint32"/>
     <reg name="sp" bitsize="32" type="data_ptr"/>
-    <reg name="lr" bitsize="32" type="code_ptr"/>
+    <reg name="lr" bitsize="32"/>
     <reg name="pc" bitsize="32" type="code_ptr"/>
     <!-- The CPSR is register 25, rather than register 16, because
          the FPA registers historically were placed between the PC

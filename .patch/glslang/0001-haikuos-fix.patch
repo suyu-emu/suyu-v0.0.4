@@ -1,0 +1,49 @@
+diff --git a/StandAlone/StandAlone.cpp b/StandAlone/StandAlone.cpp
+index be7f442..5fd0438 100644
+--- a/StandAlone/StandAlone.cpp
++++ b/StandAlone/StandAlone.cpp
+@@ -1766,9 +1766,10 @@ int singleMain()
+         glslang::FinalizeProcess();
+     } else {
+         ShInitialize();
++#ifndef __HAIKU__
+         ShInitialize();  // also test reference counting of users
+         ShFinalize();    // also test reference counting of users
+-
++#endif
+         bool printShaderNames = workList.size() > 1;
+ 
+         if (Options & EOptionMultiThreaded) {
+@@ -1793,8 +1794,9 @@ int singleMain()
+                 PutsIfNonEmpty(WorkItems[w]->results.c_str());
+             }
+         }
+-
++#ifndef __HAIKU__
+         ShFinalize();
++#endif
+     }
+ 
+     if (CompileFailed.load())
+@@ -1809,8 +1811,10 @@ int C_DECL main(int argc, char* argv[])
+ {
+     ProcessArguments(WorkItems, argc, argv);
+ 
++#ifdef __HAIKU__
++    return singleMain();
++#else
+     int ret = 0;
+-
+     // Loop over the entire init/finalize cycle to watch memory changes
+     const int iterations = 1;
+     if (iterations > 1)
+@@ -1820,8 +1824,8 @@ int C_DECL main(int argc, char* argv[])
+         if (iterations > 1)
+             glslang::OS_DumpMemoryCounters();
+     }
+-
+     return ret;
++#endif
+ }
+ 
+ //

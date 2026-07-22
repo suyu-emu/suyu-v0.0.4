@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 /* This file is part of the dynarmic project.
@@ -11,9 +11,8 @@
 #include <tuple>
 #include <type_traits>
 
-#include <mcl/bit/bit_field.hpp>
-#include <mcl/bitsizeof.hpp>
-#include "dynarmic/common/common_types.h"
+#include "dynarmic/mcl/bit.hpp"
+#include "common/common_types.h"
 
 namespace Dynarmic {
 
@@ -23,22 +22,13 @@ struct u128 {
     u128(u128&&) = default;
     u128& operator=(const u128&) = default;
     u128& operator=(u128&&) = default;
-
-    u128(u64 lower_, u64 upper_)
-            : lower(lower_), upper(upper_) {}
-
-    template<typename T>
-    /* implicit */ u128(T value)
-            : lower(value), upper(0) {
-        static_assert(std::is_integral_v<T>);
-        static_assert(mcl::bitsizeof<T> <= mcl::bitsizeof<u64>);
-    }
+    explicit u128(u64 lower_, u64 upper_) : lower(lower_), upper(upper_) {}
 
     u64 lower = 0;
     u64 upper = 0;
 
     template<size_t bit_position>
-    bool Bit() const {
+    [[nodiscard]] inline bool Bit() const {
         static_assert(bit_position < 128);
         if constexpr (bit_position < 64) {
             return mcl::bit::get_bit<bit_position>(lower);

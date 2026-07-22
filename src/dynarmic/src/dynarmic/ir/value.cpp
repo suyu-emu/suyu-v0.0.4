@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 /* This file is part of the dynarmic project.
@@ -8,8 +8,8 @@
 
 #include "dynarmic/ir/value.h"
 
-#include "dynarmic/common/assert.h"
-#include <mcl/bit/bit_field.hpp>
+#include "common/assert.h"
+#include "dynarmic/mcl/bit.hpp"
 
 #include "dynarmic/ir/microinstruction.h"
 #include "dynarmic/ir/opcodes.h"
@@ -100,9 +100,14 @@ bool Value::IsEmpty() const noexcept {
 }
 
 bool Value::IsImmediate() const noexcept {
-    if (IsIdentity())
-        return inner.inst->GetArg(0).IsImmediate();
-    return type != Type::Opaque;
+    IR::Type current_type = type;
+    IR::Inst const* current_inst = inner.inst;
+    while (current_type == Type::Opaque && current_inst->GetOpcode() == Opcode::Identity) {
+        Value const& arg = current_inst->GetArg(0);
+        current_type = arg.type;
+        current_inst = arg.inner.inst;
+    }
+    return current_type != Type::Opaque;
 }
 
 Type Value::GetType() const noexcept {

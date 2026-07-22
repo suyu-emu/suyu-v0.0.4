@@ -1,27 +1,33 @@
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2023 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
-#include <mbedtls/sha256.h>
+#include <openssl/err.h>
+#include <openssl/evp.h>
 
-#include "common/scope_exit.h"
 #include "core/hle/kernel/k_process.h"
 
 #include "core/hle/service/cmif_serialization.h"
-#include "core/hle/service/ipc_helpers.h"
 #include "core/hle/service/ro/ro.h"
 #include "core/hle/service/ro/ro_nro_utils.h"
 #include "core/hle/service/ro/ro_results.h"
 #include "core/hle/service/ro/ro_types.h"
 #include "core/hle/service/server_manager.h"
+#include "core/hle/service/service.h"
 
 namespace Service::RO {
 
 namespace {
 
-// Convenience definitions.
-constexpr size_t MaxSessions = 0x3;
-constexpr size_t MaxNrrInfos = 0x40;
-constexpr size_t MaxNroInfos = 0x40;
+// Atmosphere defines as follows:
+// Sessions = 0x03, NrrInfos = 0x40, NroInfos = 0x40
+// This may not be enough for some mods (plugin.nro dependant games) like SSBU
+// Suppose someone loads like 64 plugins of these, now what?
+constexpr size_t MaxSessions = 0x03; // No change
+constexpr size_t MaxNrrInfos = 0x100; // Up to 256 NRRs
+constexpr size_t MaxNroInfos = 0x100; // Up to 256 NROs
 
 constexpr u64 InvalidProcessId = 0xffffffffffffffffULL;
 constexpr u64 InvalidContextId = 0xffffffffffffffffULL;
@@ -51,7 +57,7 @@ struct NrrInfo {
 struct ProcessContext {
     constexpr ProcessContext() = default;
 
-    void Initialize(Kernel::KProcess* process, u64 process_id) {
+    void Initialize(Kernel::KernelCore& kernel, Kernel::KProcess* process, u64 process_id) {
         ASSERT(!m_in_use);
 
         m_nro_in_use = {};
@@ -64,15 +70,15 @@ struct ProcessContext {
         m_in_use = true;
 
         if (m_process) {
-            m_process->Open();
+            m_process->Open(kernel);
         }
     }
 
-    void Finalize() {
+    void Finalize(Kernel::KernelCore& kernel) {
         ASSERT(m_in_use);
 
         if (m_process) {
-            m_process->Close();
+            m_process->Close(kernel);
         }
 
         m_nro_in_use = {};
@@ -173,12 +179,11 @@ struct ProcessContext {
         // Calculate hash.
         Sha256Hash hash;
         {
-            const u64 size = nro_header->GetSize();
-
+            const u64 size = nro_header->m_size;
             std::vector<u8> nro_data(size);
             m_process->GetMemory().ReadBlock(base_address, nro_data.data(), size);
-
-            mbedtls_sha256_ret(nro_data.data(), size, hash.data(), 0);
+            u32 hash_len = 0;
+            EVP_Digest(nro_data.data(), nro_data.size(), hash.data(), &hash_len, EVP_sha256(), nullptr);
         }
 
         for (size_t i = 0; i < MaxNrrInfos; i++) {
@@ -200,9 +205,7 @@ struct ProcessContext {
         R_THROW(RO::ResultNotAuthorized);
     }
 
-    Result ValidateNro(ModuleId* out_module_id, u64* out_rx_size, u64* out_ro_size,
-                       u64* out_rw_size, u64 base_address, u64 expected_nro_size,
-                       u64 expected_bss_size) {
+    Result ValidateNro(ModuleId* out_module_id, u64* out_rx_size, u64* out_ro_size, u64* out_rw_size, u64 base_address, u64 expected_nro_size, u64 expected_bss_size) {
         // Ensure we have a process to work on.
         R_UNLESS(m_process != nullptr, RO::ResultInvalidProcess);
 
@@ -211,27 +214,27 @@ struct ProcessContext {
         m_process->GetMemory().ReadBlock(base_address, std::addressof(header), sizeof(header));
 
         // Validate header.
-        R_UNLESS(header.IsMagicValid(), RO::ResultInvalidNro);
+        R_UNLESS(header.m_magic == NRO_HEADER_MAGIC, RO::ResultInvalidNro);
 
         // Read sizes from header.
-        const u64 nro_size = header.GetSize();
-        const u64 text_ofs = header.GetTextOffset();
-        const u64 text_size = header.GetTextSize();
-        const u64 ro_ofs = header.GetRoOffset();
-        const u64 ro_size = header.GetRoSize();
-        const u64 rw_ofs = header.GetRwOffset();
-        const u64 rw_size = header.GetRwSize();
-        const u64 bss_size = header.GetBssSize();
+        const u64 nro_size = header.m_size;
+        const u64 text_ofs = header.m_text_offset;
+        const u64 text_size = header.m_text_size;
+        const u64 ro_ofs = header.m_ro_offset;
+        const u64 ro_size = header.m_ro_size;
+        const u64 rw_ofs = header.m_rw_offset;
+        const u64 rw_size = header.m_rw_size;
+        const u64 bss_size = header.m_bss_size;
 
         // Validate sizes meet expected.
         R_UNLESS(nro_size == expected_nro_size, RO::ResultInvalidNro);
         R_UNLESS(bss_size == expected_bss_size, RO::ResultInvalidNro);
 
         // Validate all sizes are aligned.
-        R_UNLESS(Common::IsAligned(text_size, Core::Memory::SUYU_PAGESIZE), RO::ResultInvalidNro);
-        R_UNLESS(Common::IsAligned(ro_size, Core::Memory::SUYU_PAGESIZE), RO::ResultInvalidNro);
-        R_UNLESS(Common::IsAligned(rw_size, Core::Memory::SUYU_PAGESIZE), RO::ResultInvalidNro);
-        R_UNLESS(Common::IsAligned(bss_size, Core::Memory::SUYU_PAGESIZE), RO::ResultInvalidNro);
+        R_UNLESS(Common::IsAligned(text_size, Core::Memory::YUZU_PAGESIZE), RO::ResultInvalidNro);
+        R_UNLESS(Common::IsAligned(ro_size, Core::Memory::YUZU_PAGESIZE), RO::ResultInvalidNro);
+        R_UNLESS(Common::IsAligned(rw_size, Core::Memory::YUZU_PAGESIZE), RO::ResultInvalidNro);
+        R_UNLESS(Common::IsAligned(bss_size, Core::Memory::YUZU_PAGESIZE), RO::ResultInvalidNro);
 
         // Validate sections are in order.
         R_UNLESS(text_ofs <= ro_ofs, RO::ResultInvalidNro);
@@ -247,7 +250,7 @@ struct ProcessContext {
         R_TRY(this->ValidateHasNroHash(base_address, std::addressof(header)));
 
         // Check if NRO has already been loaded.
-        const ModuleId* module_id = header.GetModuleId();
+        const ModuleId* module_id = std::addressof(header.m_module_id);
         R_UNLESS(R_FAILED(this->GetNroInfoByModuleId(nullptr, module_id)), RO::ResultAlreadyLoaded);
 
         // Apply patches to NRO.
@@ -286,16 +289,16 @@ private:
 };
 
 Result ValidateAddressAndNonZeroSize(u64 address, u64 size) {
-    R_UNLESS(Common::IsAligned(address, Core::Memory::SUYU_PAGESIZE), RO::ResultInvalidAddress);
+    R_UNLESS(Common::IsAligned(address, Core::Memory::YUZU_PAGESIZE), RO::ResultInvalidAddress);
     R_UNLESS(size != 0, RO::ResultInvalidSize);
-    R_UNLESS(Common::IsAligned(size, Core::Memory::SUYU_PAGESIZE), RO::ResultInvalidSize);
+    R_UNLESS(Common::IsAligned(size, Core::Memory::YUZU_PAGESIZE), RO::ResultInvalidSize);
     R_UNLESS(address < address + size, RO::ResultInvalidSize);
     R_SUCCEED();
 }
 
 Result ValidateAddressAndSize(u64 address, u64 size) {
-    R_UNLESS(Common::IsAligned(address, Core::Memory::SUYU_PAGESIZE), RO::ResultInvalidAddress);
-    R_UNLESS(Common::IsAligned(size, Core::Memory::SUYU_PAGESIZE), RO::ResultInvalidSize);
+    R_UNLESS(Common::IsAligned(address, Core::Memory::YUZU_PAGESIZE), RO::ResultInvalidAddress);
+    R_UNLESS(Common::IsAligned(size, Core::Memory::YUZU_PAGESIZE), RO::ResultInvalidSize);
     R_UNLESS(size == 0 || address < address + size, RO::ResultInvalidSize);
     R_SUCCEED();
 }
@@ -304,7 +307,7 @@ class RoContext {
 public:
     explicit RoContext() = default;
 
-    Result RegisterProcess(size_t* out_context_id, Kernel::KProcess* process, u64 process_id) {
+    Result RegisterProcess(Kernel::KernelCore& kernel, size_t* out_context_id, Kernel::KProcess* process, u64 process_id) {
         // Validate process id.
         R_UNLESS(process->GetProcessId() == process_id, RO::ResultInvalidProcess);
 
@@ -312,7 +315,7 @@ public:
         R_UNLESS(this->GetContextByProcessId(process_id) == nullptr, RO::ResultInvalidSession);
 
         // Allocate a context to manage the process handle.
-        *out_context_id = this->AllocateContext(process, process_id);
+        *out_context_id = this->AllocateContext(kernel, process, process_id);
 
         R_SUCCEED();
     }
@@ -324,8 +327,8 @@ public:
         R_SUCCEED();
     }
 
-    void UnregisterProcess(size_t context_id) {
-        this->FreeContext(context_id);
+    void UnregisterProcess(Kernel::KernelCore& kernel, size_t context_id) {
+        this->FreeContext(kernel, context_id);
     }
 
     Result RegisterModuleInfo(size_t context_id, u64 nrr_address, u64 nrr_size, NrrKind nrr_kind,
@@ -369,7 +372,7 @@ public:
         ASSERT(context != nullptr);
 
         // Validate address.
-        R_UNLESS(Common::IsAligned(nrr_address, Core::Memory::SUYU_PAGESIZE),
+        R_UNLESS(Common::IsAligned(nrr_address, Core::Memory::YUZU_PAGESIZE),
                  RO::ResultInvalidAddress);
 
         // Check the NRR is loaded.
@@ -436,7 +439,7 @@ public:
         ASSERT(context != nullptr);
 
         // Validate address.
-        R_UNLESS(Common::IsAligned(nro_address, Core::Memory::SUYU_PAGESIZE),
+        R_UNLESS(Common::IsAligned(nro_address, Core::Memory::YUZU_PAGESIZE),
                  RO::ResultInvalidAddress);
 
         // Check the NRO is loaded.
@@ -478,13 +481,13 @@ private:
         return nullptr;
     }
 
-    size_t AllocateContext(Kernel::KProcess* process, u64 process_id) {
+    size_t AllocateContext(Kernel::KernelCore& kernel, Kernel::KProcess* process, u64 process_id) {
         // Find a free process context.
         for (size_t i = 0; i < MaxSessions; i++) {
             ProcessContext* context = std::addressof(process_contexts[i]);
 
             if (context->IsFree()) {
-                context->Initialize(process, process_id);
+                context->Initialize(kernel, process, process_id);
                 return i;
             }
         }
@@ -493,9 +496,9 @@ private:
         UNREACHABLE();
     }
 
-    void FreeContext(size_t context_id) {
+    void FreeContext(Kernel::KernelCore& kernel, size_t context_id) {
         if (ProcessContext* context = GetContextById(context_id); context != nullptr) {
-            context->Finalize();
+            context->Finalize(kernel);
         }
     }
 };
@@ -522,7 +525,7 @@ public:
     }
 
     ~RoInterface() {
-        m_ro->UnregisterProcess(m_context_id);
+        m_ro->UnregisterProcess(system.Kernel(), m_context_id);
     }
 
     Result MapManualLoadModuleMemory(Out<u64> out_load_address, ClientProcessId client_pid,
@@ -548,20 +551,16 @@ public:
         R_RETURN(m_ro->UnregisterModuleInfo(m_context_id, nrr_address));
     }
 
-    Result RegisterProcessHandle(ClientProcessId client_pid,
-                                 InCopyHandle<Kernel::KProcess> process) {
+    Result RegisterProcessHandle(ClientProcessId client_pid, InCopyHandle<Kernel::KProcess> process) {
         // Register the process.
-        R_RETURN(m_ro->RegisterProcess(std::addressof(m_context_id), process.Get(), *client_pid));
+        R_RETURN(m_ro->RegisterProcess(system.Kernel(), std::addressof(m_context_id), process.Get(), *client_pid));
     }
 
-    Result RegisterProcessModuleInfo(ClientProcessId client_pid, u64 nrr_address, u64 nrr_size,
-                                     InCopyHandle<Kernel::KProcess> process) {
+    Result RegisterProcessModuleInfo(ClientProcessId client_pid, u64 nrr_address, u64 nrr_size, InCopyHandle<Kernel::KProcess> process) {
         // Validate the process.
         R_TRY(m_ro->ValidateProcess(m_context_id, *client_pid));
-
         // Register the module.
-        R_RETURN(m_ro->RegisterModuleInfo(m_context_id, nrr_address, nrr_size, m_nrr_kind,
-                                          m_nrr_kind == NrrKind::JitPlugin));
+        R_RETURN(m_ro->RegisterModuleInfo(m_context_id, nrr_address, nrr_size, m_nrr_kind, m_nrr_kind == NrrKind::JitPlugin));
     }
 
 private:

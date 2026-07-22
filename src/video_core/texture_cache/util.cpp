@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2020 yuzu Emulator Project
 // SPDX-FileCopyrightText: Ryujinx Team and Contributors
 // SPDX-License-Identifier: GPL-2.0-or-later AND MIT
@@ -324,8 +327,8 @@ template <u32 GOB_EXTENT>
     }
     const SubresourceExtent resources = new_info.resources;
     return SubresourceExtent{
-        .levels = std::max(resources.levels, info.resources.levels),
-        .layers = std::max(resources.layers, info.resources.layers),
+        .levels = (std::max)(resources.levels, info.resources.levels),
+        .layers = (std::max)(resources.layers, info.resources.layers),
     };
 }
 
@@ -343,7 +346,7 @@ template <u32 GOB_EXTENT>
     if (!IsBlockLinearSizeCompatible(new_info, info, base.level, 0, strict_size)) {
         return std::nullopt;
     }
-    const u32 mip_depth = std::max(1U, new_info.size.depth << base.level);
+    const u32 mip_depth = AdjustMipSize(new_info.size.depth, base.level);
     if (mip_depth < info.size.depth + base.layer) {
         return std::nullopt;
     }
@@ -351,7 +354,7 @@ template <u32 GOB_EXTENT>
         return std::nullopt;
     }
     return SubresourceExtent{
-        .levels = std::max(new_info.resources.levels, info.resources.levels + base.level),
+        .levels = (std::max)(new_info.resources.levels, info.resources.levels + base.level),
         .layers = 1,
     };
 }
@@ -385,8 +388,8 @@ template <u32 GOB_EXTENT>
         return std::nullopt;
     }
     return SubresourceExtent{
-        .levels = std::max(new_info.resources.levels, info.resources.levels + base.level),
-        .layers = std::max(new_info.resources.layers, info.resources.layers + base.layer),
+        .levels = (std::max)(new_info.resources.levels, info.resources.levels + base.level),
+        .layers = (std::max)(new_info.resources.layers, info.resources.layers + base.layer),
     };
 }
 
@@ -428,16 +431,22 @@ template <u32 GOB_EXTENT>
         return std::nullopt;
     }
     const SubresourceExtent resources = new_info.resources;
-    s32 layers = 1;
-    if (info.type != ImageType::e3D) {
-        layers = std::max(resources.layers, info.resources.layers + base->layer);
+    s32 layers;
+    if (info.type == ImageType::e3D) {
+        const u32 mip_depth = AdjustMipSize(info.size.depth, base->level);
+        if (mip_depth < new_info.size.depth + base->layer) {
+            return std::nullopt;
+        }
+        layers = 1;
+    } else {
+        layers = (std::max)(resources.layers, info.resources.layers + base->layer);
     }
     return OverlapResult{
         .gpu_addr = overlap.gpu_addr,
         .cpu_addr = overlap.cpu_addr,
         .resources =
             {
-                .levels = std::max(resources.levels + base->level, info.resources.levels),
+                .levels = (std::max)(resources.levels + base->level, info.resources.levels),
                 .layers = layers,
             },
     };
@@ -637,7 +646,10 @@ LevelArray CalculateMipLevelOffsets(const ImageInfo& info) noexcept {
     if (info.type == ImageType::Linear) {
         return {};
     }
-    ASSERT(info.resources.levels <= static_cast<s32>(MAX_MIP_LEVELS));
+    if (info.resources.levels > static_cast<s32>(MAX_MIP_LEVELS)) {
+        LOG_ERROR(HW_GPU, "Image has too many mip levels={}, maximum supported is={}", info.resources.levels, MAX_MIP_LEVELS);
+        return {};
+    }
     const LevelInfo level_info = MakeLevelInfo(info);
     LevelArray offsets{};
     u32 offset = 0;
@@ -1216,7 +1228,7 @@ std::optional<SubresourceBase> FindSubresource(const ImageInfo& candidate, const
         return std::nullopt;
     }
     if (existing.type == ImageType::e3D) {
-        const u32 mip_depth = std::max(1U, existing.size.depth << base->level);
+        const u32 mip_depth = AdjustMipSize(existing.size.depth, base->level);
         if (mip_depth < candidate.size.depth + base->layer) {
             return std::nullopt;
         }
@@ -1247,7 +1259,7 @@ bool IsSubCopy(const ImageInfo& candidate, const ImageBase& image, GPUVAddr cand
         return false;
     }
     if (existing.type == ImageType::e3D) {
-        const u32 mip_depth = std::max(1U, existing.size.depth << base->level);
+        const u32 mip_depth = AdjustMipSize(existing.size.depth, base->level);
         if (mip_depth < candidate.size.depth + base->layer) {
             return false;
         }

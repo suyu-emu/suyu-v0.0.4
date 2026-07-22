@@ -1,16 +1,20 @@
-// SPDX-FileCopyrightText: Copyright 2018 suyu Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
+// SPDX-FileCopyrightText: Copyright 2018 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
 #pragma once
 
+#include <optional>
 #include <set>
 #include <span>
 #include <string>
-#include <unordered_map>
+#include <ankerl/unordered_dense.h>
 #include <vector>
 
 #include "common/common_types.h"
-#include "common/logging/log.h"
+#include "common/logging.h"
 #include "common/settings.h"
 #include "video_core/vulkan_common/vulkan_wrapper.h"
 
@@ -29,17 +33,25 @@ VK_DEFINE_HANDLE(VmaAllocator)
     FEATURE(KHR, VariablePointer, VARIABLE_POINTERS, variable_pointer)
 
 #define FOR_EACH_VK_FEATURE_1_2(FEATURE)                                                           \
+    FEATURE(EXT, DescriptorIndexing, DESCRIPTOR_INDEXING, descriptor_indexing)                     \
     FEATURE(EXT, HostQueryReset, HOST_QUERY_RESET, host_query_reset)                               \
     FEATURE(KHR, 8BitStorage, 8BIT_STORAGE, bit8_storage)                                          \
     FEATURE(KHR, TimelineSemaphore, TIMELINE_SEMAPHORE, timeline_semaphore)
 
 #define FOR_EACH_VK_FEATURE_1_3(FEATURE)                                                           \
+    FEATURE(EXT, ImageRobustness, IMAGE_ROBUSTNESS, robust_image_access)                           \
     FEATURE(EXT, ShaderDemoteToHelperInvocation, SHADER_DEMOTE_TO_HELPER_INVOCATION,               \
             shader_demote_to_helper_invocation)                                                    \
-    FEATURE(EXT, SubgroupSizeControl, SUBGROUP_SIZE_CONTROL, subgroup_size_control)
+    FEATURE(EXT, SubgroupSizeControl, SUBGROUP_SIZE_CONTROL, subgroup_size_control)                \
+    FEATURE(KHR, Maintenance4, MAINTENANCE_4, maintenance4)                                        \
+    FEATURE(KHR, Synchronization2, SYNCHRONIZATION_2, synchronization2)
+
+#define FOR_EACH_VK_FEATURE_1_4(FEATURE)
 
 // Define all features which may be used by the implementation and require an extension here.
 #define FOR_EACH_VK_FEATURE_EXT(FEATURE)                                                           \
+    FEATURE(EXT, BorderColorSwizzle, BORDER_COLOR_SWIZZLE, border_color_swizzle)                   \
+    FEATURE(EXT, ColorWriteEnable, COLOR_WRITE_ENABLE, color_write_enable)                         \
     FEATURE(EXT, CustomBorderColor, CUSTOM_BORDER_COLOR, custom_border_color)                      \
     FEATURE(EXT, DepthBiasControl, DEPTH_BIAS_CONTROL, depth_bias_control)                         \
     FEATURE(EXT, DepthClipControl, DEPTH_CLIP_CONTROL, depth_clip_control)                         \
@@ -55,10 +67,15 @@ VK_DEFINE_HANDLE(VmaAllocator)
     FEATURE(EXT, Robustness2, ROBUSTNESS_2, robustness2)                                           \
     FEATURE(EXT, TransformFeedback, TRANSFORM_FEEDBACK, transform_feedback)                        \
     FEATURE(EXT, VertexInputDynamicState, VERTEX_INPUT_DYNAMIC_STATE, vertex_input_dynamic_state)  \
+    FEATURE(KHR, Maintenance5, MAINTENANCE_5, maintenance5)                                        \
+    FEATURE(KHR, Maintenance6, MAINTENANCE_6, maintenance6)                                        \
     FEATURE(KHR, PipelineExecutableProperties, PIPELINE_EXECUTABLE_PROPERTIES,                     \
             pipeline_executable_properties)                                                        \
     FEATURE(KHR, WorkgroupMemoryExplicitLayout, WORKGROUP_MEMORY_EXPLICIT_LAYOUT,                  \
-            workgroup_memory_explicit_layout)
+            workgroup_memory_explicit_layout)                                                      \
+    FEATURE(EXT, TextureCompressionASTCHDR, TEXTURE_COMPRESSION_ASTC_HDR,                          \
+            texture_compression_astc_hdr)
+
 
 // Define miscellaneous extensions which may be used by the implementation here.
 #define FOR_EACH_VK_EXTENSION(EXTENSION)                                                           \
@@ -81,10 +98,18 @@ VK_DEFINE_HANDLE(VmaAllocator)
     EXTENSION(KHR, SWAPCHAIN, swapchain)                                                           \
     EXTENSION(KHR, SWAPCHAIN_MUTABLE_FORMAT, swapchain_mutable_format)                             \
     EXTENSION(KHR, IMAGE_FORMAT_LIST, image_format_list)                                           \
+    EXTENSION(KHR, MAINTENANCE_1, maintenance1)                                                    \
+    EXTENSION(KHR, MAINTENANCE_2, maintenance2)                                                    \
+    EXTENSION(KHR, MAINTENANCE_3, maintenance3)                                                    \
+    EXTENSION(KHR, MAINTENANCE_7, maintenance7)                                                    \
+    EXTENSION(KHR, MAINTENANCE_8, maintenance8)                                                    \
     EXTENSION(NV, DEVICE_DIAGNOSTICS_CONFIG, device_diagnostics_config)                            \
     EXTENSION(NV, GEOMETRY_SHADER_PASSTHROUGH, geometry_shader_passthrough)                        \
     EXTENSION(NV, VIEWPORT_ARRAY2, viewport_array2)                                                \
-    EXTENSION(NV, VIEWPORT_SWIZZLE, viewport_swizzle)
+    EXTENSION(NV, VIEWPORT_SWIZZLE, viewport_swizzle)                                              \
+    EXTENSION(EXT, FILTER_CUBIC, filter_cubic)                                                     \
+    EXTENSION(IMG, FILTER_CUBIC, filter_cubic_img)                                                 \
+    EXTENSION(QCOM, FILTER_CUBIC_WEIGHTS, filter_cubic_weights)
 
 // Define extensions which must be supported.
 #define FOR_EACH_VK_MANDATORY_EXTENSION(EXTENSION_NAME)                                            \
@@ -113,10 +138,6 @@ VK_DEFINE_HANDLE(VmaAllocator)
 
 // Define features which must be supported.
 #define FOR_EACH_VK_MANDATORY_FEATURE(FEATURE_NAME)                                                \
-    FEATURE_NAME(bit16_storage, storageBuffer16BitAccess)                                          \
-    FEATURE_NAME(bit16_storage, uniformAndStorageBuffer16BitAccess)                                \
-    FEATURE_NAME(bit8_storage, storageBuffer8BitAccess)                                            \
-    FEATURE_NAME(bit8_storage, uniformAndStorageBuffer8BitAccess)                                  \
     FEATURE_NAME(features, depthBiasClamp)                                                         \
     FEATURE_NAME(features, depthClamp)                                                             \
     FEATURE_NAME(features, drawIndirectFirstInstance)                                              \
@@ -149,24 +170,31 @@ VK_DEFINE_HANDLE(VmaAllocator)
 
 // Define features where the absence of the feature may result in a degraded experience.
 #define FOR_EACH_VK_RECOMMENDED_FEATURE(FEATURE_NAME)                                              \
+    FEATURE_NAME(bit16_storage, storageBuffer16BitAccess)                                          \
+    FEATURE_NAME(bit8_storage, storageBuffer8BitAccess)                                            \
     FEATURE_NAME(custom_border_color, customBorderColors)                                          \
     FEATURE_NAME(depth_bias_control, depthBiasControl)                                             \
     FEATURE_NAME(depth_bias_control, leastRepresentableValueForceUnormRepresentation)              \
     FEATURE_NAME(depth_bias_control, depthBiasExact)                                               \
     FEATURE_NAME(extended_dynamic_state, extendedDynamicState)                                     \
     FEATURE_NAME(format_a4b4g4r4, formatA4B4G4R4)                                                  \
+    FEATURE_NAME(robust_image_access, robustImageAccess)                                           \
     FEATURE_NAME(index_type_uint8, indexTypeUint8)                                                 \
     FEATURE_NAME(primitive_topology_list_restart, primitiveTopologyListRestart)                    \
     FEATURE_NAME(provoking_vertex, provokingVertexLast)                                            \
     FEATURE_NAME(robustness2, nullDescriptor)                                                      \
-    FEATURE_NAME(robustness2, robustBufferAccess2)                                                 \
-    FEATURE_NAME(robustness2, robustImageAccess2)                                                  \
     FEATURE_NAME(shader_float16_int8, shaderFloat16)                                               \
     FEATURE_NAME(shader_float16_int8, shaderInt8)                                                  \
+    FEATURE_NAME(synchronization2, synchronization2)                                               \
     FEATURE_NAME(timeline_semaphore, timelineSemaphore)                                            \
     FEATURE_NAME(transform_feedback, transformFeedback)                                            \
     FEATURE_NAME(uniform_buffer_standard_layout, uniformBufferStandardLayout)                      \
     FEATURE_NAME(vertex_input_dynamic_state, vertexInputDynamicState)
+
+// These features are not required but can be helpful for drivers that can use it.
+#define FOR_EACH_VK_OPTIONAL_FEATURE(FEATURE_NAME)                                                 \
+    FEATURE_NAME(bit16_storage, uniformAndStorageBuffer16BitAccess)                                \
+    FEATURE_NAME(bit8_storage, uniformAndStorageBuffer8BitAccess)
 
 namespace Vulkan {
 
@@ -299,19 +327,32 @@ public:
         return properties.properties.limits.maxPushConstantsSize;
     }
 
-    /// Returns the maximum size for shared memory.
-    u32 GetMaxComputeSharedMemorySize() const {
-        return properties.properties.limits.maxComputeSharedMemorySize;
-    }
+#define FN_MAX_LIMIT_LIST \
+    FN_MAX_LIMIT_ELEM(ComputeSharedMemorySize) \
+    FN_MAX_LIMIT_ELEM(PerStageDescriptorSampledImages) \
+    FN_MAX_LIMIT_ELEM(PerStageResources) \
+    FN_MAX_LIMIT_ELEM(DescriptorSetSamplers) \
+    FN_MAX_LIMIT_ELEM(DescriptorSetUniformBuffers) \
+    FN_MAX_LIMIT_ELEM(DescriptorSetUniformBuffersDynamic) \
+    FN_MAX_LIMIT_ELEM(DescriptorSetStorageBuffers) \
+    FN_MAX_LIMIT_ELEM(DescriptorSetStorageBuffersDynamic) \
+    FN_MAX_LIMIT_ELEM(DescriptorSetSampledImages) \
+    FN_MAX_LIMIT_ELEM(DescriptorSetStorageImages) \
+    FN_MAX_LIMIT_ELEM(DescriptorSetInputAttachments)
+#define FN_MAX_LIMIT_ELEM(name) \
+    u32 GetMax##name() const { return properties.properties.limits.max##name; }
+FN_MAX_LIMIT_LIST
+#undef FN_MAX_LIMIT_ELEM
+#undef FN_MAX_LIMIT_LIST
 
     /// Returns float control properties of the device.
     const VkPhysicalDeviceFloatControlsPropertiesKHR& FloatControlProperties() const {
         return properties.float_controls;
     }
 
-    /// Returns true if ASTC is natively supported.
     bool IsOptimalAstcSupported() const {
-        return features.features.textureCompressionASTC_LDR;
+        return features.features.textureCompressionASTC_LDR &&
+               features.texture_compression_astc_hdr.textureCompressionASTC_HDR;
     }
 
     /// Returns true if BCn is natively supported.
@@ -319,9 +360,18 @@ public:
         return features.features.textureCompressionBC;
     }
 
+    /// Returns true if ETC2 is natively supported.
+    bool IsOptimalEtc2Supported() const {
+        return features.features.textureCompressionETC2;
+    }
+
     /// Returns true if descriptor aliasing is natively supported.
     bool IsDescriptorAliasingSupported() const {
         return GetDriverID() != VK_DRIVER_ID_QUALCOMM_PROPRIETARY;
+    }
+
+    bool IsSampledImageArrayNonUniformIndexingSupported() const {
+        return features.descriptor_indexing.shaderSampledImageArrayNonUniformIndexing;
     }
 
     /// Returns true if the device supports float64 natively.
@@ -337,6 +387,26 @@ public:
     /// Returns true if the device supports int8 natively.
     bool IsInt8Supported() const {
         return features.shader_float16_int8.shaderInt8;
+    }
+
+    /// Returns true if the device allows 8-bit integer members in uniform/storage buffers.
+    bool IsUniformAndStorageBuffer8BitAccessSupported() const {
+        return features.bit8_storage.uniformAndStorageBuffer8BitAccess;
+    }
+
+    /// Returns true if the device allows 16-bit integer members in uniform/storage buffers.
+    bool IsUniformAndStorageBuffer16BitAccessSupported() const {
+        return features.bit16_storage.uniformAndStorageBuffer16BitAccess;
+    }
+
+    /// Returns true if the device supports reading 8-bit values from a storage buffer.
+    bool IsStorageBuffer8BitAccessSupported() const {
+        return features.bit8_storage.storageBuffer8BitAccess;
+    }
+
+    /// Returns true if the device supports reading 16-bit values from a storage buffer.
+    bool IsStorageBuffer16BitAccessSupported() const {
+        return features.bit16_storage.storageBuffer16BitAccess;
     }
 
     /// Returns true if the device supports binding multisample images as storage images.
@@ -357,6 +427,10 @@ public:
     /// Returns true if the device supports the provided subgroup feature.
     bool IsSubgroupFeatureSupported(VkSubgroupFeatureFlagBits feature) const {
         return properties.subgroup_properties.supportedOperations & feature;
+    }
+
+    VkShaderStageFlags GetSubgroupSupportedStages() const {
+        return properties.subgroup_properties.supportedStages;
     }
 
     /// Returns the maximum number of push descriptors.
@@ -469,6 +543,13 @@ public:
         return extensions.shader_stencil_export;
     }
 
+    /// Returns true if depth/stencil operations can be performed efficiently.
+    /// Either through shader export or hardware blits.
+    bool CanPerformDepthStencilOperations() const {
+        return extensions.shader_stencil_export || is_blit_depth24_stencil8_supported ||
+               is_blit_depth32_stencil8_supported;
+    }
+
     /// Returns true if the device supports VK_EXT_depth_range_unrestricted.
     bool IsExtDepthRangeUnrestrictedSupported() const {
         return extensions.depth_range_unrestricted;
@@ -494,9 +575,25 @@ public:
         return extensions.subgroup_size_control;
     }
 
+    /// Returns true if vkResetQueryPool (host-side query reset) is supported.
+    bool IsHostQueryResetSupported() const {
+        return features.host_query_reset.hostQueryReset != VK_FALSE;
+    }
+
     /// Returns true if the device supports VK_EXT_transform_feedback.
     bool IsExtTransformFeedbackSupported() const {
         return extensions.transform_feedback;
+    }
+
+    /// Returns true if transform feedback draw commands are supported.
+    bool IsTransformFeedbackDrawSupported() const {
+        return extensions.transform_feedback && properties.transform_feedback.transformFeedbackDraw;
+    }
+
+    /// Returns true if transform feedback query types are supported.
+    bool IsTransformFeedbackQueriesSupported() const {
+        return extensions.transform_feedback &&
+               properties.transform_feedback.transformFeedbackQueries;
     }
 
     /// Returns true if the device supports VK_EXT_transform_feedback properly.
@@ -507,6 +604,31 @@ public:
     /// Returns true if the device supports VK_EXT_custom_border_color.
     bool IsExtCustomBorderColorSupported() const {
         return extensions.custom_border_color;
+    }
+
+    /// Returns true if customBorderColors feature is available.
+    bool IsCustomBorderColorsSupported() const {
+        return features.custom_border_color.customBorderColors;
+    }
+
+    /// Returns true if customBorderColorWithoutFormat feature is available.
+    bool IsCustomBorderColorWithoutFormatSupported() const {
+        return features.custom_border_color.customBorderColorWithoutFormat;
+    }
+
+    /// Returns true if the device supports VK_EXT_color_write_enable.
+    bool IsExtColorWriteEnableSupported() const {
+        return extensions.color_write_enable;
+    }
+
+    /// Returns true if the device supports VK_EXT_border_color_swizzle.
+    bool IsExtBorderColorSwizzleSupported() const {
+        return extensions.border_color_swizzle;
+    }
+
+    /// Returns true if borderColorSwizzleFromImage is available.
+    bool IsBorderColorSwizzleFromImageSupported() const {
+        return features.border_color_swizzle.borderColorSwizzleFromImage;
     }
 
     /// Returns true if the device supports VK_EXT_extended_dynamic_state.
@@ -543,9 +665,63 @@ public:
         return dynamic_state3_enables;
     }
 
+    /// Returns true if the device supports VK_EXT_filter_cubic
+    bool IsExtFilterCubicSupported() const {
+        return extensions.filter_cubic;
+    }
+
+    /// Returns true if the device supports VK_QCOM_filter_cubic_weights
+    bool IsQcomFilterCubicWeightsSupported() const {
+        return extensions.filter_cubic_weights;
+    }
+
     /// Returns true if the device supports VK_EXT_line_rasterization.
     bool IsExtLineRasterizationSupported() const {
         return extensions.line_rasterization;
+    }
+
+    bool SupportsRectangularLines() const {
+        return features.line_rasterization.rectangularLines != VK_FALSE;
+    }
+
+    bool SupportsSmoothLines() const {
+        return features.line_rasterization.smoothLines != VK_FALSE;
+    }
+
+    bool SupportsStippledRectangularLines() const {
+        return features.line_rasterization.stippledRectangularLines != VK_FALSE;
+    }
+
+    bool SupportsAlphaToOne() const {
+        return features.features.alphaToOne != VK_FALSE;
+    }
+
+    bool SupportsDynamicState3DepthClampEnable() const {
+        return dynamic_state3_depth_clamp_enable;
+    }
+
+    bool SupportsDynamicState3LogicOpEnable() const {
+        return dynamic_state3_logic_op_enable;
+    }
+
+    bool SupportsDynamicState3LineRasterizationMode() const {
+        return dynamic_state3_line_raster_mode;
+    }
+
+    bool SupportsDynamicState3ConservativeRasterizationMode() const {
+        return dynamic_state3_conservative_raster_mode;
+    }
+
+    bool SupportsDynamicState3LineStippleEnable() const {
+        return dynamic_state3_line_stipple_enable;
+    }
+
+    bool SupportsDynamicState3AlphaToCoverageEnable() const {
+        return dynamic_state3_alpha_to_coverage;
+    }
+
+    bool SupportsDynamicState3AlphaToOneEnable() const {
+        return dynamic_state3_alpha_to_one;
     }
 
     /// Returns true if the device supports VK_EXT_vertex_input_dynamic_state.
@@ -568,6 +744,22 @@ public:
         return extensions.provoking_vertex;
     }
 
+    /// Returns true if first vertex provoking mode can be used.
+    bool SupportsProvokingVertexFirstMode() const {
+        return extensions.provoking_vertex;
+    }
+
+    /// Returns true if last vertex provoking mode can be used.
+    bool SupportsProvokingVertexLastMode() const {
+        return extensions.provoking_vertex && features.provoking_vertex.provokingVertexLast;
+    }
+
+    /// Returns true if transform feedback preserves provoking vertex mode semantics.
+    bool SupportsTransformFeedbackProvokingVertexPreservation() const {
+        return extensions.provoking_vertex &&
+               features.provoking_vertex.transformFeedbackPreservesProvokingVertex;
+    }
+
     /// Returns true if the device supports VK_KHR_shader_atomic_int64.
     bool IsExtShaderAtomicInt64Supported() const {
         return extensions.shader_atomic_int64;
@@ -578,6 +770,11 @@ public:
     }
 
     bool HasTimelineSemaphore() const;
+
+    /// Returns true if the device supports VK_KHR_synchronization2.
+    bool HasSynchronization2() const {
+        return extensions.synchronization2;
+    }
 
     /// Returns the minimum supported version of SPIR-V.
     u32 SupportedSpirvVersion() const {
@@ -609,6 +806,8 @@ public:
     bool HasBrokenParallelShaderCompiling() const {
         return has_broken_parallel_compiling;
     }
+
+    std::optional<size_t> GetSamplerHeapBudget() const;
 
     /// Returns the vendor name reported from Vulkan.
     std::string_view GetVendorName() const {
@@ -646,13 +845,11 @@ public:
         return must_emulate_scaled_formats;
     }
 
-    bool MustEmulateBGR565() const {
-        return must_emulate_bgr565;
-    }
-
     bool HasNullDescriptor() const {
         return features.robustness2.nullDescriptor;
     }
+
+    bool MustEmulateBGR565() const;
 
     bool HasExactDepthBiasControl() const {
         return features.depth_bias_control.depthBiasExact;
@@ -682,6 +879,69 @@ public:
         return features2.features.multiViewport;
     }
 
+    /// Returns true if the device supports VK_KHR_maintenance1.
+    bool IsKhrMaintenance1Supported() const {
+        return extensions.maintenance1;
+    }
+
+    /// Returns true if the device supports VK_KHR_maintenance2.
+    bool IsKhrMaintenance2Supported() const {
+        return extensions.maintenance2;
+    }
+
+    /// Returns true if the device supports VK_KHR_maintenance3.
+    bool IsKhrMaintenance3Supported() const {
+        return extensions.maintenance3;
+    }
+
+    /// Returns true if the device supports VK_KHR_maintenance4.
+    bool IsKhrMaintenance4Supported() const {
+        return extensions.maintenance4;
+    }
+
+    /// Returns true if the device supports VK_KHR_maintenance5.
+    bool IsKhrMaintenance5Supported() const {
+        return extensions.maintenance5;
+    }
+
+    /// Returns true if polygon mode POINT supports gl_PointSize.
+    bool SupportsPolygonModePointSize() const {
+        return extensions.maintenance5 && properties.maintenance5.polygonModePointSize;
+    }
+
+    /// Returns true if depth/stencil swizzle ONE is supported.
+    bool SupportsDepthStencilSwizzleOne() const {
+        return extensions.maintenance5 && properties.maintenance5.depthStencilSwizzleOneSupport;
+    }
+
+    /// Returns true if early fragment tests optimizations are available.
+    bool SupportsEarlyFragmentTests() const {
+        return extensions.maintenance5 &&
+               properties.maintenance5.earlyFragmentMultisampleCoverageAfterSampleCounting &&
+               properties.maintenance5.earlyFragmentSampleMaskTestBeforeSampleCounting;
+    }
+
+    /// Returns true if the device supports VK_KHR_maintenance6.
+    bool IsKhrMaintenance6Supported() const {
+        return extensions.maintenance6;
+    }
+
+    /// Returns true if the device supports VK_KHR_maintenance7.
+    bool IsKhrMaintenance7Supported() const {
+        return extensions.maintenance7;
+    }
+
+    /// Returns true if the device supports VK_KHR_maintenance8.
+    bool IsKhrMaintenance8Supported() const {
+        return extensions.maintenance8;
+    }
+
+    /// Returns true if the device supports UINT8 index buffer conversion via compute shader.
+    bool SupportsUint8Indices() const {
+        return features.bit8_storage.storageBuffer8BitAccess &&
+               features.bit16_storage.storageBuffer16BitAccess;
+    }
+
     [[nodiscard]] static constexpr bool CheckBrokenCompute(VkDriverId driver_id,
                                                            u32 driver_version) {
         if (driver_id == VK_DRIVER_ID_INTEL_PROPRIETARY_WINDOWS) {
@@ -702,7 +962,6 @@ public:
         return properties.driver.driverID == VK_DRIVER_ID_NVIDIA_PROPRIETARY;
     }
 
-    /// Checks if we are running MolvenVK.
     bool IsMoltenVK() const noexcept {
         return properties.driver.driverID == VK_DRIVER_ID_MOLTENVK;
     }
@@ -710,6 +969,10 @@ public:
     NvidiaArchitecture GetNvidiaArch() const noexcept {
         return nvidia_arch;
     }
+
+    /// GPU logging integration
+    void InitializeGPULogging();
+    void ShutdownGPULogging();
 
 private:
     /// Checks if the physical device is suitable and configures the object state
@@ -766,6 +1029,7 @@ private:
         FOR_EACH_VK_FEATURE_1_1(FEATURE);
         FOR_EACH_VK_FEATURE_1_2(FEATURE);
         FOR_EACH_VK_FEATURE_1_3(FEATURE);
+        FOR_EACH_VK_FEATURE_1_4(FEATURE);
         FOR_EACH_VK_FEATURE_EXT(FEATURE);
         FOR_EACH_VK_EXTENSION(EXTENSION);
 
@@ -782,6 +1046,7 @@ private:
         FOR_EACH_VK_FEATURE_1_1(FEATURE_CORE);
         FOR_EACH_VK_FEATURE_1_2(FEATURE_CORE);
         FOR_EACH_VK_FEATURE_1_3(FEATURE_CORE);
+        FOR_EACH_VK_FEATURE_1_4(FEATURE_CORE);
         FOR_EACH_VK_FEATURE_EXT(FEATURE_EXT);
 
 #undef FEATURE_CORE
@@ -797,6 +1062,7 @@ private:
         VkPhysicalDevicePushDescriptorPropertiesKHR push_descriptor{};
         VkPhysicalDeviceSubgroupSizeControlProperties subgroup_size_control{};
         VkPhysicalDeviceTransformFeedbackPropertiesEXT transform_feedback{};
+        VkPhysicalDeviceMaintenance5PropertiesKHR maintenance5{};
 
         VkPhysicalDeviceProperties properties{};
     };
@@ -825,10 +1091,17 @@ private:
     bool supports_d24_depth{};                 ///< Supports D24 depth buffers.
     bool cant_blit_msaa{};                     ///< Does not support MSAA<->MSAA blitting.
     bool must_emulate_scaled_formats{};        ///< Requires scaled vertex format emulation
-    bool must_emulate_bgr565{};                ///< Emulates BGR565 by swizzling RGB565 format.
-    bool dynamic_state3_blending{};            ///< Has all blending features of dynamic_state3.
-    bool dynamic_state3_enables{};             ///< Has all enables features of dynamic_state3.
+    bool dynamic_state3_blending{};            ///< Has blending features of dynamic_state3.
+    bool dynamic_state3_enables{};             ///< Has at least one enable feature of dynamic_state3.
+    bool dynamic_state3_depth_clamp_enable{};
+    bool dynamic_state3_logic_op_enable{};
+    bool dynamic_state3_line_raster_mode{};
+    bool dynamic_state3_conservative_raster_mode{};
+    bool dynamic_state3_line_stipple_enable{};
+    bool dynamic_state3_alpha_to_coverage{};
+    bool dynamic_state3_alpha_to_one{};
     bool supports_conditional_barriers{};      ///< Allows barriers in conditional control flow.
+    size_t sampler_heap_budget{};              ///< Sampler budget for buggy drivers (0 = unlimited).
     u64 device_access_memory{};                ///< Total size of device local memory in bytes.
     u32 sets_per_pool{};                       ///< Sets per Description Pool
     NvidiaArchitecture nvidia_arch{NvidiaArchitecture::Arch_AmpereOrNewer};
@@ -839,7 +1112,7 @@ private:
     std::vector<size_t> valid_heap_memory;                   ///< Heaps used.
 
     /// Format properties dictionary.
-    std::unordered_map<VkFormat, VkFormatProperties> format_properties;
+    ankerl::unordered_dense::map<VkFormat, VkFormatProperties> format_properties;
 
     /// Nsight Aftermath GPU crash tracker
     std::unique_ptr<NsightAftermathTracker> nsight_aftermath_tracker;

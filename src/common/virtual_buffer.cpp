@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2020 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -14,24 +17,23 @@ namespace Common {
 
 void* AllocateMemoryPages(std::size_t size) noexcept {
 #ifdef _WIN32
-    void* base{VirtualAlloc(nullptr, size, MEM_COMMIT, PAGE_READWRITE)};
-#else
-    void* base{mmap(nullptr, size, PROT_READ | PROT_WRITE, MAP_ANON | MAP_PRIVATE, -1, 0)};
-
-    if (base == MAP_FAILED) {
-        base = nullptr;
+    void* base = VirtualAlloc(nullptr, size, MEM_COMMIT | MEM_RESERVE, PAGE_READWRITE);
+    if (base == nullptr) {
+        // Probably failing to reserve is less likely than failing to commit
+        base = VirtualAlloc(nullptr, size, MEM_COMMIT, PAGE_READWRITE);
     }
+#else
+    void* base = mmap(nullptr, size, PROT_READ | PROT_WRITE, MAP_ANON | MAP_PRIVATE, -1, 0);
+    if (base == MAP_FAILED)
+        base = nullptr;
 #endif
-
     ASSERT(base);
-
     return base;
 }
 
 void FreeMemoryPages(void* base, [[maybe_unused]] std::size_t size) noexcept {
-    if (!base) {
+    if (!base)
         return;
-    }
 #ifdef _WIN32
     ASSERT(VirtualFree(base, 0, MEM_RELEASE));
 #else

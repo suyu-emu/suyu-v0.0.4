@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2021 yuzu Emulator Project
 // SPDX-FileCopyrightText: Copyright 2014 The Android Open Source Project
 // SPDX-License-Identifier: GPL-3.0-or-later
@@ -5,7 +8,9 @@
 // https://cs.android.com/android/platform/superproject/+/android-5.1.1_r38:frameworks/native/libs/gui/BufferQueueProducer.cpp
 
 #include "common/assert.h"
-#include "common/logging/log.h"
+#include "common/logging.h"
+#include "common/settings.h"
+#include "common/cpu_features.h"
 #include "core/hle/kernel/k_event.h"
 #include "core/hle/kernel/k_readable_event.h"
 #include "core/hle/kernel/kernel.h"
@@ -22,8 +27,10 @@ namespace Service::android {
 BufferQueueProducer::BufferQueueProducer(Service::KernelHelpers::ServiceContext& service_context_,
                                          std::shared_ptr<BufferQueueCore> buffer_queue_core_,
                                          Service::Nvidia::NvCore::NvMap& nvmap_)
-    : service_context{service_context_}, core{std::move(buffer_queue_core_)}, slots(core->slots),
-      nvmap(nvmap_) {
+    : service_context{service_context_}, core{std::move(buffer_queue_core_)}
+    , slots(core->slots)
+    , nvmap(nvmap_)
+{
     buffer_wait_event = service_context.CreateEvent("BufferQueue:WaitEvent");
 }
 
@@ -104,7 +111,7 @@ Status BufferQueueProducer::SetBufferCount(s32 buffer_count) {
 
         core->override_max_buffer_count = buffer_count;
         core->SignalDequeueCondition();
-        buffer_wait_event->Signal();
+        buffer_wait_event->Signal(service_context.kernel);
         listener = core->consumer_listener;
     }
 
@@ -425,8 +432,7 @@ Status BufferQueueProducer::AttachBuffer(s32* out_slot,
     return return_flags;
 }
 
-Status BufferQueueProducer::QueueBuffer(s32 slot, const QueueBufferInput& input,
-                                        QueueBufferOutput* output) {
+Status BufferQueueProducer::QueueBuffer(s32 slot, const QueueBufferInput& input, QueueBufferOutput* output) {
     s64 timestamp{};
     bool is_auto_timestamp{};
     Common::Rectangle<s32> crop;
@@ -437,8 +443,7 @@ Status BufferQueueProducer::QueueBuffer(s32 slot, const QueueBufferInput& input,
     s32 swap_interval{};
     Fence fence{};
 
-    input.Deflate(&timestamp, &is_auto_timestamp, &crop, &scaling_mode, &transform,
-                  &sticky_transform_, &async, &swap_interval, &fence);
+    input.Deflate(&timestamp, &is_auto_timestamp, &crop, &scaling_mode, &transform, &sticky_transform_, &async, &swap_interval, &fence);
 
     switch (scaling_mode) {
     case NativeWindowScalingMode::Freeze:
@@ -482,6 +487,8 @@ Status BufferQueueProducer::QueueBuffer(s32 slot, const QueueBufferInput& input,
         ++core->frame_counter;
         slots[slot].buffer_state = BufferState::Queued;
         slots[slot].frame_number = core->frame_counter;
+        slots[slot].queue_time = timestamp;
+        slots[slot].presentation_time = Common::g_wall_clock.GetTimeNS().count();
         slots[slot].fence = fence;
 
         item.slot = slot;
@@ -491,8 +498,7 @@ Status BufferQueueProducer::QueueBuffer(s32 slot, const QueueBufferInput& input,
         item.is_auto_timestamp = is_auto_timestamp;
         item.crop = crop;
         item.transform = transform & ~NativeWindowTransform::InverseDisplay;
-        item.transform_to_display_inverse =
-            (transform & NativeWindowTransform::InverseDisplay) != NativeWindowTransform::None;
+        item.transform_to_display_inverse = (transform & NativeWindowTransform::InverseDisplay) != NativeWindowTransform::None;
         item.scaling_mode = static_cast<u32>(scaling_mode);
         item.fence = fence;
         item.is_droppable = core->dequeue_buffer_cannot_block || async;
@@ -508,6 +514,9 @@ Status BufferQueueProducer::QueueBuffer(s32 slot, const QueueBufferInput& input,
             auto front = core->queue.begin();
             if (front->is_droppable && core->StillTracking(*front)) {
                 slots[front->slot].buffer_state = BufferState::Free;
+                if (Settings::values.enable_buffer_history.GetValue()) {
+                    core->UpdateHistory(front->frame_number, BufferState::Free);
+                }
                 slots[front->slot].frame_number = 0;
             }
 
@@ -520,10 +529,14 @@ Status BufferQueueProducer::QueueBuffer(s32 slot, const QueueBufferInput& input,
             }
         }
 
+        if (Settings::values.enable_buffer_history.GetValue()) {
+            core->PushHistory(core->frame_counter, slots[slot].queue_time, slots[slot].presentation_time, BufferState::Queued);
+        }
+
         core->buffer_has_been_queued = true;
         core->SignalDequeueCondition();
-        output->Inflate(core->default_width, core->default_height, core->transform_hint,
-                        static_cast<u32>(core->queue.size()));
+
+        output->Inflate(core->default_width, core->default_height, core->transform_hint, static_cast<u32>(core->queue.size()));
     }
 
     item.graphic_buffer.reset();
@@ -563,7 +576,7 @@ void BufferQueueProducer::CancelBuffer(s32 slot, const Fence& fence) {
     slots[slot].fence = fence;
 
     core->SignalDequeueCondition();
-    buffer_wait_event->Signal();
+    buffer_wait_event->Signal(service_context.kernel);
 }
 
 Status BufferQueueProducer::Query(NativeWindow what, s32* out_value) {
@@ -601,6 +614,9 @@ Status BufferQueueProducer::Query(NativeWindow what, s32* out_value) {
         break;
     case NativeWindow::ConsumerUsageBits:
         value = core->consumer_usage_bit;
+        break;
+    case NativeWindow::DefaultDataSpace:
+        value = core->GetMaxBufferCountLocked(false);
         break;
     default:
         ASSERT(false);
@@ -667,6 +683,7 @@ Status BufferQueueProducer::Connect(const std::shared_ptr<IProducerListener>& li
     return status;
 }
 
+// https://android.googlesource.com/platform/frameworks/native/%2B/master/libs/gui/BufferQueueProducer.cpp#1457
 Status BufferQueueProducer::Disconnect(NativeWindowApi api) {
     LOG_DEBUG(Service_Nvnflinger, "disconnect api = {}", api);
 
@@ -697,23 +714,23 @@ Status BufferQueueProducer::Disconnect(NativeWindowApi api) {
                 core->connected_producer_listener = nullptr;
                 core->connected_api = NativeWindowApi::NoConnectedApi;
                 core->SignalDequeueCondition();
-                buffer_wait_event->Signal();
+                buffer_wait_event->Signal(service_context.kernel);
                 listener = core->consumer_listener;
             } else {
-                LOG_ERROR(Service_Nvnflinger, "still connected to another api (cur = {} req = {})",
+                LOG_ERROR(Service_Nvnflinger,
+                          "disconnect: still connected to another api (cur = {} req = {})",
                           core->connected_api, api);
                 status = Status::BadValue;
             }
             break;
         default:
-            LOG_ERROR(Service_Nvnflinger, "unknown api = {}", api);
+            LOG_ERROR(Service_Nvnflinger, "disconnect: unknown api = {}", api);
             status = Status::BadValue;
             break;
         }
     }
 
-    // Call back without lock held
-    if (listener != nullptr) {
+    if (listener) {
         listener->OnBuffersReleased();
     }
 
@@ -747,9 +764,13 @@ Status BufferQueueProducer::SetPreallocatedBuffer(s32 slot,
     }
 
     core->SignalDequeueCondition();
-    buffer_wait_event->Signal();
+    buffer_wait_event->Signal(service_context.kernel);
 
     return Status::NoError;
+}
+
+Kernel::KReadableEvent* BufferQueueProducer::GetNativeHandle(u32 type_id) {
+    return &buffer_wait_event->GetReadableEvent();
 }
 
 void BufferQueueProducer::Transact(u32 code, std::span<const u8> parcel_data,
@@ -775,8 +796,6 @@ void BufferQueueProducer::Transact(u32 code, std::span<const u8> parcel_data,
     Status status{Status::NoError};
     InputParcel parcel_in{parcel_data};
     OutputParcel parcel_out{};
-
-    LOG_DEBUG(Service_Nvnflinger, "Transact code={}", code);
 
     switch (static_cast<TransactionId>(code)) {
     case TransactionId::Connect: {
@@ -812,8 +831,6 @@ void BufferQueueProducer::Transact(u32 code, std::span<const u8> parcel_data,
         Fence fence{};
 
         status = DequeueBuffer(&slot, &fence, is_async, width, height, pixel_format, usage);
-        LOG_INFO(Service_Nvnflinger, "DequeueBuffer slot={} status={} w={} h={}",
-                 slot, static_cast<s32>(status), width, height);
 
         parcel_out.Write(slot);
         parcel_out.WriteFlattenedObject(&fence);
@@ -836,7 +853,6 @@ void BufferQueueProducer::Transact(u32 code, std::span<const u8> parcel_data,
         QueueBufferOutput output;
 
         status = QueueBuffer(slot, input, &output);
-        LOG_INFO(Service_Nvnflinger, "QueueBuffer slot={} status={}", slot, static_cast<s32>(status));
 
         parcel_out.Write(output);
         break;
@@ -876,9 +892,42 @@ void BufferQueueProducer::Transact(u32 code, std::span<const u8> parcel_data,
         status = SetBufferCount(buffer_count);
         break;
     }
-    case TransactionId::GetBufferHistory:
-        LOG_WARNING(Service_Nvnflinger, "(STUBBED) called, transaction=GetBufferHistory");
+    case TransactionId::GetBufferHistory: {
+        if (!Settings::values.enable_buffer_history.GetValue()) {
+            LOG_DEBUG(Service_Nvnflinger, "(STUBBED) called");
+            break;
+        }
+
+        LOG_DEBUG(Service_Nvnflinger, "called, transaction=GetBufferHistory");
+
+        const s32 request = parcel_in.Read<s32>();
+        if (request <= 0) {
+            parcel_out.Write(Status::BadValue);
+            parcel_out.Write<s32>(0);
+            break;
+        }
+
+        std::vector<BufferHistoryInfo> snapshot;
+
+        {
+            std::scoped_lock lk(core->buffer_history_mutex);
+            for (auto& [frame, info] : core->buffer_history_map) {
+                snapshot.push_back(info);
+            }
+        }
+
+        std::sort(snapshot.begin(), snapshot.end(), [](auto& a, auto& b){
+            return a.frame_number > b.frame_number;
+        });
+
+        const s32 limit = std::min(request, (s32)snapshot.size());
+        parcel_out.Write(Status::NoError);
+        parcel_out.Write<s32>(limit);
+        for (s32 i = 0; i < limit; ++i) {
+            parcel_out.Write(snapshot[i]);
+        }
         break;
+    }
     default:
         ASSERT_MSG(false, "Unimplemented TransactionId {}", code);
         break;
@@ -888,11 +937,7 @@ void BufferQueueProducer::Transact(u32 code, std::span<const u8> parcel_data,
 
     const auto serialized = parcel_out.Serialize();
     std::memcpy(parcel_reply.data(), serialized.data(),
-                std::min(parcel_reply.size(), serialized.size()));
-}
-
-Kernel::KReadableEvent* BufferQueueProducer::GetNativeHandle(u32 type_id) {
-    return &buffer_wait_event->GetReadableEvent();
+                (std::min)(parcel_reply.size(), serialized.size()));
 }
 
 } // namespace Service::android

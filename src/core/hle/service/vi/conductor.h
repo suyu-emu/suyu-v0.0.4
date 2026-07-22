@@ -1,10 +1,13 @@
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2024 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
 #pragma once
 
 #include <memory>
-#include <unordered_map>
+#include <ankerl/unordered_dense.h>
 
 #include "common/common_types.h"
 #include "common/polyfill_thread.h"
@@ -45,7 +48,7 @@ private:
 private:
     Core::System& m_system;
     Container& m_container;
-    std::unordered_map<u64, VsyncManager> m_vsync_managers;
+    ankerl::unordered_dense::map<u64, VsyncManager> m_vsync_managers;
     std::shared_ptr<Core::Timing::EventType> m_event;
     Common::Event m_signal;
     std::jthread m_thread;

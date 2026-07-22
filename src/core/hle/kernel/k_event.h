@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2021 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -19,9 +22,9 @@ public:
     explicit KEvent(KernelCore& kernel);
     ~KEvent() override;
 
-    void Initialize(KProcess* owner);
+    void Initialize(KernelCore& kernel, KProcess* owner);
 
-    void Finalize() override;
+    void Finalize(KernelCore& kernel) override;
 
     bool IsInitialized() const override {
         return m_initialized;
@@ -39,10 +42,10 @@ public:
         return m_readable_event;
     }
 
-    static void PostDestroy(uintptr_t arg);
+    static void PostDestroy(KernelCore& kernel, uintptr_t arg);
 
-    Result Signal();
-    Result Clear();
+    Result Signal(KernelCore& kernel);
+    Result Clear(KernelCore& kernel);
 
     void OnReadableEventDestroyed() {
         m_readable_event_destroyed = true;

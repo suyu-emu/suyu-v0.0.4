@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2024 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
@@ -13,7 +16,9 @@
 
 namespace Service::HID {
 
-NpadAbstractBatteryHandler::NpadAbstractBatteryHandler() {}
+NpadAbstractBatteryHandler::NpadAbstractBatteryHandler(Kernel::KernelCore& kernel_)
+    : kernel{kernel_}
+{}
 
 NpadAbstractBatteryHandler::~NpadAbstractBatteryHandler() = default;
 
@@ -30,7 +35,7 @@ void NpadAbstractBatteryHandler::SetPropertiesHandler(NpadAbstractPropertiesHand
 }
 
 Result NpadAbstractBatteryHandler::IncrementRefCounter() {
-    if (ref_counter == std::numeric_limits<s32>::max() - 1) {
+    if (ref_counter == (std::numeric_limits<s32>::max)() - 1) {
         return ResultNpadHandlerOverflow;
     }
     ref_counter++;

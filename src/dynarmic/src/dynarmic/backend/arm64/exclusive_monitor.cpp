@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 /* This file is part of the dynarmic project.
@@ -10,7 +10,7 @@
 
 #include <algorithm>
 
-#include "dynarmic/common/assert.h"
+#include "common/assert.h"
 
 namespace Dynarmic {
 
@@ -29,7 +29,7 @@ void ExclusiveMonitor::Unlock() {
     lock.Unlock();
 }
 
-bool ExclusiveMonitor::CheckAndClear(size_t processor_id, VAddr address) {
+bool ExclusiveMonitor::CheckAndClear(std::size_t processor_id, VAddr address) {
     const VAddr masked_address = address & RESERVATION_GRANULE_MASK;
 
     Lock();
@@ -52,7 +52,7 @@ void ExclusiveMonitor::Clear() {
     Unlock();
 }
 
-void ExclusiveMonitor::ClearProcessor(size_t processor_id) {
+void ExclusiveMonitor::ClearProcessor(std::size_t processor_id) {
     Lock();
     exclusive_addresses[processor_id] = INVALID_EXCLUSIVE_ADDRESS;
     Unlock();

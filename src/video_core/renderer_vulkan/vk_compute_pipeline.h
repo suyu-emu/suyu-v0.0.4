@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2019 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -28,13 +31,13 @@ class Scheduler;
 
 class ComputePipeline {
 public:
-    explicit ComputePipeline(const Device& device, vk::PipelineCache& pipeline_cache,
+    explicit ComputePipeline(const Device& device, Scheduler& scheduler, vk::PipelineCache& pipeline_cache,
                              DescriptorPool& descriptor_pool,
                              GuestDescriptorQueue& guest_descriptor_queue,
                              Common::ThreadWorker* thread_worker,
                              PipelineStatistics* pipeline_statistics,
                              VideoCore::ShaderNotify* shader_notify, const Shader::Info& info,
-                             vk::ShaderModule spv_module);
+                             vk::ShaderModule spv_module, u64 shader_hash);
 
     ComputePipeline& operator=(ComputePipeline&&) noexcept = delete;
     ComputePipeline(ComputePipeline&&) noexcept = delete;
@@ -50,11 +53,14 @@ private:
     vk::PipelineCache& pipeline_cache;
     GuestDescriptorQueue& guest_descriptor_queue;
     Shader::Info info;
+    u64 shader_hash{};
+    u32 num_descriptor_entries{};
 
     VideoCommon::ComputeUniformBufferSizes uniform_buffer_sizes{};
 
     vk::ShaderModule spv_module;
     vk::DescriptorSetLayout descriptor_set_layout;
+    bool uses_push_descriptor{false};
     DescriptorAllocator descriptor_allocator;
     vk::PipelineLayout pipeline_layout;
     vk::DescriptorUpdateTemplate descriptor_update_template;

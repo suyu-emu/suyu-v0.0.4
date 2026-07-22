@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // First we list common shared opcodes
 // Since we give priority to A64 performance, we include them first, this is so we
 // can discard all A32 opcodes instead of having a "hole" in our checks
@@ -46,8 +49,9 @@ OPCODE(LogicalShiftRight32,                                 U32,            U32,
 OPCODE(LogicalShiftRight64,                                 U64,            U64,            U8                                              )
 OPCODE(ArithmeticShiftRight32,                              U32,            U32,            U8,             U1                              )
 OPCODE(ArithmeticShiftRight64,                              U64,            U64,            U8                                              )
-OPCODE(RotateRight32,                                       U32,            U32,            U8,             U1                              )
-OPCODE(RotateRight64,                                       U64,            U64,            U8                                              )
+// windows.h defines RotateRight64 and RotateRight32
+OPCODE(BitRotateRight32,                                       U32,            U32,            U8,             U1                              )
+OPCODE(BitRotateRight64,                                       U64,            U64,            U8                                              )
 OPCODE(RotateRightExtended,                                 U32,            U32,            U1                                              )
 OPCODE(LogicalShiftLeftMasked32,                            U32,            U32,            U32                                             )
 OPCODE(LogicalShiftLeftMasked64,                            U64,            U64,            U64                                             )
@@ -709,6 +713,8 @@ A64OPC(ExclusiveWriteMemory32,                              U32,            U64,
 A64OPC(ExclusiveWriteMemory64,                              U32,            U64,            U64,            U64,            AccType         )
 A64OPC(ExclusiveWriteMemory128,                             U32,            U64,            U64,            U128,           AccType         )
 
+// Remember to update:
+// - a32_emit_x64.cpp
 
 // A32 Context getters/setters
 A32OPC(SetCheckBit,                                         Void,           U1                                                              )

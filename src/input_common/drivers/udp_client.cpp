@@ -1,13 +1,19 @@
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: 2018 Citra Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
+#include <random>
+#include <utility>
 #include <boost/asio.hpp>
-#include <fmt/format.h>
+#include <fmt/ranges.h>
 
-#include "common/logging/log.h"
-#include "common/random.h"
+#include "common/logging.h"
 #include "common/param_package.h"
+#include "common/random.h"
 #include "common/settings.h"
+#include "common/thread.h"
 #include "input_common/drivers/udp_client.h"
 #include "input_common/helpers/udp_protocol.h"
 
@@ -26,8 +32,10 @@ public:
     using clock = std::chrono::system_clock;
 
     explicit Socket(const std::string& host, u16 port, SocketCallback callback_)
-        : callback(std::move(callback_)), timer(io_service),
-          socket(io_service, udp::endpoint(udp::v4(), 0)), client_id(GenerateRandomClientId()) {
+        : callback(std::move(callback_)), timer(io_context)
+        , socket(io_context, udp::endpoint(udp::v4(), 0))
+        , client_id(Common::Random::Random32(0))
+    {
         boost::system::error_code ec{};
         auto ipv4 = boost::asio::ip::make_address_v4(host, ec);
         if (ec.value() != boost::system::errc::success) {
@@ -39,11 +47,11 @@ public:
     }
 
     void Stop() {
-        io_service.stop();
+        io_context.stop();
     }
 
     void Loop() {
-        io_service.run();
+        io_context.run();
     }
 
     void StartSend(const clock::time_point& from) {
@@ -60,10 +68,6 @@ public:
     }
 
 private:
-    u32 GenerateRandomClientId() const {
-        return Common::Random::Random32();
-    }
-
     void HandleReceive(const boost::system::error_code&, std::size_t bytes_transferred) {
         if (auto type = Response::Validate(receive_buffer.data(), bytes_transferred)) {
             switch (*type) {
@@ -112,9 +116,10 @@ private:
     }
 
     SocketCallback callback;
-    boost::asio::io_service io_service;
+    boost::asio::io_context io_context;
     boost::asio::basic_waitable_timer<clock> timer;
     udp::socket socket;
+
 
     const u32 client_id;
 
@@ -129,6 +134,7 @@ private:
 };
 
 static void SocketLoop(Socket* socket) {
+    Common::SetCurrentThreadName("cemuhookWorker");
     socket->StartReceive();
     socket->StartSend(Socket::clock::now());
     socket->Loop();
@@ -324,9 +330,11 @@ void UDPClient::OnPadData(Response::PadData data, std::size_t client) {
 }
 
 void UDPClient::StartCommunication(std::size_t client, const std::string& host, u16 port) {
-    SocketCallback callback{[this](Response::Version version) { OnVersion(version); },
-                            [this](Response::PortInfo info) { OnPortInfo(info); },
-                            [this, client](Response::PadData data) { OnPadData(data, client); }};
+    SocketCallback callback{
+        [this](Response::Version version) { OnVersion(version); },
+        [this](Response::PortInfo info) { OnPortInfo(info); },
+        [this, client](Response::PadData data) { OnPadData(data, client); }
+    };
     LOG_INFO(Input, "Starting communication with UDP input server on {}:{}", host, port);
     clients[client].uuid = GetHostUUID(host);
     clients[client].host = host;
@@ -351,8 +359,13 @@ PadIdentifier UDPClient::GetPadIdentifier(std::size_t pad_index) const {
 }
 
 Common::UUID UDPClient::GetHostUUID(const std::string& host) const {
-    const auto ip = boost::asio::ip::make_address_v4(host);
-    const auto hex_host = fmt::format("00000000-0000-0000-0000-0000{:06x}", ip.to_uint());
+    boost::system::error_code ec{};
+    auto ip = boost::asio::ip::make_address_v4(host, ec);
+    if (ec.value() != boost::system::errc::success) {
+        LOG_ERROR(Input, "Invalid IPv4 address \"{}\" provided", host);
+        ip = boost::asio::ip::address_v4{};
+    }
+    auto const hex_host = fmt::format("00000000-0000-0000-0000-0000{:06x}", ip.to_uint());
     return Common::UUID{hex_host};
 }
 
@@ -564,9 +577,7 @@ bool UDPClient::IsStickInverted(const Common::ParamPackage& params) {
     return true;
 }
 
-void TestCommunication(const std::string& host, u16 port,
-                       const std::function<void()>& success_callback,
-                       const std::function<void()>& failure_callback) {
+void TestCommunication(const std::string& host, u16 port, const std::function<void()>& success_callback, const std::function<void()>& failure_callback) {
     std::thread([=] {
         Common::Event success_event;
         SocketCallback callback{
@@ -599,40 +610,38 @@ CalibrationConfigurationJob::CalibrationConfigurationJob(
         u16 max_y{};
 
         Status current_status{Status::Initialized};
-        SocketCallback callback{[](Response::Version) {}, [](Response::PortInfo) {},
-                                [&](Response::PadData data) {
-                                    constexpr u16 CALIBRATION_THRESHOLD = 100;
+        SocketCallback callback{[](Response::Version) {}, [](Response::PortInfo) {}, [&](Response::PadData data) {
+            constexpr u16 CALIBRATION_THRESHOLD = 100;
 
-                                    if (current_status == Status::Initialized) {
-                                        // Receiving data means the communication is ready now
-                                        current_status = Status::Ready;
-                                        status_callback(current_status);
-                                    }
-                                    if (data.touch[0].is_active == 0) {
-                                        return;
-                                    }
-                                    LOG_DEBUG(Input, "Current touch: {} {}", data.touch[0].x,
-                                              data.touch[0].y);
-                                    min_x = std::min(min_x, static_cast<u16>(data.touch[0].x));
-                                    min_y = std::min(min_y, static_cast<u16>(data.touch[0].y));
-                                    if (current_status == Status::Ready) {
-                                        // First touch - min data (min_x/min_y)
-                                        current_status = Status::Stage1Completed;
-                                        status_callback(current_status);
-                                    }
-                                    if (data.touch[0].x - min_x > CALIBRATION_THRESHOLD &&
-                                        data.touch[0].y - min_y > CALIBRATION_THRESHOLD) {
-                                        // Set the current position as max value and finishes
-                                        // configuration
-                                        max_x = data.touch[0].x;
-                                        max_y = data.touch[0].y;
-                                        current_status = Status::Completed;
-                                        data_callback(min_x, min_y, max_x, max_y);
-                                        status_callback(current_status);
+            if (current_status == Status::Initialized) {
+                // Receiving data means the communication is ready now
+                current_status = Status::Ready;
+                status_callback(current_status);
+            }
+            if (data.touch[0].is_active == 0) {
+                return;
+            }
+            LOG_DEBUG(Input, "Current touch: {} {}", data.touch[0].x, data.touch[0].y);
+            min_x = (std::min)(min_x, u16(data.touch[0].x));
+            min_y = (std::min)(min_y, u16(data.touch[0].y));
+            if (current_status == Status::Ready) {
+                // First touch - min data (min_x/min_y)
+                current_status = Status::Stage1Completed;
+                status_callback(current_status);
+            }
+            if (data.touch[0].x - min_x > CALIBRATION_THRESHOLD &&
+                data.touch[0].y - min_y > CALIBRATION_THRESHOLD) {
+                // Set the current position as max value and finishes
+                // configuration
+                max_x = data.touch[0].x;
+                max_y = data.touch[0].y;
+                current_status = Status::Completed;
+                data_callback(min_x, min_y, max_x, max_y);
+                status_callback(current_status);
 
-                                        complete_event.Set();
-                                    }
-                                }};
+                complete_event.Set();
+            }
+        }};
         Socket socket{host, port, std::move(callback)};
         std::thread worker_thread{SocketLoop, &socket};
         complete_event.Wait();

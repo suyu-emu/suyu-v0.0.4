@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 /* This file is part of the dynarmic project.
@@ -176,7 +176,7 @@ void EmitIR<IR::Opcode::NZCVFromPackedFlags>(oaknut::CodeGenerator&, EmitContext
     ctx.reg_alloc.DefineAsExisting(inst, args[0]);
 }
 
-static void EmitAddCycles(oaknut::CodeGenerator& code, EmitContext& ctx, size_t cycles_to_add) {
+static void EmitAddCycles(oaknut::CodeGenerator& code, EmitContext& ctx, std::size_t cycles_to_add) {
     if (!ctx.conf.enable_cycle_counting) {
         return;
     }
@@ -218,7 +218,7 @@ EmittedBlockInfo EmitArm64(oaknut::CodeGenerator& code, IR::Block block, const E
         code.l(pass);
     }
 
-    for (auto iter = block.begin(); iter != block.end(); ++iter) {
+    for (auto iter = block.instructions.begin(); iter != block.instructions.end(); ++iter) {
         IR::Inst* inst = &*iter;
 
         switch (inst->GetOpcode()) {

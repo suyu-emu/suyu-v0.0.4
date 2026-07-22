@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: 2023 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -13,7 +16,6 @@ import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import org.yuzu.yuzu_emu.R
 import org.yuzu.yuzu_emu.YuzuApplication
 import org.yuzu.yuzu_emu.model.AddonViewModel
-import org.yuzu.yuzu_emu.ui.main.MainActivity
 
 class ContentTypeSelectionDialogFragment : DialogFragment() {
     private val addonViewModel: AddonViewModel by activityViewModels()
@@ -31,12 +33,14 @@ class ContentTypeSelectionDialogFragment : DialogFragment() {
             selectedItem = savedInstanceState.getInt(SELECTED_ITEM)
         }
 
-        val mainActivity = requireActivity() as MainActivity
         return MaterialAlertDialogBuilder(requireContext())
             .setTitle(R.string.select_content_type)
             .setPositiveButton(android.R.string.ok) { _: DialogInterface, _: Int ->
                 when (selectedItem) {
-                    0 -> mainActivity.installGameUpdate.launch(arrayOf("*/*"))
+                    0 -> parentFragmentManager.setFragmentResult(
+                        REQUEST_INSTALL_GAME_UPDATE,
+                        Bundle()
+                    )
                     else -> {
                         if (!preferences.getBoolean(MOD_NOTICE_SEEN, false)) {
                             preferences.edit().putBoolean(MOD_NOTICE_SEEN, true).apply()
@@ -47,7 +51,7 @@ class ContentTypeSelectionDialogFragment : DialogFragment() {
                     }
                 }
             }
-            .setSingleChoiceItems(launchOptions, 0) { _: DialogInterface, i: Int ->
+            .setSingleChoiceItems(launchOptions, selectedItem) { _: DialogInterface, i: Int ->
                 selectedItem = i
             }
             .setNegativeButton(android.R.string.cancel, null)
@@ -61,6 +65,7 @@ class ContentTypeSelectionDialogFragment : DialogFragment() {
 
     companion object {
         const val TAG = "ContentTypeSelectionDialogFragment"
+        const val REQUEST_INSTALL_GAME_UPDATE = "RequestInstallGameUpdate"
 
         private const val SELECTED_ITEM = "SelectedItem"
         private const val MOD_NOTICE_SEEN = "ModNoticeSeen"

@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2021 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -70,18 +73,14 @@ Mouse::Mouse(std::string input_engine_) : InputEngine(std::move(input_engine_)) 
     last_mouse_change = {};
     last_motion_change = {};
 
-    update_thread = std::jthread([this](std::stop_token stop_token) { UpdateThread(stop_token); });
-}
-
-void Mouse::UpdateThread(std::stop_token stop_token) {
-    Common::SetCurrentThreadName("Mouse");
-
-    while (!stop_token.stop_requested()) {
-        UpdateStickInput();
-        UpdateMotionInput();
-
-        std::this_thread::sleep_for(std::chrono::milliseconds(update_time));
-    }
+    update_thread = std::jthread([this](std::stop_token stop_token) {
+        Common::SetCurrentThreadName("Mouse");
+        while (!stop_token.stop_requested()) {
+            UpdateStickInput();
+            UpdateMotionInput();
+            std::this_thread::sleep_for(std::chrono::milliseconds(update_time));
+        }
+    });
 }
 
 void Mouse::UpdateStickInput() {
@@ -102,11 +101,11 @@ void Mouse::UpdateStickInput() {
     SetAxis(identifier, mouse_axis_y, -last_mouse_change.y);
 
     // Decay input over time
-    const float clamped_length = std::min(1.0f, length);
+    const float clamped_length = (std::min)(1.0f, length);
     const float decay_strength = Settings::values.mouse_panning_decay_strength.GetValue();
     const float decay = 1 - clamped_length * clamped_length * decay_strength * 0.01f;
     const float min_decay = Settings::values.mouse_panning_min_decay.GetValue();
-    const float clamped_decay = std::min(1 - min_decay / 100.0f, decay);
+    const float clamped_decay = (std::min)(1 - min_decay / 100.0f, decay);
     last_mouse_change *= clamped_decay;
 }
 

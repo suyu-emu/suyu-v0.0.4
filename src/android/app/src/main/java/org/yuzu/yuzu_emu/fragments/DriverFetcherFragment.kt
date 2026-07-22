@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 package org.yuzu.yuzu_emu.fragments
@@ -13,7 +13,6 @@ import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.isVisible
 import androidx.core.view.updatePadding
 import androidx.fragment.app.activityViewModels
-import androidx.navigation.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
@@ -29,6 +28,7 @@ import org.yuzu.yuzu_emu.R
 import org.yuzu.yuzu_emu.databinding.FragmentDriverFetcherBinding
 import org.yuzu.yuzu_emu.features.fetcher.DriverGroupAdapter
 import org.yuzu.yuzu_emu.model.DriverViewModel
+import org.yuzu.yuzu_emu.model.HomeViewModel
 import org.yuzu.yuzu_emu.utils.GpuDriverHelper
 import org.yuzu.yuzu_emu.utils.ViewUtils.updateMargins
 import java.io.IOException
@@ -45,7 +45,7 @@ class DriverFetcherFragment : Fragment() {
     private val client = OkHttpClient()
 
     private val gpuModel: String?
-        get() = GpuDriverHelper.getGpuModel()
+        get() = GpuDriverHelper.hookLibPath?.let { GpuDriverHelper.getGpuModel(hookLibPath = it) }
 
     private val adrenoModel: Int
         get() = parseAdrenoModel()
@@ -69,7 +69,8 @@ class DriverFetcherFragment : Fragment() {
         DriverRepo("Mr. Purple Turnip", "MrPurple666/purple-turnip", 0),
         DriverRepo("GameHub Adreno 8xx", "crueter/GameHub-8Elite-Drivers", 1),
         DriverRepo("KIMCHI Turnip", "K11MCH1/AdrenoToolsDrivers", 2, true, SortMode.PublishTime),
-        DriverRepo("Weab-Chan Freedreno", "Weab-chan/freedreno_turnip-CI", 3)
+        DriverRepo("Weab-Chan Freedreno", "Weab-chan/freedreno_turnip-CI", 3),
+        DriverRepo("Whitebelyash Turnip", "whitebelyash/freedreno_turnip-CI", sort=4, false, SortMode.PublishTime),
     )
 
     private val driverMap = listOf(
@@ -79,13 +80,14 @@ class DriverFetcherFragment : Fragment() {
         IntRange(600, 639) to "Mr. Purple EOL-24.3.4",
         IntRange(640, 699) to "Mr. Purple T19",
         IntRange(700, 710) to "KIMCHI 25.2.0_r5",
-        IntRange(711, 799) to "Mr. Purple T22",
+        IntRange(711, 799) to "Mr. Purple T23",
         IntRange(800, 899) to "GameHub Adreno 8xx",
         IntRange(900, Int.MAX_VALUE) to "Unsupported"
     )
 
     private lateinit var driverGroupAdapter: DriverGroupAdapter
     private val driverViewModel: DriverViewModel by activityViewModels()
+    private val homeViewModel: HomeViewModel by activityViewModels()
 
     private fun parseAdrenoModel(): Int {
         if (gpuModel == null) {
@@ -137,9 +139,9 @@ class DriverFetcherFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-
+        homeViewModel.setStatusBarShadeVisibility(visible = false)
         binding.toolbarDrivers.setNavigationOnClickListener {
-            binding.root.findNavController().popBackStack()
+            requireActivity().onBackPressedDispatcher.onBackPressed()
         }
 
         binding.listDrivers.layoutManager = LinearLayoutManager(context)
