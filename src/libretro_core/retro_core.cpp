@@ -26,7 +26,9 @@
 #include <string>
 #include <vector>
 
+#include "common/logging/backend.h"
 #include "common/logging/log.h"
+#include "common/settings.h"
 #include "core/core.h"
 #include "core/file_sys/registered_cache.h"
 #include "core/file_sys/vfs/vfs_real.h"
@@ -85,6 +87,14 @@ RETRO_API void retro_set_input_state(retro_input_state_t cb) {
 }
 
 RETRO_API void retro_init() {
+    // Also missing entirely - without this, every LOG_CRITICAL/LOG_ERROR
+    // inside Core::System::Load() (which is where the real reason for any
+    // load failure actually gets reported) went nowhere, making the actual
+    // suyu.exe-side "why did content loading fail" undiagnosable from just
+    // RetroArch's own generic "[ERROR] [Content] Failed to load content."
+    Common::Log::Initialize();
+    Common::Log::Start();
+
     g_system = std::make_unique<Core::System>();
     g_emu_window = std::make_unique<LibretroCore::RetroEmuWindow>();
 
@@ -96,6 +106,21 @@ RETRO_API void retro_init() {
     // filesystem, no content provider, and never Initialize()'d, all of
     // which the loader pipeline dereferences unconditionally.
     g_system->Initialize();
+    // video_core's Vulkan surface creation (vulkan_surface.cpp) has no
+    // headless branch at all - every platform case matches on a real OS
+    // window handle type, so RetroEmuWindow's headless window_info
+    // (render_surface=nullptr) always falls through to "Presentation not
+    // supported on this platform" and Load() fails with
+    // SystemResultStatus::ErrorVideoCore (confirmed via real suyu_log.txt:
+    // "Vulkan initialization failed with error: VK_ERROR_INITIALIZATION_FAILED").
+    // Rather than touch the shared Vulkan renderer that real Qt-frontend
+    // gameplay currently depends on, use the already-existing Null renderer
+    // backend (video_core/renderer_null) - it needs no real surface at all,
+    // and since retro_video_refresh() only ever emits a placeholder frame
+    // right now anyway (see retro_run(), video isn't bridged yet), there is
+    // no observable difference in current behavior, only that Load() can
+    // now actually succeed.
+    Settings::values.renderer_backend.SetValue(Settings::RendererBackend::Null);
     g_system->ApplySettings();
     g_system->SetContentProvider(std::make_unique<FileSys::ContentProviderUnion>());
     g_system->SetFilesystem(std::make_shared<FileSys::RealVfsFilesystem>());
@@ -106,6 +131,7 @@ RETRO_API void retro_init() {
 RETRO_API void retro_deinit() {
     g_emu_window.reset();
     g_system.reset();
+    Common::Log::Stop();
 }
 
 RETRO_API unsigned retro_api_version() {
