@@ -25,6 +25,7 @@
 #include <memory>
 #include <string>
 #include <vector>
+#include <cstdio>
 
 #include "common/logging/backend.h"
 #include "common/logging/log.h"
@@ -87,45 +88,28 @@ RETRO_API void retro_set_input_state(retro_input_state_t cb) {
 }
 
 RETRO_API void retro_init() {
-    // Also missing entirely - without this, every LOG_CRITICAL/LOG_ERROR
-    // inside Core::System::Load() (which is where the real reason for any
-    // load failure actually gets reported) went nowhere, making the actual
-    // suyu.exe-side "why did content loading fail" undiagnosable from just
-    // RetroArch's own generic "[ERROR] [Content] Failed to load content."
     Common::Log::Initialize();
     Common::Log::Start();
 
+    LOG_INFO(Frontend, "libretro core: retro_init() starting");
+
+    fprintf(stderr, "[suyu-libretro] creating System...\n"); fflush(stderr);
     g_system = std::make_unique<Core::System>();
+    fprintf(stderr, "[suyu-libretro] creating EmuWindow...\n"); fflush(stderr);
     g_emu_window = std::make_unique<LibretroCore::RetroEmuWindow>();
 
-    // Real root cause of the retro_load_game crash (0xc0000005, confirmed
-    // via Windows Event Log against real content): none of the setup
-    // suyu_cmd (src/suyu_cmd/suyu.cpp, the reference headless frontend this
-    // file's own header comment says to mirror) does before Load() was
-    // happening here - Load() was being called on a System with no
-    // filesystem, no content provider, and never Initialize()'d, all of
-    // which the loader pipeline dereferences unconditionally.
+    fprintf(stderr, "[suyu-libretro] System::Initialize()...\n"); fflush(stderr);
     g_system->Initialize();
-    // video_core's Vulkan surface creation (vulkan_surface.cpp) has no
-    // headless branch at all - every platform case matches on a real OS
-    // window handle type, so RetroEmuWindow's headless window_info
-    // (render_surface=nullptr) always falls through to "Presentation not
-    // supported on this platform" and Load() fails with
-    // SystemResultStatus::ErrorVideoCore (confirmed via real suyu_log.txt:
-    // "Vulkan initialization failed with error: VK_ERROR_INITIALIZATION_FAILED").
-    // Rather than touch the shared Vulkan renderer that real Qt-frontend
-    // gameplay currently depends on, use the already-existing Null renderer
-    // backend (video_core/renderer_null) - it needs no real surface at all,
-    // and since retro_video_refresh() only ever emits a placeholder frame
-    // right now anyway (see retro_run(), video isn't bridged yet), there is
-    // no observable difference in current behavior, only that Load() can
-    // now actually succeed.
+    fprintf(stderr, "[suyu-libretro] setting Null renderer...\n"); fflush(stderr);
     Settings::values.renderer_backend.SetValue(Settings::RendererBackend::Null);
     g_system->ApplySettings();
+    fprintf(stderr, "[suyu-libretro] setting up filesystem...\n"); fflush(stderr);
     g_system->SetContentProvider(std::make_unique<FileSys::ContentProviderUnion>());
     g_system->SetFilesystem(std::make_shared<FileSys::RealVfsFilesystem>());
     g_system->GetFileSystemController().CreateFactories(*g_system->GetFilesystem());
     g_system->GetUserChannel().clear();
+
+    fprintf(stderr, "[suyu-libretro] retro_init() complete\n"); fflush(stderr);
 }
 
 RETRO_API void retro_deinit() {
@@ -197,24 +181,29 @@ RETRO_API void retro_cheat_set(unsigned /*index*/, bool /*enabled*/, const char*
 
 RETRO_API bool retro_load_game(const struct retro_game_info* game) {
     if (!g_system || !g_emu_window || !game || !game->path) {
+        LOG_CRITICAL(Frontend, "libretro core: retro_load_game null check failed "
+                               "(system={} window={} game={} path={})",
+                     !!g_system, !!g_emu_window, !!game, game ? !!game->path : false);
         return false;
     }
 
     g_game_path = game->path;
+    fprintf(stderr, "[suyu-libretro] loading game: %s\n", g_game_path.c_str()); fflush(stderr);
 
     Service::AM::FrontendAppletParameters load_parameters{};
     load_parameters.applet_id = Service::AM::AppletId::Application;
 
+    fprintf(stderr, "[suyu-libretro] calling System::Load()...\n"); fflush(stderr);
     const Core::SystemResultStatus result =
         g_system->Load(*g_emu_window, g_game_path, load_parameters);
+    fprintf(stderr, "[suyu-libretro] Load() returned %u\n", static_cast<u32>(result)); fflush(stderr);
     if (result != Core::SystemResultStatus::Success) {
-        LOG_CRITICAL(Frontend, "libretro core: failed to load {} (SystemResultStatus={})",
-                     g_game_path, static_cast<u32>(result));
         return false;
     }
 
     g_system->Run();
     g_game_loaded = true;
+    fprintf(stderr, "[suyu-libretro] game loaded and running\n"); fflush(stderr);
     return true;
 }
 
