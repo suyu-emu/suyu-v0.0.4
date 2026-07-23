@@ -62,6 +62,9 @@ RETRO_API void retro_set_environment(retro_environment_t cb) {
 
     bool no_content = false;
     cb(RETRO_ENVIRONMENT_SET_SUPPORT_NO_GAME, &no_content);
+
+    enum retro_pixel_format fmt = RETRO_PIXEL_FORMAT_XRGB8888;
+    cb(RETRO_ENVIRONMENT_SET_PIXEL_FORMAT, &fmt);
 }
 
 RETRO_API void retro_set_video_refresh(retro_video_refresh_t cb) {
@@ -95,8 +98,8 @@ RETRO_API void retro_init() {
 
     g_system->Initialize();
     Settings::values.renderer_backend.SetValue(Settings::RendererBackend::Vulkan);
-    Settings::values.cpuopt_fastmem.SetValue(false);
-    Settings::values.cpuopt_fastmem_exclusives.SetValue(false);
+    Settings::values.cpuopt_fastmem.SetValue(true);
+    Settings::values.cpuopt_fastmem_exclusives.SetValue(true);
     g_system->ApplySettings();
     g_system->SetContentProvider(std::make_unique<FileSys::ContentProviderUnion>());
     g_system->SetFilesystem(std::make_shared<FileSys::RealVfsFilesystem>());
@@ -147,16 +150,32 @@ RETRO_API void retro_run() {
         g_input_poll_cb();
     }
 
+    static unsigned frame_counter = 0;
+    ++frame_counter;
+
+    if (frame_counter <= 3 || (frame_counter % 600) == 0) {
+        LOG_INFO(Frontend, "libretro: retro_run frame {}, game_loaded={}", frame_counter, g_game_loaded);
+    }
+
     if (g_video_cb && g_system && g_game_loaded) {
         auto& renderer = g_system->Renderer();
         if (renderer.IsHeadless()) {
             const auto& frame = renderer.GetLastRenderedFrame();
             if (!frame.empty()) {
+                if (frame_counter <= 5 || (frame_counter % 300) == 0) {
+                    LOG_INFO(Frontend, "libretro: delivering frame {} ({}x{}, {} bytes)",
+                             frame_counter, renderer.GetHeadlessWidth(),
+                             renderer.GetHeadlessHeight(), frame.size());
+                }
                 g_video_cb(frame.data(), renderer.GetHeadlessWidth(),
                            renderer.GetHeadlessHeight(),
                            renderer.GetHeadlessWidth() * 4);
                 return;
             }
+        }
+        if (frame_counter <= 5 || (frame_counter % 300) == 0) {
+            LOG_WARNING(Frontend, "libretro: frame {} - no rendered frame available, sending black",
+                        frame_counter);
         }
         static const std::vector<u32> black_frame(
             static_cast<size_t>(kFrameWidth) * kFrameHeight, 0xFF000000);
