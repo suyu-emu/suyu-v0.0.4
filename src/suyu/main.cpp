@@ -176,6 +176,7 @@ static FileSys::VirtualFile VfsDirectoryCreateFileWrapper(const FileSys::Virtual
 #include "suyu/mode_selector.h"
 #include "suyu/emulator_core_manager.h"
 #include "suyu/hacker_environment.h"
+#include "core/recompiler/arm64_to_c.h"
 #include "suyu/mcp_server.h"
 #include "suyu/programmer_environment.h"
 #include "suyu/game_export.h"
@@ -3722,6 +3723,38 @@ void GMainWindow::OnMenuRecentFile() {
     }
 }
 
+void GMainWindow::OnExportRecompiledSource(const QString& output_dir) {
+    if (!system || !emulation_running) {
+        QMessageBox::warning(this, tr("Recompile Export"),
+                             tr("No game is currently running. Load a game first."));
+        return;
+    }
+
+    QDir().mkpath(output_dir);
+
+    auto process_list = system->Kernel().GetProcessList();
+    if (process_list.empty()) {
+        QMessageBox::warning(this, tr("Recompile Export"), tr("No process found."));
+        return;
+    }
+
+    auto& process = *process_list.front();
+    const u64 base = process.GetEntryPoint().GetValue() & ~0xFFFULL;
+    constexpr u64 code_size = 4ULL * 1024 * 1024;
+
+    std::vector<u8> text_data(code_size);
+    system->ApplicationMemory().ReadBlock(base, text_data.data(), code_size);
+
+    const auto stats = suyu::recomp::EmitProject(
+        "game", text_data.data(), code_size, base, output_dir.toStdString(), false);
+
+    QMessageBox::information(this, tr("Recompile Export"),
+                             tr("Exported %1 blocks (%2 instructions) to:\n%3")
+                                 .arg(static_cast<int>(stats.blocks))
+                                 .arg(static_cast<int>(stats.instructions))
+                                 .arg(output_dir));
+}
+
 void GMainWindow::OnStartGame() {
     PreventOSSleep();
 
@@ -5797,6 +5830,8 @@ void GMainWindow::ApplyAppMode(AppMode mode) {
             hacker_env_dock_->setObjectName(QStringLiteral("HackerDock"));
             hacker_env_dock_->setWidget(hacker_env_);
             addDockWidget(Qt::BottomDockWidgetArea, hacker_env_dock_);
+            connect(hacker_env_, &HackerEnvironment::ExportRecompiledSource, this,
+                    &GMainWindow::OnExportRecompiledSource);
         }
         hacker_env_dock_->setVisible(true);
     } else {

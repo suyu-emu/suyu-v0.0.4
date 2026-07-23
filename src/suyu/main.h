@@ -378,6 +378,7 @@ private:
 
 private slots:
     void OnStartGame();
+    void OnExportRecompiledSource(const QString& output_dir);
     void OnRestartGame();
     void OnPauseGame();
     void OnPauseContinueGame();
