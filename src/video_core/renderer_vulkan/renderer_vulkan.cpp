@@ -188,6 +188,9 @@ void RendererVulkan::Composite(std::span<const Tegra::FramebufferConfig> framebu
         if (headless_composite_count <= 5 || (headless_composite_count % 60) == 0) {
             LOG_INFO(Render_Vulkan, "Headless Composite #{}, {} framebuffer layers",
                      headless_composite_count, framebuffers.size());
+            fprintf(stderr, "[suyu-vulkan] Headless Composite #%u, %zu layers\n",
+                    headless_composite_count, framebuffers.size());
+            fflush(stderr);
         }
 
         RenderScreenshot(framebuffers);

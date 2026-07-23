@@ -48,9 +48,9 @@ public:
     QSize sizeHint(const QStyleOptionViewItem& option,
                    const QModelIndex& index) const override;
 
-    static constexpr int CARD_W = 168;
-    static constexpr int CARD_H = 248;
-    static constexpr int ICON_H = 180;
+    static constexpr int CARD_W = 220;
+    static constexpr int CARD_H = 320;
+    static constexpr int ICON_H = 240;
     static constexpr int PAD    = 6;
 };
 

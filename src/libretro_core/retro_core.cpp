@@ -27,6 +27,7 @@
 #include "common/logging/log.h"
 #include "common/settings.h"
 #include "core/core.h"
+#include "core/cpu_manager.h"
 #include "core/file_sys/registered_cache.h"
 #include "core/file_sys/vfs/vfs_real.h"
 #include "core/frontend/framebuffer_layout.h"
@@ -100,6 +101,8 @@ RETRO_API void retro_init() {
     Settings::values.renderer_backend.SetValue(Settings::RendererBackend::Vulkan);
     Settings::values.cpuopt_fastmem.SetValue(true);
     Settings::values.cpuopt_fastmem_exclusives.SetValue(true);
+    Settings::values.log_flush_line.SetValue(true);
+    Settings::values.log_filter.SetValue("*:Info Service.VI:Debug Service.AM:Debug Service.Nvnflinger:Debug");
     g_system->ApplySettings();
     g_system->SetContentProvider(std::make_unique<FileSys::ContentProviderUnion>());
     g_system->SetFilesystem(std::make_shared<FileSys::RealVfsFilesystem>());
@@ -155,6 +158,8 @@ RETRO_API void retro_run() {
 
     if (frame_counter <= 3 || (frame_counter % 600) == 0) {
         LOG_INFO(Frontend, "libretro: retro_run frame {}, game_loaded={}", frame_counter, g_game_loaded);
+        fprintf(stderr, "[suyu-libretro] retro_run frame %u, game_loaded=%d\n", frame_counter, g_game_loaded);
+        fflush(stderr);
     }
 
     if (g_video_cb && g_system && g_game_loaded) {
@@ -221,6 +226,15 @@ RETRO_API bool retro_load_game(const struct retro_game_info* game) {
                      static_cast<u32>(result));
         return false;
     }
+
+    // The GUI's EmuThread does these steps between Load and Run — without them the GPU thread
+    // never starts and the CPU manager doesn't know the GPU is ready, causing the game to stall
+    // before it ever reaches display setup.
+    auto& gpu = g_system->GPU();
+    gpu.ObtainContext();
+    gpu.ReleaseContext();
+    gpu.Start();
+    g_system->GetCpuManager().OnGpuReady();
 
     g_system->Run();
     g_game_loaded = true;
