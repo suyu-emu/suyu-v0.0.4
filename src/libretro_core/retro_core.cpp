@@ -10,11 +10,9 @@
 // negotiation, load/unload/reset, and serialize size are real and correct.
 //
 // NOT YET WIRED (see comments at each site, not silently faked):
-//   - Video: RetroEmuWindow runs the renderer in headless mode (no surface).
-//     retro_run() calls the video callback with a placeholder frame so
-//     RetroArch's pipeline stays alive; real frame output needs a Vulkan
-//     swapchain readback or HW-render bridge that doesn't exist yet in
-//     video_core/renderer_vulkan.
+//   - Video: Vulkan renderer runs headless — renders to CPU buffer via
+//     RenderToBuffer, read back by retro_run. Falls back to black frame
+//     if no frame is available yet.
 //   - Audio: no callback wired to suyu's audio_core output stream yet.
 //   - Input: no bridge from retro_input_state_cb into InputCommon yet.
 //   - Save states: retro_serialize/unserialize are stubs returning false;
@@ -36,6 +34,7 @@
 #include "core/hle/service/filesystem/filesystem.h"
 #include "libretro_core/libretro.h"
 #include "libretro_core/retro_emu_window.h"
+#include "video_core/renderer_base.h"
 
 namespace {
 
@@ -95,7 +94,7 @@ RETRO_API void retro_init() {
     g_emu_window = std::make_unique<LibretroCore::RetroEmuWindow>();
 
     g_system->Initialize();
-    Settings::values.renderer_backend.SetValue(Settings::RendererBackend::Null);
+    Settings::values.renderer_backend.SetValue(Settings::RendererBackend::Vulkan);
     Settings::values.cpuopt_fastmem.SetValue(false);
     Settings::values.cpuopt_fastmem_exclusives.SetValue(false);
     g_system->ApplySettings();
@@ -148,11 +147,19 @@ RETRO_API void retro_run() {
         g_input_poll_cb();
     }
 
-    // Placeholder frame: video_core is not yet bridged to retro_video_refresh
-    // (see file header). Emit a fixed-size black frame so RetroArch's video
-    // driver stays initialized and the core doesn't appear hung.
-    static const std::vector<u32> black_frame(static_cast<size_t>(kFrameWidth) * kFrameHeight, 0xFF000000);
-    if (g_video_cb) {
+    if (g_video_cb && g_system && g_game_loaded) {
+        auto& renderer = g_system->Renderer();
+        if (renderer.IsHeadless()) {
+            const auto& frame = renderer.GetLastRenderedFrame();
+            if (!frame.empty()) {
+                g_video_cb(frame.data(), renderer.GetHeadlessWidth(),
+                           renderer.GetHeadlessHeight(),
+                           renderer.GetHeadlessWidth() * 4);
+                return;
+            }
+        }
+        static const std::vector<u32> black_frame(
+            static_cast<size_t>(kFrameWidth) * kFrameHeight, 0xFF000000);
         g_video_cb(black_frame.data(), kFrameWidth, kFrameHeight, kFrameWidth * sizeof(u32));
     }
 }

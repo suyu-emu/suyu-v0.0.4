@@ -107,6 +107,9 @@ vk::SurfaceKHR CreateSurface(
 #endif
 
     if (!unsafe_surface) {
+        if (window_info.type == Core::Frontend::WindowSystemType::Headless) {
+            return vk::SurfaceKHR{};
+        }
         LOG_ERROR(Render_Vulkan, "Presentation not supported on this platform");
         throw vk::Exception(VK_ERROR_INITIALIZATION_FAILED);
     }

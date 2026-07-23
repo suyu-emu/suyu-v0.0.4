@@ -124,7 +124,15 @@ Swapchain::Swapchain(
     , device{device_}
     , scheduler{scheduler_}
 {
-    Create(surface, width_, height_);
+    if (surface) {
+        Create(surface, width_, height_);
+    } else {
+        width = width_;
+        height = height_;
+        image_view_format = VK_FORMAT_B8G8R8A8_UNORM;
+        surface_format = {VK_FORMAT_B8G8R8A8_UNORM, VK_COLOR_SPACE_SRGB_NONLINEAR_KHR};
+        image_count = 1;
+    }
 }
 
 Swapchain::~Swapchain() = default;
@@ -139,6 +147,10 @@ void Swapchain::Create(
     width = width_;
     height = height_;
     surface = surface_;
+
+    if (!surface) {
+        return;
+    }
 
     const auto physical_device = device.GetPhysical();
     const auto capabilities{physical_device.GetSurfaceCapabilitiesKHR(VkSurfaceKHR(surface))};

@@ -56,6 +56,11 @@ public:
         return device.GetDriverName();
     }
 
+    bool IsHeadless() const override { return is_headless; }
+    const std::vector<u8>& GetLastRenderedFrame() const override { return headless_frame_data; }
+    u32 GetHeadlessWidth() const override { return headless_width; }
+    u32 GetHeadlessHeight() const override { return headless_height; }
+
     // Enhanced platform-specific initialization
     void InitializePlatformSpecific();
 
@@ -98,6 +103,11 @@ private:
     std::optional<TurboMode> turbo_mode;
 
     Frame applet_frame;
+
+    bool is_headless{false};
+    std::vector<u8> headless_frame_data;
+    u32 headless_width{1280};
+    u32 headless_height{720};
 };
 
 } // namespace Vulkan
