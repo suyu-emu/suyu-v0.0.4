@@ -440,7 +440,7 @@ VirtualDir RealVfsDirectory::CreateDirectoryRelative(std::string_view relative_p
 
 bool RealVfsDirectory::DeleteSubdirectoryRecursive(std::string_view name) {
     const auto full_path = FS::SanitizePath(this->path + '/' + std::string(name));
-    return base.DeleteDirectory(full_path);
+    return FS::RemoveDirRecursively(full_path);
 }
 
 std::vector<VirtualFile> RealVfsDirectory::GetFiles() const {
@@ -506,7 +506,7 @@ VirtualFile RealVfsDirectory::CreateFile(std::string_view name) {
 
 bool RealVfsDirectory::DeleteSubdirectory(std::string_view name) {
     const std::string subdir_path = (path + '/').append(name);
-    return base.DeleteDirectory(subdir_path);
+    return FS::RemoveDir(subdir_path);
 }
 
 bool RealVfsDirectory::DeleteFile(std::string_view name) {

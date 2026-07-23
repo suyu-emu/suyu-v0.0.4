@@ -43,6 +43,16 @@ static FileSys::VirtualDir GetDirectoryRelativeWrapped(FileSys::VirtualDir base,
     return base->GetDirectoryRelative(dir_name);
 }
 
+static std::string_view GetGuestParentPath(std::string_view path) {
+    const auto name_index = path.find_last_of("\\/");
+    return name_index == std::string_view::npos ? std::string_view{} : path.substr(0, name_index);
+}
+
+static std::string_view GetGuestFilename(std::string_view path) {
+    const auto name_index = path.find_last_of("\\/");
+    return name_index == std::string_view::npos ? path : path.substr(name_index + 1);
+}
+
 VfsDirectoryServiceWrapper::VfsDirectoryServiceWrapper(FileSys::VirtualDir backing_)
     : backing(std::move(backing_)) {}
 
@@ -83,11 +93,12 @@ Result VfsDirectoryServiceWrapper::DeleteFile(const std::string& path_) const {
         return ResultSuccess;
     }
 
-    auto dir = GetDirectoryRelativeWrapped(backing, Common::FS::GetParentPath(path));
-    if (dir == nullptr || dir->GetFile(Common::FS::GetFilename(path)) == nullptr) {
+    const auto filename = GetGuestFilename(path);
+    auto dir = GetDirectoryRelativeWrapped(backing, GetGuestParentPath(path));
+    if (filename.empty() || dir == nullptr || dir->GetFile(filename) == nullptr) {
         return FileSys::ResultPathNotFound;
     }
-    if (!dir->DeleteFile(Common::FS::GetFilename(path))) {
+    if (!dir->DeleteFile(filename)) {
         // TODO(DarkLordZach): Find a better error code for this
         return ResultUnknown;
     }
@@ -117,8 +128,19 @@ Result VfsDirectoryServiceWrapper::CreateDirectory(const std::string& path_) con
 
 Result VfsDirectoryServiceWrapper::DeleteDirectory(const std::string& path_) const {
     std::string path(Common::FS::SanitizePath(path_));
-    auto dir = GetDirectoryRelativeWrapped(backing, Common::FS::GetParentPath(path));
-    if (!dir->DeleteSubdirectory(Common::FS::GetFilename(path))) {
+    const auto dirname = GetGuestFilename(path);
+    auto dir = GetDirectoryRelativeWrapped(backing, GetGuestParentPath(path));
+    FileSys::VirtualDir target{};
+    if (!dirname.empty() && dir != nullptr) {
+        target = dir->GetSubdirectory(dirname);
+    }
+    if (target == nullptr) {
+        return FileSys::ResultPathNotFound;
+    }
+    if (!target->GetFiles().empty() || !target->GetSubdirectories().empty()) {
+        return ResultUnknown;
+    }
+    if (!dir->DeleteSubdirectory(dirname)) {
         // TODO(DarkLordZach): Find a better error code for this
         return ResultUnknown;
     }
@@ -127,8 +149,12 @@ Result VfsDirectoryServiceWrapper::DeleteDirectory(const std::string& path_) con
 
 Result VfsDirectoryServiceWrapper::DeleteDirectoryRecursively(const std::string& path_) const {
     std::string path(Common::FS::SanitizePath(path_));
-    auto dir = GetDirectoryRelativeWrapped(backing, Common::FS::GetParentPath(path));
-    if (!dir->DeleteSubdirectoryRecursive(Common::FS::GetFilename(path))) {
+    const auto dirname = GetGuestFilename(path);
+    auto dir = GetDirectoryRelativeWrapped(backing, GetGuestParentPath(path));
+    if (dirname.empty() || dir == nullptr || dir->GetSubdirectory(dirname) == nullptr) {
+        return FileSys::ResultPathNotFound;
+    }
+    if (!dir->DeleteSubdirectoryRecursive(dirname)) {
         // TODO(DarkLordZach): Find a better error code for this
         return ResultUnknown;
     }
@@ -137,9 +163,13 @@ Result VfsDirectoryServiceWrapper::DeleteDirectoryRecursively(const std::string&
 
 Result VfsDirectoryServiceWrapper::CleanDirectoryRecursively(const std::string& path) const {
     const std::string sanitized_path(Common::FS::SanitizePath(path));
-    auto dir = GetDirectoryRelativeWrapped(backing, Common::FS::GetParentPath(sanitized_path));
+    const auto dirname = GetGuestFilename(sanitized_path);
+    auto dir = GetDirectoryRelativeWrapped(backing, GetGuestParentPath(sanitized_path));
 
-    if (!dir->CleanSubdirectoryRecursive(Common::FS::GetFilename(sanitized_path))) {
+    if (dirname.empty() || dir == nullptr || dir->GetSubdirectory(dirname) == nullptr) {
+        return FileSys::ResultPathNotFound;
+    }
+    if (!dir->CleanSubdirectoryRecursive(dirname)) {
         // TODO(DarkLordZach): Find a better error code for this
         return ResultUnknown;
     }

@@ -188,6 +188,7 @@ public:
 
     // Removes an existing entry based on title id
     bool RemoveExistingEntry(u64 title_id) const;
+    bool Delete(const NcaID& id) const;
 
 private:
     template <typename T>

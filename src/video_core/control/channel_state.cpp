@@ -16,6 +16,26 @@
 #include "video_core/memory_manager.h"
 
 namespace Tegra::Control {
+namespace {
+
+// Match NVK/Nouveau's initial pushbuffer subchannel layout.
+constexpr u32 Nvk3DSubchannel = 0;
+constexpr u32 NvkComputeSubchannel = 1;
+constexpr u32 Nvk2DSubchannel = 3;
+constexpr u32 NvkCopySubchannel = 4;
+
+void BindNvkDefaultSubchannels(ChannelState::Payload& payload) {
+    auto& dma_pusher = payload.dma_pusher;
+    dma_pusher.BindSubchannel(&payload.maxwell_3d, Nvk3DSubchannel, Engines::EngineTypes::Maxwell3D);
+    dma_pusher.BindSubchannel(&payload.kepler_compute, NvkComputeSubchannel,
+                              Engines::EngineTypes::KeplerCompute);
+    // Subchannel 2 is M2MF there; Eden does not expose a 0x9039 engine yet.
+    dma_pusher.BindSubchannel(&payload.fermi_2d, Nvk2DSubchannel, Engines::EngineTypes::Fermi2D);
+    dma_pusher.BindSubchannel(&payload.maxwell_dma, NvkCopySubchannel,
+                              Engines::EngineTypes::MaxwellDMA);
+}
+
+} // Anonymous namespace
 
 ChannelState::Payload::Payload(Core::System& system, MemoryManager& memory_manager, ChannelState& channel_state)
     : maxwell_3d(memory_manager)
@@ -35,6 +55,7 @@ void ChannelState::Init(Core::System& system, u64 program_id_) {
     ASSERT(memory_manager);
     program_id = program_id_;
     payload.emplace(system, *memory_manager, *this);
+    BindNvkDefaultSubchannels(*payload);
     initialized = true;
 }
 

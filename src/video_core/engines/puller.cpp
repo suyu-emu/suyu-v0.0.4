@@ -22,10 +22,21 @@
 
 namespace Tegra::Engines {
 
+namespace {
+
+constexpr u32 Gf100BindClassMask = 0xffff;
+constexpr u32 Gf100BindValidMask =  0x1f0000 | Gf100BindClassMask;
+
+} // Anonymous namespace
+
 void Puller::ProcessBindMethod(DmaPusher& dma_pusher, const MethodCall& method_call) {
-    // Bind the current subchannel to the desired engine id.
-    LOG_DEBUG(HW_GPU, "Binding subchannel {} to engine {}", method_call.subchannel, method_call.argument);
-    const auto engine_id = static_cast<EngineID>(method_call.argument);
+    LOG_DEBUG(HW_GPU, "Binding subchannel {} to engine {:#x}", method_call.subchannel, method_call.argument);
+    u32 engine = method_call.argument;
+    if ((engine & ~Gf100BindClassMask) != 0 && (engine & ~Gf100BindValidMask) == 0) {
+        engine &= Gf100BindClassMask;
+    }
+
+    const auto engine_id = static_cast<EngineID>(engine);
     bound_engines[method_call.subchannel] = engine_id;
     switch (engine_id) {
     case EngineID::FERMI_TWOD_A:

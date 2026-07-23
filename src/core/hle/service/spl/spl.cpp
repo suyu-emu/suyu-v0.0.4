@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2018 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -28,9 +31,9 @@ SPL_MIG::SPL_MIG(Core::System& system_, std::shared_ptr<Module> module_)
     static const FunctionInfo functions[] = {
         {0, &SPL::GetConfig, "GetConfig"},
         {1, &SPL::ModularExponentiate, "ModularExponentiate"},
-        {2, nullptr, "GenerateAesKek"},
+        {2, &SPL::GenerateAesKek, "GenerateAesKek"},
         {3, nullptr, "LoadAesKey"},
-        {4, nullptr, "GenerateAesKey"},
+        {4, &SPL::GenerateAesKey, "GenerateAesKey"},
         {5, &SPL::SetConfig, "SetConfig"},
         {7, &SPL::GenerateRandomBytes, "GenerateRandomBytes"},
         {11, &SPL::IsDevelopment, "IsDevelopment"},

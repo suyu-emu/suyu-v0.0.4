@@ -56,6 +56,8 @@ public:
     Result ResumeAll();
     Result IsQualificationTransitionSupportedByProcessId(Out<bool> out_is_supported,
                                                          u64 process_id);
+    Result DeleteApplicationEntity(u64 application_id);
+    Result DeleteApplicationCompletely(u64 application_id);
     Result GetStorageSize(Out<s64> out_total_space_size, Out<s64> out_free_space_size,
                           FileSys::StorageId storage_id);
     Result TouchApplication(u64 application_id);
@@ -74,6 +76,7 @@ public:
     Result RequestDownloadApplicationControlDataInBackground(u64 control_source,
                                                              u64 application_id);
 
+    void PushApplicationRecord(HLERequestContext& ctx);
     void ListApplicationTitle(HLERequestContext& ctx);
 
 private:
