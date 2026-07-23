@@ -33,12 +33,9 @@ void SocialSidebar::SetupUi() {
     // Subreddit selector
     auto* toolbar = new QHBoxLayout();
     cmb_subreddit_ = new QComboBox(this);
-    cmb_subreddit_->setEditable(true);
+    cmb_subreddit_->setEditable(false);
     cmb_subreddit_->addItems({
         QStringLiteral("r/suyu"),
-        QStringLiteral("r/NintendoSwitch"),
-        QStringLiteral("r/emulation"),
-        QStringLiteral("r/SwitchHacks"),
     });
     toolbar->addWidget(cmb_subreddit_);
 
@@ -268,7 +265,6 @@ QString SocialSidebar::RenderPostsHtml(const QJsonArray& posts) const {
     for (const QJsonValue& child : posts) {
         const QJsonObject post = child.toObject()[QStringLiteral("data")].toObject();
         const QString title = post[QStringLiteral("title")].toString().toHtmlEscaped();
-        const QString author = post[QStringLiteral("author")].toString().toHtmlEscaped();
         const int score = post[QStringLiteral("score")].toInt();
         const int comments = post[QStringLiteral("num_comments")].toInt();
         const QString permalink = post[QStringLiteral("permalink")].toString();
@@ -281,24 +277,19 @@ QString SocialSidebar::RenderPostsHtml(const QJsonArray& posts) const {
 
         html += QStringLiteral("<div class='post'>");
 
-        // Score
         html += QStringLiteral("<span class='score'>%1</span>").arg(score);
 
-        // Flair
         if (!flair.isEmpty()) {
             html += QStringLiteral("<span class='flair'>%1</span> ").arg(flair);
         }
 
-        // Title — link to reddit thread for self posts, or to external URL
         const QString& link_target = is_self ? full_link : url;
         html += QStringLiteral("<span class='title'><a href='%1'>%2</a></span><br/>")
                     .arg(link_target.toHtmlEscaped(), title);
 
-        // Meta line
         html += QStringLiteral(
-                    "<span class='meta'>by u/%1 &middot; "
-                    "<a href='%2'>%3 comments</a></span>")
-                    .arg(author, full_link.toHtmlEscaped(), QString::number(comments));
+                    "<span class='meta'><a href='%1'>%2 comments</a></span>")
+                    .arg(full_link.toHtmlEscaped(), QString::number(comments));
 
         html += QStringLiteral("</div>");
     }
