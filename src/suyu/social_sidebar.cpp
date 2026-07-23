@@ -265,6 +265,7 @@ QString SocialSidebar::RenderPostsHtml(const QJsonArray& posts) const {
     for (const QJsonValue& child : posts) {
         const QJsonObject post = child.toObject()[QStringLiteral("data")].toObject();
         const QString title = post[QStringLiteral("title")].toString().toHtmlEscaped();
+        const QString author = post[QStringLiteral("author")].toString().toHtmlEscaped();
         const int score = post[QStringLiteral("score")].toInt();
         const int comments = post[QStringLiteral("num_comments")].toInt();
         const QString permalink = post[QStringLiteral("permalink")].toString();
@@ -288,8 +289,9 @@ QString SocialSidebar::RenderPostsHtml(const QJsonArray& posts) const {
                     .arg(link_target.toHtmlEscaped(), title);
 
         html += QStringLiteral(
-                    "<span class='meta'><a href='%1'>%2 comments</a></span>")
-                    .arg(full_link.toHtmlEscaped(), QString::number(comments));
+                    "<span class='meta'>u/%1 &middot; "
+                    "<a href='%2'>%3 comments</a></span>")
+                    .arg(author, full_link.toHtmlEscaped(), QString::number(comments));
 
         html += QStringLiteral("</div>");
     }

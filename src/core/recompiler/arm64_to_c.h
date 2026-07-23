@@ -374,6 +374,7 @@ inline const char* RuntimeC() {
 #include <stdlib.h>
 #include <string.h>
 #ifdef _WIN32
+#include <windows.h>
 #include <direct.h>
 #include <io.h>
 #define MKDIR(p) _mkdir(p)
@@ -381,6 +382,7 @@ inline const char* RuntimeC() {
 #else
 #include <sys/stat.h>
 #include <unistd.h>
+#include <time.h>
 #define MKDIR(p) mkdir(p,0755)
 #define PATH_SEP '/'
 #endif
@@ -531,7 +533,13 @@ void recomp_svc(GuestContext* c,unsigned imm){
   case 0x8: /* CreateThread — stub, return handle=1 */
     c->x[0]=0; c->x[1]=1;
     break;
-  case 0xB: /* SleepThread — no-op in recomp */
+  case 0xB: /* SleepThread — yield CPU to prevent spin-lock lag */
+#ifdef _WIN32
+    Sleep((DWORD)(c->x[0] / 1000000ULL)); /* ns to ms */
+#else
+    { struct timespec ts; ts.tv_sec=0; ts.tv_nsec=(long)(c->x[0]>0?c->x[0]:1000000);
+      nanosleep(&ts,0); }
+#endif
     c->x[0]=0;
     break;
   case 0x15: /* SendSyncRequest — IPC for fsp-srv / save data */
@@ -602,7 +610,15 @@ void recomp_run(GuestContext* c){
     BlockFn f=recomp_lookup(c->pc);
     if(!f){ fprintf(stderr,"[recomp] no block at 0x%llx\n",(unsigned long long)c->pc); break;}
     f(c);
-    if(++g>1000000000ULL){ fprintf(stderr,"[recomp] watchdog (1B iterations)\n"); break; }
+    if(++g>100000000ULL){ fprintf(stderr,"[recomp] watchdog (100M iterations)\n"); break; }
+    /* Yield every 4096 blocks to prevent 100% CPU spin on tight loops */
+    if((g & 0xFFF)==0){
+#ifdef _WIN32
+      Sleep(0);
+#else
+      { struct timespec ts={0,0}; nanosleep(&ts,0); }
+#endif
+    }
   }
 }
 )RT";
