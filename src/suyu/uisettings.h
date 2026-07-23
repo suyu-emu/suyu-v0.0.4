@@ -197,8 +197,8 @@ struct Values {
 
     // Game List
     Setting<bool> show_add_ons{linkage, true, "show_add_ons", Category::UiGameList};
-    Setting<u32> game_icon_size{linkage, 64, "game_icon_size", Category::UiGameList};
-    Setting<u32> folder_icon_size{linkage, 48, "folder_icon_size", Category::UiGameList};
+    Setting<u32> game_icon_size{linkage, 128, "game_icon_size", Category::UiGameList};
+    Setting<u32> folder_icon_size{linkage, 72, "folder_icon_size", Category::UiGameList};
     Setting<u8> row_1_text_id{linkage, 3, "row_1_text_id", Category::UiGameList};
     Setting<u8> row_2_text_id{linkage, 2, "row_2_text_id", Category::UiGameList};
     std::atomic_bool is_game_list_reload_pending{false};
