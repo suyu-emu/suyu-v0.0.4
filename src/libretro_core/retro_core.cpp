@@ -25,8 +25,6 @@
 #include <memory>
 #include <string>
 #include <vector>
-#include <cstdio>
-
 #include "common/logging/backend.h"
 #include "common/logging/log.h"
 #include "common/settings.h"
@@ -93,25 +91,20 @@ RETRO_API void retro_init() {
 
     LOG_INFO(Frontend, "libretro core: retro_init() starting");
 
-    fprintf(stderr, "[suyu-libretro] creating System...\n"); fflush(stderr);
     g_system = std::make_unique<Core::System>();
-    fprintf(stderr, "[suyu-libretro] creating EmuWindow...\n"); fflush(stderr);
     g_emu_window = std::make_unique<LibretroCore::RetroEmuWindow>();
 
-    fprintf(stderr, "[suyu-libretro] System::Initialize()...\n"); fflush(stderr);
     g_system->Initialize();
-    fprintf(stderr, "[suyu-libretro] setting Null renderer...\n"); fflush(stderr);
     Settings::values.renderer_backend.SetValue(Settings::RendererBackend::Null);
     Settings::values.cpuopt_fastmem.SetValue(false);
     Settings::values.cpuopt_fastmem_exclusives.SetValue(false);
     g_system->ApplySettings();
-    fprintf(stderr, "[suyu-libretro] setting up filesystem...\n"); fflush(stderr);
     g_system->SetContentProvider(std::make_unique<FileSys::ContentProviderUnion>());
     g_system->SetFilesystem(std::make_shared<FileSys::RealVfsFilesystem>());
     g_system->GetFileSystemController().CreateFactories(*g_system->GetFilesystem());
     g_system->GetUserChannel().clear();
 
-    fprintf(stderr, "[suyu-libretro] retro_init() complete\n"); fflush(stderr);
+    LOG_INFO(Frontend, "libretro core: retro_init() complete");
 }
 
 RETRO_API void retro_deinit() {
@@ -190,22 +183,22 @@ RETRO_API bool retro_load_game(const struct retro_game_info* game) {
     }
 
     g_game_path = game->path;
-    fprintf(stderr, "[suyu-libretro] loading game: %s\n", g_game_path.c_str()); fflush(stderr);
+    LOG_INFO(Frontend, "libretro core: loading game: {}", g_game_path);
 
     Service::AM::FrontendAppletParameters load_parameters{};
     load_parameters.applet_id = Service::AM::AppletId::Application;
 
-    fprintf(stderr, "[suyu-libretro] calling System::Load()...\n"); fflush(stderr);
     const Core::SystemResultStatus result =
         g_system->Load(*g_emu_window, g_game_path, load_parameters);
-    fprintf(stderr, "[suyu-libretro] Load() returned %u\n", static_cast<u32>(result)); fflush(stderr);
     if (result != Core::SystemResultStatus::Success) {
+        LOG_CRITICAL(Frontend, "libretro core: Load() failed with status {}",
+                     static_cast<u32>(result));
         return false;
     }
 
     g_system->Run();
     g_game_loaded = true;
-    fprintf(stderr, "[suyu-libretro] game loaded and running\n"); fflush(stderr);
+    LOG_INFO(Frontend, "libretro core: game loaded and running");
     return true;
 }
 
