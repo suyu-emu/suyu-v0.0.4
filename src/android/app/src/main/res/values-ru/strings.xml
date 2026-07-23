@@ -983,7 +983,6 @@
 
     <!-- Renderer Accuracy -->
     <string name="renderer_accuracy_low">Быстрый</string>
-    <string name="renderer_accuracy_medium">Сбалансированный</string>
     <string name="renderer_accuracy_high">Точный</string>
 
     <!-- DMA Accuracy -->

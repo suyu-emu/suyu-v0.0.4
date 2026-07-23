@@ -939,7 +939,6 @@
 
     <!-- Renderer Accuracy -->
     <string name="renderer_accuracy_low">Rapide</string>
-    <string name="renderer_accuracy_medium">Moyen</string>
     <string name="renderer_accuracy_high">Précis</string>
 
     <!-- DMA Accuracy -->

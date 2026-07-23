@@ -707,7 +707,6 @@
 
     <!-- Renderer Accuracy -->
     <string name="renderer_accuracy_low">Rychlý</string>
-    <string name="renderer_accuracy_medium">Vyvážený</string>
     <string name="renderer_accuracy_high">Přesný</string>
 
     <!-- DMA Accuracy -->

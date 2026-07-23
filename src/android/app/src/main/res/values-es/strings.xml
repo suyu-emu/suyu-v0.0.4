@@ -993,7 +993,6 @@
 
     <!-- Renderer Accuracy -->
     <string name="renderer_accuracy_low">Rápido</string>
-    <string name="renderer_accuracy_medium">Equilibrado</string>
     <string name="renderer_accuracy_high">Preciso</string>
 
     <!-- DMA Accuracy -->

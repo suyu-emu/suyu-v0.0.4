@@ -843,7 +843,6 @@
 
     <string name="renderer_none">無</string>
 
-    <string name="renderer_accuracy_medium">平衡</string>
     <string name="renderer_accuracy_high">準確</string>
 
     <!-- DMA Accuracy -->

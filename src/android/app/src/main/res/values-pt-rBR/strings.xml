@@ -840,7 +840,6 @@
 
     <string name="renderer_none">Nenhum</string>
 
-    <string name="renderer_accuracy_medium">Média</string>
     <string name="renderer_accuracy_high">Alta</string>
 
     <!-- DMA Accuracy -->

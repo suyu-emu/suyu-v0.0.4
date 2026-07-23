@@ -986,7 +986,6 @@
 
     <!-- Renderer Accuracy -->
     <string name="renderer_accuracy_low">Швидко</string>
-    <string name="renderer_accuracy_medium">Збалансовано</string>
     <string name="renderer_accuracy_high">Точно</string>
 
     <!-- DMA Accuracy -->

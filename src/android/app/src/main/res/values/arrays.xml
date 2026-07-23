@@ -103,14 +103,12 @@
 
     <string-array name="rendererAccuracyNames">
         <item>@string/renderer_accuracy_low</item>
-        <item>@string/renderer_accuracy_medium</item>
         <item>@string/renderer_accuracy_high</item>
     </string-array>
 
     <integer-array name="rendererAccuracyValues">
         <item>0</item>
         <item>1</item>
-        <item>2</item>
     </integer-array>
 
     <!-- VRAM USAGE MODE CHOICES -->

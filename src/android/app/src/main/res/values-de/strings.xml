@@ -927,7 +927,6 @@ Wirklich fortfahren?</string>
 
     <!-- Renderer Accuracy -->
     <string name="renderer_accuracy_low">Schnell</string>
-    <string name="renderer_accuracy_medium">Ausgeglichen</string>
     <string name="renderer_accuracy_high">Genau</string>
 
     <!-- DMA Accuracy -->

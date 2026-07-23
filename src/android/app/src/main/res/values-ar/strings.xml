@@ -1000,7 +1000,6 @@
 
     <!-- Renderer Accuracy -->
     <string name="renderer_accuracy_low">سريع</string>
-    <string name="renderer_accuracy_medium">متوازن</string>
     <string name="renderer_accuracy_high">دقيق</string>
 
     <!-- DMA Accuracy -->

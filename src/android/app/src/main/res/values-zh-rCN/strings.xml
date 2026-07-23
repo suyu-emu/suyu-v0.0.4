@@ -990,7 +990,6 @@
 
     <!-- Renderer Accuracy -->
     <string name="renderer_accuracy_low">快速</string>
-    <string name="renderer_accuracy_medium">均衡</string>
     <string name="renderer_accuracy_high">精确</string>
 
     <!-- DMA Accuracy -->
