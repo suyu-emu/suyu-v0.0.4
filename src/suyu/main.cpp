@@ -3723,14 +3723,12 @@ void GMainWindow::OnMenuRecentFile() {
     }
 }
 
-void GMainWindow::OnExportRecompiledSource(const QString& output_dir) {
+void GMainWindow::OnExportRecompiledSource(const QString& output_dir, bool source_only) {
     if (!system || !emulation_running) {
         QMessageBox::warning(this, tr("Recompile Export"),
                              tr("No game is currently running. Load a game first."));
         return;
     }
-
-    QDir().mkpath(output_dir);
 
     auto process_list = system->Kernel().GetProcessList();
     if (process_list.empty()) {
@@ -3745,14 +3743,26 @@ void GMainWindow::OnExportRecompiledSource(const QString& output_dir) {
     std::vector<u8> text_data(code_size);
     system->ApplicationMemory().ReadBlock(base, text_data.data(), code_size);
 
-    const auto stats = suyu::recomp::EmitProject(
-        "game", text_data.data(), code_size, base, output_dir.toStdString(), false);
+    auto* future_watcher = new QFutureWatcher<suyu::recomp::RecompileStats>(this);
+    connect(future_watcher, &QFutureWatcher<suyu::recomp::RecompileStats>::finished, this,
+            [this, future_watcher, output_dir]() {
+                const auto stats = future_watcher->result();
+                QMessageBox::information(
+                    this, tr("Recompile Export"),
+                    tr("Exported %1 blocks (%2 instructions) to:\n%3")
+                        .arg(static_cast<int>(stats.blocks))
+                        .arg(static_cast<int>(stats.instructions))
+                        .arg(output_dir));
+                future_watcher->deleteLater();
+            });
 
-    QMessageBox::information(this, tr("Recompile Export"),
-                             tr("Exported %1 blocks (%2 instructions) to:\n%3")
-                                 .arg(static_cast<int>(stats.blocks))
-                                 .arg(static_cast<int>(stats.instructions))
-                                 .arg(output_dir));
+    auto future = QtConcurrent::run(
+        [text_data = std::move(text_data), base, output_dir, source_only]() {
+            QDir().mkpath(output_dir);
+            return suyu::recomp::EmitProject("game", text_data.data(), text_data.size(), base,
+                                             output_dir.toStdString(), source_only);
+        });
+    future_watcher->setFuture(future);
 }
 
 void GMainWindow::OnStartGame() {

@@ -36,7 +36,7 @@ public:
 signals:
     void ToolInvoked(const QString& tool_name, const QString& args);
     void MemoryAddressSelected(quint64 address);
-    void ExportRecompiledSource(const QString& output_dir);
+    void ExportRecompiledSource(const QString& output_dir, bool source_only);
 
 private:
     void SetupUI();

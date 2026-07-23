@@ -543,7 +543,7 @@ QWidget* HackerEnvironment::CreateRecompileTab() {
                     .arg(output_dir)
                     .arg(source_only ? QStringLiteral("true") : QStringLiteral("false")));
         }
-        emit ExportRecompiledSource(output_dir);
+        emit ExportRecompiledSource(output_dir, source_only);
     });
     btn_layout->addWidget(btn_export);
     layout->addLayout(btn_layout);

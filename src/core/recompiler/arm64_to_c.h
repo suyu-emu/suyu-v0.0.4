@@ -249,7 +249,10 @@ inline RecompileStats EmitProject(const std::string& mod, const u8* text, size_t
     }
     rc << "#include <stdint.h>\nstruct _ent{uint64_t va; BlockFn fn;};\nstatic const struct _ent _tbl[] = {\n";
     for (const auto& b : blocks) rc << "  {0x" << std::hex << b.vaddr << std::dec << "ULL, " << FuncName(mod, b.vaddr) << "},\n";
-    rc << "};\nBlockFn recomp_lookup(uint64_t pc){ for(unsigned i=0;i<sizeof(_tbl)/sizeof(_tbl[0]);++i) if(_tbl[i].va==pc) return _tbl[i].fn; return 0; }\n";
+    rc << "};\nBlockFn recomp_lookup(uint64_t pc){\n"
+       << "  unsigned lo=0, hi=sizeof(_tbl)/sizeof(_tbl[0]);\n"
+       << "  while(lo<hi){ unsigned m=lo+(hi-lo)/2; if(_tbl[m].va<pc) lo=m+1; else hi=m; }\n"
+       << "  return (lo<sizeof(_tbl)/sizeof(_tbl[0]) && _tbl[lo].va==pc)?_tbl[lo].fn:0;\n}\n";
 
     std::ostringstream mc;
     mc << "#include \"recomp_runtime.h\"\n#include <stdio.h>\n#include <stdlib.h>\n#include <string.h>\n\n";
