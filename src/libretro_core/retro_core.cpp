@@ -364,6 +364,37 @@ RETRO_API bool retro_load_game(const struct retro_game_info* game) {
     g_game_path = game->path;
     LOG_INFO(Frontend, "libretro core: loading game: {}", g_game_path);
 
+    // Apply core options before loading the game
+    if (g_environ_cb) {
+        struct retro_variable var;
+        var.key = "suyu_use_docked";
+        var.value = nullptr;
+        if (g_environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value) {
+            Settings::values.use_docked_mode.SetValue(
+                std::string(var.value) == "Yes" ? Settings::ConsoleMode::Docked
+                                                : Settings::ConsoleMode::Handheld);
+        }
+        var.key = "suyu_cpu_accuracy";
+        var.value = nullptr;
+        if (g_environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value) {
+            std::string v(var.value);
+            if (v == "Accurate")
+                Settings::values.cpu_accuracy.SetValue(Settings::CpuAccuracy::Accurate);
+            else if (v == "Unsafe")
+                Settings::values.cpu_accuracy.SetValue(Settings::CpuAccuracy::Unsafe);
+            else
+                Settings::values.cpu_accuracy.SetValue(Settings::CpuAccuracy::Auto);
+        }
+        var.key = "suyu_fastmem";
+        var.value = nullptr;
+        if (g_environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value) {
+            const bool enabled = std::string(var.value) == "Enabled";
+            Settings::values.cpuopt_fastmem.SetValue(enabled);
+            Settings::values.cpuopt_fastmem_exclusives.SetValue(enabled);
+        }
+        g_system->ApplySettings();
+    }
+
     Service::AM::FrontendAppletParameters load_parameters{};
     load_parameters.applet_id = Service::AM::AppletId::Application;
 
