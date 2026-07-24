@@ -237,7 +237,7 @@ IHidServer::IHidServer(Core::System& system_, std::shared_ptr<ResourceManager> r
         {3013, nullptr, "SetDebugPadGenericPadMap"}, //21.0.0+
         {3014, nullptr, "GetDebugPadKeyboardMap"}, //21.0.0+
         {3015, nullptr, "SetDebugPadKeyboardMap"}, //21.0.0+
-        {3150, nullptr, "SetMouseLibraryVersion"}, //21.0.0+
+        {3150, C<&IHidServer::SetMouseLibraryVersion>, "SetMouseLibraryVersion"}, //21.0.0+
         // What? -- {12010, nullptr, "SetButtonConfigLeft"},
     };
     // clang-format on
@@ -1468,6 +1468,12 @@ Result IHidServer::SetTouchScreenResolution(u32 width, u32 height,
              aruid.pid);
 
     GetResourceManager()->GetTouchScreen()->SetTouchScreenResolution(width, height, aruid.pid);
+    R_SUCCEED();
+}
+
+Result IHidServer::SetMouseLibraryVersion(ClientAppletResourceUserId aruid) {
+    LOG_INFO(Service_HID, "(STUBBED) called, applet_resource_user_id={}", aruid.pid);
+
     R_SUCCEED();
 }
 

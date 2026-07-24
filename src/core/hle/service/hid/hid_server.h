@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 // SPDX-FileCopyrightText: Copyright 2023 yuzu Emulator Project
@@ -263,6 +263,7 @@ private:
     Result IsFirmwareUpdateNeededForNotification(Out<bool> out_is_firmware_update_needed,
                                                  s32 unknown, ClientAppletResourceUserId aruid);
     Result SetTouchScreenResolution(u32 width, u32 height, ClientAppletResourceUserId aruid);
+    Result SetMouseLibraryVersion(ClientAppletResourceUserId aruid);
 
     std::shared_ptr<ResourceManager> resource_manager;
     std::shared_ptr<HidFirmwareSettings> firmware_settings;
