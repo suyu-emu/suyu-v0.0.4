@@ -22,7 +22,10 @@
 #include <cstring>
 #include <memory>
 #include <string>
+#include <filesystem>
 #include <vector>
+#include "common/fs/fs.h"
+#include "common/fs/path_util.h"
 #include "common/logging/backend.h"
 #include "common/logging/log.h"
 #include "common/settings.h"
@@ -114,6 +117,31 @@ RETRO_API void retro_init() {
     g_system->SetFilesystem(std::make_shared<FileSys::RealVfsFilesystem>());
     g_system->GetFileSystemController().CreateFactories(*g_system->GetFilesystem());
     g_system->GetUserChannel().clear();
+
+    // Load keys from RetroArch system directory if available
+    // Users can place prod.keys and title.keys in <system_dir>/suyu/keys/
+    if (g_environ_cb) {
+        const char* system_dir = nullptr;
+        if (g_environ_cb(RETRO_ENVIRONMENT_GET_SYSTEM_DIRECTORY, &system_dir) && system_dir) {
+            const auto src_dir = std::filesystem::path(system_dir) / "suyu" / "keys";
+            const auto dst_dir = Common::FS::GetSuyuPath(Common::FS::SuyuPath::KeysDir);
+            LOG_INFO(Frontend, "libretro: checking for keys in: {}", src_dir.string());
+            if (std::filesystem::exists(src_dir)) {
+                Common::FS::CreateDir(dst_dir);
+                for (const auto& name : {"prod.keys", "title.keys", "console.keys"}) {
+                    auto src = src_dir / name;
+                    auto dst = dst_dir / name;
+                    if (std::filesystem::exists(src) && !std::filesystem::exists(dst)) {
+                        std::error_code ec;
+                        std::filesystem::copy_file(src, dst, ec);
+                        if (!ec) {
+                            LOG_INFO(Frontend, "libretro: copied {} from RetroArch system dir", name);
+                        }
+                    }
+                }
+            }
+        }
+    }
 
     g_system->HIDCore().ReloadInputDevices();
     LOG_INFO(Frontend, "libretro core: retro_init() complete");

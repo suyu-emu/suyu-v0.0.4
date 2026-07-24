@@ -2,8 +2,10 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "suyu/game_library.h"
+#include "suyu/nintendo_account.h"
 
 #include <QApplication>
+#include <QPainter>
 #include <QDir>
 #include <QDirIterator>
 #include <QFileInfo>
@@ -610,6 +612,28 @@ void GameLibraryWorker::FillControllerList(const QVector<UISettings::GameDir>& g
     if (stop_processing) return;
 
     ScanFileSystem(const_cast<QVector<UISettings::GameDir>&>(game_dirs));
+
+    // Merge Nintendo-linked owned games that aren't already present locally
+    const auto owned = LoadNintendoOwnedLibrary();
+    for (const auto& game : owned) {
+        if (stop_processing) break;
+        if (game.title.isEmpty()) continue;
+        // Use title_id as program_id if available, otherwise 0
+        const u64 pid = game.title_id.toULongLong(nullptr, 16);
+        const QString display_type = game.is_digital ? QStringLiteral("eShop") : QStringLiteral("Physical");
+        QPixmap placeholder(128, 128);
+        placeholder.fill(QColor(60, 60, 80));
+        QPainter painter(&placeholder);
+        painter.setPen(Qt::white);
+        painter.setFont(QFont(QStringLiteral("Segoe UI"), 10));
+        painter.drawText(placeholder.rect(), Qt::AlignCenter | Qt::TextWordWrap, game.title);
+        painter.end();
+        emit EntryReady(game.title, QStringLiteral("nintendo://%1").arg(game.title_id),
+                       game.title_id, game.platform, pid, QStringLiteral(""),
+                       display_type, 0, QStringLiteral("Unknown"), placeholder,
+                       QStringLiteral("0h 0m"));
+    }
+
     emit Finished();
 }
 
