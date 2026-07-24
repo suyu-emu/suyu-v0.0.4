@@ -308,9 +308,21 @@ RETRO_API void retro_run() {
                         LOG_INFO(Frontend, "libretro: saved frame dump to {}", path);
                     }
                 }
-                g_video_cb(frame.data(), renderer.GetHeadlessWidth(),
-                           renderer.GetHeadlessHeight(),
-                           renderer.GetHeadlessWidth() * 4);
+                // Vulkan outputs B8G8R8A8 (BGRA in memory), RetroArch XRGB8888
+                // is 0xXXRRGGBB = BGRX in memory. Swap R↔B channels.
+                const unsigned w = renderer.GetHeadlessWidth();
+                const unsigned h = renderer.GetHeadlessHeight();
+                static std::vector<u8> swapped;
+                swapped.resize(frame.size());
+                const u8* src = frame.data();
+                u8* dst = swapped.data();
+                for (unsigned i = 0; i < w * h; ++i) {
+                    dst[i*4+0] = src[i*4+2]; // R
+                    dst[i*4+1] = src[i*4+1]; // G
+                    dst[i*4+2] = src[i*4+0]; // B
+                    dst[i*4+3] = src[i*4+3]; // A
+                }
+                g_video_cb(swapped.data(), w, h, w * 4);
                 return;
             }
         }
