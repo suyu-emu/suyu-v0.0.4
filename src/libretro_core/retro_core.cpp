@@ -299,7 +299,7 @@ RETRO_API void retro_run() {
                             for (unsigned x = 0; x < w; ++x) {
                                 u32 px;
                                 memcpy(&px, frame.data() + (y * w + x) * 4, 4);
-                                u8 rgb[3] = {(u8)(px>>16), (u8)(px>>8), (u8)px};
+                                u8 rgb[3] = {(u8)px, (u8)(px>>8), (u8)(px>>16)};
                                 fwrite(rgb, 1, 3, f);
                             }
                             if (pad) fwrite(zero, 1, pad, f);
