@@ -108,7 +108,9 @@ Result VfsDirectoryServiceWrapper::DeleteFile(const std::string& path_) const {
 
 Result VfsDirectoryServiceWrapper::CreateDirectory(const std::string& path_) const {
     std::string path(Common::FS::SanitizePath(path_));
-
+    if (GetDirectoryRelativeWrapped(backing, path) != nullptr) {
+        return FileSys::ResultPathAlreadyExists;
+    }
     // NOTE: This is inaccurate behavior. CreateDirectory is not recursive.
     // CreateDirectory should return PathNotFound if the parent directory does not exist.
     // This is here temporarily in order to have UMM "work" in the meantime.
