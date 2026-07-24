@@ -33,6 +33,9 @@
 #include "core/frontend/framebuffer_layout.h"
 #include "core/hle/service/am/applet_manager.h"
 #include "core/hle/service/filesystem/filesystem.h"
+#include "hid_core/hid_core.h"
+#include "input_common/drivers/virtual_gamepad.h"
+#include "input_common/main.h"
 #include "libretro_core/libretro.h"
 #include "libretro_core/retro_emu_window.h"
 #include "video_core/renderer_base.h"
@@ -41,6 +44,7 @@ namespace {
 
 std::unique_ptr<Core::System> g_system;
 std::unique_ptr<LibretroCore::RetroEmuWindow> g_emu_window;
+std::shared_ptr<InputCommon::InputSubsystem> g_input_subsystem;
 std::string g_game_path;
 bool g_game_loaded = false;
 
@@ -96,6 +100,8 @@ RETRO_API void retro_init() {
 
     g_system = std::make_unique<Core::System>();
     g_emu_window = std::make_unique<LibretroCore::RetroEmuWindow>();
+    g_input_subsystem = std::make_shared<InputCommon::InputSubsystem>();
+    g_input_subsystem->Initialize();
 
     g_system->Initialize();
     Settings::values.renderer_backend.SetValue(Settings::RendererBackend::Vulkan);
@@ -109,12 +115,14 @@ RETRO_API void retro_init() {
     g_system->GetFileSystemController().CreateFactories(*g_system->GetFilesystem());
     g_system->GetUserChannel().clear();
 
+    g_system->HIDCore().ReloadInputDevices();
     LOG_INFO(Frontend, "libretro core: retro_init() complete");
 }
 
 RETRO_API void retro_deinit() {
     g_emu_window.reset();
     g_system.reset();
+    if (g_input_subsystem) { g_input_subsystem->Shutdown(); g_input_subsystem.reset(); }
     Common::Log::Stop();
 }
 
@@ -148,9 +156,59 @@ RETRO_API void retro_reset() {
                           "(would need Core::System restart without a full unload/reload)");
 }
 
+namespace {
+using VB = InputCommon::VirtualGamepad::VirtualButton;
+struct RetroToVirtual {
+    unsigned retro_id;
+    VB virtual_button;
+};
+constexpr RetroToVirtual kButtonMap[] = {
+    {RETRO_DEVICE_ID_JOYPAD_A, VB::ButtonA},
+    {RETRO_DEVICE_ID_JOYPAD_B, VB::ButtonB},
+    {RETRO_DEVICE_ID_JOYPAD_X, VB::ButtonX},
+    {RETRO_DEVICE_ID_JOYPAD_Y, VB::ButtonY},
+    {RETRO_DEVICE_ID_JOYPAD_L, VB::TriggerL},
+    {RETRO_DEVICE_ID_JOYPAD_R, VB::TriggerR},
+    {RETRO_DEVICE_ID_JOYPAD_L2, VB::TriggerZL},
+    {RETRO_DEVICE_ID_JOYPAD_R2, VB::TriggerZR},
+    {RETRO_DEVICE_ID_JOYPAD_L3, VB::StickL},
+    {RETRO_DEVICE_ID_JOYPAD_R3, VB::StickR},
+    {RETRO_DEVICE_ID_JOYPAD_START, VB::ButtonPlus},
+    {RETRO_DEVICE_ID_JOYPAD_SELECT, VB::ButtonMinus},
+    {RETRO_DEVICE_ID_JOYPAD_UP, VB::ButtonUp},
+    {RETRO_DEVICE_ID_JOYPAD_DOWN, VB::ButtonDown},
+    {RETRO_DEVICE_ID_JOYPAD_LEFT, VB::ButtonLeft},
+    {RETRO_DEVICE_ID_JOYPAD_RIGHT, VB::ButtonRight},
+};
+bool g_prev_buttons[20] = {};
+} // namespace
+
 RETRO_API void retro_run() {
     if (g_input_poll_cb) {
         g_input_poll_cb();
+    }
+
+    // Bridge libretro input → suyu HID via VirtualGamepad
+    if (g_input_state_cb && g_input_subsystem && g_game_loaded) {
+        auto* vgp = g_input_subsystem->GetVirtualGamepad();
+        if (vgp) {
+            for (const auto& m : kButtonMap) {
+                const bool pressed = g_input_state_cb(0, RETRO_DEVICE_JOYPAD, 0, m.retro_id) != 0;
+                const int idx = static_cast<int>(m.virtual_button);
+                if (pressed != g_prev_buttons[idx]) {
+                    g_prev_buttons[idx] = pressed;
+                    vgp->SetButtonState(0, m.virtual_button, pressed);
+                }
+            }
+            // Left analog stick
+            const float lx = g_input_state_cb(0, RETRO_DEVICE_ANALOG, RETRO_DEVICE_INDEX_ANALOG_LEFT, RETRO_DEVICE_ID_ANALOG_X) / 32768.0f;
+            const float ly = g_input_state_cb(0, RETRO_DEVICE_ANALOG, RETRO_DEVICE_INDEX_ANALOG_LEFT, RETRO_DEVICE_ID_ANALOG_Y) / -32768.0f;
+            vgp->SetStickPosition(0, InputCommon::VirtualGamepad::VirtualStick::Left, lx, ly);
+            // Right analog stick
+            const float rx = g_input_state_cb(0, RETRO_DEVICE_ANALOG, RETRO_DEVICE_INDEX_ANALOG_RIGHT, RETRO_DEVICE_ID_ANALOG_X) / 32768.0f;
+            const float ry = g_input_state_cb(0, RETRO_DEVICE_ANALOG, RETRO_DEVICE_INDEX_ANALOG_RIGHT, RETRO_DEVICE_ID_ANALOG_Y) / -32768.0f;
+            vgp->SetStickPosition(0, InputCommon::VirtualGamepad::VirtualStick::Right, rx, ry);
+        }
     }
 
     static unsigned frame_counter = 0;
@@ -171,6 +229,46 @@ RETRO_API void retro_run() {
                     LOG_INFO(Frontend, "libretro: delivering frame {} ({}x{}, {} bytes)",
                              frame_counter, renderer.GetHeadlessWidth(),
                              renderer.GetHeadlessHeight(), frame.size());
+                }
+                // One-shot frame dump for verification
+                if (frame_counter == 300 || frame_counter == 900 || frame_counter == 1800) {
+                    const unsigned w = renderer.GetHeadlessWidth();
+                    const unsigned h = renderer.GetHeadlessHeight();
+                    char path[256];
+                    snprintf(path, sizeof(path),
+                             "C:\\Users\\charl\\Documents\\SuyuEclipse\\libretro_frame_%u.bmp",
+                             frame_counter);
+                    FILE* f = fopen(path, "wb");
+                    if (f) {
+                        const u32 row_bytes = w * 3;
+                        const u32 pad = (4 - (row_bytes % 4)) % 4;
+                        const u32 stride = row_bytes + pad;
+                        const u32 img_size = stride * h;
+                        const u32 file_size = 54 + img_size;
+                        u8 hdr[54] = {};
+                        hdr[0]='B'; hdr[1]='M';
+                        memcpy(hdr+2, &file_size, 4);
+                        u32 off=54; memcpy(hdr+10, &off, 4);
+                        u32 dib=40; memcpy(hdr+14, &dib, 4);
+                        int sw=(int)w, sh=(int)h;
+                        memcpy(hdr+18, &sw, 4); memcpy(hdr+22, &sh, 4);
+                        u16 planes=1; memcpy(hdr+26, &planes, 2);
+                        u16 bpp=24; memcpy(hdr+28, &bpp, 2);
+                        memcpy(hdr+34, &img_size, 4);
+                        fwrite(hdr, 1, 54, f);
+                        const u8 zero[4] = {};
+                        for (int y = (int)h - 1; y >= 0; --y) {
+                            for (unsigned x = 0; x < w; ++x) {
+                                u32 px;
+                                memcpy(&px, frame.data() + (y * w + x) * 4, 4);
+                                u8 rgb[3] = {(u8)(px>>16), (u8)(px>>8), (u8)px};
+                                fwrite(rgb, 1, 3, f);
+                            }
+                            if (pad) fwrite(zero, 1, pad, f);
+                        }
+                        fclose(f);
+                        LOG_INFO(Frontend, "libretro: saved frame dump to {}", path);
+                    }
                 }
                 g_video_cb(frame.data(), renderer.GetHeadlessWidth(),
                            renderer.GetHeadlessHeight(),
