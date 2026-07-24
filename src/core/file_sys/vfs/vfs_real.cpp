@@ -35,6 +35,16 @@ namespace {
 
 constexpr size_t MaxOpenFiles = 8192;
 
+bool IsWithinRoot(std::string_view root, std::string_view full_path) {
+    if (root.empty())
+        return true;
+
+    if (full_path.size() < root.size() || full_path.substr(0, root.size()) != root)
+        return false;
+
+    return full_path.size() == root.size() || full_path[root.size()] == '/' || full_path[root.size()] == '\\';
+}
+
 constexpr FS::FileAccessMode ModeFlagsToFileAccessMode(OpenMode mode) {
     switch (mode) {
     case OpenMode::Read:
@@ -403,7 +413,8 @@ RealVfsDirectory::~RealVfsDirectory() = default;
 
 VirtualFile RealVfsDirectory::GetFileRelative(std::string_view relative_path) const {
     const auto full_path = FS::SanitizePath(path + '/' + std::string(relative_path));
-    if (!FS::Exists(full_path) || FS::IsDir(full_path)) {
+    if (!FS::Exists(full_path) || FS::IsDir(full_path)
+        || !IsWithinRoot(FS::SanitizePath(path), full_path)) {
         return nullptr;
     }
     return base.OpenFile(full_path, perms);
@@ -411,7 +422,8 @@ VirtualFile RealVfsDirectory::GetFileRelative(std::string_view relative_path) co
 
 VirtualDir RealVfsDirectory::GetDirectoryRelative(std::string_view relative_path) const {
     const auto full_path = FS::SanitizePath(path + '/' + std::string(relative_path));
-    if (!FS::Exists(full_path) || !FS::IsDir(full_path)) {
+    if (!FS::Exists(full_path) || !FS::IsDir(full_path)
+        || !IsWithinRoot(FS::SanitizePath(path), full_path)) {
         return nullptr;
     }
     return base.OpenDirectory(full_path, perms);
@@ -427,7 +439,7 @@ VirtualDir RealVfsDirectory::GetSubdirectory(std::string_view name) const {
 
 VirtualFile RealVfsDirectory::CreateFileRelative(std::string_view relative_path) {
     const auto full_path = FS::SanitizePath(path + '/' + std::string(relative_path));
-    if (!FS::CreateParentDirs(full_path)) {
+    if (!FS::CreateParentDirs(full_path) || !IsWithinRoot(FS::SanitizePath(path), full_path)) {
         return nullptr;
     }
     return base.CreateFile(full_path, perms);
