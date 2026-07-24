@@ -73,6 +73,16 @@ RETRO_API void retro_set_environment(retro_environment_t cb) {
 
     enum retro_pixel_format fmt = RETRO_PIXEL_FORMAT_XRGB8888;
     cb(RETRO_ENVIRONMENT_SET_PIXEL_FORMAT, &fmt);
+
+    static const struct retro_variable vars[] = {
+        {"suyu_renderer", "Renderer; Vulkan|OpenGL|Software"},
+        {"suyu_resolution", "Internal Resolution; 1x|2x|3x|4x"},
+        {"suyu_cpu_accuracy", "CPU Accuracy; Auto|Accurate|Unsafe"},
+        {"suyu_use_docked", "Docked Mode; Yes|No"},
+        {"suyu_fastmem", "Fastmem; Enabled|Disabled"},
+        {nullptr, nullptr},
+    };
+    cb(RETRO_ENVIRONMENT_SET_VARIABLES, (void*)vars);
 }
 
 RETRO_API void retro_set_video_refresh(retro_video_refresh_t cb) {
