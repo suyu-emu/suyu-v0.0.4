@@ -65,11 +65,19 @@ inline bool DirectBranchTarget(u32 i, u64 pc, u64& out) {
     return false;
 }
 
-inline std::vector<Block> DiscoverBlocks(const u8* text, size_t n_bytes, u64 base) {
+inline std::vector<Block> DiscoverBlocks(const u8* text, size_t n_bytes, u64 base,
+                                         u64 entry_pc = 0) {
     const u32 n = (u32)(n_bytes / 4);
     if (n == 0) return {};
     std::vector<bool> start(n, false);
     start[0] = true;
+    // The module entry has to begin a block in its own right. Nothing branches
+    // to it from inside the image, and for a real NSO it isn't offset 0
+    // either - .text opens with a MOD0 header - so without this the entry
+    // address falls in the middle of some other block and lookup fails.
+    if (entry_pc > base && (entry_pc - base) / 4 < n) {
+        start[(u32)((entry_pc - base) / 4)] = true;
+    }
     const u32* p = reinterpret_cast<const u32*>(text);
     for (u32 i = 0; i < n; ++i) {
         const u32 insn = p[i];
@@ -201,6 +209,46 @@ inline bool Translate(u32 i, u64 pc, std::string& out) {
     if ((i & 0x7E000000) == 0x36000000) { bool nz = (i >> 24) & 1; u32 b = ((i >> 31) << 5) | ((i >> 19) & 31); u32 rt = i & 31; s64 off = ((s32)(((i >> 5) & 0x3FFF) << 18) >> 18); u64 tt = pc + off * 4; snprintf(buf, sizeof buf, "if (((c->x[%u]>>%u)&1)%s0) { c->pc=0x%llxULL; } else { c->pc=0x%llxULL; } return;", rt, b, nz ? "!=" : "==", (unsigned long long)tt, (unsigned long long)next); put(buf); return false; }
     if ((i & 0xFFE0001F) == 0xD4000001) { u32 imm = (i >> 5) & 0xFFFF; snprintf(buf, sizeof buf, "c->pc=0x%llxULL; c->pending_svc=%uULL; recomp_svc(c,%u); return;", (unsigned long long)next, imm, imm); put(buf); return false; }
 
+    // STP/LDP - load/store pair. Every non-leaf AArch64 function opens and
+    // closes with these, so without them a real game stops at its first
+    // prologue. Covers the signed-offset, pre-index and post-index forms for
+    // both 32- and 64-bit operands.
+    if ((i & 0x3A000000) == 0x28000000) {
+        const u32 opc = i >> 30;            // 0 = 32-bit, 2 = 64-bit
+        const bool is_load = (i >> 22) & 1;
+        const u32 mode = (i >> 23) & 3;     // 1 post-index, 2 signed offset, 3 pre-index
+        const u32 rt2 = (i >> 10) & 31, rn = (i >> 5) & 31, rt = i & 31;
+        s32 imm7 = (s32)((i >> 15) & 0x7F);
+        if (imm7 & 0x40) imm7 |= ~0x7F;     // sign-extend 7 bits
+        if ((opc == 0 || opc == 2) && mode >= 1 && mode <= 3) {
+            const u32 sz = (opc == 2) ? 8 : 4;
+            const s64 off = (s64)imm7 * sz;
+            std::string s = "{ uint64_t _b=c->x[" + std::to_string(rn) + "]; ";
+            // Pre-index and post-index both write the new base back; only
+            // pre-index applies the offset before the access.
+            const char* addr = (mode == 1) ? "_b" : "(_b+_o)";
+            s += "int64_t _o=" + std::to_string((long long)off) + "; ";
+            if (is_load) {
+                s += "c->x[" + std::to_string(rt) + "]=recomp_load" + std::to_string(sz * 8) +
+                     "(c," + addr + "); ";
+                s += "c->x[" + std::to_string(rt2) + "]=recomp_load" + std::to_string(sz * 8) +
+                     "(c," + addr + "+" + std::to_string(sz) + "); ";
+            } else {
+                s += "recomp_store" + std::to_string(sz * 8) + "(c," + addr + "," +
+                     (rt == 31 ? std::string("(uint64_t)0") : ("c->x[" + std::to_string(rt) + "]")) + "); ";
+                s += "recomp_store" + std::to_string(sz * 8) + "(c," + addr + "+" +
+                     std::to_string(sz) + "," +
+                     (rt2 == 31 ? std::string("(uint64_t)0") : ("c->x[" + std::to_string(rt2) + "]")) + "); ";
+            }
+            if (mode == 1 || mode == 3) {
+                s += "c->x[" + std::to_string(rn) + "]=_b+_o; ";
+            }
+            s += "}";
+            put(s);
+            return true;
+        }
+    }
+
     snprintf(buf, sizeof buf, "recomp_unhandled(c,0x%08xU,0x%llxULL); c->pc=0x%llxULL; return;", i, (unsigned long long)pc, (unsigned long long)next);
     put(buf); return false;
 }
@@ -225,9 +273,16 @@ struct RecompileStats {
 inline RecompileStats EmitProject(const std::string& mod, const u8* text, size_t n_bytes, u64 base,
                                   const std::string& out_dir, bool source_only,
                                   const u8* rodata = nullptr, size_t rodata_size = 0,
-                                  const u8* data_seg = nullptr, size_t data_size = 0) {
+                                  const u8* data_seg = nullptr, size_t data_size = 0,
+                                  // Guest address to begin executing at. Defaults to `base`, but a
+                                  // real NSO starts with a MOD0 header rather than code, so the
+                                  // loader passes the module's actual entry here.
+                                  u64 entry_pc = 0,
+                                  // Human-readable game name, shown by the generated executable so
+                                  // it identifies itself rather than printing raw addresses.
+                                  const std::string& display_title = {}) {
     RecompileStats stats;
-    auto blocks = DiscoverBlocks(text, n_bytes, base);
+    auto blocks = DiscoverBlocks(text, n_bytes, base, entry_pc);
     const u32* p = reinterpret_cast<const u32*>(text);
     stats.blocks = blocks.size();
     stats.instructions = n_bytes / 4;
@@ -257,7 +312,10 @@ inline RecompileStats EmitProject(const std::string& mod, const u8* text, size_t
     std::ostringstream mc;
     mc << "#include \"recomp_runtime.h\"\n#include <stdio.h>\n#include <stdlib.h>\n#include <string.h>\n\n";
     mc << "#define GUEST_MEM_SIZE (256ULL * 1024 * 1024) /* 256 MB */\n\n";
+    mc << "static const char* kGameTitle = \"" << (display_title.empty() ? mod : display_title)
+       << "\";\n\n";
     mc << "int main(int argc, char** argv){\n";
+    mc << "  printf(\"=== %s ===\\n\", kGameTitle);\n";
     mc << "  uint8_t* mem = (uint8_t*)calloc(1, (size_t)GUEST_MEM_SIZE);\n";
     mc << "  if(!mem){ fprintf(stderr,\"Failed to allocate guest memory\\n\"); return 1; }\n";
     mc << "  GuestContext c; memset(&c,0,sizeof c);\n";
@@ -266,7 +324,7 @@ inline RecompileStats EmitProject(const std::string& mod, const u8* text, size_t
     mc << "  c.heap_base=c.mem_base_vaddr+GUEST_MEM_SIZE/2;\n";
     mc << "  c.heap_cur=c.heap_base; c.heap_end=c.mem_base_vaddr+GUEST_MEM_SIZE;\n";
     mc << "  c.x[31]=c.mem_base_vaddr + GUEST_MEM_SIZE - 16; /* SP */\n";
-    mc << "  c.pc=0x" << std::hex << base << std::dec << "ULL;\n\n";
+    mc << "  c.pc=0x" << std::hex << (entry_pc ? entry_pc : base) << std::dec << "ULL;\n\n";
     mc << "  /* Init save-data directory next to this executable */\n";
     mc << "  recomp_save_init(&c, argv[0]);\n\n";
     mc << "  /* Load bundled data segments if present */\n";
