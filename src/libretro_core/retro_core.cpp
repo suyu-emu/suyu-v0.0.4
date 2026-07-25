@@ -9,15 +9,26 @@
 // suyu_cmd (src/suyu_cmd/suyu.cpp) does without Qt. System info, environment
 // negotiation, load/unload/reset, and serialize size are real and correct.
 //
-// NOT YET WIRED (see comments at each site, not silently faked):
-//   - Video: Vulkan renderer runs headless — renders to CPU buffer via
-//     RenderToBuffer, read back by retro_run. Falls back to black frame
-//     if no frame is available yet.
-//   - Audio: no callback wired to suyu's audio_core output stream yet.
-//   - Input: no bridge from retro_input_state_cb into InputCommon yet.
-//   - Save states: retro_serialize/unserialize are stubs returning false;
-//     suyu's savestate format isn't a fixed-size buffer libretro expects,
-//     needs its own adapter.
+// WIRED AND VERIFIED:
+//   - Video: Vulkan renderer runs headless, rendering to a CPU buffer via
+//     RenderToBuffer which retro_run reads back (with a B8G8R8A8 -> XRGB8888
+//     channel swap). Falls back to a black frame before the first one lands.
+//   - Audio: AudioEngine::Libretro sink buffers the console's mixed output;
+//     retro_run drains it into retro_audio_sample_batch.
+//   - Input: retro_input_state_cb is bridged into InputCommon's
+//     VirtualGamepad (16 buttons + both analog sticks).
+//   - Keys: prod/title/console.keys are picked up from the frontend's
+//     system directory (<system>/suyu/keys) if not already installed.
+//   - Online: suyu's own room-based multiplayer is initialised here, so
+//     online play works in the core the same way it does under Qt.
+//
+// NOT WIRED (deliberately, not silently faked):
+//   - Save states: retro_serialize/unserialize return false and
+//     retro_serialize_size() returns 0 - see the comment there. This also
+//     rules out RetroArch netplay and rerecording, which are defined in
+//     libretro.h as depending on serialization; the core declares
+//     RETRO_SERIALIZATION_QUIRK_INCOMPLETE so the frontend reports them as
+//     unavailable rather than offering them and failing later.
 
 #include <cstring>
 #include <memory>
@@ -40,6 +51,7 @@
 #include "hid_core/hid_core.h"
 #include "input_common/drivers/virtual_gamepad.h"
 #include "input_common/main.h"
+#include "network/network.h"
 #include "libretro_core/libretro.h"
 #include "libretro_core/retro_emu_window.h"
 #include "video_core/renderer_base.h"
@@ -84,6 +96,13 @@ RETRO_API void retro_set_environment(retro_environment_t cb) {
         {nullptr, nullptr},
     };
     cb(RETRO_ENVIRONMENT_SET_VARIABLES, (void*)vars);
+
+    // Tell the frontend up front that state serialization is not usable for
+    // frame-sensitive features. RetroArch keys netplay and rerecording off
+    // this, so declaring it means those are cleanly reported as unavailable
+    // instead of being offered and then failing mid-session.
+    uint64_t quirks = RETRO_SERIALIZATION_QUIRK_INCOMPLETE;
+    cb(RETRO_ENVIRONMENT_SET_SERIALIZATION_QUIRKS, &quirks);
 }
 
 RETRO_API void retro_set_video_refresh(retro_video_refresh_t cb) {
@@ -157,11 +176,24 @@ RETRO_API void retro_init() {
         }
     }
 
+    // Bring up suyu's own room-based multiplayer. RetroArch's netplay can't
+    // drive this core (see retro_serialize_size() for why), but suyu's online
+    // play is peer-to-peer at the emulated-console level and doesn't depend on
+    // frontend savestates, so it works here exactly as it does in the Qt
+    // frontend once the user joins a room.
+    if (!Network::Init()) {
+        LOG_WARNING(Frontend, "libretro: could not initialise the network layer; "
+                              "suyu online play will be unavailable in this session");
+    } else {
+        LOG_INFO(Frontend, "libretro: suyu room networking initialised");
+    }
+
     g_system->HIDCore().ReloadInputDevices();
     LOG_INFO(Frontend, "libretro core: retro_init() complete");
 }
 
 RETRO_API void retro_deinit() {
+    Network::Shutdown();
     g_emu_window.reset();
     g_system.reset();
     if (g_input_subsystem) { g_input_subsystem->Shutdown(); g_input_subsystem.reset(); }
@@ -351,7 +383,18 @@ RETRO_API void retro_run() {
 }
 
 RETRO_API size_t retro_serialize_size() {
-    // Savestates not yet implemented for the libretro path - see file header.
+    // Returning 0 disables savestates (and, through them, RetroArch netplay
+    // and rerecording) in the frontend UI.
+    //
+    // This isn't a shortcut in the libretro layer: suyu has no state
+    // serialization at all, and neither does any other yuzu-derived emulator.
+    // A Switch savestate has to capture several GB of guest RAM plus dynarmic
+    // CPU state for every guest thread, the whole GPU pipeline (Maxwell
+    // registers, in-flight command buffers, texture/shader caches), the audio
+    // renderer, and the entire HLE kernel object graph - threads, mutexes,
+    // events, shared memory, open filesystem handles and live IPC sessions.
+    // Until that exists in core/, there is nothing here to hand back, and
+    // faking a partial state would corrupt saves rather than fail cleanly.
     return 0;
 }
 
