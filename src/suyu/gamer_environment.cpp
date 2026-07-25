@@ -2,9 +2,11 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "suyu/gamer_environment.h"
+#include "suyu/nintendo_account.h"
 #include "common/logging.h"
 
 #include <QAbstractItemModel>
+#include <QSet>
 #include <QApplication>
 #include <QCryptographicHash>
 #include <QCoreApplication>
@@ -1860,6 +1862,12 @@ void GamerEnvironment::PopulateFromModel() {
     game_grid_->setUpdatesEnabled(false);
     game_grid_->clear();
 
+    // Titles already placed in the grid, normalised for comparison. Guards
+    // against the same game being listed twice when it's reachable from more
+    // than one configured scan directory (e.g. a Steam install folder that is
+    // also covered by a deep scan of its parent).
+    QSet<QString> seen_titles;
+
     auto* model = game_list_->GetModel();
     if (model) {
         std::function<void(const QModelIndex&)> traverse = [&](const QModelIndex& parent) {
@@ -1904,6 +1912,12 @@ void GamerEnvironment::PopulateFromModel() {
                         continue;
                     }
 
+                    const QString title_key = title.trimmed().toLower();
+                    if (seen_titles.contains(title_key)) {
+                        continue;
+                    }
+                    seen_titles.insert(title_key);
+
                     auto* item = new QListWidgetItem(title);
                     item->setData(Qt::UserRole, display_path);
                     if (!icon.isNull()) {
@@ -1919,6 +1933,34 @@ void GamerEnvironment::PopulateFromModel() {
             }
         };
         traverse(QModelIndex());
+    }
+
+    // Titles from the linked Nintendo Account that we have no local dump of.
+    // They can't be launched, but showing them is the point of linking the
+    // account - the card carries a nintendo:// path so the launch handler can
+    // tell them apart and prompt to locate a ROM.
+    for (const auto& owned : LoadNintendoOwnedLibrary()) {
+        if (owned.title.trimmed().isEmpty()) {
+            continue;
+        }
+        const QString title_key = owned.title.trimmed().toLower();
+        if (seen_titles.contains(title_key)) {
+            continue;
+        }
+        if (!filter_text_.isEmpty() &&
+            !owned.title.contains(filter_text_, Qt::CaseInsensitive)) {
+            continue;
+        }
+        seen_titles.insert(title_key);
+
+        auto* item = new QListWidgetItem(owned.title);
+        item->setData(Qt::UserRole, QStringLiteral("nintendo://%1").arg(owned.title_id));
+        item->setSizeHint(QSize(GameCardDelegate::CARD_W + GameCardDelegate::PAD * 2 + 8,
+                                GameCardDelegate::CARD_H + GameCardDelegate::PAD * 2 + 8));
+        game_grid_->addItem(item);
+        // Same artwork path as local games, so these don't stand out as
+        // second-class entries in the grid.
+        RequestCoverArtwork(item->data(Qt::UserRole).toString(), owned.title);
     }
 
     game_grid_->setUpdatesEnabled(true);
