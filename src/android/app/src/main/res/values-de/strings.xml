@@ -457,7 +457,6 @@ Wird der Handheld-Modus verwendet, verringert es die Auflösung und erhöht die 
     <string name="advanced">Erweitert</string>
 
     <string name="renderer_accuracy">GPU-Modus</string>
-    <string name="renderer_accuracy_description">Steuert den GPU-Emulationsmodus. Die meisten Spiele werden im Modus \"Fast\" oder \"Balanced\" gut gerendert, für einige ist jedoch weiterhin der Modus \"Accurate\" erforderlich. Partikel werden in der Regel nur im Modus \"Accurate\" korrekt gerendert.</string>
     <string name="dma_accuracy">DMA-Genauigkeit</string>
     <string name="dma_accuracy_description">Steuert die DMA-Präzisionsgenauigkeit. Sichere Präzision kann Probleme in einigen Spielen beheben, kann aber in einigen Fällen auch die Leistung beeinträchtigen. Im Zweifel lassen Sie dies auf Standard stehen.</string>
     <string name="anisotropic_filtering">Anisotrope Filterung</string>

@@ -445,7 +445,6 @@
     <string name="advanced">Zaawansowane</string>
 
     <string name="renderer_accuracy">Tryb GPU</string>
-    <string name="renderer_accuracy_description">Steruje trybem emulacji GPU. Większość gier renderuje się poprawnie w trybach Szybki lub Zrównoważony, ale dla niektórych nadal wymagany jest tryb Dokładny. Efekty cząsteczkowe zwykle renderują się poprawnie tylko w trybie Dokładnym.</string>
     <string name="dma_accuracy">Dokładność DMA</string>
     <string name="dma_accuracy_description">Kontroluje dokładność precyzji DMA. Bezpieczna precyzja może naprawić problemy w niektórych grach, ale w niektórych przypadkach może również wpłynąć na wydajność. Jeśli nie jesteś pewien, pozostaw wartość Domyślną.</string>
     <string name="anisotropic_filtering">Filtrowanie anizotropowe</string>

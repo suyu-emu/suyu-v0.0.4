@@ -467,7 +467,6 @@
     <string name="advanced">Avanzado</string>
 
     <string name="renderer_accuracy">Modo de la GPU</string>
-    <string name="renderer_accuracy_description">Controla el modo de la emulación de la GPU. La mayoría de los juegos se renderizan correctamente en los modos Rápido o Equilibrado, pero algunos requieren Preciso. Las partículas tienden a renderizarse correctamente solo con el modo Preciso.</string>
     <string name="dma_accuracy">Precisión de DMA</string>
     <string name="dma_accuracy_description">Controla la precisión de DMA. La precisión segura puede solucionar problemas en algunos juegos, pero también puede afectar al rendimiento en algunos casos. Si no está seguro, déjelo en Predeterminado.</string>
     <string name="gpu_fence_behavior">Comportamiento de vallado de la GPU</string>

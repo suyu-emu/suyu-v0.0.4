@@ -424,6 +424,9 @@
     <string name="cpu_accuracy">Точность ЦП</string>
     <string name="value_with_units">%1$s%2$s</string>
 
+    <string name="program_args">Аргументы Homebrew</string>
+    <string name="program_args_description">Аргументы командной строки, переданные Homebrew при запуске (например, -noglsl)</string>
+
     <!-- System settings strings -->
     <string name="device_name">Название устройства</string>
     <string name="use_docked_mode">Режим док-станции</string>
@@ -466,9 +469,11 @@
     <string name="advanced">Расширенные</string>
 
     <string name="renderer_accuracy">Режим ГПУ</string>
-    <string name="renderer_accuracy_description">Управляет режимом эмуляции графического процессора. Большинство игр нормально отображаются в режимах «Быстрый» или «Сбалансированный», но для некоторых требуется режим «Точный». Частицы обычно корректно отображаются только в режиме «Точный».</string>
+    <string name="renderer_accuracy_description">Управляет режимом эмуляции ГПУ. Большинство игр нормально отображаются в режиме Быстрый, но для некоторых требуется режим Точный. Частицы обычно корректно отображаются только в режиме Точный.</string>
     <string name="dma_accuracy">Точность DMA</string>
     <string name="dma_accuracy_description">Управляет точностью DMA. Безопасная точность может исправить проблемы в некоторых играх, но в некоторых случаях также может повлиять на производительность. Если не уверены, оставьте значение По умолчанию.</string>
+    <string name="gpu_fence_behavior">Поведение барьеров ГПУ</string>
+    <string name="gpu_fence_behavior_description">Управляет поведением синхронизации через барьеры ГПУ. Мгновенный — самый быстрый вариант, но может вызывать некоторые проблемы. Сбалансированный обеспечивает лучшую совместимость и может исправлять проблемы в некоторых играх. Точный ещё больше повышает совместимость ценой некоторого снижения производительности. Строгий — самый медленный вариант, но может исправлять проблемы, требующие более строгой синхронизации. По умолчанию соответствует настройке точности ГПУ.</string>
     <string name="anisotropic_filtering">Анизотропная фильтрация</string>
     <string name="anisotropic_filtering_description">Улучшает качество текстур под углом</string>
     <string name="vram_usage_mode">Режим VRAM</string>
@@ -490,6 +495,8 @@
     <string name="renderer_reactive_flushing_description">Повышение точности рендеринга в некоторых играх за счет снижения производительности.</string>
     <string name="enable_buffer_history">Включить историю буфера</string>
     <string name="enable_buffer_history_description">Позволяет обращаться к предыдущим состояниям буфера. Эта опция может повысить качество рендеринга и стабильность производительности в некоторых играх.</string>
+    <string name="enable_gpu_buffer_readback">Включить обратное чтение буфера ГПУ</string>
+    <string name="enable_gpu_buffer_readback_description">Сохраняет измененные ГПУ данные буфера путем чтения их обратно перед выгрузками. Некоторые игры требуют этого, чтобы рендерить определенные эффекты правильно. Может вызывать проблемы если оборудование не может обработать дополнительную рабочую нагрузку.</string>
     <string name="use_optimized_vertex_buffers">Оптимизированные вершинные буферы</string>
     <string name="use_optimized_vertex_buffers_description">Включает оптимизированную привязку вершинного буфера для повышения производительности. Требует Mesa Turnip 26.0+ / QCOM. Приводит к вылету на старых версиях драйверов Turnip (25.3 и ниже).</string>
 
@@ -564,6 +571,12 @@
     <string name="gpu_log_level_description">Уровень детализации логов ГПУ (больше значение = больше деталей, выше нагрузка)</string>
     <string name="gpu_log_vulkan_calls">Записывать вызовы Vulkan API</string>
     <string name="gpu_log_vulkan_calls_description">Отслеживать все вызовы Vulkan API в кольцевом буфере</string>
+    <string name="gpu_log_shader_dumps">Выгрузить SPIR-V шейдеры</string>
+    <string name="gpu_log_shader_dumps_description">Сохранять перекомпилированные SPIR-V бинарные файлы (.spv) в папку дампа. Проверять с помощью spirv-dis/spirv-cross/spirv-val.</string>
+    <string name="dump_guest_shaders">Выгрузить гостевые (Maxwell) шейдеры</string>
+    <string name="dump_guest_shaders_description">Сохранять файлы байткода гостевых шейдеров Maxwell (*.ash) в папку дампа. Проверять с помощью nvdisasm.</string>
+    <string name="dump_macros">Выгрузить макросы Maxwell</string>
+    <string name="dump_macros_description">Сохранять файлы макропрограмм Maxwell (*.macro) в папку дампа. Проверять с помощью envydis.</string>
     <string name="gpu_log_memory_tracking">Отслеживать память ГПУ</string>
     <string name="gpu_log_memory_tracking_description">Мониторить выделение и освобождение памяти ГПУ</string>
     <string name="gpu_log_driver_debug">Отладочная информация драйвера</string>
@@ -989,6 +1002,13 @@
     <string name="dma_accuracy_default">По умолчанию</string>
     <string name="dma_accuracy_unsafe">Небезопасно</string>
     <string name="dma_accuracy_safe">Безопасный</string>
+
+    <!-- GPU Fence Behavior -->
+    <string name="gpu_fence_behavior_default">По умолчанию</string>
+    <string name="gpu_fence_behavior_immediate">Мгновенный</string>
+    <string name="gpu_fence_behavior_balanced">Сбалансированный</string>
+    <string name="gpu_fence_behavior_accurate">Точный</string>
+    <string name="gpu_fence_behavior_strict">Строгий</string>
 
     <string name="vram_usage_conservative">Консервативный</string>
     <string name="vram_usage_aggressive">Агрессивный</string>

@@ -804,7 +804,9 @@ Particles tend to only render correctly with Accurate mode.</source>
         <source>Controls the DMA read mode.
 Unsafe is faster, while Safe is more stable and can fix issues in some games.
 Default follows the GPU Accuracy setting.</source>
-        <translation type="unfinished"/>
+        <translation>Controla el modo de lectura DMA.
+Inseguro es más rápido, mientras que seguro es más estable y puede solucionar fallos en algunos juegos.
+Predeterminado sigue el ajuste de la precisión de GPU.</translation>
     </message>
     <message>
         <location filename="../../src/qt_common/config/shared_translation.cpp" line="227"/>

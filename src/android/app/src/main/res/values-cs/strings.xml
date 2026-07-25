@@ -445,7 +445,6 @@
     <string name="advanced">Pokročilé</string>
 
     <string name="renderer_accuracy">Režim GPU</string>
-    <string name="renderer_accuracy_description">Určuje režim emulovaného GPU. Většina her běží bez problémů v rychlém, nebo vyváženém režimu, ale některé stále vyžadují přesný režim. Částicové efekty se většinou zobrazují korektně pouze v přesném režimu. </string>
     <string name="dma_accuracy">Přesnost DMA</string>
     <string name="dma_accuracy_description">Ovládá přesnost DMA. Bezpečná přesnost může vyřešit problémy v některých hrách, ale v některých případech může také ovlivnit výkon. Pokud si nejste jisti, použijte výchozí nastavení.</string>
     <string name="anisotropic_filtering">Anizotropní filtrování</string>

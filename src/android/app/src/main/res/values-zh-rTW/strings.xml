@@ -3,7 +3,7 @@
 
     <string name="app_disclaimer">本軟體可執行Nintendo Switch主機的遊戲，軟體不提供遊戲和金鑰檔案。&lt;br/> &lt;br/>在開始之前，請先安裝您的 &lt;<![CDATA[ &lt;b>prod.keys&lt;/b> ]]> 檔案，&lt;br />&lt;br /><![CDATA[<a href=\"https://yuzu-mirror.github.io/help/quickstart\">了解更多</a>]]></string>
     <string name="notice_notification_channel_name">通知和錯誤</string>
-    <string name="notice_notification_channel_description">發生錯誤時顯示通知。</string>
+    <string name="notice_notification_channel_description">發生錯誤時顯示通知</string>
     <string name="notification_permission_not_granted">未授予通知權限！</string>
     <string name="app_notification_channel_description">Eden模擬器通知</string>
     <string name="app_notification_running">Eden正在執行</string>
@@ -16,7 +16,7 @@
     <string name="value_too_high">範圍最大必須為%1$d</string>
     <string name="invalid_value">無效的範圍</string>
 
-    <string name="using_per_game_config">使用自定義組態中</string>
+    <string name="using_per_game_config">使用個別設定中</string>
 
     <!-- Input Overlay -->
     <string name="show_input_overlay">顯示虛擬按鍵</string>
@@ -25,7 +25,7 @@
     <string name="overlay_snap_to_grid_description">編輯時將虛擬按鍵與網格對齊</string>
     <string name="overlay_grid_size">網格大小</string>
     <string name="overlay_grid_size_description">調整網格格線間距</string>
-    <string name="input_overlay_behavior">行為模式</string>
+    <string name="input_overlay_behavior">隱藏</string>
     <string name="overlay_auto_hide">自動隱藏虛擬按鍵</string>
     <string name="overlay_auto_hide_description">在未使用虛擬按鍵幾秒後自動隱藏</string>
     <string name="enable_input_overlay_auto_hide">啟用自動隱藏虛擬按鍵</string>
@@ -46,7 +46,7 @@
     <string name="shaders_suffix">著色器</string>
     <string name="charging">（充電中）</string>
 
-    <string name="system_info_label">系統:</string>
+    <string name="system_info_label">系統：</string>
     <string name="show_stats_overlay">顯示效能統計疊加層</string>
     <string name="stats_overlay_customization">自訂</string>
     <string name="stats_overlay_items">可見項目</string>
@@ -54,18 +54,20 @@
     <string name="enable_stats_overlay_">啟用效能統計疊加層</string>
     <string name="stats_overlay_options_description">設定疊加層中顯示的資訊</string>
     <string name="show_fps">顯示FPS</string>
-    <string name="show_fps_description">顯示當前幀率</string>
-    <string name="show_frametime">顯示幀時間</string>
+    <string name="show_fps_description">顯示當前影格率</string>
+    <string name="show_frametime">顯示影格時間</string>
     <string name="show_app_ram_usage">顯示應用程式的記憶體用量</string>
-    <string name="show_app_ram_usage_description">顯示模擬器正在使用的記憶體量</string>
+    <string name="show_app_ram_usage_description">顯示模擬器的記憶體用量</string>
     <string name="show_system_ram_usage">顯示系統記憶體用量</string>
-    <string name="show_system_ram_usage_description">顯示系統使用的記憶體量</string>
+    <string name="show_system_ram_usage_description">顯示系統的記憶體用量</string>
     <string name="show_bat_temperature">顯示電池溫度</string>
     <string name="bat_temperature_unit">電池溫度單位</string>
     <string name="show_power_info">顯示電池資訊</string>
     <string name="show_power_info_description">顯示當前功耗和電池可續航時間</string>
     <string name="show_shaders_building">當著色器在編譯時顯示</string>
     <string name="show_shaders_building_description">顯示正在編譯的著色器數量</string>
+    <string name="pipeline_worker_cores">管線工作執行緒</string>
+    <string name="pipeline_worker_cores_description">設定用於建置 Vulkan 管線的 CPU 核心數量，設定的數值越大效能越好，但溫度也會上升更快</string>
     <string name="overlay_position">疊加層位置</string>
     <string name="overlay_position_description">選擇疊加層在畫面上的顯示位置</string>
     <string name="overlay_position_top_left">左上</string>
@@ -78,10 +80,10 @@
     <string name="perf_overlay_background_description">為疊加層添加背景以提高可讀性</string>
 
     <!-- Device Overlay settings -->
-    <string name="show_soc_overlay">顯示裝置資訊浮層</string>
-    <string name="enable_soc_overlay">啟用裝置浮層</string>
-    <string name="soc_overlay_options">裝置浮層</string>
-    <string name="soc_overlay_options_description">設定裝置浮層中顯示的資訊</string>
+    <string name="show_soc_overlay">顯示裝置資訊疊加層</string>
+    <string name="enable_soc_overlay">啟用裝置疊加層</string>
+    <string name="soc_overlay_options">裝置疊加層</string>
+    <string name="soc_overlay_options_description">設定裝置疊加層中顯示的資訊</string>
 
     <string name="show_build_id">顯示Eden的組建版本</string>
     <string name="show_driver_version">顯示圖形驅動程式的版本</string>
@@ -92,10 +94,10 @@
 
     <!-- Eden\'s Veil -->
     <string name="buffer_reorder_disable">停用緩衝區重新排序</string>
-    <string name="buffer_reorder_disable_description">勾選時，停用映射記憶體上傳的重新排序功能，允許將上傳與特定繪製關聯。某些情況下可能會降低效能。</string>
+    <string name="buffer_reorder_disable_description">勾選時，停用映射記憶體上傳的重新排序功能，允許將上傳與特定繪製關聯。某些情況下可能會降低效能</string>
 
     <string name="use_sync_core">同步核心速度</string>
-    <string name="use_sync_core_description">將核心速度與最大速度百分比同步，在不改變遊戲實際速度的情況下提高效能。</string>
+    <string name="use_sync_core_description">將核心速度與最大速度百分比同步，在不改變遊戲實際速度的情況下提高效能</string>
     <string name="cpuopt_unsafe_host_mmu">啟用主機 MMU 模擬</string>
     <string name="cpuopt_unsafe_host_mmu_description">此最佳化可加速來賓程式的記憶體存取。啟用後，來賓記憶體讀取/寫入將直接在記憶體中執行並利用主機的 MMU。停用此功能將強制所有記憶體存取使用軟體 MMU 模擬。</string>
     <string name="debug_knobs">偵錯開關</string>
@@ -171,7 +173,7 @@
     <string name="multiplayer_ban">封鎖使用者</string>
     <string name="multiplayer_room_browser">公開房間</string>
     <string name="multiplayer_no_rooms_found">未找到公開房間</string>
-    <string name="multiplayer_password_required">需輸入密碼</string>
+    <string name="multiplayer_password_required">需要輸入密碼</string>
     <string name="multiplayer_player_count">：%1$d/%2$d</string>
     <string name="multiplayer_game">遊戲</string>
     <string name="multiplayer_no_game_info">任意遊戲</string>
@@ -190,7 +192,7 @@
     <string name="multiplayer_nickname_invalid">使用者名稱無效，請在系統→網路中檢查設定</string>
     <string name="multiplayer_token_error">必須為48個字元，且僅包含小寫字母a-z</string>
     <string name="multiplayer_port_error">埠號需為1-65535</string>
-    <string name="cancel">取消</string>
+    <string name="cancel">略過</string>
     <string name="ok">確定</string>
     <string name="refresh">重新整理</string>
     <string name="room_list">房間列表</string>
@@ -244,21 +246,21 @@
     <string name="home_search_games">搜尋遊戲</string>
     <string name="search_settings">搜尋設定</string>
     <string name="install_prod_keys">安裝 prod.keys</string>
-    <string name="install_prod_keys_description">需要解密零售遊戲</string>
+    <string name="install_prod_keys_description">需要用來解密零售遊戲</string>
     <string name="install_prod_keys_warning">跳過安裝金鑰？</string>
-    <string name="install_prod_keys_warning_description">模擬零售遊戲需要有效的金鑰，若要繼續，將僅有自製遊戲可以運作。</string>
+    <string name="install_prod_keys_warning_description">模擬零售遊戲需要有效的金鑰，如果不安裝將僅有自製遊戲可以運作</string>
     <string name="install_prod_keys_warning_help">https://yuzu-mirror.github.io/help/quickstart/#guide-introduction</string>
     <string name="install_firmware_warning">跳過安裝韌體？</string>
     <string name="emulator_data">設定模擬器資料</string>
     <string name="emulator_data_description">模擬器需要金鑰才能正常執行，同時建議安裝韌體以啟動QLaunch小程式</string>
     <string name="permissions">授予權限</string>
     <string name="permissions_description">授予權限以使用模擬器的特定功能</string>
-    <string name="install_firmware_warning_description">許多遊戲需要韌體才能正常運作。</string>
+    <string name="install_firmware_warning_description">許多遊戲需要韌體才能正常運作</string>
     <string name="install_firmware_warning_help">https://yuzu-mirror.github.io/help/quickstart/#guide-introduction</string>
     <string name="notifications">通知</string>
-    <string name="notifications_description">使用下方的按鈕授予通知權限。</string>
+    <string name="notifications_description">使用下方的按鈕授予通知權限</string>
     <string name="permission_denied">權限遭拒</string>
-    <string name="permission_denied_description">您曾多次拒絕了權限要求，現在您需要在系統設定中手動授予權限。</string>
+    <string name="permission_denied_description">您多次拒絕了要求的權限，現在您需要在系統設定中手動授予</string>
     <string name="about">關於</string>
     <string name="about_description">組建版本、製作群、以及更多</string>
     <string name="system_information">裝置資訊</string>
@@ -285,7 +287,7 @@
     <string name="warning_skip">跳過</string>
     <string name="warning_cancel">取消</string>
     <string name="install_amiibo_keys">安裝 Amiibo 金鑰</string>
-    <string name="install_amiibo_keys_description">需要在遊戲中使用 Amiibo</string>
+    <string name="install_amiibo_keys_description">若要在遊戲中使用 Amiibo 得先安裝</string>
     <string name="gpu_driver_fetcher">GPU驅動程式下載器</string>
     <string name="gpu_driver_manager">GPU 驅動程式管理員</string>
     <string name="install_gpu_driver_description">安裝替代驅動程式以取得潛在的更佳效能或準確度</string>
@@ -300,14 +302,14 @@
     <string name="notification_no_directory_link">無法開啟 Eden 目錄</string>
     <string name="notification_no_directory_link_description">請使用檔案管理員的側邊面板手動定位到使用者資料夾。</string>
     <string name="manage_save_data">管理儲存資料</string>
-    <string name="manage_save_data_description">已找到儲存資料，請選取下方的選項。</string>
+    <string name="manage_save_data_description">導入/導出遊戲的儲存資料</string>
     <string name="import_save_warning">導入儲存資料</string>
-    <string name="import_save_warning_description">這將會以提供的檔案覆寫所有現有的儲存資料，您確定要繼續嗎？</string>
+    <string name="import_save_warning_description">這將會以提供的檔案覆寫現有的該遊戲儲存資料，您確定要繼續嗎？</string>
     <string name="save_files_importing">正在導入儲存資料…</string>
     <string name="save_files_exporting">正在導出儲存資料…</string>
     <string name="save_file_imported_success">已成功導入</string>
     <string name="save_file_invalid_zip_structure">無效的儲存目錄結構</string>
-    <string name="save_file_invalid_zip_structure_description">首個子資料夾名稱必須為遊戲標題 ID。</string>
+    <string name="save_file_invalid_zip_structure_description">首個子資料夾名稱必須為遊戲 ID</string>
     <string name="install_firmware">安裝韌體</string>
     <string name="install_firmware_description">韌體必須為 ZIP 壓縮檔，將會用於部分遊戲的啟動</string>
     <string name="firmware_installing">正在安裝韌體</string>
@@ -317,12 +319,15 @@
     <string name="share_log">分享偵錯記錄</string>
     <string name="share_log_description">分享 Eden 的記錄檔以便對相關問題進行偵錯</string>
     <string name="share_log_missing">找不到日誌檔案</string>
+    <string name="share_gpu_log">分享 GPU 日誌</string>
+    <string name="share_gpu_log_description">分享 Eden 的 GPU 日誌以對圖形問題進行偵錯</string>
+    <string name="share_gpu_log_missing">找不到 GPU 日誌檔案</string>
     <string name="install_game_content">安裝遊戲內容</string>
     <string name="install_game_content_description">安裝遊戲更新或 DLC</string>
     <string name="installing_game_content">正在安裝內容…</string>
     <string name="install_game_content_failure">安裝檔案至 NAND 時發生錯誤</string>
-    <string name="install_game_content_failure_description">請確保內容有效並且 prod.keys 檔案已安裝。</string>
-    <string name="install_game_content_failure_base">為避免可能的衝突，無法直接安裝遊戲本體。</string>
+    <string name="install_game_content_failure_description">請確保內容有效並且 prod.keys 檔案已安裝</string>
+    <string name="install_game_content_failure_base">為避免產生衝突，無法直接安裝遊戲本體</string>
     <string name="install_game_content_failed_count">%1$d 安裝錯誤</string>
     <string name="install_game_content_success">遊戲內容已成功安裝</string>
     <string name="install_game_content_success_install">%1$d 安裝成功</string>
@@ -331,12 +336,12 @@
     <string name="custom_driver_not_supported">您的裝置不支援自訂驅動程式</string>
     <string name="custom_driver_not_supported_description">此裝置不支援注入自訂驅動程式。\n請以後再來查看是否已新增支援！</string>
     <string name="manage_yuzu_data">管理 Eden 資料</string>
-    <string name="manage_yuzu_data_description">安裝韌體、金鑰，導入/導出使用者資料及安裝其他項目！</string>
+    <string name="manage_yuzu_data_description">安裝韌體、金鑰，導入/導出使用者資料及安裝其它項目！</string>
     <string name="game_folders">遊戲資料夾</string>
     <string name="deep_scan">深度掃描</string>
     <string name="add_game_folder">新增遊戲資料夾</string>
     <string name="folder_already_added">這個資料夾已經新增過了！</string>
-    <string name="game_folder_properties">遊戲資料夾屬性</string>
+    <string name="game_folder_properties">遊戲資料夾設定</string>
     <plurals name="saves_import_failed">
         <item quantity="other">%d 個存檔導入失敗</item>
     </plurals>
@@ -347,28 +352,30 @@
     <string name="verify_installed_content">驗證已安裝內容的完整性</string>
     <string name="verify_installed_content_description">檢查所有已安裝的內容是否有損壞</string>
 
-    <string name="keys_missing">缺少解密金鑰</string>
+    <string name="keys_missing">缺少 prod.keys</string>
     <string name="keys_missing_description">無法解密韌體和零售遊戲</string>
     <string name="keys_missing_help">https://yuzu-mirror.github.io/help/quickstart/#dumping-decryption-keys</string>
 
     <string name="uninstall_firmware">解除安裝韌體</string>
-    <string name="uninstall_firmware_description">解除安裝韌體將從裝置中刪除它並可能影響遊戲相容性。</string>
+    <string name="uninstall_firmware_description">解除安裝韌體將從裝置中刪除它並可能影響遊戲相容性</string>
     <string name="firmware_uninstalling">正在解除安裝韌體...</string>
     <string name="firmware_uninstalled_success">韌體解除安裝成功</string>
 
 
     <string name="keys_failed">金鑰安裝失敗</string>
     <string name="keys_install_success">金鑰安裝成功</string>
-    <string name="error_keys_copy_failed">一個或多個金鑰複製失敗。</string>
+    <string name="error_keys_copy_failed">一個或多個金鑰安裝失敗</string>
     <string name="error_keys_invalid_filename">請確保金鑰檔案具有.keys副檔名後重試。</string>
     <string name="error_keys_failed_init">金鑰初始化失敗。請檢查您的轉儲工具是否為最新版本並重新轉儲金鑰。</string>
 
     <!-- Applet launcher strings -->
     <string name="qlaunch_applet">Qlaunch</string>
-    <string name="qlaunch_description">從系統主畫面啟動應用程式</string>
+    <string name="qlaunch_description">從Switch系統主畫面啟動應用程式（目前僅支援英文）</string>
     <string name="applets">小程式啟動器</string>
     <string name="applets_description">使用已安裝的韌體啟動系統小程式</string>
+    <string name="applets_error_firmware">未安裝韌體</string>
     <string name="applets_error_applet">無法使用小程式</string>
+    <string name="applets_error_description"><![CDATA[請確定您的<a href=\"https://yuzu-mirror.github.io/help/quickstart/#dumping-prodkeys-and-titlekeys\">prod.keys</a>檔案和<a href=\"https://yuzu-mirror.github.io/help/quickstart/#dumping-system-firmware\">韌體</a>已安裝並重試]]></string>
     <string name="album_applet">相簿</string>
     <string name="album_applet_description">使用系統相片檢視器查看儲存在使用者螢幕截圖資料夾中的影像</string>
     <string name="mii_edit_applet">Mii 編輯</string>
@@ -377,47 +384,58 @@
     <string name="cabinet_applet_description">編輯、刪除儲存在 amiibo 上的資料</string>
     <string name="cabinet_launcher">Cabinet 啟動器</string>
     <string name="cabinet_nickname_and_owner">暱稱和擁有者設定</string>
-    <string name="cabinet_game_data_eraser">遊戲資料橡皮擦</string>
+    <string name="cabinet_game_data_eraser">刪除遊戲資料</string>
     <string name="cabinet_restorer">還原程式</string>
     <string name="cabinet_formatter">格式化程式</string>
 
     <!-- About screen strings -->
-    <string name="gaia_is_not_real">Gaia不是真的</string>
+    <string name="gaia_is_not_real">Gaia 不存在</string>
     <string name="copied_to_clipboard">已複製到剪貼簿</string>
     <string name="about_app_description">一個開放原始碼的 Switch 模擬器</string>
     <string name="contributors">參與者</string>
+    <string name="contributors_description">這些人讓 Eden Android 版成為可能</string>
     <string name="licenses_description">這些專案使 Eden Android 版成為可能</string>
     <string name="build">組建版本</string>
     <string name="user_data">使用者資料</string>
-    <string name="user_data_description">導入/導出所有應用程式資料。\n\n導入使用者資料時，現有的使用者資料將被取代！\n\n直接從 Citron 導入資料可能會出現問題，建議手動導入所有所需資料。</string>
+    <string name="user_data_description">導入/導出所有應用程式資料。\n\n導入使用者資料時，現有的使用者資料將被取代！\n\n直接從 Citron 導入使用者資料可能會出現問題，建議手動導入所有所需資料。</string>
     <string name="exporting_user_data">正在導出使用者資料…</string>
     <string name="importing_user_data">正在導入使用者資料…</string>
     <string name="invalid_yuzu_backup">無效的 Eden 備份</string>
     <string name="user_data_export_success">使用者資料導出成功</string>
     <string name="user_data_import_success">使用者資料導入成功</string>
     <string name="user_data_export_cancelled">導出已取消</string>
-    <string name="user_data_import_failed_description">請確保使用者資料夾位於 zip 壓縮檔的根目錄，並在 config/config.ini 路徑中包含組態檔案，並再試一次。</string>
+    <string name="user_data_import_failed_description">請確保使用者資料夾位於 zip 壓縮檔的根目錄，並在 config/config.ini 路徑中包含組態檔案，並再試一次</string>
     <!-- General settings strings -->
-    <string name="frame_limit_enable">限制速度</string>
-    <string name="frame_limit_enable_description">將模擬速度限制在標準速度的指定百分比。</string>
+    <string name="frame_limit_enable">限制模擬速度</string>
+    <string name="frame_limit_enable_description">將模擬速度限制在標準速度的指定百分比</string>
     <string name="frame_limit_slider">限制速度百分比</string>
-    <string name="frame_limit_slider_description">指定限制模擬速度的百分比。100% 為標準速度，更高或更低的值將會增加或減少速度限制。</string>
+    <string name="frame_limit_slider_description">指定模擬速度的百分比。100% 為標準速度，更高或更低的值將會減少或增加速度限制</string>
+    <string name="turbo_speed_limit">加速模式</string>
+    <string name="turbo_speed_limit_description">當開啟加速模式時，模擬器將以此速度執行</string>
+    <string name="slow_speed_limit">慢速模式</string>
+    <string name="slow_speed_limit_description">當慢速模式開啟時，模擬器將會以此速度執行</string>
     <string name="cpu_backend">CPU 後端</string>
     <string name="cpu_accuracy">CPU 準確度</string>
     <string name="value_with_units">%1$s%2$s</string>
 
+    <string name="program_args">Homebrew 參數</string>
+    <string name="program_args_description">在啟動時傳遞給 Homebrew 的命令列參數（例如：-noglsl）</string>
+
     <!-- System settings strings -->
     <string name="device_name">裝置名稱</string>
     <string name="use_docked_mode">底座模式</string>
-    <string name="use_docked_mode_description">提高解析度，降低效能。停用後將會使用手提模式，會降低解析度並提高效能。</string>
+    <string name="use_docked_mode_description">提高解析度，降低效能。停用後將會使用手提模式，會降低解析度並提高效能</string>
     <string name="emulated_region">模擬區域</string>
     <string name="emulated_language">模擬語言</string>
     <string name="select_rtc_date">選擇 RTC 日期</string>
     <string name="select_rtc_time">選擇 RTC 時間</string>
     <string name="use_custom_rtc">自訂 RTC</string>
-    <string name="use_custom_rtc_description">允許您設定與您的目前系統時間相互獨立的自訂時間。</string>
+    <string name="use_custom_rtc_description">允許您設定與您的目前系統時間相互獨立的自訂時間</string>
     <string name="set_custom_rtc">設定自訂 RTC</string>
 
+    <!-- CPU -->
+    <string name="fast_cpu_time">CPU 超頻</string>
+    <string name="fast_cpu_time_description">強制模擬 CPU 以更高的時脈運作，減少某些 FPS 限制。使用 加速 (1700MHz) 以 Switch 的最高原生時脈執行，或 高速 (2000MHz) 以雙倍時脈執行</string>
     <string name="custom_cpu_ticks">自訂CPU時脈</string>
     <string name="custom_cpu_ticks_description">自訂CPU時脈。更高的值可能提高效能，但也可能導致遊戲卡死。建議範圍為77-21000。</string>
     <string name="cpu_ticks">時脈</string>
@@ -428,33 +446,41 @@
 
     <!-- Network settings strings -->
     <string name="web_token">網路令牌</string>
-    <string name="web_token_description">用於建立公開大廳的網路令牌。它是由48個小寫字母a-z組成的字串。</string>
+    <string name="web_token_description">用於建立公開大廳的網路令牌。由48個小寫字母a-z組成</string>
     <string name="web_username">網路使用者名稱</string>
-    <string name="web_username_description">多人遊戲房間中顯示的使用者名稱。必須為4-20個字元，僅能使用英文字母、數字、句點、破折號、底線和空格（標點符號須為英文格式）。</string>
+    <string name="web_username_description">多人遊戲房間中顯示的使用者名稱。必須為4-20個字元，僅能使用英文字母、數字、句點、破折號、底線和空格（標點符號須為英文格式）</string>
     <string name="network">網路</string>
 
     <!-- Graphics settings strings -->
     <string name="renderer_resolution">解析度 (手提/底座)</string>
     <string name="renderer_vsync">垂直同步</string>
-    <string name="renderer_scaling_filter">視窗適應過濾器</string>
+    <string name="renderer_scaling_filter">視窗自適應濾波器</string>
+    <string name="fsr_sharpness">FSR/SGSR 銳化度</string>
+    <string name="fsr_sharpness_description">使用 FSR/SGSR 時圖片的銳化程度</string>
     <string name="renderer_anti_aliasing">抗鋸齒</string>
 
 
+    <string name="advanced">進階</string>
+
+    <string name="renderer_accuracy">GPU 模式</string>
+    <string name="renderer_accuracy_description">設定 GPU 模擬的準確度。大多數遊戲在設定為快速時即可正常渲染，但有些需要渲染粒子的遊戲仍需設為準確來避免圖形錯誤</string>
     <string name="dma_accuracy">DMA 準確度</string>
-    <string name="dma_accuracy_description">控制 DMA 準確度。安全準確度可以修復某些遊戲中的問題，但在某些情況下也可能影響效能。如果不確定，請保留為「預設」。</string>
+    <string name="dma_accuracy_description">控制 DMA 準確度。將準確度設為穩定可以修復某些遊戲中的問題，但在某些情況下也可能影響效能。如果不確定，請保留為預設</string>
+    <string name="gpu_fence_behavior">GPU 同步柵欄模式</string>
+    <string name="gpu_fence_behavior_description">控制 GPU 同步柵欄模式。即時是速度最快的選項，但可能會導致一些問題。使用平衡可以提供更好的相容性並修復某些遊戲中的錯誤。準確則是在犧牲部分效能的情況下進一步提升相容性。嚴格是最慢的選項，但可以修復那些對同步要求更嚴格的遊戲中的問題。預設則會依照 GPU 準確度設定</string>
     <string name="anisotropic_filtering">各向異性過濾</string>
     <string name="anisotropic_filtering_description">改善斜角檢視時的紋理品質</string>
     <string name="vram_usage_mode">VRAM使用模式</string>
     <string name="vram_usage_mode_description">控制GPU記憶體的分配與釋放策略</string>
     <string name="accelerate_astc">ASTC解碼方式</string>
-    <string name="accelerate_astc_description">選擇ASTC壓縮紋理的解碼方式：CPU（慢速、安全）、GPU（快速、推薦）或CPU非同步（無卡頓，可能導致問題）</string>
+    <string name="accelerate_astc_description">選擇ASTC壓縮紋理的解碼方式：CPU（慢速、穩定）、GPU（快速、推薦）或CPU非同步（無卡頓，可能導致問題）</string>
 
     <string name="sync_memory_operations">同步記憶體操作</string>
-    <string name="sync_memory_operations_description">確保計算和記憶體操作之間的資料一致性。 此選項應能修復某些遊戲中的問題，但在某些情況下可能會降低效能。 使用Unreal Engine 4的遊戲似乎受影響最大。</string>
+    <string name="sync_memory_operations_description">確保計算和記憶體操作之間的資料一致性。 此選項應能修復某些遊戲中的問題，但在某些情況下可能會降低效能。 使用Unreal Engine 4的遊戲似乎受影響最大</string>
     <string name="use_disk_shader_cache">磁碟著色器快取</string>
-    <string name="use_disk_shader_cache_description">將產生的著色器快取儲存至硬碟以減少中斷。</string>
+    <string name="use_disk_shader_cache_description">將產生的著色器快取儲存至硬碟以減少中斷</string>
     <string name="renderer_force_max_clock">強制使用最大時脈 (僅限Adreno)</string>
-    <string name="renderer_force_max_clock_description">強制 GPU 以可能的最大時脈執行 (熱溫限制仍會被套用)。</string>
+    <string name="renderer_force_max_clock_description">強制 GPU 以可能的最大時脈執行 (熱溫限制仍會被套用)</string>
     <string name="renderer_reactive_flushing">使用重新啟用排清</string>
     <string name="renderer_reactive_flushing_description">犧牲效能，以改善部分遊戲的轉譯準確度。</string>
     <string name="skip_cpu_inner_invalidation">跳過CPU內部失效處理</string>
@@ -603,7 +629,7 @@
     <string name="import_complete">導入完成</string>
     <string name="use_global_setting">使用全域設定</string>
     <string name="operation_completed_successfully">操作已成功完成</string>
-    <string name="confirm">確定</string>
+    <string name="confirm">下載</string>
     <string name="load">載入</string>
     <string name="save">儲存</string>
 
@@ -821,8 +847,8 @@
 
     <!-- Memory Layouts -->
     <string name="memory_4gb">4GB (推薦)</string>
-    <string name="memory_6gb">6GB (不安全)</string>
-    <string name="memory_8gb">8GB (不安全)</string>
+    <string name="memory_6gb">6GB (不穩定)</string>
+    <string name="memory_8gb">8GB (不穩定)</string>
 
     <!--CPU clock speeds-->
     <string name="clock_boost">加速 (1700MHz)</string>
@@ -847,8 +873,8 @@
 
     <!-- DMA Accuracy -->
     <string name="dma_accuracy_default">預設</string>
-    <string name="dma_accuracy_unsafe">不安全</string>
-    <string name="dma_accuracy_safe">安全</string>
+    <string name="dma_accuracy_unsafe">不穩定</string>
+    <string name="dma_accuracy_safe">穩定</string>
 
     <string name="vram_usage_conservative">保守</string>
     <string name="vram_usage_aggressive">積極</string>
@@ -874,7 +900,7 @@
 
     <!-- CPU Accuracy -->
     <string name="cpu_accuracy_accurate">高準確度</string>
-    <string name="cpu_accuracy_unsafe">低準確度（不安全）</string>
+    <string name="cpu_accuracy_unsafe">低準確度（不穩定）</string>
     <string name="cpu_accuracy_paranoid">不合理</string>
     <string name="cpu_accuracy_debugging">偵錯</string>
 

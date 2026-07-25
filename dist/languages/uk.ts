@@ -793,7 +793,9 @@ Safe to set at 16x on most GPUs.</source>
         <source>Controls the GPU emulation mode.
 Most games render fine with Fast, but Accurate is still required for some.
 Particles tend to only render correctly with Accurate mode.</source>
-        <translation type="unfinished"/>
+        <translation>Керує режимом емуляції ГП.
+Більшість ігор добре візуалізуються з режимом «Швидко», але деякі ігри можуть потребувати режиму «Точно».
+Частинки зазвичай правильно візуалізуються лише з режимом «Точно».</translation>
     </message>
     <message>
         <location filename="../../src/qt_common/config/shared_translation.cpp" line="225"/>

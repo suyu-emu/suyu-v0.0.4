@@ -463,7 +463,7 @@
     <string name="advanced">高级</string>
 
     <string name="renderer_accuracy">GPU 模式</string>
-    <string name="renderer_accuracy_description">控制 GPU 模拟模式。大多数游戏在“快速”或“均衡”模式下都能获得良好的渲染，但有些游戏仍需使用“精确”模式。粒子效果通常只有在“精确”模式下才能正确渲染。</string>
+    <string name="renderer_accuracy_description">控制 GPU 模拟模式。大多数游戏在“快速”模式下渲染效果良好，但有些游戏仍需使用“精确”模式。而粒子效果通常只有在“精确”模式下才能正确渲染。</string>
     <string name="dma_accuracy">DMA 精度</string>
     <string name="dma_accuracy_description">控制 DMA 的精准度。安全精度可以修复存在于某些游戏中的问题，但在某些情况下也会对性能造成影响。如不确定，请保持“默认”。</string>
     <string name="gpu_fence_behavior">GPU 围栏行为</string>

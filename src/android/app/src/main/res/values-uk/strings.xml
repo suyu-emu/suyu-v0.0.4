@@ -469,7 +469,6 @@
     <string name="advanced">Додаткові</string>
 
     <string name="renderer_accuracy">Режим ГП</string>
-    <string name="renderer_accuracy_description">Керує режимом емуляції ГП. Більшість ігор добре візуалізуються з режимами «Швидко» або «Збалансовано», але деякі ігри можуть потребувати режиму «Точно». Частинки зазвичай правильно візуалізуються лише з режимом «Точно».</string>
     <string name="dma_accuracy">Точність DMA</string>
     <string name="dma_accuracy_description">Керує точністю DMA. Безпечна точність може виправити проблеми в деяких іграх, але в деяких випадках також може вплинути на продуктивність. Якщо не впевнені, залиште це значення за замовчуванням.</string>
     <string name="anisotropic_filtering">Анізотропне фільтрування</string>
