@@ -32,6 +32,18 @@ struct GuestContextView {
 constexpr u64 kNoPendingSvc = ~0ULL;
 } // namespace
 
+namespace {
+std::atomic<RecompLookupFn> g_recomp_lookup{nullptr};
+} // namespace
+
+void SetRecompLookup(RecompLookupFn lookup) {
+    g_recomp_lookup.store(lookup, std::memory_order_release);
+}
+
+RecompLookupFn GetRecompLookup() {
+    return g_recomp_lookup.load(std::memory_order_acquire);
+}
+
 struct ArmRecomp::Impl {
     Impl(System& system_, RecompLookupFn lookup_) : system{system_}, lookup{lookup_} {
         std::memset(&ctx, 0, sizeof(ctx));

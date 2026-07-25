@@ -20,6 +20,7 @@
 
 #include "core/arm/dynarmic/arm_dynarmic_32.h"
 #include "core/arm/dynarmic/arm_dynarmic_64.h"
+#include "core/arm/recomp/arm_recomp.h"
 #ifdef HAS_NCE
 #include "core/arm/nce/arm_nce.h"
 #endif
@@ -1302,6 +1303,19 @@ void KProcess::LoadModule(KernelCore& kernel, CodeSet code_set, KProcessAddress 
 void KProcess::InitializeInterfaces(KernelCore& kernel) {
     m_exclusive_monitor =
         Core::MakeExclusiveMonitor(this->GetMemory(), Core::Hardware::NUM_CPU_CORES);
+
+    // A statically recompiled image runs on ArmRecomp rather than a JIT. It
+    // still goes through ArmInterface, so the kernel, the services and the GPU
+    // above this point are unchanged and the recompiled code gets the real HLE
+    // stack instead of the generated runtime's stub SVC handler.
+    if (const auto recomp_lookup = Core::GetRecompLookup()) {
+        for (size_t i = 0; i < Core::Hardware::NUM_CPU_CORES; i++) {
+            m_arm_interfaces[i] =
+                std::make_unique<Core::ArmRecomp>(kernel.System(), kernel.IsMulticore(),
+                                                  recomp_lookup);
+        }
+        return;
+    }
 
 #ifdef HAS_NCE
     if (this->IsApplication() && Settings::IsNceEnabled()) {

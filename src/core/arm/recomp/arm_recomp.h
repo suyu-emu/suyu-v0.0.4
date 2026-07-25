@@ -29,6 +29,21 @@ using RecompBlockFn = void (*)(void*);
 using RecompLookupFn = RecompBlockFn (*)(u64 pc);
 
 /**
+ * Registers the lookup function of a loaded recompiled image.
+ *
+ * Set before starting a process to have it run on ArmRecomp instead of the
+ * JIT; pass nullptr to go back to the normal backend. Kept as a global rather
+ * than threaded through the loader because the choice is per-image and has to
+ * be visible at KProcess::InitializeInterfaces time, which the loader doesn't
+ * own.
+ */
+void SetRecompLookup(RecompLookupFn lookup);
+
+/// Returns the registered lookup, or nullptr when no recompiled image is
+/// loaded and the JIT should be used.
+RecompLookupFn GetRecompLookup();
+
+/**
  * CPU backend that executes statically recompiled AArch64 rather than JITing
  * it.
  *
