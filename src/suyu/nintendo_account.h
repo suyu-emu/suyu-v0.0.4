@@ -22,9 +22,8 @@ struct NintendoOwnedGame {
     QString purchase_date;
     bool is_digital = true;
     QString title_id;
-    /// Nintendo-hosted cover art URL (from the Parental Controls API's
-    /// playedApps[].imageUri). Empty when the entry came from a source that
-    /// doesn't carry artwork.
+    /// Nintendo-hosted cover art URL (the Virtual Game Card's icon.url).
+    /// Empty when the entry came from a source that doesn't carry artwork.
     QString icon_url;
 };
 
@@ -82,9 +81,7 @@ private slots:
     void OnVerifyClicked();
     void OnTokenSubmitted();
     void OpenBrowserLogin();
-    /// Second, separate OAuth round against the Parental Controls ("moon")
-    /// client_id. The regular NSO client_id's token can't reach the moon API,
-    /// so syncing the game list needs its own consented sign-in.
+    /// Imports the account's Virtual Game Cards. See StartVgcSync().
     void OnSyncLibraryClicked();
 
 private:
@@ -105,7 +102,6 @@ private:
     /// Attempt to verify a session token against Nintendo's API.
     void VerifySessionToken(const QString& token);
     void FetchNintendoOwnedLibrary(const QString& token);
-    std::vector<NintendoOwnedGame> ParseNintendoPurchaseHistory(const QString& html);
 
     /// Real Nintendo login is OAuth/PKCE, not a plain cookie: navigating to
     /// the authorize URL below and intercepting the npf...://auth redirect

@@ -173,6 +173,17 @@ QString OwnedLibraryToJson(const std::vector<NintendoOwnedGame>& library) {
     return QString::fromUtf8(QJsonDocument(array).toJson(QJsonDocument::Compact));
 }
 
+bool IsPlausibleSwitchTitleId(const QString& title_id) {
+    // Switch application IDs are 16 hex digits and begin 0100. An earlier
+    // HTML-scraping sync stored qHash() values here instead, which produced a
+    // cache full of invented entries ("My Mario", "Super Mario", ...) that
+    // then showed up in the library as though they were owned games. Anything
+    // that isn't shaped like a real application ID is from that broken path
+    // and gets dropped on load.
+    static const QRegularExpression re(QStringLiteral("^0100[0-9a-fA-F]{12}$"));
+    return re.match(title_id.trimmed()).hasMatch();
+}
+
 std::vector<NintendoOwnedGame> OwnedLibraryFromJson(const QString& json) {
     std::vector<NintendoOwnedGame> library;
     const QJsonDocument doc = QJsonDocument::fromJson(json.toUtf8());
@@ -192,7 +203,7 @@ std::vector<NintendoOwnedGame> OwnedLibraryFromJson(const QString& json) {
         game.is_digital = obj.value(QStringLiteral("is_digital")).toBool(true);
         game.title_id = obj.value(QStringLiteral("title_id")).toString();
         game.icon_url = obj.value(QStringLiteral("icon_url")).toString();
-        if (!game.title.isEmpty()) {
+        if (!game.title.isEmpty() && IsPlausibleSwitchTitleId(game.title_id)) {
             library.push_back(std::move(game));
         }
     }
@@ -613,19 +624,15 @@ void NintendoAccountDialog::VerifySessionToken(const QString& token) {
 }
 
 void NintendoAccountDialog::FetchNintendoOwnedLibrary(const QString& /*token*/) {
-    // Nintendo exposes no API for *purchase* history - the orders page is a
-    // plain consumer website that an OAuth session_token can never
-    // authenticate against. What is reachable is the Parental Controls
-    // ("moon") API's per-device play summaries, which enumerate every title
-    // registered against the account's consoles with a real title_id and
-    // cover art. That needs its own consented sign-in under a different
-    // client_id, so it's driven by the explicit "Sync Game Library" button
-    // rather than fired automatically on link.
+    // Linking alone doesn't populate the library: the game list comes from the
+    // Virtual Game Card portal, which is a separate signed-in web page rather
+    // than something this OAuth token can query. It's driven by the explicit
+    // "Sync Game Library" button so the user isn't surprised by a second
+    // browser window appearing right after sign-in.
     if (library_summary_label) {
         library_summary_label->setText(
-            tr("Nintendo Account linked. Press \"Sync Game Library\" to import the titles "
-               "registered to your consoles (uses Nintendo's Parental Controls API - it "
-               "will ask you to sign in once more to grant that access)."));
+            tr("Nintendo Account linked. Press \"Sync Game Library\" to import your "
+               "Virtual Game Cards."));
         library_summary_label->setVisible(true);
     }
     if (sync_library_button) {
@@ -844,70 +851,6 @@ void NintendoAccountDialog::ApplyVgcJson(const QString& json) {
 }
 
 
-std::vector<NintendoOwnedGame> NintendoAccountDialog::ParseNintendoPurchaseHistory(const QString& html) {
-    std::vector<NintendoOwnedGame> library;
-    const QRegularExpression order_block_regex(
-        QStringLiteral(R"(<(?:div|li)[^>]*(?:order|purchase)[^>]*>.*?</(?:div|li)>)"),
-        QRegularExpression::CaseInsensitiveOption | QRegularExpression::DotMatchesEverythingOption);
-    const QRegularExpression title_regex(
-        QStringLiteral(R"((?:<h[1-6][^>]*>|<span[^>]*class="[^"]*(?:title|product|name)[^"]*"[^>]*>)([^<]{3,120})</(?:h[1-6]|span)>)"),
-        QRegularExpression::CaseInsensitiveOption);
-    const QRegularExpression date_regex(
-        QStringLiteral(R"((\d{1,2}/\d{1,2}/\d{4}|\d{4}-\d{2}-\d{2}))"),
-        QRegularExpression::CaseInsensitiveOption);
-    const QRegularExpression platform_regex(
-        QStringLiteral(R"((Nintendo Switch|3DS|Wii U|Wii))"),
-        QRegularExpression::CaseInsensitiveOption);
-
-    auto order_it = order_block_regex.globalMatch(html);
-    while (order_it.hasNext()) {
-        const QRegularExpressionMatch match = order_it.next();
-        const QString block = match.captured(0);
-
-        QRegularExpressionMatch title_match = title_regex.match(block);
-        if (!title_match.hasMatch()) {
-            continue;
-        }
-
-        NintendoOwnedGame game;
-        game.title = title_match.captured(1).trimmed();
-
-        QRegularExpressionMatch date_match = date_regex.match(block);
-        if (date_match.hasMatch()) {
-            game.purchase_date = date_match.captured(1);
-        }
-
-        QRegularExpressionMatch platform_match = platform_regex.match(block);
-        if (platform_match.hasMatch()) {
-            game.platform = platform_match.captured(1);
-        } else {
-            game.platform = QStringLiteral("Nintendo Switch");
-        }
-
-        game.is_digital = true;
-        game.title_id = QString::number(qHash(game.title), 16);
-
-        library.push_back(std::move(game));
-    }
-
-    if (library.empty()) {
-        const QRegularExpression fallback_title_regex(
-            QStringLiteral(R"((?:<h[1-6][^>]*>|<span[^>]*>([^<]*(?:Mario|Zelda|Pokemon|Metroid|Kirby|Splatoon|Animal Crossing|Fire Emblem|Xenoblade)[^<]*)</(?:h[1-6]|span)>))"),
-            QRegularExpression::CaseInsensitiveOption);
-        auto title_it = fallback_title_regex.globalMatch(html);
-        while (title_it.hasNext()) {
-            const QRegularExpressionMatch title_match = title_it.next();
-            NintendoOwnedGame game;
-            game.title = title_match.captured(1).trimmed();
-            game.platform = QStringLiteral("Nintendo Switch");
-            game.is_digital = true;
-            game.title_id = QString::number(qHash(game.title), 16);
-            library.push_back(std::move(game));
-        }
-    }
-
-    return library;
-}
 
 void NintendoAccountDialog::OnLinkClicked() {
     OnTokenSubmitted();
