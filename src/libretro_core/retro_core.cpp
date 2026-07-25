@@ -160,6 +160,37 @@ RETRO_API void retro_init() {
     g_system->GetFileSystemController().CreateFactories(*g_system->GetFilesystem());
     g_system->GetUserChannel().clear();
 
+    // Adopt keys from any other Switch emulator installed on this machine.
+    // A RetroArch user may well have never run suyu itself, but is likely to
+    // have one of these already set up; copying rather than reading in place
+    // keeps suyu's own key directory the single source of truth afterwards.
+    {
+        const auto keys_dir = Common::FS::GetSuyuPath(Common::FS::SuyuPath::KeysDir);
+        // .../<roaming>/suyu/keys -> .../<roaming>
+        const auto roaming = keys_dir.parent_path().parent_path();
+        for (const auto& emu : {"eden", "yuzu", "sudachi", "citron", "Ryujinx"}) {
+            const auto src_dir = roaming / emu / "keys";
+            std::error_code ec;
+            if (!std::filesystem::exists(src_dir, ec)) {
+                continue;
+            }
+            LOG_INFO(Frontend, "libretro: found {} key directory at {}", emu, src_dir.string());
+            Common::FS::CreateDir(keys_dir);
+            for (const auto& name : {"prod.keys", "title.keys", "console.keys"}) {
+                const auto src = src_dir / name;
+                const auto dst = keys_dir / name;
+                // Never overwrite: suyu's own keys, and anything adopted from
+                // an earlier emulator in this list, take precedence.
+                if (std::filesystem::exists(src, ec) && !std::filesystem::exists(dst, ec)) {
+                    std::filesystem::copy_file(src, dst, ec);
+                    if (!ec) {
+                        LOG_INFO(Frontend, "libretro: adopted {} from {}", name, emu);
+                    }
+                }
+            }
+        }
+    }
+
     // Load keys from RetroArch system directory if available
     // Users can place prod.keys and title.keys in <system_dir>/suyu/keys/
     if (g_environ_cb) {
@@ -464,10 +495,26 @@ RETRO_API bool retro_load_game(const struct retro_game_info* game) {
         // in retro_init so the options the frontend collected are already
         // available, and so a failed join can't stop the game from booting
         // single-player.
+        // If the frontend has a netplay session running, treat that as a
+        // request for online play even when the core option is off. RetroArch's
+        // own netplay can't synchronise this core (see retro_serialize_size),
+        // but a user who started one has clearly asked to play with someone,
+        // and suyu's room system can carry that - so the session is used as
+        // the trigger and the client index decides who hosts.
+        unsigned netplay_index = 0;
+        const bool frontend_netplay =
+            g_environ_cb(RETRO_ENVIRONMENT_GET_NETPLAY_CLIENT_INDEX, &netplay_index);
+        if (frontend_netplay) {
+            LOG_INFO(Frontend, "libretro: frontend netplay active (client index {}); "
+                               "bringing up suyu online play", netplay_index);
+        }
+
         var.key = "suyu_online_enable";
         var.value = nullptr;
-        if (g_environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value &&
-            std::string(var.value) == "Enabled") {
+        const bool option_enabled =
+            g_environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value &&
+            std::string(var.value) == "Enabled";
+        if (option_enabled || frontend_netplay) {
             std::string server = "127.0.0.1";
             std::string nickname = "Player";
             u16 port = 24872;
@@ -486,6 +533,12 @@ RETRO_API bool retro_load_game(const struct retro_game_info* game) {
             var.value = nullptr;
             if (g_environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value) {
                 port = static_cast<u16>(std::strtoul(var.value, nullptr, 10));
+            }
+
+            // Keep peers in one netplay session from colliding on nickname,
+            // which the room rejects as a duplicate.
+            if (frontend_netplay && netplay_index > 0) {
+                nickname += "_" + std::to_string(netplay_index);
             }
 
             if (auto member = Network::GetRoomMember().lock()) {
