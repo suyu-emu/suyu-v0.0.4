@@ -77,7 +77,7 @@ Result DatabaseManager::Initialize(DatabaseSessionMetadata& metadata, bool& is_d
     const auto result = database.CheckIntegrity();
 
     if (result.IsError()) {
-        LOG_ERROR(Service_Mii, "Mii database is corrupted 0x{:0x}", result.raw);
+        LOG_ERROR(Service_Mii, "Mii database is corrupted {:#0x}", result.raw);
         database.CleanDatabase();
         return ResultSuccess;
     }

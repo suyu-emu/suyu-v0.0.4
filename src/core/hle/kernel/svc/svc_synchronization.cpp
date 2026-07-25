@@ -17,7 +17,7 @@ namespace Kernel::Svc {
 
 /// Close a handle
 Result CloseHandle(Core::System& system, Handle handle) {
-    LOG_TRACE(Kernel_SVC, "Closing handle 0x{:08X}", handle);
+    LOG_TRACE(Kernel_SVC, "Closing handle {:#08x}", handle);
 
     // Remove the handle.
     R_UNLESS(GetCurrentProcess(system.Kernel()).GetHandleTable().Remove(system.Kernel(), handle),
@@ -28,7 +28,7 @@ Result CloseHandle(Core::System& system, Handle handle) {
 
 /// Clears the signaled state of an event or process.
 Result ResetSignal(Core::System& system, Handle handle) {
-    LOG_DEBUG(Kernel_SVC, "called handle 0x{:08X}", handle);
+    LOG_DEBUG(Kernel_SVC, "called handle {:#08x}", handle);
 
     // Get the current handle table.
     const auto& handle_table = GetCurrentProcess(system.Kernel()).GetHandleTable();
@@ -103,7 +103,7 @@ Result WaitSynchronization(Core::System& system, int32_t* out_index, u64 user_ha
 
 /// Resumes a thread waiting on WaitSynchronization
 Result CancelSynchronization(Core::System& system, Handle handle) {
-    LOG_TRACE(Kernel_SVC, "called handle={:#X}", handle);
+    LOG_TRACE(Kernel_SVC, "called handle={:#x}", handle);
 
     // Get the thread from its handle.
     KScopedAutoObject thread = GetCurrentProcess(system.Kernel()).GetHandleTable().GetObject<KThread>(system.Kernel(), handle);

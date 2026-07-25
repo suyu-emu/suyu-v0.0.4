@@ -259,7 +259,7 @@ s32_le nvhost_gpu::GetObjectContextClassNumberIndex(CtxClasses class_number) {
 }
 
 NvResult nvhost_gpu::AllocateObjectContext(IoctlAllocObjCtx& params) {
-    LOG_DEBUG(Service_NVDRV, "called, class_num={:#X}, flags={:#X}, obj_id={:#X}", params.class_num,
+    LOG_DEBUG(Service_NVDRV, "called, class_num={:#x}, flags={:#x}, obj_id={:#x}", params.class_num,
               params.flags, params.obj_id);
 
     // Do not require channel initialization here: some clients allocate contexts before binding.
@@ -271,7 +271,7 @@ NvResult nvhost_gpu::AllocateObjectContext(IoctlAllocObjCtx& params) {
     std::scoped_lock lk(channel_mutex);
 
     if (params.flags) {
-        LOG_WARNING(Service_NVDRV, "non-zero flags={:#X} for class={:#X}", params.flags,
+        LOG_WARNING(Service_NVDRV, "non-zero flags={:#x} for class={:#x}", params.flags,
                     params.class_num);
 
         constexpr u32 allowed_mask{};
@@ -281,13 +281,13 @@ NvResult nvhost_gpu::AllocateObjectContext(IoctlAllocObjCtx& params) {
     s32_le ctx_class_number_index = 
         GetObjectContextClassNumberIndex(static_cast<CtxClasses>(params.class_num));
     if (ctx_class_number_index < 0) {
-        LOG_ERROR(Service_NVDRV, "Invalid class number for object context: {:#X}",
+        LOG_ERROR(Service_NVDRV, "Invalid class number for object context: {:#x}",
                   params.class_num);
         return NvResult::BadParameter;
     }
 
     if (ctxObjs[ctx_class_number_index].has_value()) {
-        LOG_WARNING(Service_NVDRV, "Object context for class {:#X} already allocated on this channel",
+        LOG_WARNING(Service_NVDRV, "Object context for class {:#x} already allocated on this channel",
                     params.class_num);
         return NvResult::AlreadyAllocated;
     }
@@ -420,20 +420,20 @@ NvResult nvhost_gpu::SubmitGPFIFOBase2(IoctlSubmitGpfifo& params,
 }
 
 NvResult nvhost_gpu::GetWaitbase(IoctlGetWaitbase& params) {
-    LOG_INFO(Service_NVDRV, "called, unknown={:#X}", params.unknown);
+    LOG_INFO(Service_NVDRV, "called, unknown={:#x}", params.unknown);
 
     params.value = 0; // Seems to be hard coded at 0
     return NvResult::Success;
 }
 
 NvResult nvhost_gpu::ChannelSetTimeout(IoctlChannelSetTimeout& params) {
-    LOG_INFO(Service_NVDRV, "called, timeout={:#X}", params.timeout);
+    LOG_INFO(Service_NVDRV, "called, timeout={:#x}", params.timeout);
 
     return NvResult::Success;
 }
 
 NvResult nvhost_gpu::ChannelSetTimeslice(IoctlSetTimeslice& params) {
-    LOG_INFO(Service_NVDRV, "called, timeslice={:#X}", params.timeslice);
+    LOG_INFO(Service_NVDRV, "called, timeslice={:#x}", params.timeslice);
 
     if (params.timeslice < 1000 || params.timeslice > 5000) {
         return NvResult::BadParameter;

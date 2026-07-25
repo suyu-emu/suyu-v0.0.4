@@ -263,7 +263,7 @@ AppLoader_DeconstructedRomDirectory::LoadResult AppLoader_DeconstructedRomDirect
 
         next_load_addr = *tentative_next_load_addr;
         modules.insert_or_assign(load_addr, module);
-        LOG_DEBUG(Loader, "loaded module {} @ {:#X}", module, load_addr);
+        LOG_DEBUG(Loader, "loaded module {} @ {:#x}", module, load_addr);
     }
 
     is_loaded = true;

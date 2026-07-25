@@ -196,7 +196,7 @@ Result SM::GetServiceImpl(Kernel::KClientSession** out_client_session, HLEReques
     // Create a new session.
     Kernel::KClientSession* session{};
     if (const auto result = client_port->CreateSession(kernel, &session); result.IsError()) {
-        LOG_ERROR(Service_SM, "called service={} -> error 0x{:08X}", name, result.raw);
+        LOG_ERROR(Service_SM, "called service={} -> error {:#08x}", name, result.raw);
         return result;
     }
 

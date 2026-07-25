@@ -41,7 +41,7 @@ IFileSystem::IFileSystem(Core::System& system_, FileSys::VirtualDir dir_, SizeGe
 
 Result IFileSystem::CreateFile(const InLargeData<FileSys::Sf::Path, BufferAttr_HipcPointer> path,
                                s32 option, s64 size) {
-    LOG_DEBUG(Service_FS, "called. file={}, option={:#X}, size=0x{:08X}", path->str, option, size);
+    LOG_DEBUG(Service_FS, "called. file={}, option={:#x}, size={:#08x}", path->str, option, size);
 
     R_RETURN(backend->CreateFile(FileSys::Path(path->str), size));
 }

@@ -113,7 +113,7 @@ Result SessionRequestManager::HandleDomainSyncRequest(Kernel::KServerSession* se
         }
 
     case IPC::DomainMessageHeader::CommandType::CloseVirtualHandle: {
-        LOG_DEBUG(IPC, "CloseVirtualHandle, object_id=0x{:08X}", object_id);
+        LOG_DEBUG(IPC, "CloseVirtualHandle, object_id={:#08x}", object_id);
 
         this->CloseDomainHandler(object_id - 1);
 

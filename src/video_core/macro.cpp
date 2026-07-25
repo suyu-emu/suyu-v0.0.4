@@ -1234,7 +1234,7 @@ bool MacroJITx64Impl::Compile_NextInstruction(Core::System& system) {
 }
 
 static void MacroJIT_ErrorThunk(uintptr_t parameter, uintptr_t max_parameter) {
-    LOG_CRITICAL(HW_GPU, "Macro JIT: invalid parameter access 0x{:x} (0x{:x} is the last parameter)", parameter, max_parameter - sizeof(u32));
+    LOG_CRITICAL(HW_GPU, "Macro JIT: invalid parameter access {:#x} ({:#x} is the last parameter)", parameter, max_parameter - sizeof(u32));
 }
 
 Xbyak::Reg32 MacroJITx64Impl::Compile_FetchParameter() {

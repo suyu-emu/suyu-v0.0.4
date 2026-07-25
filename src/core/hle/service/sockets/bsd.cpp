@@ -283,7 +283,7 @@ void BSD::GetSockOpt(HLERequestContext& ctx) {
 
     std::vector<u8> optval(ctx.GetWriteBufferSize());
 
-    LOG_DEBUG(Service, "called. fd={} level={} optname=0x{:x} len=0x{:x}", fd, level, optname,
+    LOG_DEBUG(Service, "called. fd={} level={} optname={:#x} len={:#x}", fd, level, optname,
               optval.size());
 
     const Errno err = GetSockOptImpl(fd, level, optname, optval);
@@ -331,7 +331,7 @@ void BSD::SetSockOpt(HLERequestContext& ctx) {
     const OptName optname = static_cast<OptName>(rp.Pop<u32>());
     const auto optval = ctx.ReadBuffer();
 
-    LOG_DEBUG(Service, "called. fd={} level={} optname=0x{:x} optlen={}", fd, level,
+    LOG_DEBUG(Service, "called. fd={} level={} optname={:#x} optlen={}", fd, level,
               static_cast<u32>(optname), optval.size());
 
     BuildErrnoResponse(ctx, SetSockOptImpl(fd, level, optname, optval));
@@ -354,7 +354,7 @@ void BSD::Recv(HLERequestContext& ctx) {
     const s32 fd = rp.Pop<s32>();
     const u32 flags = rp.Pop<u32>();
 
-    LOG_DEBUG(Service, "called. fd={} flags=0x{:x} len={}", fd, flags, ctx.GetWriteBufferSize());
+    LOG_DEBUG(Service, "called. fd={} flags={:#x} len={}", fd, flags, ctx.GetWriteBufferSize());
 
     ExecuteWork(ctx, RecvWork{
                          .fd = fd,
@@ -369,7 +369,7 @@ void BSD::RecvFrom(HLERequestContext& ctx) {
     const s32 fd = rp.Pop<s32>();
     const u32 flags = rp.Pop<u32>();
 
-    LOG_DEBUG(Service, "called. fd={} flags=0x{:x} len={} addrlen={}", fd, flags,
+    LOG_DEBUG(Service, "called. fd={} flags={:#x} len={} addrlen={}", fd, flags,
               ctx.GetWriteBufferSize(0), ctx.GetWriteBufferSize(1));
 
     ExecuteWork(ctx, RecvFromWork{
@@ -386,7 +386,7 @@ void BSD::Send(HLERequestContext& ctx) {
     const s32 fd = rp.Pop<s32>();
     const u32 flags = rp.Pop<u32>();
 
-    LOG_DEBUG(Service, "called. fd={} flags=0x{:x} len={}", fd, flags, ctx.GetReadBufferSize());
+    LOG_DEBUG(Service, "called. fd={} flags={:#x} len={}", fd, flags, ctx.GetReadBufferSize());
 
     ExecuteWork(ctx, SendWork{
                          .fd = fd,

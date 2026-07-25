@@ -98,7 +98,7 @@ Vic::~Vic() noexcept {
 }
 
 void Vic::ProcessMethod(u32 method, u32 arg) noexcept {
-    LOG_TRACE(HW_GPU, "Vic {} method {:#X}", id, u32(method));
+    LOG_TRACE(HW_GPU, "Vic {} method {:#x}", id, u32(method));
     regs.reg_array[method] = arg;
     switch (Method(method * sizeof(u32))) {
     case Method::Execute:
@@ -873,9 +873,9 @@ void Vic::WriteY8__V8U8_N420(const OutputSurfaceConfig& output_surface_config) n
         auto const out_chroma_swizzle_size = Texture::CalculateSize(true, BytesPerPixel * 2, out_chroma_width, out_chroma_height, 1, block_height, 0);
 
         LOG_TRACE(HW_GPU, "Writing Y8__V8U8_N420 swizzled frame\n"
-            "\tinput surface {}x{} stride {} size {:#X}\n"
-            "\toutput   luma {}x{} stride {} size {:#X} block height {} swizzled size 0x{:X}\n",
-            "\toutput chroma {}x{} stride {} size {:#X} block height {} swizzled size 0x{:X}",
+            "\tinput surface {}x{} stride {} size {:#x}\n"
+            "\toutput   luma {}x{} stride {} size {:#x} block height {} swizzled size {:#x}\n",
+            "\toutput chroma {}x{} stride {} size {:#x} block height {} swizzled size {:#x}",
             surface_width, surface_height, surface_stride * BytesPerPixel,
             surface_stride * surface_height * BytesPerPixel, out_luma_width, out_luma_height,
             out_luma_stride, out_luma_size, block_height, out_luma_swizzle_size, out_chroma_width,
@@ -898,9 +898,9 @@ void Vic::WriteY8__V8U8_N420(const OutputSurfaceConfig& output_surface_config) n
     } break;
     case BlkKind::Pitch: {
         LOG_TRACE(HW_GPU, "Writing Y8__V8U8_N420 swizzled frame\n"
-            "\tinput surface {}x{} stride {} size {:#X}\n"
-            "\toutput   luma {}x{} stride {} size {:#X} block height {} swizzled size 0x{:X}\n",
-            "\toutput chroma {}x{} stride {} size {:#X} block height {} swizzled size 0x{:X}",
+            "\tinput surface {}x{} stride {} size {:#x}\n"
+            "\toutput   luma {}x{} stride {} size {:#x} block height {} swizzled size {:#x}\n",
+            "\toutput chroma {}x{} stride {} size {:#x} block height {} swizzled size {:#x}",
             surface_width, surface_height, surface_stride * BytesPerPixel,
             surface_stride * surface_height * BytesPerPixel, out_luma_width, out_luma_height,
             out_luma_stride, out_luma_size, out_chroma_width, out_chroma_height, out_chroma_stride,
@@ -1043,8 +1043,8 @@ void Vic::WriteABGR(const OutputSurfaceConfig& output_surface_config, VideoPixel
         const u32 block_height = u32(output_surface_config.out_block_height);
         auto const out_swizzle_size = Texture::CalculateSize(true, BytesPerPixel, out_luma_width, out_luma_height, 1, block_height, 0);
         LOG_TRACE(HW_GPU, "Writing ABGR swizzled frame\n"
-            "\tinput surface {}x{} stride {} size {:#X}\n"
-            "\toutput surface {}x{} stride {} size {:#X} block height {} swizzled size 0x{:X}",
+            "\tinput surface {}x{} stride {} size {:#x}\n"
+            "\toutput surface {}x{} stride {} size {:#x} block height {} swizzled size {:#x}",
             surface_width, surface_height, surface_stride * BytesPerPixel,
             surface_stride * surface_height * BytesPerPixel, out_luma_width, out_luma_height,
             out_luma_stride, out_luma_size, block_height, out_swizzle_size);
@@ -1060,8 +1060,8 @@ void Vic::WriteABGR(const OutputSurfaceConfig& output_surface_config, VideoPixel
     } break;
     case BlkKind::Pitch: {
         LOG_TRACE(HW_GPU, "Writing ABGR pitch frame\n"
-            "\tinput surface {}x{} stride {} size {:#X}"
-            "\toutput surface {}x{} stride {} size {:#X}",
+            "\tinput surface {}x{} stride {} size {:#x}"
+            "\toutput surface {}x{} stride {} size {:#x}",
             surface_width, surface_height, surface_stride,
             surface_stride * surface_height * BytesPerPixel, out_luma_width, out_luma_height,
             out_luma_stride, out_luma_size);

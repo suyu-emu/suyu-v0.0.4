@@ -560,7 +560,7 @@ void GraphicsPipeline::ConfigureDraw(const RescalingPushConstant& rescaling,
     // Log graphics pipeline binding
     if (bind_pipeline && GPU::Logging::IsActive() &&
         Settings::values.gpu_log_vulkan_calls.GetValue()) {
-        const std::string pipeline_info = fmt::format("hash=0x{:016x}", key.Hash());
+        const std::string pipeline_info = fmt::format("hash={:#016x}", key.Hash());
         GPU::Logging::GPULogger::GetInstance().LogPipelineBind(false, pipeline_info);
     }
 

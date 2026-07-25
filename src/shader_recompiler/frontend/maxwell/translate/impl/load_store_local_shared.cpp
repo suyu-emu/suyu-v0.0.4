@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2021 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -152,7 +155,7 @@ void TranslatorVisitor::STL(u64 insn) {
     if (offset.IsImmediate()) {
         // TODO: Support storing out of bounds at runtime
         if (offset.U32() >= env.LocalMemorySize()) {
-            LOG_WARNING(Shader, "Storing local memory at 0x{:x} with a size of 0x{:x}, dropping",
+            LOG_WARNING(Shader, "Storing local memory at {:#x} with a size of {:#x}, dropping",
                         offset.U32(), env.LocalMemorySize());
             return;
         }

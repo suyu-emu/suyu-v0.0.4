@@ -26,8 +26,8 @@ constexpr bool IsValidVirtualCoreId(int32_t core_id) {
 Result CreateThread(Core::System& system, Handle* out_handle, u64 entry_point, u64 arg,
                     u64 stack_bottom, s32 priority, s32 core_id) {
     LOG_DEBUG(Kernel_SVC,
-              "called entry_point=0x{:08X}, arg=0x{:08X}, stack_bottom=0x{:08X}, "
-              "priority=0x{:08X}, core_id=0x{:08X}",
+              "called entry_point={:#08x}, arg={:#08x}, stack_bottom={:#08x}, "
+              "priority={:#08x}, core_id={:#08x}",
               entry_point, arg, stack_bottom, priority, core_id);
 
     // Adjust core id, if it's the default magic.
@@ -85,7 +85,7 @@ Result CreateThread(Core::System& system, Handle* out_handle, u64 entry_point, u
 
 /// Starts the thread for the provided handle
 Result StartThread(Core::System& system, Handle thread_handle) {
-    LOG_DEBUG(Kernel_SVC, "called thread=0x{:08X}", thread_handle);
+    LOG_DEBUG(Kernel_SVC, "called thread={:#08x}", thread_handle);
 
     // Get the thread from its handle.
     KScopedAutoObject thread = GetCurrentProcess(system.Kernel()).GetHandleTable().GetObject<KThread>(system.Kernel(), thread_handle);
@@ -143,7 +143,7 @@ void SleepThread(Core::System& system, s64 ns) {
 
 /// Gets the thread context
 Result GetThreadContext3(Core::System& system, u64 out_context, Handle thread_handle) {
-    LOG_DEBUG(Kernel_SVC, "called, out_context=0x{:08X}, thread_handle={:#X}", out_context, thread_handle);
+    LOG_DEBUG(Kernel_SVC, "called, out_context={:#08x}, thread_handle={:#x}", out_context, thread_handle);
 
     // Get the thread from its handle.
     KScopedAutoObject thread = GetCurrentProcess(system.Kernel()).GetHandleTable().GetObject<KThread>(system.Kernel(), thread_handle);
@@ -202,7 +202,7 @@ Result GetThreadList(Core::System& system, s32* out_num_threads, u64 out_thread_
     // TODO: Handle this case when debug events are supported.
     UNIMPLEMENTED_IF(debug_handle != InvalidHandle);
 
-    LOG_DEBUG(Kernel_SVC, "called. out_thread_ids=0x{:016X}, out_thread_ids_size={}",
+    LOG_DEBUG(Kernel_SVC, "called. out_thread_ids={:#016x}, out_thread_ids_size={}",
               out_thread_ids, out_thread_ids_size);
 
     // If the size is negative or larger than INT32_MAX / sizeof(u64)
@@ -217,7 +217,7 @@ Result GetThreadList(Core::System& system, s32* out_num_threads, u64 out_thread_
 
     if (out_thread_ids_size > 0 &&
         !current_process->GetPageTable().Contains(out_thread_ids, total_copy_size)) {
-        LOG_ERROR(Kernel_SVC, "Address range outside address space. begin=0x{:016X}, end=0x{:016X}",
+        LOG_ERROR(Kernel_SVC, "Address range outside address space. begin={:#016x}, end={:#016x}",
                   out_thread_ids, out_thread_ids + total_copy_size);
         R_THROW(ResultInvalidCurrentMemory);
     }
@@ -239,7 +239,7 @@ Result GetThreadList(Core::System& system, s32* out_num_threads, u64 out_thread_
 
 Result GetThreadCoreMask(Core::System& system, s32* out_core_id, u64* out_affinity_mask,
                          Handle thread_handle) {
-    LOG_TRACE(Kernel_SVC, "called, handle=0x{:08X}", thread_handle);
+    LOG_TRACE(Kernel_SVC, "called, handle={:#08x}", thread_handle);
 
     // Get the thread from its handle.
     KScopedAutoObject thread = GetCurrentProcess(system.Kernel()).GetHandleTable().GetObject<KThread>(system.Kernel(), thread_handle);

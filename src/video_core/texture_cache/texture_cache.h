@@ -1509,7 +1509,7 @@ ImageId TextureCache<P>::InsertImage(const ImageInfo& info, GPUVAddr gpu_addr,
             cpu_addr = std::optional<DAddr>(fake_addr);
         }
     }
-    ASSERT_MSG(cpu_addr, "Tried to insert an image to an invalid gpu_addr=0x{:x}", gpu_addr);
+    ASSERT_MSG(cpu_addr, "Tried to insert an image to an invalid gpu_addr={:#x}", gpu_addr);
     const ImageId image_id = JoinImages(info, gpu_addr, *cpu_addr);
     const Image& image = slot_images[image_id];
     // Using "image.gpu_addr" instead of "gpu_addr" is important because it might be different
@@ -2231,13 +2231,13 @@ void TextureCache<P>::UnregisterImage(ImageId image_id) {
         [image_id](u64 page, ankerl::unordered_dense::map<u64, std::vector<ImageId>, Common::IdentityHash<u64>>& selected_page_table) {
             const auto page_it = selected_page_table.find(page);
             if (page_it == selected_page_table.end()) {
-                ASSERT_MSG(false, "Unregistering unregistered page=0x{:x}", page << YUZU_PAGEBITS);
+                ASSERT_MSG(false, "Unregistering unregistered page={:#x}", page << YUZU_PAGEBITS);
                 return;
             }
             std::vector<ImageId>& image_ids = page_it->second;
             const auto vector_it = std::ranges::find(image_ids, image_id);
             if (vector_it == image_ids.end()) {
-                ASSERT_MSG(false, "Unregistering unregistered image in page=0x{:x}",
+                ASSERT_MSG(false, "Unregistering unregistered image in page={:#x}",
                            page << YUZU_PAGEBITS);
                 return;
             }
@@ -2251,13 +2251,13 @@ void TextureCache<P>::UnregisterImage(ImageId image_id) {
         ForEachCPUPage(image.cpu_addr, image.guest_size_bytes, [this, map_id](u64 page) {
             const auto page_it = page_table.find(page);
             if (page_it == page_table.end()) {
-                ASSERT_MSG(false, "Unregistering unregistered page=0x{:x}", page << YUZU_PAGEBITS);
+                ASSERT_MSG(false, "Unregistering unregistered page={:#x}", page << YUZU_PAGEBITS);
                 return;
             }
             std::vector<ImageMapId>& image_map_ids = page_it->second;
             const auto vector_it = std::ranges::find(image_map_ids, map_id);
             if (vector_it == image_map_ids.end()) {
-                ASSERT_MSG(false, "Unregistering unregistered image in page=0x{:x}",
+                ASSERT_MSG(false, "Unregistering unregistered image in page={:#x}",
                            page << YUZU_PAGEBITS);
                 return;
             }
@@ -2279,7 +2279,7 @@ void TextureCache<P>::UnregisterImage(ImageId image_id) {
         ForEachCPUPage(cpu_addr, size, [this, image_id](u64 page) {
             const auto page_it = page_table.find(page);
             if (page_it == page_table.end()) {
-                ASSERT_MSG(false, "Unregistering unregistered page=0x{:x}", page << YUZU_PAGEBITS);
+                ASSERT_MSG(false, "Unregistering unregistered page={:#x}", page << YUZU_PAGEBITS);
                 return;
             }
             std::vector<ImageMapId>& image_map_ids = page_it->second;
@@ -2367,7 +2367,7 @@ void TextureCache<P>::DeleteImage(ImageId image_id, bool immediate_delete) {
     const GPUVAddr gpu_addr = image.gpu_addr;
     const auto alloc_it = image_allocs_table.find(gpu_addr);
     if (alloc_it == image_allocs_table.end()) {
-        ASSERT_MSG(false, "Trying to delete an image alloc that does not exist in address 0x{:x}",
+        ASSERT_MSG(false, "Trying to delete an image alloc that does not exist in address {:#x}",
                    gpu_addr);
         return;
     }

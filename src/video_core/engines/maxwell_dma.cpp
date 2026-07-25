@@ -58,7 +58,7 @@ void MaxwellDMA::CallMultiMethod(Core::System& system, u32 method, const u32* ba
 }
 
 void MaxwellDMA::Launch() {
-    LOG_TRACE(Render_OpenGL, "DMA copy 0x{:x} -> 0x{:x}", static_cast<GPUVAddr>(regs.offset_in), GPUVAddr(regs.offset_out));
+    LOG_TRACE(Render_OpenGL, "DMA copy {:#x} -> {:#x}", static_cast<GPUVAddr>(regs.offset_in), GPUVAddr(regs.offset_out));
 
     // TODO(Subv): Perform more research and implement all features of this engine.
     const LaunchDMA& launch = regs.launch_dma;

@@ -88,7 +88,7 @@ Result IAudioRenderer::RequestUpdateAuto(
 
     const auto result = impl->RequestUpdate(input, out_performance_buffer, out_buffer);
     if (result.IsFailure()) {
-        LOG_ERROR(Service_Audio, "RequestUpdate failed error 0x{:02X}!", result.GetDescription());
+        LOG_ERROR(Service_Audio, "RequestUpdate failed error {:#02x}!", result.GetDescription());
     }
 
     R_RETURN(result);

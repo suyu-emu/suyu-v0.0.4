@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 // SPDX-FileCopyrightText: Copyright 2023 yuzu Emulator Project
@@ -26,7 +26,7 @@ IStorage::IStorage(Core::System& system_, FileSys::VirtualFile backend_)
 Result IStorage::Read(
     OutBuffer<BufferAttr_HipcMapAlias | BufferAttr_HipcMapTransferAllowsNonSecure> out_bytes,
     s64 offset, s64 length) {
-    LOG_DEBUG(Service_FS, "called, offset={:#X}, length={}", offset, length);
+    LOG_DEBUG(Service_FS, "called, offset={:#x}, length={}", offset, length);
 
     R_UNLESS(length >= 0, FileSys::ResultInvalidSize);
     R_UNLESS(offset >= 0, FileSys::ResultInvalidOffset);

@@ -12,7 +12,7 @@ namespace Kernel::Svc {
 
 /// Set the process heap to a given Size. It can both extend and shrink the heap.
 Result SetHeapSize(Core::System& system, u64* out_address, u64 size) {
-    LOG_TRACE(Kernel_SVC, "called, heap_size={:#X}", size);
+    LOG_TRACE(Kernel_SVC, "called, heap_size={:#x}", size);
 
     // Validate size.
     R_UNLESS(Common::IsAligned(size, HeapSizeAlignment), ResultInvalidSize);
@@ -31,10 +31,10 @@ Result SetHeapSize(Core::System& system, u64* out_address, u64 size) {
 
 /// Maps memory at a desired address
 Result MapPhysicalMemory(Core::System& system, u64 addr, u64 size) {
-    LOG_DEBUG(Kernel_SVC, "called, addr=0x{:016X}, size={:#X}", addr, size);
+    LOG_DEBUG(Kernel_SVC, "called, addr={:#016x}, size={:#x}", addr, size);
 
     if (!Common::IsAligned(addr, Core::Memory::YUZU_PAGESIZE)) {
-        LOG_ERROR(Kernel_SVC, "Address is not aligned to 4KB, 0x{:016X}", addr);
+        LOG_ERROR(Kernel_SVC, "Address is not aligned to 4KB, {:#016X}", addr);
         R_THROW(ResultInvalidAddress);
     }
 
@@ -63,14 +63,14 @@ Result MapPhysicalMemory(Core::System& system, u64 addr, u64 size) {
 
     if (!page_table.Contains(addr, size)) {
         LOG_ERROR(Kernel_SVC,
-                  "Address is not within the address space, addr=0x{:016X}, size=0x{:016X}", addr,
+                  "Address is not within the address space, addr={:#016x}, size={:#016x}", addr,
                   size);
         R_THROW(ResultInvalidMemoryRegion);
     }
 
     if (!page_table.IsInAliasRegion(addr, size)) {
         LOG_ERROR(Kernel_SVC,
-                  "Address is not within the alias region, addr=0x{:016X}, size=0x{:016X}", addr,
+                  "Address is not within the alias region, addr={:#016x}, size={:#016x}", addr,
                   size);
         R_THROW(ResultInvalidMemoryRegion);
     }
@@ -80,10 +80,10 @@ Result MapPhysicalMemory(Core::System& system, u64 addr, u64 size) {
 
 /// Unmaps memory previously mapped via MapPhysicalMemory
 Result UnmapPhysicalMemory(Core::System& system, u64 addr, u64 size) {
-    LOG_DEBUG(Kernel_SVC, "called, addr=0x{:016X}, size={:#X}", addr, size);
+    LOG_DEBUG(Kernel_SVC, "called, addr={:#016x}, size={:#x}", addr, size);
 
     if (!Common::IsAligned(addr, Core::Memory::YUZU_PAGESIZE)) {
-        LOG_ERROR(Kernel_SVC, "Address is not aligned to 4KB, 0x{:016X}", addr);
+        LOG_ERROR(Kernel_SVC, "Address is not aligned to 4KB, {:#016X}", addr);
         R_THROW(ResultInvalidAddress);
     }
 
@@ -112,14 +112,14 @@ Result UnmapPhysicalMemory(Core::System& system, u64 addr, u64 size) {
 
     if (!page_table.Contains(addr, size)) {
         LOG_ERROR(Kernel_SVC,
-                  "Address is not within the address space, addr=0x{:016X}, size=0x{:016X}", addr,
+                  "Address is not within the address space, addr={:#016x}, size={:#016x}", addr,
                   size);
         R_THROW(ResultInvalidMemoryRegion);
     }
 
     if (!page_table.IsInAliasRegion(addr, size)) {
         LOG_ERROR(Kernel_SVC,
-                  "Address is not within the alias region, addr=0x{:016X}, size=0x{:016X}", addr,
+                  "Address is not within the alias region, addr={:#016x}, size={:#016x}", addr,
                   size);
         R_THROW(ResultInvalidMemoryRegion);
     }

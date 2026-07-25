@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 // SPDX-FileCopyrightText: Copyright 2019 yuzu Emulator Project
@@ -402,7 +402,7 @@ OGLTexture MakeImage(const VideoCommon::ImageInfo& info, GLenum gl_internal_form
         ASSERT(false);
         break;
     default:
-        ASSERT_MSG(false, "Invalid target=0x{:x}", target);
+        ASSERT_MSG(false, "Invalid target={:#x}", target);
         break;
     }
     return texture;

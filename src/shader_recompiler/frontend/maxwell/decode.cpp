@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 // SPDX-FileCopyrightText: Copyright 2021 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
@@ -46,7 +46,7 @@ Opcode Decode(u64 insn) {
         return Opcode::name;
 #include "maxwell.inc"
 #undef INST
-    ASSERT_MSG(false, "Invalid insn 0x{:016x}", insn);
+    ASSERT_MSG(false, "Invalid insn {:#016x}", insn);
     return Opcode::NOP;
 }
 

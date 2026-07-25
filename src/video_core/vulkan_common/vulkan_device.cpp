@@ -1597,8 +1597,8 @@ void Device::InitializeGPULogging() {
         driver_info += fmt::format("Driver ID: {}\n", static_cast<u32>(driver_id));
 
         // Vendor and device IDs
-        driver_info += fmt::format("Vendor ID: 0x{:04X}\n", props.vendorID);
-        driver_info += fmt::format("Device ID: 0x{:04X}\n", props.deviceID);
+        driver_info += fmt::format("Vendor ID: {:#04x}\n", props.vendorID);
+        driver_info += fmt::format("Device ID: {:#04x}\n", props.deviceID);
 
         // Extensions - separate QCOM extensions from others
         driver_info += "\n=== Loaded Vulkan Extensions ===\n";

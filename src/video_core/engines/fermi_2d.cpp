@@ -59,7 +59,7 @@ void Fermi2D::ConsumeSinkImpl(Core::System& system) {
 }
 
 void Fermi2D::Blit() {
-    LOG_DEBUG(HW_GPU, "called. source address=0x{:x}, destination address=0x{:x}", regs.src.Address(), regs.dst.Address());
+    LOG_DEBUG(HW_GPU, "called. source address={:#x}, destination address={:#x}", regs.src.Address(), regs.dst.Address());
 
     UNIMPLEMENTED_IF_MSG(regs.operation != Operation::SrcCopy, "Operation is not copy");
     UNIMPLEMENTED_IF_MSG(regs.src.layer != 0, "Source layer is not zero");

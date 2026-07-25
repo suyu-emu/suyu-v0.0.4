@@ -13,8 +13,8 @@ namespace Kernel::Svc {
 Result QueryMemory(Core::System& system, uint64_t out_memory_info, PageInfo* out_page_info,
                    u64 query_address) {
     LOG_TRACE(Kernel_SVC,
-              "called, out_memory_info=0x{:016X}, "
-              "query_address=0x{:016X}",
+              "called, out_memory_info={:#016x}, "
+              "query_address={:#016x}",
               out_memory_info, query_address);
 
     // Query memory is just QueryProcessMemory on the current process.
@@ -24,11 +24,11 @@ Result QueryMemory(Core::System& system, uint64_t out_memory_info, PageInfo* out
 
 Result QueryProcessMemory(Core::System& system, uint64_t out_memory_info, PageInfo* out_page_info,
                           Handle process_handle, uint64_t address) {
-    LOG_TRACE(Kernel_SVC, "called process=0x{:08X} address={:X}", process_handle, address);
+    LOG_TRACE(Kernel_SVC, "called process={:#08x} address={:X}", process_handle, address);
     const auto& handle_table = GetCurrentProcess(system.Kernel()).GetHandleTable();
     KScopedAutoObject process = handle_table.GetObject<KProcess>(system.Kernel(), process_handle);
     if (process.IsNull()) {
-        LOG_ERROR(Kernel_SVC, "Process handle does not exist, process_handle=0x{:08X}",
+        LOG_ERROR(Kernel_SVC, "Process handle does not exist, process_handle={:#08x}",
                   process_handle);
         R_THROW(ResultInvalidHandle);
     }

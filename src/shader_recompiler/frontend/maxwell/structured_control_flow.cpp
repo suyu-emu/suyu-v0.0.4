@@ -174,7 +174,7 @@ std::string DumpExpr(const Statement* stmt) {
     for (auto stmt = tree.begin(); stmt != tree.end(); ++stmt) {
         switch (stmt->type) {
         case StatementType::Code:
-            ret += fmt::format("{}    Block {:04x} -> {:04x} (0x{:016x});\n", indent,
+            ret += fmt::format("{}    Block {:04x} -> {:04x} ({:#016x});\n", indent,
                                stmt->block->begin.Offset(), stmt->block->end.Offset(),
                                reinterpret_cast<uintptr_t>(stmt->block));
             break;

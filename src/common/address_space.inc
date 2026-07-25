@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: 2021 Skyline Team and Contributors
 // SPDX-License-Identifier: GPL-3.0-or-later
 
@@ -43,13 +46,13 @@ MAP_MEMBER(void)::MapLocked(VaType virt, PaType phys, VaType size, ExtraBlockInf
 
     if (virt_end > va_limit) {
         ASSERT_MSG(false,
-                   "Trying to map a block past the VA limit: virt_end: 0x{:X}, va_limit: 0x{:X}",
+                   "Trying to map a block past the VA limit: virt_end: {:#x}, va_limit: {:#x}",
                    virt_end, va_limit);
     }
 
     auto block_end_successor{std::lower_bound(blocks.begin(), blocks.end(), virt_end)};
     if (block_end_successor == blocks.begin()) {
-        ASSERT_MSG(false, "Trying to map a block before the VA start: virt_end: 0x{:X}", virt_end);
+        ASSERT_MSG(false, "Trying to map a block before the VA start: virt_end: {:#x}", virt_end);
     }
 
     auto block_end_predecessor{std::prev(block_end_successor)};
@@ -124,7 +127,7 @@ MAP_MEMBER(void)::MapLocked(VaType virt, PaType phys, VaType size, ExtraBlockInf
 
     // Check that the start successor is either the end block or something in between
     if (block_start_successor->virt > virt_end) {
-        ASSERT_MSG(false, "Unsorted block in AS map: virt: 0x{:X}", block_start_successor->virt);
+        ASSERT_MSG(false, "Unsorted block in AS map: virt: {:#x}", block_start_successor->virt);
     } else if (block_start_successor->virt == virt_end) {
         // We need to create a new block as there are none spare that we would overwrite
         blocks.insert(block_start_successor, Block(virt, phys, extra_info));
@@ -150,13 +153,13 @@ MAP_MEMBER(void)::UnmapLocked(VaType virt, VaType size) {
 
     if (virt_end > va_limit) {
         ASSERT_MSG(false,
-                   "Trying to map a block past the VA limit: virt_end: 0x{:X}, va_limit: 0x{:X}",
+                   "Trying to map a block past the VA limit: virt_end: {:#x}, va_limit: {:#x}",
                    virt_end, va_limit);
     }
 
     auto block_end_successor{std::lower_bound(blocks.begin(), blocks.end(), virt_end)};
     if (block_end_successor == blocks.begin()) {
-        ASSERT_MSG(false, "Trying to unmap a block before the VA start: virt_end: 0x{:X}",
+        ASSERT_MSG(false, "Trying to unmap a block before the VA start: virt_end: {:#x}",
                    virt_end);
     }
 
@@ -257,7 +260,7 @@ MAP_MEMBER(void)::UnmapLocked(VaType virt, VaType size) {
     auto block_start_successor{std::next(block_start_predecessor)};
 
     if (block_start_successor->virt > virt_end) {
-        ASSERT_MSG(false, "Unsorted block in AS map: virt: 0x{:X}", block_start_successor->virt);
+        ASSERT_MSG(false, "Unsorted block in AS map: virt: {:#x}", block_start_successor->virt);
     } else if (block_start_successor->virt == virt_end) {
         // There are no blocks between the start and the end that would let us skip inserting a new
         // one for head

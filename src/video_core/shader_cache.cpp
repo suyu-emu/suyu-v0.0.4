@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 // SPDX-FileCopyrightText: Copyright 2021 yuzu Emulator Project
@@ -66,7 +66,7 @@ bool ShaderCache::RefreshStages(std::array<u64, 6>& unique_hashes) {
         const GPUVAddr shader_addr{base_addr + shader_config.offset};
         const std::optional<VAddr> cpu_shader_addr{gpu_memory->GpuToCpuAddress(shader_addr)};
         if (!cpu_shader_addr) {
-            LOG_ERROR(HW_GPU, "Invalid GPU address for shader 0x{:016x}", shader_addr);
+            LOG_ERROR(HW_GPU, "Invalid GPU address for shader {:#016x}", shader_addr);
             last_shaders_valid = false;
             return false;
         }
@@ -89,7 +89,7 @@ const ShaderInfo* ShaderCache::ComputeShader() {
     const GPUVAddr shader_addr{program_base + qmd.program_start};
     const std::optional<VAddr> cpu_shader_addr{gpu_memory->GpuToCpuAddress(shader_addr)};
     if (!cpu_shader_addr) {
-        LOG_ERROR(HW_GPU, "Invalid GPU address for shader 0x{:016x}", shader_addr);
+        LOG_ERROR(HW_GPU, "Invalid GPU address for shader {:#016x}", shader_addr);
         return nullptr;
     }
     if (const ShaderInfo* const shader = TryGet(*cpu_shader_addr)) {

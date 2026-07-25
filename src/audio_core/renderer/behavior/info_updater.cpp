@@ -369,7 +369,7 @@ Result InfoUpdater::UpdateMixes(MixContext& mix_context, const u32 mix_buffer_co
         if (mix_count < 0 || mix_count > 0x100) {
             LOG_ERROR(
                 Service_Audio,
-                "Invalid mix count from dirty parameter: count={}, magic=0x{:X}, expected_size={}",
+                "Invalid mix count from dirty parameter: count={}, magic={:#x}, expected_size={}",
                 mix_count, in_dirty_params->magic, in_header->mix_size);
             return Service::Audio::ResultInvalidUpdateInfo;
         }

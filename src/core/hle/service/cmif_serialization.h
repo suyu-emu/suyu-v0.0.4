@@ -444,7 +444,7 @@ void CmifReplyWrapImpl(HLERequestContext& ctx, T& t, Result (T::*f)(A...)) {
         const bool is_domain = mgr ? mgr->IsDomain() : false;
         ASSERT_MSG(!is_domain,
             "Non-domain reply used on domain session\n"
-            "Service={} (TIPC={} CmdType={} Cmd=0x{:08X}\n"
+            "Service={} (TIPC={} CmdType={} Cmd={:#08x}\n"
             "HasDomainHeader={} DomainHandlers={}\nDesc={}",
             t.GetServiceName(), ctx.IsTipc(),
             u32(ctx.GetCommandType()), u32(ctx.GetCommand()),

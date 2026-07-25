@@ -251,7 +251,7 @@ Result IHidServer::CreateAppletResource(OutInterface<IAppletResource> out_applet
                                         ClientAppletResourceUserId aruid) {
     const auto result = GetResourceManager()->CreateAppletResource(aruid.pid);
 
-    LOG_DEBUG(Service_HID, "called, applet_resource_user_id={}, result={:#X}", aruid.pid,
+    LOG_DEBUG(Service_HID, "called, applet_resource_user_id={}, result={:#x}", aruid.pid,
               result.raw);
 
     *out_applet_resource = std::make_shared<IAppletResource>(system, resource_manager, aruid.pid);
@@ -1150,7 +1150,7 @@ Result IHidServer::InitializeSevenSixAxisSensor(ClientAppletResourceUserId aruid
                                                 InCopyHandle<Kernel::KTransferMemory> t_mem_1,
                                                 InCopyHandle<Kernel::KTransferMemory> t_mem_2) {
     LOG_WARNING(Service_HID,
-                "called, t_mem_1_size=0x{:08X}, t_mem_2_size=0x{:08X}, "
+                "called, t_mem_1_size={:#08x}, t_mem_2_size={:#08x}, "
                 "applet_resource_user_id={}",
                 t_mem_1_size, t_mem_2_size, aruid.pid);
 

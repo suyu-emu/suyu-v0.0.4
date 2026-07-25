@@ -91,7 +91,7 @@ Result SteadyClock::IsRtcResetDetected(Out<bool> out_is_detected) {
 
 Result SteadyClock::GetSetupResultValue(Out<Result> out_result) {
     SCOPE_EXIT {
-        LOG_DEBUG(Service_Time, "called. out_result={:#X}", out_result->raw);
+        LOG_DEBUG(Service_Time, "called. out_result={:#x}", out_result->raw);
     };
 
     R_UNLESS(m_can_write_uninitialized_clock || m_clock_core.IsInitialized(),

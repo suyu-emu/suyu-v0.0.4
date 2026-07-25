@@ -190,7 +190,7 @@ FSP_SRV::~FSP_SRV() = default;
 Result FSP_SRV::SetCurrentProcess(ClientProcessId pid) {
     current_process_id = *pid;
 
-    LOG_DEBUG(Service_FS, "called. current_process_id=0x{:016X}", current_process_id);
+    LOG_DEBUG(Service_FS, "called. current_process_id={:#016x}", current_process_id);
 
     R_RETURN(
         fsc.OpenProcess(&program_id, &save_data_controller, &romfs_controller, current_process_id));

@@ -98,7 +98,7 @@ Buffer::Buffer(BufferCacheRuntime& runtime, DAddr cpu_addr_, u64 size_bytes_)
       scheduler{&runtime.scheduler},
       buffer{CreateBuffer(*device, runtime.memory_allocator, SizeBytes())}, tracker{SizeBytes()} {
     if (runtime.device.HasDebuggingToolAttached()) {
-        buffer.SetObjectNameEXT(fmt::format("Buffer 0x{:x}", CpuAddr()).c_str());
+        buffer.SetObjectNameEXT(fmt::format("Buffer {:#x}", CpuAddr()).c_str());
     }
 }
 

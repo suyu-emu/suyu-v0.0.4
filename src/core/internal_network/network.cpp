@@ -652,13 +652,13 @@ short TranslatePollEvents(PollEvents events) {
     // Unlike poll on other OSes, WSAPoll will complain if any other flags are set on input.
     if (result & ~allowed_events) {
         LOG_DEBUG(Network,
-                  "Removing WSAPoll input events 0x{:x} because Windows doesn't support them",
+                  "Removing WSAPoll input events {:#x} because Windows doesn't support them",
                   result & ~allowed_events);
     }
     result &= allowed_events;
 #endif
 
-    UNIMPLEMENTED_IF_MSG((u16)events != 0, "Unhandled guest events=0x{:x}", (u16)events);
+    UNIMPLEMENTED_IF_MSG((u16)events != 0, "Unhandled guest events={:#x}", (u16)events);
 
     return result;
 }
@@ -682,7 +682,7 @@ PollEvents TranslatePollRevents(short revents) {
     translate(POLLRDBAND, PollEvents::RdBand);
     translate(POLLWRBAND, PollEvents::WrBand);
 
-    UNIMPLEMENTED_IF_MSG(revents != 0, "Unhandled host revents=0x{:x}", revents);
+    UNIMPLEMENTED_IF_MSG(revents != 0, "Unhandled host revents={:#x}", revents);
 
     return result;
 }
