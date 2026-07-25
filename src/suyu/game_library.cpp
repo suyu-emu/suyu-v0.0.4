@@ -64,8 +64,14 @@ GameLibrary::GameLibrary(std::shared_ptr<FileSys::VfsFilesystem> vfs_,
     worker_thread = new QThread(this);
     worker->moveToThread(worker_thread);
 
-    // Connect worker signals
-    connect(worker_thread, &QThread::started, worker, &GameLibraryWorker::AddInstalledTitlesToGameList);
+    // Drive the real scan when the thread starts. This used to run
+    // AddInstalledTitlesToGameList (an empty stub that emitted Finished()
+    // immediately) while the actual scan was hooked up in PopulateAsync via a
+    // connect() whose "signal" was really just a slot, so nothing ever emitted
+    // it - between the two, the library never scanned anything at all.
+    connect(worker_thread, &QThread::started, worker, [this]() {
+        worker->FillControllerList(pending_game_dirs);
+    });
     connect(worker, &GameLibraryWorker::EntryReady, this,
             [this](const QString& title, const QString& file_path, const QString& program_id,
                    const QString& developer, u64 program_id_numeric, const QString& version,
@@ -188,11 +194,9 @@ void GameLibrary::PopulateAsync(QVector<UISettings::GameDir>& game_dirs) {
         // Clear existing games
         ClearGameCards();
 
-        // Start worker thread
-        connect(worker, &GameLibraryWorker::FillControllerList, worker,
-                [this, game_dirs]() mutable {
-                    worker->FillControllerList(game_dirs);
-                });
+        // Hand the directories to the worker before starting it; the thread's
+        // started() handler reads them from here.
+        pending_game_dirs = game_dirs;
         worker_thread->start();
     }
 }
@@ -603,15 +607,6 @@ GameLibraryWorker::GameLibraryWorker(std::shared_ptr<FileSys::VfsFilesystem> vfs
 }
 
 GameLibraryWorker::~GameLibraryWorker() = default;
-
-void GameLibraryWorker::AddInstalledTitlesToGameList() {
-    if (stop_processing) return;
-
-    // This would scan installed titles and emit EntryReady signals
-    // Implementation would be similar to existing GameListWorker
-
-    emit Finished();
-}
 
 void GameLibraryWorker::FillControllerList(const QVector<UISettings::GameDir>& game_dirs) {
     if (stop_processing) return;

@@ -172,6 +172,10 @@ private:
     // Worker thread
     GameLibraryWorker* worker;
     QThread* worker_thread;
+    /// Directories handed to the worker by PopulateAsync, read by the thread's
+    /// started() handler. Set before the thread starts and not touched after,
+    /// so the worker thread's read doesn't race the GUI thread's write.
+    QVector<UISettings::GameDir> pending_game_dirs;
 
     // Dependencies
     std::shared_ptr<FileSys::VfsFilesystem> vfs;
@@ -200,7 +204,6 @@ public:
     ~GameLibraryWorker() override;
 
 public slots:
-    void AddInstalledTitlesToGameList();
     void FillControllerList(const QVector<UISettings::GameDir>& game_dirs);
     void RequestStop() { stop_processing.store(true, std::memory_order_relaxed); }
 
