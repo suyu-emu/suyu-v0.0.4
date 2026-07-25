@@ -13,7 +13,10 @@
 #include <QCursor>
 #include <QDesktopServices>
 #include <QDir>
+#include <QBrush>
 #include <QFileDialog>
+#include <QMessageBox>
+#include <QSettings>
 #include <QFileInfo>
 #include <QFile>
 #include <QGraphicsDropShadowEffect>
@@ -1953,8 +1956,22 @@ void GamerEnvironment::PopulateFromModel() {
         }
         seen_titles.insert(title_key);
 
+        // If the user already pointed us at a ROM for this title, or one of
+        // the scanned directories contains it, treat it as a normal local
+        // game rather than an unplayable account entry.
+        const QString located = LookUpLocatedRom(owned.title_id);
+
         auto* item = new QListWidgetItem(owned.title);
-        item->setData(Qt::UserRole, QStringLiteral("nintendo://%1").arg(owned.title_id));
+        if (located.isEmpty()) {
+            item->setData(Qt::UserRole, QStringLiteral("nintendo://%1").arg(owned.title_id));
+            // Greyed out to show it can't be launched as-is; double-clicking
+            // offers to locate a ROM.
+            item->setForeground(QBrush(QColor(150, 150, 160)));
+            item->setToolTip(tr("From your Nintendo Account - no local copy found. "
+                                "Double-click to select its ROM."));
+        } else {
+            item->setData(Qt::UserRole, located);
+        }
         item->setSizeHint(QSize(GameCardDelegate::CARD_W + GameCardDelegate::PAD * 2 + 8,
                                 GameCardDelegate::CARD_H + GameCardDelegate::PAD * 2 + 8));
         game_grid_->addItem(item);
@@ -2116,10 +2133,61 @@ void GamerEnvironment::RequestCoverArtwork(const QString& game_path, const QStri
 
 void GamerEnvironment::OnGameDoubleClicked(QListWidgetItem* item) {
     if (!item) return;
-    const QString path = NormalizeLaunchPath(item->data(Qt::UserRole).toString());
+    const QString stored = item->data(Qt::UserRole).toString();
+
+    // Titles imported from the Nintendo Account have no local dump behind
+    // them, so there is nothing to launch. Offer to point at a ROM instead of
+    // failing silently, and remember the choice so the entry becomes a normal
+    // launchable card from then on.
+    if (stored.startsWith(QStringLiteral("nintendo://"))) {
+        const QString title = item->text();
+        const auto answer = QMessageBox::question(
+            this, tr("Locate ROM"),
+            tr("\"%1\" comes from your Nintendo Account and no local copy has been found.\n\n"
+               "Would you like to select the ROM for it now?")
+                .arg(title),
+            QMessageBox::Yes | QMessageBox::No, QMessageBox::Yes);
+        if (answer != QMessageBox::Yes) {
+            return;
+        }
+        const QString file = QFileDialog::getOpenFileName(
+            this, tr("Select ROM for %1").arg(title), QString(),
+            tr("Switch games (*.nsp *.xci *.nca *.nro);;All files (*)"));
+        if (file.isEmpty()) {
+            return;
+        }
+        RememberLocatedRom(stored.mid(QStringLiteral("nintendo://").size()), file);
+        item->setData(Qt::UserRole, file);
+        item->setForeground(QBrush());
+        emit GameLaunchRequested(NormalizeLaunchPath(file));
+        return;
+    }
+
+    const QString path = NormalizeLaunchPath(stored);
     if (!path.isEmpty()) {
         emit GameLaunchRequested(path);
     }
+}
+
+void GamerEnvironment::RememberLocatedRom(const QString& title_id, const QString& rom_path) {
+    // Stored next to the rest of the Nintendo account data so the mapping
+    // survives restarts and library rescans.
+    QSettings settings(QStringLiteral("suyu"), QStringLiteral("suyu"));
+    settings.beginGroup(QStringLiteral("NintendoAccount"));
+    settings.beginGroup(QStringLiteral("LocatedRoms"));
+    settings.setValue(title_id, rom_path);
+    settings.endGroup();
+    settings.endGroup();
+}
+
+QString GamerEnvironment::LookUpLocatedRom(const QString& title_id) {
+    QSettings settings(QStringLiteral("suyu"), QStringLiteral("suyu"));
+    settings.beginGroup(QStringLiteral("NintendoAccount"));
+    settings.beginGroup(QStringLiteral("LocatedRoms"));
+    const QString path = settings.value(title_id).toString();
+    settings.endGroup();
+    settings.endGroup();
+    return QFile::exists(path) ? path : QString();
 }
 
 bool GamerEnvironment::eventFilter(QObject* watched, QEvent* event) {

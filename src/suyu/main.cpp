@@ -5979,17 +5979,29 @@ void GMainWindow::OnNintendoAccount() {
     // always has a live parent to attach to.
     auto* dialog = new NintendoAccountDialog(this);
     dialog->setAttribute(Qt::WA_DeleteOnClose);
-    connect(dialog, &NintendoAccountDialog::OwnedLibraryUpdated, this, [this](int) {
+
+    // Refresh both library views. Only the classic game_list used to be
+    // repopulated, so on a multi-monitor or gamer-mode setup a completed sync
+    // appeared to do nothing at all.
+    const auto refresh_libraries = [this]() {
         if (game_list) {
             game_list->PopulateAsync(UISettings::values.game_dirs);
         }
-    });
-    connect(dialog, &NintendoAccountDialog::AccountUnlinked, this, [this]() {
-        if (game_list) {
-            game_list->PopulateAsync(UISettings::values.game_dirs);
+        if (gamer_env_) {
+            gamer_env_->RefreshGameGrid();
         }
-    });
+    };
+    connect(dialog, &NintendoAccountDialog::OwnedLibraryUpdated, this,
+            [refresh_libraries](int) { refresh_libraries(); });
+    connect(dialog, &NintendoAccountDialog::AccountUnlinked, this, refresh_libraries);
+
     dialog->show();
+    // Centre on the main window. It is deliberately non-modal (see above), and
+    // without this Qt was placing it by its own rules - in practice off on a
+    // secondary monitor, where it looked like nothing had happened.
+    dialog->move(this->geometry().center() - dialog->rect().center());
+    dialog->raise();
+    dialog->activateWindow();
 }
 
 void GMainWindow::OnSteamIntegration() {

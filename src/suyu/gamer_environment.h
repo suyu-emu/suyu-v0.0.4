@@ -124,6 +124,12 @@ private:
     void PopulateFromModel();
     void ShowGameMenu(QListWidgetItem* item, const QPoint& global_pos);
     void RequestCoverArtwork(const QString& game_path, const QString& title);
+    /// Persists "this account title lives at this ROM path" so a located game
+    /// stays launchable across restarts and library rescans.
+    static void RememberLocatedRom(const QString& title_id, const QString& rom_path);
+    /// Returns the remembered ROM for an account title, or empty if none is
+    /// recorded or the file has since gone away.
+    static QString LookUpLocatedRom(const QString& title_id);
     void ApplyCoverToItem(const QString& game_path, const QIcon& icon);
     QString CoverCachePathForTitle(const QString& title) const;
     QString ExtractIgdbImageUrl(const QString& html) const;
