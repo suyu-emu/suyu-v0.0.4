@@ -13,8 +13,11 @@
 //   - Video: Vulkan renderer runs headless, rendering to a CPU buffer via
 //     RenderToBuffer which retro_run reads back (with a B8G8R8A8 -> XRGB8888
 //     channel swap). Falls back to a black frame before the first one lands.
-//   - Audio: AudioEngine::Libretro sink buffers the console's mixed output;
-//     retro_run drains it into retro_audio_sample_batch.
+//   - Audio: by default suyu opens a host audio device and plays directly,
+//     which is what sounds correct. An "Audio Output" core option can instead
+//     route samples through retro_audio_sample_batch via the
+//     AudioEngine::Libretro sink - tidier in principle, but nothing paces the
+//     emulated renderer here so it delivers in bursts.
 //   - Input: retro_input_state_cb is bridged into InputCommon's
 //     VirtualGamepad (16 buttons + both analog sticks).
 //   - Keys: prod/title/console.keys are picked up from the frontend's
@@ -63,6 +66,9 @@ std::unique_ptr<LibretroCore::RetroEmuWindow> g_emu_window;
 std::shared_ptr<InputCommon::InputSubsystem> g_input_subsystem;
 std::string g_game_path;
 bool g_game_loaded = false;
+// False: suyu drives a host audio device directly (default, sounds correct).
+// True: samples are handed to the frontend via retro_audio_sample_batch.
+bool g_use_frontend_audio = false;
 
 retro_environment_t g_environ_cb;
 retro_video_refresh_t g_video_cb;
@@ -95,6 +101,7 @@ RETRO_API void retro_set_environment(retro_environment_t cb) {
         {"suyu_cpu_accuracy", "CPU Accuracy; Auto|Accurate|Unsafe"},
         {"suyu_use_docked", "Docked Mode; Yes|No"},
         {"suyu_fastmem", "Fastmem; Enabled|Disabled"},
+        {"suyu_audio_output", "Audio Output; Host (direct)|Frontend (libretro)"},
         // suyu's own online play. RetroArch's netplay can't drive this core
         // (see retro_serialize_size), but suyu's room system tunnels the
         // game's own LAN multiplayer between peers and doesn't need frame
@@ -149,9 +156,18 @@ RETRO_API void retro_init() {
 
     g_system->Initialize();
     Settings::values.renderer_backend.SetValue(Settings::RendererBackend::Vulkan);
-    // Route console audio into our own sink so retro_run can hand it to the
-    // frontend, instead of suyu opening a host audio device of its own.
-    Settings::values.sink_id.SetValue(Settings::AudioEngine::Libretro);
+    // Audio output path. Default is "host": suyu opens its own audio device
+    // and plays directly, which is how this core behaved before the libretro
+    // route existed and is what actually sounds correct today.
+    //
+    // The libretro route hands samples to the frontend instead, which is
+    // tidier in principle (frontend volume, recording, per-core mixing) but
+    // sounds worse in practice: nothing throttles the emulated renderer here
+    // the way a real device's buffer does, so it produces audio in bursts
+    // rather than at a steady rate. It's offered as an option rather than
+    // imposed, and the choice is re-read in retro_load_game.
+    g_use_frontend_audio = false;
+    Settings::values.sink_id.SetValue(Settings::AudioEngine::Auto);
     Settings::values.cpuopt_fastmem.SetValue(true);
     Settings::values.cpuopt_fastmem_exclusives.SetValue(true);
     Settings::values.log_flush_line.SetValue(true);
@@ -347,7 +363,7 @@ RETRO_API void retro_run() {
     // quarter second in one lump and nothing for the next 15 calls is what
     // made the output screech. Anything beyond a small backlog is dropped so
     // latency can't creep up instead.
-    if (g_audio_batch_cb && g_game_loaded) {
+    if (g_use_frontend_audio && g_audio_batch_cb && g_game_loaded) {
         constexpr size_t kFramesPerCall = 48000 / 60;   // stereo frames
         constexpr size_t kMaxBacklogFrames = kFramesPerCall * 6;
 
@@ -489,6 +505,16 @@ RETRO_API bool retro_load_game(const struct retro_game_info* game) {
             if (v == "FXAA") aa = Settings::AntiAliasing::Fxaa;
             else if (v == "SMAA") aa = Settings::AntiAliasing::Smaa;
             Settings::values.anti_aliasing.SetValue(aa);
+        }
+        var.key = "suyu_audio_output";
+        var.value = nullptr;
+        if (g_environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value) {
+            g_use_frontend_audio = std::string(var.value).rfind("Frontend", 0) == 0;
+            Settings::values.sink_id.SetValue(g_use_frontend_audio
+                                                  ? Settings::AudioEngine::Libretro
+                                                  : Settings::AudioEngine::Auto);
+            LOG_INFO(Frontend, "libretro: audio output = {}",
+                     g_use_frontend_audio ? "frontend" : "host");
         }
         var.key = "suyu_fastmem";
         var.value = nullptr;
