@@ -90,6 +90,8 @@ RETRO_API void retro_set_environment(retro_environment_t cb) {
     static const struct retro_variable vars[] = {
         {"suyu_renderer", "Renderer; Vulkan|OpenGL|Software"},
         {"suyu_resolution", "Internal Resolution; 1x|2x|3x|4x"},
+        {"suyu_scaling_filter", "Window Adapting Filter; Bilinear|Bicubic|Lanczos|ScaleForce|FSR|NearestNeighbor"},
+        {"suyu_anti_aliasing", "Anti-Aliasing; None|FXAA|SMAA"},
         {"suyu_cpu_accuracy", "CPU Accuracy; Auto|Accurate|Unsafe"},
         {"suyu_use_docked", "Docked Mode; Yes|No"},
         {"suyu_fastmem", "Fastmem; Enabled|Disabled"},
@@ -256,8 +258,11 @@ RETRO_API void retro_get_system_info(struct retro_system_info* info) {
 RETRO_API void retro_get_system_av_info(struct retro_system_av_info* info) {
     info->geometry.base_width = kFrameWidth;
     info->geometry.base_height = kFrameHeight;
-    info->geometry.max_width = kFrameWidth;
-    info->geometry.max_height = kFrameHeight;
+    // Allow up to 4x so raising the internal resolution option doesn't get
+    // clamped back down to 720p by the frontend. RetroArch sizes its texture
+    // from max_*, and a core may deliver anything up to it.
+    info->geometry.max_width = kFrameWidth * 4;
+    info->geometry.max_height = kFrameHeight * 4;
     info->geometry.aspect_ratio = static_cast<float>(kFrameWidth) / static_cast<float>(kFrameHeight);
     info->timing.fps = 60.0;
     info->timing.sample_rate = 48000.0;
@@ -336,17 +341,34 @@ RETRO_API void retro_run() {
 
     // Hand over whatever the emulated audio renderer produced since the last
     // frame. upload_batch takes frames (L+R pairs), not individual samples.
+    // Feed the frontend a steady ~1 frame of audio per call rather than
+    // whatever has piled up. RetroArch resamples against its own clock and
+    // expects roughly sample_rate/fps frames each retro_run; handing it a
+    // quarter second in one lump and nothing for the next 15 calls is what
+    // made the output screech. Anything beyond a small backlog is dropped so
+    // latency can't creep up instead.
     if (g_audio_batch_cb && g_game_loaded) {
-        static std::vector<s16> audio_samples;
-        AudioCore::Sink::LibretroSampleQueue::Instance().Drain(audio_samples);
-        if (!audio_samples.empty()) {
-            static unsigned audio_log = 0;
-            if (audio_log < 5) {
-                ++audio_log;
-                LOG_INFO(Frontend, "libretro: delivering {} audio frames",
-                         audio_samples.size() / 2);
-            }
-            g_audio_batch_cb(audio_samples.data(), audio_samples.size() / 2);
+        constexpr size_t kFramesPerCall = 48000 / 60;   // stereo frames
+        constexpr size_t kMaxBacklogFrames = kFramesPerCall * 6;
+
+        static std::vector<s16> pending;   // interleaved L,R awaiting delivery
+        std::vector<s16> drained;
+        AudioCore::Sink::LibretroSampleQueue::Instance().Drain(drained);
+        if (!drained.empty()) {
+            pending.insert(pending.end(), drained.begin(), drained.end());
+        }
+
+        // Trim from the front if we've fallen behind; stale audio is worse
+        // than a short gap.
+        if (pending.size() > kMaxBacklogFrames * 2) {
+            const size_t excess = pending.size() - kMaxBacklogFrames * 2;
+            pending.erase(pending.begin(), pending.begin() + static_cast<ptrdiff_t>(excess));
+        }
+
+        const size_t frames = std::min(kFramesPerCall, pending.size() / 2);
+        if (frames > 0) {
+            g_audio_batch_cb(pending.data(), frames);
+            pending.erase(pending.begin(), pending.begin() + static_cast<ptrdiff_t>(frames * 2));
         }
     }
 
@@ -355,51 +377,6 @@ RETRO_API void retro_run() {
         if (renderer.IsHeadless()) {
             const auto& frame = renderer.GetLastRenderedFrame();
             if (!frame.empty()) {
-                if (frame_counter <= 5 || (frame_counter % 300) == 0) {
-                    LOG_INFO(Frontend, "libretro: delivering frame {} ({}x{}, {} bytes)",
-                             frame_counter, renderer.GetHeadlessWidth(),
-                             renderer.GetHeadlessHeight(), frame.size());
-                }
-                // One-shot frame dump for verification
-                if (frame_counter == 300 || frame_counter == 900 || frame_counter == 1800) {
-                    const unsigned w = renderer.GetHeadlessWidth();
-                    const unsigned h = renderer.GetHeadlessHeight();
-                    char path[256];
-                    snprintf(path, sizeof(path),
-                             "C:\\Users\\charl\\Documents\\SuyuEclipse\\libretro_frame_%u.bmp",
-                             frame_counter);
-                    FILE* f = fopen(path, "wb");
-                    if (f) {
-                        const u32 row_bytes = w * 3;
-                        const u32 pad = (4 - (row_bytes % 4)) % 4;
-                        const u32 stride = row_bytes + pad;
-                        const u32 img_size = stride * h;
-                        const u32 file_size = 54 + img_size;
-                        u8 hdr[54] = {};
-                        hdr[0]='B'; hdr[1]='M';
-                        memcpy(hdr+2, &file_size, 4);
-                        u32 off=54; memcpy(hdr+10, &off, 4);
-                        u32 dib=40; memcpy(hdr+14, &dib, 4);
-                        int sw=(int)w, sh=(int)h;
-                        memcpy(hdr+18, &sw, 4); memcpy(hdr+22, &sh, 4);
-                        u16 planes=1; memcpy(hdr+26, &planes, 2);
-                        u16 bpp=24; memcpy(hdr+28, &bpp, 2);
-                        memcpy(hdr+34, &img_size, 4);
-                        fwrite(hdr, 1, 54, f);
-                        const u8 zero[4] = {};
-                        for (int y = (int)h - 1; y >= 0; --y) {
-                            for (unsigned x = 0; x < w; ++x) {
-                                u32 px;
-                                memcpy(&px, frame.data() + (y * w + x) * 4, 4);
-                                u8 rgb[3] = {(u8)px, (u8)(px>>8), (u8)(px>>16)};
-                                fwrite(rgb, 1, 3, f);
-                            }
-                            if (pad) fwrite(zero, 1, pad, f);
-                        }
-                        fclose(f);
-                        LOG_INFO(Frontend, "libretro: saved frame dump to {}", path);
-                    }
-                }
                 // No channel swap: the renderer produces VK_FORMAT_B8G8R8A8,
                 // i.e. B,G,R,A in ascending byte order, and libretro's
                 // XRGB8888 is the 32-bit word 0xXXRRGGBB, which on a
@@ -481,6 +458,37 @@ RETRO_API bool retro_load_game(const struct retro_game_info* game) {
                 Settings::values.cpu_accuracy.SetValue(Settings::CpuAccuracy::Unsafe);
             else
                 Settings::values.cpu_accuracy.SetValue(Settings::CpuAccuracy::Auto);
+        }
+        var.key = "suyu_resolution";
+        var.value = nullptr;
+        if (g_environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value) {
+            const std::string v(var.value);
+            auto res = Settings::ResolutionSetup::Res1X;
+            if (v == "2x") res = Settings::ResolutionSetup::Res2X;
+            else if (v == "3x") res = Settings::ResolutionSetup::Res3X;
+            else if (v == "4x") res = Settings::ResolutionSetup::Res4X;
+            Settings::values.resolution_setup.SetValue(res);
+        }
+        var.key = "suyu_scaling_filter";
+        var.value = nullptr;
+        if (g_environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value) {
+            const std::string v(var.value);
+            auto f = Settings::ScalingFilter::Bilinear;
+            if (v == "Bicubic") f = Settings::ScalingFilter::Bicubic;
+            else if (v == "Lanczos") f = Settings::ScalingFilter::Lanczos;
+            else if (v == "ScaleForce") f = Settings::ScalingFilter::ScaleForce;
+            else if (v == "FSR") f = Settings::ScalingFilter::Fsr;
+            else if (v == "NearestNeighbor") f = Settings::ScalingFilter::NearestNeighbor;
+            Settings::values.scaling_filter.SetValue(f);
+        }
+        var.key = "suyu_anti_aliasing";
+        var.value = nullptr;
+        if (g_environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value) {
+            const std::string v(var.value);
+            auto aa = Settings::AntiAliasing::None;
+            if (v == "FXAA") aa = Settings::AntiAliasing::Fxaa;
+            else if (v == "SMAA") aa = Settings::AntiAliasing::Smaa;
+            Settings::values.anti_aliasing.SetValue(aa);
         }
         var.key = "suyu_fastmem";
         var.value = nullptr;
