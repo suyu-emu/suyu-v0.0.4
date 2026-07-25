@@ -264,9 +264,7 @@ struct System::Impl {
 
         // Setting changes may require a full system reinitialization (e.g., disabling multicore).
         ReinitializeIfNecessary(system);
-
         kernel.Initialize();
-        cpu_manager.Initialize();
     }
 
     SystemResultStatus SetupForApplicationProcess(System& system, Frontend::EmuWindow& emu_window) {
@@ -293,9 +291,7 @@ struct System::Impl {
         return SystemResultStatus::Success;
     }
 
-    SystemResultStatus Load(System& system, Frontend::EmuWindow& emu_window,
-                            const std::string& filepath,
-                            Service::AM::FrontendAppletParameters& params) {
+    SystemResultStatus Load(System& system, Frontend::EmuWindow& emu_window, const std::string& filepath, Service::AM::FrontendAppletParameters& params) {
         InitializeKernel(system);
 
         const auto file = GetGameFileFromPath(virtual_filesystem, filepath);
@@ -342,6 +338,8 @@ struct System::Impl {
             ShutdownMainProcess();
             return init_result;
         }
+        // Waiting for GPU before initializing CPU
+        cpu_manager.Initialize();
 
         // Initialize cheat engine
         if (cheat_engine) {
