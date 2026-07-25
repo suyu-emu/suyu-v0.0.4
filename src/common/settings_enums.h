@@ -114,7 +114,11 @@ inline AudioEngine EnumMetadata<AudioEngine>::GetFirst() {
 }
 template<>
 inline AudioEngine EnumMetadata<AudioEngine>::GetLast() {
-    return AudioEngine::Oboe;
+    // Must name the last enumerator: SwitchableSetting::SetValue clamps enum
+    // values to this, so leaving it at Oboe silently turned every
+    // SetValue(Libretro) into Oboe - which isn't built on desktop, so audio
+    // fell back to the null sink and the libretro core was silent.
+    return AudioEngine::Libretro;
 }
 
 ENUM(AudioMode, Mono, Stereo, Surround);

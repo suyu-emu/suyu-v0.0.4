@@ -309,6 +309,12 @@ RETRO_API void retro_run() {
         static std::vector<s16> audio_samples;
         AudioCore::Sink::LibretroSampleQueue::Instance().Drain(audio_samples);
         if (!audio_samples.empty()) {
+            static unsigned audio_log = 0;
+            if (audio_log < 5) {
+                ++audio_log;
+                LOG_INFO(Frontend, "libretro: delivering {} audio frames",
+                         audio_samples.size() / 2);
+            }
             g_audio_batch_cb(audio_samples.data(), audio_samples.size() / 2);
         }
     }

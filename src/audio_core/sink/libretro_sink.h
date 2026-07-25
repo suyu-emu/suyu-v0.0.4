@@ -30,18 +30,20 @@ namespace AudioCore::Sink {
  */
 class LibretroSampleQueue {
 public:
-    static LibretroSampleQueue& Instance() {
-        static LibretroSampleQueue instance;
-        return instance;
-    }
+    /// Defined in libretro_sink.cpp, not here: a header-inline static would
+    /// give the producer and consumer separate copies of the queue.
+    static LibretroSampleQueue& Instance();
 
     void Push(std::span<const s16> samples) {
         std::scoped_lock lock{mutex};
-        // Hard cap the backlog. If the frontend stops draining (paused, or a
-        // frontend that never calls retro_run), an uncapped queue would grow
-        // without bound; dropping the oldest audio is the right failure here
-        // since stale samples are useless anyway.
-        constexpr size_t kMaxQueuedSamples = 48000 * 2 * 2; // ~2s stereo
+        // Hard cap the backlog, and keep it short. The renderer hands us audio
+        // in bursts rather than a steady stream (nothing paces it here the way
+        // a real device would), so a large cap just turns into seconds of
+        // latency delivered as one lump, which the frontend then drops. A
+        // quarter second is enough to ride out the bursts while keeping audio
+        // in step with video; anything older than that is stale and is dropped
+        // oldest-first.
+        constexpr size_t kMaxQueuedSamples = 48000 / 4 * 2; // 0.25s stereo
         if (queue.size() + samples.size() > kMaxQueuedSamples) {
             const size_t overflow = queue.size() + samples.size() - kMaxQueuedSamples;
             const size_t to_drop = std::min(overflow, queue.size());
@@ -69,14 +71,18 @@ private:
 
 class LibretroSinkStreamImpl final : public SinkStream {
 public:
-    explicit LibretroSinkStreamImpl(Core::System& system_, StreamType type_)
-        : SinkStream{system_, type_} {}
+    explicit LibretroSinkStreamImpl(Core::System& system_, StreamType type_, bool is_primary_)
+        : SinkStream{system_, type_}, is_primary{is_primary_} {}
     ~LibretroSinkStreamImpl() override = default;
 
     void AppendBuffer(SinkBuffer&, std::span<s16> samples) override {
-        // Only the final mixed output belongs in the frontend's audio stream;
-        // render/capture streams are intermediate and would double up.
-        if (type == StreamType::Out) {
+        // Only the primary stream feeds the frontend. The renderer acquires
+        // more than one output stream and they all carry the same mix, so
+        // pushing every one produced audio at a multiple of real time, which
+        // overran the queue and made it dump ~2s at once. Note the streams
+        // arrive as StreamType::Render, not Out - filtering on Out matched
+        // nothing at all, which is why the core was previously silent.
+        if (is_primary && type != StreamType::In) {
             LibretroSampleQueue::Instance().Push(samples);
         }
     }
@@ -84,6 +90,9 @@ public:
     std::vector<s16> ReleaseBuffer(u64) override {
         return {};
     }
+
+private:
+    bool is_primary{false};
 };
 
 /**
@@ -97,7 +106,11 @@ public:
 
     SinkStream* AcquireSinkStream(Core::System& system, u32, const std::string&,
                                   StreamType type) override {
-        auto stream = std::make_unique<LibretroSinkStreamImpl>(system, type);
+        const bool primary = (type != StreamType::In) && !has_primary;
+        if (primary) {
+            has_primary = true;
+        }
+        auto stream = std::make_unique<LibretroSinkStreamImpl>(system, type, primary);
         auto* raw = stream.get();
         streams.push_back(std::move(stream));
         return raw;
@@ -105,10 +118,14 @@ public:
 
     void CloseStream(SinkStream* stream) override {
         std::erase_if(streams, [stream](const SinkStreamPtr& s) { return s.get() == stream; });
+        if (streams.empty()) {
+            has_primary = false;
+        }
     }
 
     void CloseStreams() override {
         streams.clear();
+        has_primary = false;
     }
 
     f32 GetDeviceVolume() const override {
@@ -123,6 +140,7 @@ public:
 
 private:
     std::vector<SinkStreamPtr> streams;
+    bool has_primary{false};
     f32 volume{1.0f};
     f32 system_volume{1.0f};
 };
