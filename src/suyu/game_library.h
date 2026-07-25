@@ -17,6 +17,7 @@
 #include <QVector>
 #include <QHash>
 #include <QMutex>
+#include <set>
 
 #include "common/common_types.h"
 #include "suyu/game_card.h"
@@ -216,6 +217,14 @@ private:
     void ProcessFile(const QString& file_path);
     QPixmap GetGameIcon(u64 program_id, const QString& file_path);
     QString GetCompatibilityRating(u64 program_id);
+    /// Downloads (and disk-caches) Nintendo-hosted cover art for a synced
+    /// account title. Returns a null pixmap if the art can't be fetched, so
+    /// the caller can fall back to a drawn placeholder.
+    QPixmap FetchRemoteIcon(const QString& url, const QString& title_id);
+
+    /// Program IDs already emitted from local files, so account-synced titles
+    /// the user actually owns a dump of don't appear twice.
+    std::set<u64> local_program_ids_;
 
     std::shared_ptr<FileSys::VfsFilesystem> vfs;
     FileSys::ManualContentProvider* provider;

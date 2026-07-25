@@ -22,6 +22,10 @@ struct NintendoOwnedGame {
     QString purchase_date;
     bool is_digital = true;
     QString title_id;
+    /// Nintendo-hosted cover art URL (from the Parental Controls API's
+    /// playedApps[].imageUri). Empty when the entry came from a source that
+    /// doesn't carry artwork.
+    QString icon_url;
 };
 
 /// Nintendo Account linking dialog with encrypted credential storage.
@@ -78,6 +82,10 @@ private slots:
     void OnVerifyClicked();
     void OnTokenSubmitted();
     void OpenBrowserLogin();
+    /// Second, separate OAuth round against the Parental Controls ("moon")
+    /// client_id. The regular NSO client_id's token can't reach the moon API,
+    /// so syncing the game list needs its own consented sign-in.
+    void OnSyncLibraryClicked();
 
 private:
     void SetupUi();
@@ -108,6 +116,20 @@ private:
     QString pending_code_verifier_;
     QString pending_state_;
 
+    /// Parental Controls ("moon") API chain. Unlike the NSO coral API this
+    /// needs no third-party 'f' attestation service, so it is the only
+    /// game-list source we can reach with nothing but Nintendo's own
+    /// endpoints. Yields the titles registered against the account's consoles,
+    /// each with a real title_id and Nintendo-hosted cover art.
+    void ExchangeMoonSessionTokenCode(const QString& session_token_code);
+    void FetchMoonDevices(const QString& access_token);
+    void FetchMoonDeviceSummaries(const QString& access_token, const QString& device_id);
+    void FinishMoonSync();
+    QString moon_code_verifier_;
+    QString moon_state_;
+    int moon_pending_requests_ = 0;
+    std::vector<NintendoOwnedGame> moon_collected_;
+
     QLabel* status_label{};
     QLabel* nickname_label{};
     QLabel* user_id_label{};
@@ -118,6 +140,7 @@ private:
     QPushButton* verify_button{};
     QPushButton* browser_login_button{};
     QPushButton* external_browser_button{};
+    QPushButton* sync_library_button{};
     QProgressBar* progress_bar{};
     QLabel* instructions_label{};
 

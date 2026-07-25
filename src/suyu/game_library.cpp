@@ -20,6 +20,11 @@
 #include <QTimer>
 #include <QToolTip>
 #include <QUrl>
+#include <QEventLoop>
+#include <QFile>
+#include <QNetworkAccessManager>
+#include <QNetworkReply>
+#include <QNetworkRequest>
 
 #include <QRegularExpression>
 
@@ -613,24 +618,37 @@ void GameLibraryWorker::FillControllerList(const QVector<UISettings::GameDir>& g
 
     ScanFileSystem(const_cast<QVector<UISettings::GameDir>&>(game_dirs));
 
-    // Merge Nintendo-linked owned games that aren't already present locally
+    // Merge Nintendo-account titles the user doesn't already have a local dump
+    // of. Entries that DO match a local file are skipped outright - the local
+    // one is strictly better (it's launchable and carries its own icon).
     const auto owned = LoadNintendoOwnedLibrary();
     for (const auto& game : owned) {
         if (stop_processing) break;
         if (game.title.isEmpty()) continue;
-        // Use title_id as program_id if available, otherwise 0
+
         const u64 pid = game.title_id.toULongLong(nullptr, 16);
-        const QString display_type = game.is_digital ? QStringLiteral("eShop") : QStringLiteral("Physical");
-        QPixmap placeholder(128, 128);
-        placeholder.fill(QColor(60, 60, 80));
-        QPainter painter(&placeholder);
-        painter.setPen(Qt::white);
-        painter.setFont(QFont(QStringLiteral("Segoe UI"), 10));
-        painter.drawText(placeholder.rect(), Qt::AlignCenter | Qt::TextWordWrap, game.title);
-        painter.end();
+        if (pid != 0 && local_program_ids_.count(pid) > 0) {
+            continue;
+        }
+
+        // Real cover art from Nintendo when the sync supplied a URL; only fall
+        // back to a drawn tile when that genuinely isn't available.
+        QPixmap icon = FetchRemoteIcon(game.icon_url, game.title_id);
+        if (icon.isNull()) {
+            icon = QPixmap(256, 256);
+            icon.fill(QColor(60, 60, 80));
+            QPainter painter(&icon);
+            painter.setPen(Qt::white);
+            painter.setFont(QFont(QStringLiteral("Segoe UI"), 14));
+            painter.drawText(icon.rect(), Qt::AlignCenter | Qt::TextWordWrap, game.title);
+            painter.end();
+        }
+
+        const QString display_type =
+            game.is_digital ? QStringLiteral("eShop") : QStringLiteral("Physical");
         emit EntryReady(game.title, QStringLiteral("nintendo://%1").arg(game.title_id),
                        game.title_id, game.platform, pid, QStringLiteral(""),
-                       display_type, 0, QStringLiteral("Unknown"), placeholder,
+                       display_type, 0, QStringLiteral("Unknown"), icon,
                        QStringLiteral("0h 0m"));
     }
 
@@ -740,8 +758,57 @@ void GameLibraryWorker::ProcessFile(const QString& file_path) {
         play_time = QStringLiteral("%1h %2m").arg(hours).arg(minutes);
     }
 
+    local_program_ids_.insert(program_id);
     emit EntryReady(title, file_path, QString::number(program_id, 16), developer,
                    program_id, version, type, size, compatibility, icon, play_time);
+}
+
+QPixmap GameLibraryWorker::FetchRemoteIcon(const QString& url, const QString& title_id) {
+    if (url.isEmpty()) {
+        return {};
+    }
+
+    // Disk cache first - these are stable Nintendo CDN assets, so re-fetching
+    // them on every library scan would be pure waste (and the scan runs on a
+    // worker thread where a stall is user-visible).
+    const QString cache_dir =
+        QString::fromStdString(
+            Common::FS::GetSuyuPath(Common::FS::SuyuPath::CacheDir).generic_string()) +
+        QStringLiteral("/nintendo_art");
+    QDir().mkpath(cache_dir);
+    const QString cache_path = QStringLiteral("%1/%2.png").arg(cache_dir, title_id);
+
+    QPixmap cached;
+    if (QFile::exists(cache_path) && cached.load(cache_path) && !cached.isNull()) {
+        return cached;
+    }
+
+    // Worker thread: drive the request with a local event loop plus a hard
+    // timeout so a hanging CDN can't wedge the whole library scan.
+    QNetworkAccessManager manager;
+    QNetworkRequest request{QUrl(url)};
+    request.setAttribute(QNetworkRequest::RedirectPolicyAttribute,
+                         QNetworkRequest::NoLessSafeRedirectPolicy);
+
+    QNetworkReply* reply = manager.get(request);
+    QEventLoop loop;
+    QTimer timeout;
+    timeout.setSingleShot(true);
+    QObject::connect(&timeout, &QTimer::timeout, &loop, &QEventLoop::quit);
+    QObject::connect(reply, &QNetworkReply::finished, &loop, &QEventLoop::quit);
+    timeout.start(8000);
+    loop.exec();
+
+    QPixmap result;
+    if (reply->isFinished() && reply->error() == QNetworkReply::NoError) {
+        const QByteArray data = reply->readAll();
+        if (result.loadFromData(data) && !result.isNull()) {
+            result.save(cache_path, "PNG");
+        }
+    }
+    reply->abort();
+    reply->deleteLater();
+    return result;
 }
 
 QPixmap GameLibraryWorker::GetGameIcon(u64 program_id, const QString& file_path) {
