@@ -256,7 +256,7 @@ void IPSwitchCompiler::Parse() {
                 const auto& patch_line = lines[++i];
 
                 // Patch line may contain comments
-                if (StartsWith(patch_line, "//")) {
+                if (StartsWith(patch_line, "//") || StartsWith(patch_line, "#")) {
                     continue;
                 }
 
