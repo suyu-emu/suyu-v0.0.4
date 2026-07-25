@@ -24,6 +24,7 @@
 #include <string>
 #include <filesystem>
 #include <vector>
+#include "audio_core/sink/libretro_sink.h"
 #include "common/fs/fs.h"
 #include "common/fs/path_util.h"
 #include "common/logging/backend.h"
@@ -118,6 +119,9 @@ RETRO_API void retro_init() {
 
     g_system->Initialize();
     Settings::values.renderer_backend.SetValue(Settings::RendererBackend::Vulkan);
+    // Route console audio into our own sink so retro_run can hand it to the
+    // frontend, instead of suyu opening a host audio device of its own.
+    Settings::values.sink_id.SetValue(Settings::AudioEngine::Libretro);
     Settings::values.cpuopt_fastmem.SetValue(true);
     Settings::values.cpuopt_fastmem_exclusives.SetValue(true);
     Settings::values.log_flush_line.SetValue(true);
@@ -256,6 +260,16 @@ RETRO_API void retro_run() {
         LOG_INFO(Frontend, "libretro: retro_run frame {}, game_loaded={}", frame_counter, g_game_loaded);
         fprintf(stderr, "[suyu-libretro] retro_run frame %u, game_loaded=%d\n", frame_counter, g_game_loaded);
         fflush(stderr);
+    }
+
+    // Hand over whatever the emulated audio renderer produced since the last
+    // frame. upload_batch takes frames (L+R pairs), not individual samples.
+    if (g_audio_batch_cb && g_game_loaded) {
+        static std::vector<s16> audio_samples;
+        AudioCore::Sink::LibretroSampleQueue::Instance().Drain(audio_samples);
+        if (!audio_samples.empty()) {
+            g_audio_batch_cb(audio_samples.data(), audio_samples.size() / 2);
+        }
     }
 
     if (g_video_cb && g_system && g_game_loaded) {
@@ -432,6 +446,9 @@ RETRO_API void retro_unload_game() {
     }
     g_game_loaded = false;
     g_game_path.clear();
+    // Drop any audio still queued from the game that just went away, so it
+    // can't leak into the next one loaded in this session.
+    AudioCore::Sink::LibretroSampleQueue::Instance().Clear();
 }
 
 RETRO_API unsigned retro_get_region() {

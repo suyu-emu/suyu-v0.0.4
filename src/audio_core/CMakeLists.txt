@@ -204,6 +204,7 @@ add_library(audio_core STATIC
     renderer/voice/voice_info.cpp
     renderer/voice/voice_info.h
     renderer/voice/voice_state.h
+    sink/libretro_sink.h
     sink/null_sink.h
     sink/sink.h
     sink/sink_details.cpp

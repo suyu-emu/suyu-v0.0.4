@@ -8,7 +8,7 @@ add_library(suyu_libretro SHARED
     retro_emu_window.h
 )
 
-target_link_libraries(suyu_libretro PRIVATE common core input_common frontend_common)
+target_link_libraries(suyu_libretro PRIVATE common core input_common frontend_common audio_core)
 target_link_libraries(suyu_libretro PRIVATE ${PLATFORM_LIBRARIES} Threads::Threads)
 
 set_target_properties(suyu_libretro PROPERTIES
