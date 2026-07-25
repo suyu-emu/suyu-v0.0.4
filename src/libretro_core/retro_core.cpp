@@ -93,6 +93,15 @@ RETRO_API void retro_set_environment(retro_environment_t cb) {
         {"suyu_cpu_accuracy", "CPU Accuracy; Auto|Accurate|Unsafe"},
         {"suyu_use_docked", "Docked Mode; Yes|No"},
         {"suyu_fastmem", "Fastmem; Enabled|Disabled"},
+        // suyu's own online play. RetroArch's netplay can't drive this core
+        // (see retro_serialize_size), but suyu's room system tunnels the
+        // game's own LAN multiplayer between peers and doesn't need frame
+        // sync, so it works here - it just needs somewhere to be configured,
+        // which is what these are.
+        {"suyu_online_enable", "suyu Online Play; Disabled|Enabled"},
+        {"suyu_online_server", "suyu Room Server; 127.0.0.1"},
+        {"suyu_online_port", "suyu Room Port; 24872"},
+        {"suyu_online_nickname", "suyu Online Nickname; Player"},
         {nullptr, nullptr},
     };
     cb(RETRO_ENVIRONMENT_SET_VARIABLES, (void*)vars);
@@ -444,6 +453,44 @@ RETRO_API bool retro_load_game(const struct retro_game_info* game) {
             Settings::values.cpuopt_fastmem_exclusives.SetValue(enabled);
         }
         g_system->ApplySettings();
+
+        // Join a suyu room if the user configured one. Done here rather than
+        // in retro_init so the options the frontend collected are already
+        // available, and so a failed join can't stop the game from booting
+        // single-player.
+        var.key = "suyu_online_enable";
+        var.value = nullptr;
+        if (g_environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value &&
+            std::string(var.value) == "Enabled") {
+            std::string server = "127.0.0.1";
+            std::string nickname = "Player";
+            u16 port = 24872;
+
+            var.key = "suyu_online_server";
+            var.value = nullptr;
+            if (g_environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value) {
+                server = var.value;
+            }
+            var.key = "suyu_online_nickname";
+            var.value = nullptr;
+            if (g_environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value) {
+                nickname = var.value;
+            }
+            var.key = "suyu_online_port";
+            var.value = nullptr;
+            if (g_environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value) {
+                port = static_cast<u16>(std::strtoul(var.value, nullptr, 10));
+            }
+
+            if (auto member = Network::GetRoomMember().lock()) {
+                LOG_INFO(Frontend, "libretro: joining suyu room {}:{} as '{}'", server, port,
+                         nickname);
+                member->Join(nickname, server.c_str(), port);
+            } else {
+                LOG_WARNING(Frontend, "libretro: online play requested but the room member is "
+                                      "unavailable; continuing single-player");
+            }
+        }
     }
 
     Service::AM::FrontendAppletParameters load_parameters{};
@@ -483,6 +530,13 @@ RETRO_API void retro_unload_game() {
     }
     g_game_loaded = false;
     g_game_path.clear();
+    // Leave any room we joined for this game; the next one loaded in this
+    // session gets to make its own decision from its own core options.
+    if (auto member = Network::GetRoomMember().lock()) {
+        if (member->IsConnected()) {
+            member->Leave();
+        }
+    }
     // Drop any audio still queued from the game that just went away, so it
     // can't leak into the next one loaded in this session.
     AudioCore::Sink::LibretroSampleQueue::Instance().Clear();
