@@ -199,7 +199,7 @@ inline bool Translate(u32 i, u64 pc, std::string& out) {
     if ((i & 0xFF000010) == 0x54000000) { s64 off = ((s32)((i >> 5) << 13) >> 13); u64 tt = pc + off * 4; u32 cond = i & 15; snprintf(buf, sizeof buf, "if (recomp_cond(c,%u)) { c->pc=0x%llxULL; } else { c->pc=0x%llxULL; } return;", cond, (unsigned long long)tt, (unsigned long long)next); put(buf); return false; }
     if ((i & 0x7E000000) == 0x34000000) { u32 sf = i >> 31; bool nz = (i >> 24) & 1; u32 rt = i & 31; s64 off = ((s32)(((i >> 5) & 0x7FFFF) << 13) >> 13); u64 tt = pc + off * 4; std::string v = sf ? Xz(rt) : Wz(rt); snprintf(buf, sizeof buf, "if ((%s)%s0) { c->pc=0x%llxULL; } else { c->pc=0x%llxULL; } return;", v.c_str(), nz ? "!=" : "==", (unsigned long long)tt, (unsigned long long)next); put(buf); return false; }
     if ((i & 0x7E000000) == 0x36000000) { bool nz = (i >> 24) & 1; u32 b = ((i >> 31) << 5) | ((i >> 19) & 31); u32 rt = i & 31; s64 off = ((s32)(((i >> 5) & 0x3FFF) << 18) >> 18); u64 tt = pc + off * 4; snprintf(buf, sizeof buf, "if (((c->x[%u]>>%u)&1)%s0) { c->pc=0x%llxULL; } else { c->pc=0x%llxULL; } return;", rt, b, nz ? "!=" : "==", (unsigned long long)tt, (unsigned long long)next); put(buf); return false; }
-    if ((i & 0xFFE0001F) == 0xD4000001) { u32 imm = (i >> 5) & 0xFFFF; snprintf(buf, sizeof buf, "c->pc=0x%llxULL; recomp_svc(c,%u); return;", (unsigned long long)next, imm); put(buf); return false; }
+    if ((i & 0xFFE0001F) == 0xD4000001) { u32 imm = (i >> 5) & 0xFFFF; snprintf(buf, sizeof buf, "c->pc=0x%llxULL; c->pending_svc=%uULL; recomp_svc(c,%u); return;", (unsigned long long)next, imm, imm); put(buf); return false; }
 
     snprintf(buf, sizeof buf, "recomp_unhandled(c,0x%08xU,0x%llxULL); c->pc=0x%llxULL; return;", i, (unsigned long long)pc, (unsigned long long)next);
     put(buf); return false;
@@ -341,6 +341,13 @@ inline const char* RuntimeH() {
 typedef struct GuestContext {
     uint64_t x[32]; uint64_t pc; uint8_t n,z,c,v;
     uint8_t* mem; uint64_t mem_size; uint64_t mem_base_vaddr; int halted;
+    /* SVC signalling. The emitted code sets this to the instruction's imm
+       before calling recomp_svc(). The standalone runtime services the call
+       and clears it; when the recompiled code is instead driven by suyu's
+       Core::ArmRecomp backend, recomp_svc leaves it set so the emulator can
+       see the pending call and dispatch it through the real HLE kernel.
+       ~0ULL means "no SVC pending". */
+    uint64_t pending_svc;
     /* Save-data filesystem state */
     char save_dir[512];
     /* Heap break for SVC memory allocation */
@@ -509,6 +516,11 @@ int recomp_load_segments(GuestContext* c, const char* data_dir) {
 /* ── SVC handler with HLE filesystem support ── */
 
 void recomp_svc(GuestContext* c,unsigned imm){
+  /* Standalone runtime: this handler services the call itself, so clear the
+     pending flag. The suyu-hosted build replaces this translation unit with a
+     bridge that leaves pending_svc set and returns, handing the call to the
+     real HLE kernel instead. */
+  c->pending_svc = ~0ULL;
   switch(imm){
   case 0x1: /* SetHeapSize — x1 = requested size */
     if(c->heap_base==0){

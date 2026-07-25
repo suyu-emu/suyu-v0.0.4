@@ -1,6 +1,7 @@
 // SPDX-FileCopyrightText: Copyright 2026 suyu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
+#include <atomic>
 #include <cstring>
 
 #include "common/logging/log.h"
@@ -23,6 +24,7 @@ struct GuestContextView {
     u64 mem_size;
     u64 mem_base_vaddr;
     int halted;
+    u64 pending_svc;
 };
 
 // The generated code signals an SVC by parking with this set. Kept in sync
@@ -33,13 +35,12 @@ constexpr u64 kNoPendingSvc = ~0ULL;
 struct ArmRecomp::Impl {
     Impl(System& system_, RecompLookupFn lookup_) : system{system_}, lookup{lookup_} {
         std::memset(&ctx, 0, sizeof(ctx));
-        pending_svc = kNoPendingSvc;
+        ctx.pending_svc = kNoPendingSvc;
     }
 
     System& system;
     RecompLookupFn lookup{};
     GuestContextView ctx{};
-    u64 pending_svc{kNoPendingSvc};
     u64 tpidrro_el0{};
     std::atomic<bool> interrupted{false};
 };
@@ -65,8 +66,8 @@ HaltReason ArmRecomp::RunThread(Kernel::KThread* thread) {
 
         // An SVC parked us last time round; the kernel has now serviced it and
         // resumed, so clear it before continuing.
-        if (impl->pending_svc != kNoPendingSvc) {
-            impl->pending_svc = kNoPendingSvc;
+        if (impl->ctx.pending_svc != kNoPendingSvc) {
+            impl->ctx.pending_svc = kNoPendingSvc;
         }
 
         const RecompBlockFn block = impl->lookup(impl->ctx.pc);
@@ -81,7 +82,7 @@ HaltReason ArmRecomp::RunThread(Kernel::KThread* thread) {
 
         block(&impl->ctx);
 
-        if (impl->pending_svc != kNoPendingSvc) {
+        if (impl->ctx.pending_svc != kNoPendingSvc) {
             return HaltReason::SupervisorCall;
         }
     }
@@ -100,7 +101,7 @@ HaltReason ArmRecomp::StepThread(Kernel::KThread* thread) {
         return HaltReason::PrefetchAbort;
     }
     block(&impl->ctx);
-    if (impl->pending_svc != kNoPendingSvc) {
+    if (impl->ctx.pending_svc != kNoPendingSvc) {
         return HaltReason::SupervisorCall;
     }
     return HaltReason::StepThread;
@@ -164,7 +165,7 @@ void ArmRecomp::SetSvcArguments(std::span<const uint64_t, 8> args) {
 }
 
 u32 ArmRecomp::GetSvcNumber() const {
-    return static_cast<u32>(impl->pending_svc);
+    return static_cast<u32>(impl->ctx.pending_svc);
 }
 
 void ArmRecomp::SignalInterrupt(Kernel::KThread* thread) {
