@@ -20,8 +20,10 @@
 #include <QTimer>
 #include <QToolTip>
 #include <QUrl>
+#include <QCryptographicHash>
 #include <QEventLoop>
 #include <QFile>
+#include <QStandardPaths>
 #include <QNetworkAccessManager>
 #include <QNetworkReply>
 #include <QNetworkRequest>
@@ -736,8 +738,14 @@ void GameLibraryWorker::ProcessFile(const QString& file_path) {
         }
     }
 
-    // Extract icon
-    QPixmap icon = GetGameIcon(program_id, file_path);
+    // Prefer the high-resolution cover the gamer view fetches and caches over
+    // the icon embedded in the ROM. The NACP icon is only 256x256, which is
+    // smaller than the card renders at on a HiDPI display, so using it here
+    // was why the same game looked softer in this view than elsewhere.
+    QPixmap icon = LoadCachedCoverArt(title);
+    if (icon.isNull()) {
+        icon = GetGameIcon(program_id, file_path);
+    }
 
     QString type = QFileInfo(file_path).suffix().toUpper();
     u64 size = QFileInfo(file_path).size();
@@ -756,6 +764,27 @@ void GameLibraryWorker::ProcessFile(const QString& file_path) {
     local_program_ids_.insert(program_id);
     emit EntryReady(title, file_path, QString::number(program_id, 16), developer,
                    program_id, version, type, size, compatibility, icon, play_time);
+}
+
+QPixmap GameLibraryWorker::LoadCachedCoverArt(const QString& title) {
+    // Must stay in sync with GamerEnvironment::CoverCachePathForTitle - both
+    // views deliberately share one cover cache so art fetched in either shows
+    // up in the other.
+    if (title.trimmed().isEmpty()) {
+        return {};
+    }
+    const QString cache_root =
+        QStandardPaths::writableLocation(QStandardPaths::AppDataLocation) +
+        QStringLiteral("/cover_cache");
+    const QByteArray key =
+        QCryptographicHash::hash(title.trimmed().toUtf8(), QCryptographicHash::Sha1).toHex();
+    const QString path = QDir(cache_root).filePath(QString::fromLatin1(key) +
+                                                   QStringLiteral(".png"));
+    if (!QFileInfo::exists(path)) {
+        return {};
+    }
+    QPixmap px(path);
+    return px;
 }
 
 QPixmap GameLibraryWorker::FetchRemoteIcon(const QString& url, const QString& title_id) {

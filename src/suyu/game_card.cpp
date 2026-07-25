@@ -167,7 +167,20 @@ void GameCard::SetIcon(const QPixmap& icon) {
         if (icon.isNull()) {
             icon_label->setPixmap(GetDefaultIcon());
         } else {
-            QPixmap scaled_icon = icon.scaled(ICON_SIZE, ICON_SIZE, Qt::KeepAspectRatio, Qt::SmoothTransformation);
+            // Scale in PHYSICAL pixels and tag the result, rather than scaling
+            // to the logical ICON_SIZE. The label occupies ICON_SIZE logical
+            // points, which is ICON_SIZE*dpr physical pixels on a HiDPI
+            // display; handing it a pixmap only ICON_SIZE physical pixels wide
+            // makes Qt upscale it to fill, which is exactly why artwork looked
+            // softer here than everywhere else in the app that does account
+            // for dpr.
+            const qreal dpr = icon_label->devicePixelRatioF() > 0.0
+                                  ? icon_label->devicePixelRatioF()
+                                  : 1.0;
+            const int physical = qRound(ICON_SIZE * dpr);
+            QPixmap scaled_icon = icon.scaled(physical, physical, Qt::KeepAspectRatio,
+                                              Qt::SmoothTransformation);
+            scaled_icon.setDevicePixelRatio(dpr);
             icon_label->setPixmap(scaled_icon);
         }
     }

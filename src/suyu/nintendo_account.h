@@ -116,19 +116,19 @@ private:
     QString pending_code_verifier_;
     QString pending_state_;
 
-    /// Parental Controls ("moon") API chain. Unlike the NSO coral API this
-    /// needs no third-party 'f' attestation service, so it is the only
-    /// game-list source we can reach with nothing but Nintendo's own
-    /// endpoints. Yields the titles registered against the account's consoles,
-    /// each with a real title_id and Nintendo-hosted cover art.
-    void ExchangeMoonSessionTokenCode(const QString& session_token_code);
-    void FetchMoonDevices(const QString& access_token);
-    void FetchMoonDeviceSummaries(const QString& access_token, const QString& device_id);
-    void FinishMoonSync();
-    QString moon_code_verifier_;
-    QString moon_state_;
-    int moon_pending_requests_ = 0;
-    std::vector<NintendoOwnedGame> moon_collected_;
+    /// Virtual Game Card sync. Nintendo's VGC portal is a normal signed-in web
+    /// page, so rather than driving an API we load it in the same WebEngine
+    /// profile the user signed in through and run the portal's own GraphQL
+    /// query from inside the page - session cookies then apply automatically
+    /// and there's no token/cookie plumbing to get wrong. VGCs cover free
+    /// titles too, which a purchase/transaction list misses.
+    void StartVgcSync();
+    void PollVgcResult();
+    void ApplyVgcJson(const QString& json);
+    class QWebEngineView* vgc_view_ = nullptr;
+    class QDialog* vgc_dialog_ = nullptr;
+    class QTimer* vgc_poll_timer_ = nullptr;
+    int vgc_poll_attempts_ = 0;
 
     QLabel* status_label{};
     QLabel* nickname_label{};

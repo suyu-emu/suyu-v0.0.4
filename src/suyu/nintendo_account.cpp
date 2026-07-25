@@ -36,20 +36,6 @@ namespace {
 // flows (public, not a secret - PKCE public clients don't have one).
 constexpr auto kNintendoClientId = "71b963c1b7b6d119";
 
-// Parental Controls ("moon") client_id. A token minted for kNintendoClientId
-// above cannot call the moon API, so the library sync runs its own PKCE round
-// against this one. Its endpoints are the only Nintendo-hosted source of a
-// per-account title list that doesn't require the coral API's third-party 'f'
-// attestation service.
-constexpr auto kMoonClientId = "54789befb391a838";
-constexpr auto kMoonScopes =
-    "openid user user.mii moonUser:administration moonDevice:create "
-    "moonOwnedDevice:administration moonParentalControlSetting "
-    "moonParentalControlSetting:update moonParentalControlSettingState "
-    "moonPairingState moonSmartDevice:administration moonDailySummary "
-    "moonMonthlySummary";
-constexpr auto kMoonApiBase = "https://api-lp1.pctl.srv.nintendo.net/moon/v1";
-
 #ifdef SUYU_USE_QT_WEB_ENGINE
 
 QString GeneratePkceVerifier() {
@@ -648,168 +634,215 @@ void NintendoAccountDialog::FetchNintendoOwnedLibrary(const QString& /*token*/) 
     }
 }
 
-void NintendoAccountDialog::ExchangeMoonSessionTokenCode(const QString& session_token_code) {
-    // session_token_code -> session_token, then straight on to the moon
-    // access_token. Both legs use the moon client_id; a token from the NSO
-    // client_id is rejected by every /moon/ endpoint.
-    QNetworkRequest request(
-        QUrl(QStringLiteral("https://accounts.nintendo.com/connect/1.0.0/api/session_token")));
-    request.setHeader(QNetworkRequest::ContentTypeHeader,
-                      QStringLiteral("application/x-www-form-urlencoded"));
-    request.setRawHeader("User-Agent", "moon-ios/1.15.0");
+void NintendoAccountDialog::StartVgcSync() {
+#ifdef SUYU_USE_QT_WEB_ENGINE
+    // The Virtual Game Card portal is an ordinary signed-in Nintendo web page.
+    // Rather than lifting cookies out into a QNetworkAccessManager (which is
+    // what the equivalent Playnite extension has to do, and is easy to get
+    // subtly wrong), load it in a WebEngine view and run the portal's own
+    // GraphQL query from inside the page - the session then applies by
+    // construction.
+    //
+    // VGCs rather than the purchase/transaction list because they cover free
+    // titles and anything added without a transaction, and each entry carries
+    // a real applicationId plus Nintendo-hosted icon art.
+    vgc_dialog_ = new QDialog(this);
+    vgc_dialog_->setWindowTitle(tr("Sync Nintendo Game Library"));
+    vgc_dialog_->resize(900, 700);
+    vgc_dialog_->setAttribute(Qt::WA_DeleteOnClose);
 
-    QUrlQuery form;
-    form.addQueryItem(QStringLiteral("client_id"), QLatin1String(kMoonClientId));
-    form.addQueryItem(QStringLiteral("session_token_code"), session_token_code);
-    form.addQueryItem(QStringLiteral("session_token_code_verifier"), moon_code_verifier_);
+    auto* layout = new QVBoxLayout(vgc_dialog_);
+    auto* hint = new QLabel(
+        tr("Sign in if prompted. Your Virtual Game Cards will be imported automatically "
+           "once the page loads - this window closes by itself when it's done."),
+        vgc_dialog_);
+    hint->setWordWrap(true);
+    hint->setStyleSheet(QStringLiteral("color: #999; font-size: 11px; padding: 4px;"));
+    layout->addWidget(hint);
 
-    QNetworkReply* reply = network_manager_->post(request, form.toString(QUrl::FullyEncoded).toUtf8());
-    connect(reply, &QNetworkReply::finished, this, [this, reply]() {
-        reply->deleteLater();
-        const QJsonObject obj = QJsonDocument::fromJson(reply->readAll()).object();
-        const QString session_token = obj.value(QStringLiteral("session_token")).toString();
-        if (session_token.isEmpty()) {
-            library_summary_label->setText(
-                tr("Library sync failed: Nintendo did not return a Parental Controls session."));
-            sync_library_button->setEnabled(true);
+    // Reuse the same named profile as the sign-in flow so an existing session
+    // is picked up and the user usually isn't asked to log in twice.
+    auto* profile = new QWebEngineProfile(QStringLiteral("NintendoLogin"), vgc_dialog_);
+    vgc_view_ = new QWebEngineView(vgc_dialog_);
+    vgc_view_->setPage(new QWebEnginePage(profile, vgc_view_));
+    layout->addWidget(vgc_view_, 1);
+
+    connect(vgc_view_, &QWebEngineView::loadFinished, this, [this](bool ok) {
+        if (!ok || !vgc_view_) {
             return;
         }
-
-        // session_token -> access_token (JWT bearer grant).
-        QNetworkRequest token_request(
-            QUrl(QStringLiteral("https://accounts.nintendo.com/connect/1.0.0/api/token")));
-        token_request.setHeader(QNetworkRequest::ContentTypeHeader,
-                                QStringLiteral("application/json"));
-        token_request.setRawHeader("User-Agent", "moon-ios/1.15.0");
-
-        QJsonObject body;
-        body[QStringLiteral("client_id")] = QLatin1String(kMoonClientId);
-        body[QStringLiteral("session_token")] = session_token;
-        body[QStringLiteral("grant_type")] =
-            QStringLiteral("urn:ietf:params:oauth:grant-type:jwt-bearer-session-token");
-
-        QNetworkReply* token_reply =
-            network_manager_->post(token_request, QJsonDocument(body).toJson(QJsonDocument::Compact));
-        connect(token_reply, &QNetworkReply::finished, this, [this, token_reply]() {
-            token_reply->deleteLater();
-            const QJsonObject token_obj = QJsonDocument::fromJson(token_reply->readAll()).object();
-            const QString access_token = token_obj.value(QStringLiteral("access_token")).toString();
-            if (access_token.isEmpty()) {
-                library_summary_label->setText(
-                    tr("Library sync failed: could not obtain a Parental Controls token."));
-                sync_library_button->setEnabled(true);
-                return;
-            }
-            FetchMoonDevices(access_token);
+        const QString url = vgc_view_->url().toString();
+        if (!url.contains(QStringLiteral("/portal/vgcs"))) {
+            // Still on a login/interstitial page - wait for the user.
+            return;
+        }
+        // Inject the collector. It stashes its result on window rather than
+        // returning it, because runJavaScript() resolves with the expression's
+        // immediate value and would otherwise just hand back a pending Promise.
+        static const char* kCollector = R"JS(
+(function(){
+  if (window.__suyu_vgc_running) { return; }
+  window.__suyu_vgc_running = true;
+  window.__suyu_vgc_result = null;
+  const q = `query getVgcs($idToken: String!, $country: CountryCode!, $language: LanguageCode!,
+    $shopId: Int!, $limit: Int!, $nasLanguage: String!, $offset: Int!,
+    $order: RequestableVgcViewOrder!, $sortBy: RequestableVgcViewSortBy!)
+    @inContext(country: $country, language: $language, shopId: $shopId) {
+    account { vgc { vgcViews(idToken: $idToken, limit: $limit, nasLanguage: $nasLanguage,
+      offset: $offset, order: $order, sortBy: $sortBy, isHidden: false) {
+      offsetInfo { total offset }
+      views { applicationId applicationName publisher icon { url } }
+    } } } }`;
+  (async function(){
+    try {
+      const el = document.querySelector('#data');
+      if (!el) { window.__suyu_vgc_result = JSON.stringify({error:'portal layout changed'}); return; }
+      const d = JSON.parse(el.getAttribute('data-json'));
+      const all = [];
+      let offset = 0, total = 0;
+      const LIMIT = 50;
+      do {
+        const r = await fetch(d.shopGraphQLApiUrl, {
+          method: 'POST',
+          credentials: 'include',
+          headers: {
+            'Content-Type': 'application/json',
+            'x-nintendo-savanna-client-id': d.savannaClientId
+          },
+          body: JSON.stringify({ query: q, variables: {
+            idToken: d.idToken, country: d.country || 'GB', language: d.language || 'en',
+            shopId: d.shopId || 3, limit: LIMIT, nasLanguage: d.nasLanguage || 'en-GB',
+            offset: offset, order: 'ASC', sortBy: 'ACTIVATED_DATE'
+          }})
         });
+        const j = await r.json();
+        const vv = j && j.data && j.data.account && j.data.account.vgc &&
+                   j.data.account.vgc.vgcViews;
+        if (!vv) { window.__suyu_vgc_result = JSON.stringify({error: JSON.stringify(j).slice(0,400)}); return; }
+        total = vv.offsetInfo.total;
+        all.push.apply(all, vv.views);
+        offset += LIMIT;
+      } while (offset < total && all.length < 2000);
+      window.__suyu_vgc_result = JSON.stringify({games: all});
+    } catch (e) {
+      window.__suyu_vgc_result = JSON.stringify({error: String(e)});
+    }
+  })();
+})();
+)JS";
+        vgc_view_->page()->runJavaScript(QString::fromUtf8(kCollector));
+
+        // Poll for the stashed result.
+        if (!vgc_poll_timer_) {
+            vgc_poll_timer_ = new QTimer(this);
+            connect(vgc_poll_timer_, &QTimer::timeout, this,
+                    &NintendoAccountDialog::PollVgcResult);
+        }
+        vgc_poll_attempts_ = 0;
+        vgc_poll_timer_->start(500);
+        library_summary_label->setText(tr("Reading your Virtual Game Cards..."));
     });
+
+    vgc_view_->setUrl(QUrl(QStringLiteral(
+        "https://accounts.nintendo.com/portal/vgcs/?sort=activated_date&order=desc")));
+    vgc_dialog_->show();
+    vgc_dialog_->raise();
+    vgc_dialog_->activateWindow();
+#else
+    library_summary_label->setText(
+        tr("Library sync needs the Qt WebEngine build of suyu to sign in to Nintendo."));
+    library_summary_label->setVisible(true);
+    sync_library_button->setEnabled(true);
+#endif
 }
 
-void NintendoAccountDialog::FetchMoonDevices(const QString& access_token) {
-    library_summary_label->setText(tr("Looking up consoles linked to this account..."));
-
-    QNetworkRequest request(QUrl(QStringLiteral("%1/users/%2/devices")
-                                     .arg(QLatin1String(kMoonApiBase), user_id_)));
-    request.setRawHeader("Authorization", QStringLiteral("Bearer %1").arg(access_token).toUtf8());
-    request.setRawHeader("User-Agent", "moon-ios/1.15.0");
-    request.setRawHeader("Accept", "application/json");
-
-    QNetworkReply* reply = network_manager_->get(request);
-    connect(reply, &QNetworkReply::finished, this, [this, reply, access_token]() {
-        reply->deleteLater();
-        const QJsonObject obj = QJsonDocument::fromJson(reply->readAll()).object();
-        const QJsonArray devices = obj.value(QStringLiteral("items")).toArray();
-        if (devices.isEmpty()) {
-            library_summary_label->setText(
-                tr("No Nintendo Switch consoles are registered to this account, so there is "
-                   "no play history to import."));
-            sync_library_button->setEnabled(true);
-            return;
-        }
-
-        moon_collected_.clear();
-        moon_pending_requests_ = static_cast<int>(devices.size());
-        for (const auto& entry : devices) {
-            const QString device_id = entry.toObject().value(QStringLiteral("deviceId")).toString();
-            if (device_id.isEmpty()) {
-                --moon_pending_requests_;
-                continue;
+void NintendoAccountDialog::PollVgcResult() {
+#ifdef SUYU_USE_QT_WEB_ENGINE
+    if (!vgc_view_ || !vgc_view_->page()) {
+        if (vgc_poll_timer_) vgc_poll_timer_->stop();
+        return;
+    }
+    // ~60s ceiling; a very large library still finishes well inside this.
+    if (++vgc_poll_attempts_ > 120) {
+        vgc_poll_timer_->stop();
+        library_summary_label->setText(
+            tr("Timed out reading your Virtual Game Cards. Please try again."));
+        sync_library_button->setEnabled(true);
+        if (vgc_dialog_) vgc_dialog_->close();
+        return;
+    }
+    vgc_view_->page()->runJavaScript(
+        QStringLiteral("window.__suyu_vgc_result"), [this](const QVariant& v) {
+            const QString json = v.toString();
+            if (json.isEmpty() || json == QStringLiteral("null")) {
+                return; // not finished yet
             }
-            FetchMoonDeviceSummaries(access_token, device_id);
-        }
-        if (moon_pending_requests_ <= 0) {
-            FinishMoonSync();
-        }
-    });
+            if (vgc_poll_timer_) vgc_poll_timer_->stop();
+            ApplyVgcJson(json);
+        });
+#endif
 }
 
-void NintendoAccountDialog::FetchMoonDeviceSummaries(const QString& access_token,
-                                                     const QString& device_id) {
-    QNetworkRequest request(QUrl(QStringLiteral("%1/devices/%2/daily_summaries")
-                                     .arg(QLatin1String(kMoonApiBase), device_id)));
-    request.setRawHeader("Authorization", QStringLiteral("Bearer %1").arg(access_token).toUtf8());
-    request.setRawHeader("User-Agent", "moon-ios/1.15.0");
-    request.setRawHeader("Accept", "application/json");
+void NintendoAccountDialog::ApplyVgcJson(const QString& json) {
+    const QJsonObject root = QJsonDocument::fromJson(json.toUtf8()).object();
 
-    QNetworkReply* reply = network_manager_->get(request);
-    connect(reply, &QNetworkReply::finished, this, [this, reply]() {
-        reply->deleteLater();
-        const QJsonObject obj = QJsonDocument::fromJson(reply->readAll()).object();
+    if (root.contains(QStringLiteral("error"))) {
+        library_summary_label->setText(
+            tr("Could not read your Virtual Game Cards: %1")
+                .arg(root.value(QStringLiteral("error")).toString()));
+        library_summary_label->setVisible(true);
+        sync_library_button->setEnabled(true);
+        if (vgc_dialog_) vgc_dialog_->close();
+        return;
+    }
 
-        // Each daily summary lists the apps played that day; the same title
-        // recurs across days, so dedupe on title_id and keep the latest date.
-        for (const auto& day_entry : obj.value(QStringLiteral("items")).toArray()) {
-            const QJsonObject day = day_entry.toObject();
-            const QString date = day.value(QStringLiteral("date")).toString();
-            for (const auto& app_entry : day.value(QStringLiteral("playedApps")).toArray()) {
-                const QJsonObject app = app_entry.toObject();
-                const QString title = app.value(QStringLiteral("title")).toString();
-                const QString title_id = app.value(QStringLiteral("applicationId")).toString();
-                if (title.isEmpty()) {
-                    continue;
-                }
-                auto existing = std::find_if(
-                    moon_collected_.begin(), moon_collected_.end(),
-                    [&](const NintendoOwnedGame& g) { return g.title_id == title_id; });
-                if (existing != moon_collected_.end()) {
-                    if (date > existing->purchase_date) {
-                        existing->purchase_date = date;
-                    }
-                    continue;
-                }
-                NintendoOwnedGame game;
-                game.title = title;
-                game.title_id = title_id;
-                game.icon_url = app.value(QStringLiteral("imageUri")).toString();
-                game.platform = QStringLiteral("Nintendo Switch");
-                game.purchase_date = date;
-                game.is_digital = true;
-                moon_collected_.push_back(std::move(game));
-            }
+    std::vector<NintendoOwnedGame> collected;
+    for (const auto& entry : root.value(QStringLiteral("games")).toArray()) {
+        const QJsonObject view = entry.toObject();
+        NintendoOwnedGame game;
+        game.title = view.value(QStringLiteral("applicationName")).toString();
+        game.title_id = view.value(QStringLiteral("applicationId")).toString();
+        game.platform = QStringLiteral("Nintendo Switch");
+        game.is_digital = true;
+        game.icon_url = view.value(QStringLiteral("icon"))
+                            .toObject()
+                            .value(QStringLiteral("url"))
+                            .toString();
+        if (game.title.trimmed().isEmpty()) {
+            continue;
         }
-
-        if (--moon_pending_requests_ <= 0) {
-            FinishMoonSync();
+        // The same title can hold several cards (e.g. lent copies); one entry
+        // per game is what the library wants.
+        const bool dup = std::any_of(collected.begin(), collected.end(),
+                                     [&](const NintendoOwnedGame& g) {
+                                         return g.title_id == game.title_id;
+                                     });
+        if (!dup) {
+            collected.push_back(std::move(game));
         }
-    });
-}
+    }
 
-void NintendoAccountDialog::FinishMoonSync() {
-    owned_library_ = moon_collected_;
+    owned_library_ = std::move(collected);
     StoreNintendoOwnedLibrary(owned_library_);
     sync_library_button->setEnabled(true);
 
     if (owned_library_.empty()) {
         library_summary_label->setText(
-            tr("Sync finished, but Nintendo returned no play history for this account's "
-               "consoles."));
+            tr("Nintendo returned no Virtual Game Cards for this account."));
     } else {
         library_summary_label->setText(
-            tr("Synced %1 title(s) from your Nintendo Account.").arg(owned_library_.size()));
+            tr("Imported %1 title(s) from your Nintendo Account.").arg(owned_library_.size()));
     }
     library_summary_label->setVisible(true);
     emit OwnedLibraryUpdated(static_cast<int>(owned_library_.size()));
+
+    if (vgc_dialog_) {
+        vgc_dialog_->close();
+        vgc_dialog_ = nullptr;
+        vgc_view_ = nullptr;
+    }
 }
+
 
 std::vector<NintendoOwnedGame> NintendoAccountDialog::ParseNintendoPurchaseHistory(const QString& html) {
     std::vector<NintendoOwnedGame> library;
@@ -1010,83 +1043,16 @@ void NintendoAccountDialog::OpenBrowserLogin() {
 }
 
 void NintendoAccountDialog::OnSyncLibraryClicked() {
-#ifdef SUYU_USE_QT_WEB_ENGINE
     if (!linked_) {
         return;
     }
     sync_library_button->setEnabled(false);
-    library_summary_label->setText(tr("Requesting Parental Controls access..."));
+    library_summary_label->setText(tr("Opening your Nintendo library..."));
     library_summary_label->setVisible(true);
 
-    // Same deferred-construction dance as OpenBrowserLogin(): building the
-    // WebEngine view directly inside the click handler re-enters WebEngine
-    // bootstrap and crashes.
-    QTimer::singleShot(0, this, [this]() {
-        auto* dialog = new QDialog(this);
-        dialog->setWindowTitle(tr("Grant Game Library Access"));
-        dialog->resize(900, 700);
-        dialog->setAttribute(Qt::WA_DeleteOnClose);
-
-        auto* layout = new QVBoxLayout(dialog);
-        auto* hint = new QLabel(
-            tr("Sign in again to grant access to your consoles' play history. This is a "
-               "separate Nintendo permission from account linking, which is why it asks "
-               "twice. Nothing is sent anywhere except to Nintendo."),
-            dialog);
-        hint->setWordWrap(true);
-        hint->setStyleSheet(QStringLiteral("color: #999; font-size: 11px; padding: 4px;"));
-        layout->addWidget(hint);
-
-        auto* profile = new QWebEngineProfile(QStringLiteral("NintendoMoonLogin"), dialog);
-        auto* web_view = new QWebEngineView(dialog);
-        layout->addWidget(web_view, 1);
-
-        moon_code_verifier_ = GeneratePkceVerifier();
-        moon_state_ = GeneratePkceVerifier();
-        const QString challenge = PkceChallengeFromVerifier(moon_code_verifier_);
-
-        QUrl authorize_url(QStringLiteral("https://accounts.nintendo.com/connect/1.0.0/authorize"));
-        QUrlQuery query;
-        query.addQueryItem(QStringLiteral("state"), moon_state_);
-        query.addQueryItem(QStringLiteral("redirect_uri"),
-                           QStringLiteral("npf%1://auth").arg(QLatin1String(kMoonClientId)));
-        query.addQueryItem(QStringLiteral("client_id"), QLatin1String(kMoonClientId));
-        query.addQueryItem(QStringLiteral("scope"), QLatin1String(kMoonScopes));
-        query.addQueryItem(QStringLiteral("response_type"), QStringLiteral("session_token_code"));
-        query.addQueryItem(QStringLiteral("session_token_code_challenge"), challenge);
-        query.addQueryItem(QStringLiteral("session_token_code_challenge_method"),
-                           QStringLiteral("S256"));
-        query.addQueryItem(QStringLiteral("theme"), QStringLiteral("login_form"));
-        authorize_url.setQuery(query);
-
-        auto* login_page = new NintendoLoginPage(profile, web_view);
-        web_view->setPage(login_page);
-        login_page->on_redirect = [this, dialog](const QUrl& redirect_url) {
-            QUrlQuery fragment(redirect_url.fragment());
-            const QString state = fragment.queryItemValue(QStringLiteral("state"));
-            const QString code = fragment.queryItemValue(QStringLiteral("session_token_code"));
-            dialog->close();
-            if (state != moon_state_ || code.isEmpty()) {
-                library_summary_label->setText(
-                    tr("Library sync cancelled or refused by Nintendo."));
-                sync_library_button->setEnabled(true);
-                return;
-            }
-            library_summary_label->setText(tr("Access granted - importing titles..."));
-            ExchangeMoonSessionTokenCode(code);
-        };
-
-        web_view->setUrl(authorize_url);
-        dialog->show();
-        dialog->raise();
-        dialog->activateWindow();
-    });
-#else
-    library_summary_label->setText(
-        tr("Library sync needs the Qt WebEngine build of suyu to complete Nintendo's "
-           "sign-in flow."));
-    library_summary_label->setVisible(true);
-#endif
+    // Deferred like OpenBrowserLogin(): constructing a WebEngine view directly
+    // inside the click handler re-enters WebEngine bootstrap and crashes.
+    QTimer::singleShot(0, this, [this]() { StartVgcSync(); });
 }
 
 void NintendoAccountDialog::OnVerifyClicked() {

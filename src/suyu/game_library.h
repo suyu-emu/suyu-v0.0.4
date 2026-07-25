@@ -224,6 +224,10 @@ private:
     /// account title. Returns a null pixmap if the art can't be fetched, so
     /// the caller can fall back to a drawn placeholder.
     QPixmap FetchRemoteIcon(const QString& url, const QString& title_id);
+    /// Reads the shared cover-art cache the gamer view populates, so both
+    /// views show the same high-resolution art rather than this one falling
+    /// back to the ROM's small embedded icon.
+    static QPixmap LoadCachedCoverArt(const QString& title);
 
     /// Program IDs already emitted from local files, so account-synced titles
     /// the user actually owns a dump of don't appear twice.
