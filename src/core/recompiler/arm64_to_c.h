@@ -100,6 +100,35 @@ inline std::vector<Block> DiscoverBlocks(const u8* text, size_t n_bytes, u64 bas
     return blocks;
 }
 
+// ARM's logical-immediate encoding: N:immr:imms describe a repeating bit
+// pattern rather than a literal value. This is the standard DecodeBitMasks
+// from the architecture reference, restricted to the immediate (non-tested)
+// result. Returns false for the reserved encodings.
+inline bool DecodeBitMasks(u32 N, u32 imms, u32 immr, bool is64, u64& out) {
+    if (!is64 && N) return false;
+    // len = index of the highest set bit of (N:~imms), computed portably.
+    const u32 bits = (N << 6) | ((~imms) & 0x3F);
+    if (bits == 0) return false;
+    u32 len = 0;
+    for (u32 t = bits; t > 1; t >>= 1) ++len;
+    if (len < 1) return false;
+    const u32 esize = 1u << len;
+    if (esize > (is64 ? 64u : 32u)) return false;
+    const u32 levels = esize - 1;
+    const u32 s = imms & levels;
+    const u32 r = immr & levels;
+    if (s == levels) return false;   // reserved
+    u64 welem = (s + 1 >= 64) ? ~0ULL : ((1ULL << (s + 1)) - 1);
+    // Rotate right within the element, then replicate to the register width.
+    u64 elem = esize >= 64 ? welem
+                           : (((welem >> r) | (welem << (esize - r))) & ((1ULL << esize) - 1));
+    u64 result = 0;
+    for (u32 i = 0; i < (is64 ? 64u : 32u); i += esize) result |= elem << i;
+    if (!is64) result &= 0xFFFFFFFFULL;
+    out = result;
+    return true;
+}
+
 inline std::string Xz(u32 r) {
     return r == 31 ? std::string("(uint64_t)0") : ("c->x[" + std::to_string(r) + "]");
 }
@@ -243,6 +272,118 @@ inline bool Translate(u32 i, u64 pc, std::string& out) {
             if (mode == 1 || mode == 3) {
                 s += "c->x[" + std::to_string(rn) + "]=_b+_o; ";
             }
+            s += "}";
+            put(s);
+            return true;
+        }
+    }
+
+    // Logical immediate: AND/ORR/EOR/ANDS. By far the largest single gap in
+    // real code - the immediate is a repeating bit pattern, not a literal.
+    if ((i & 0x1F800000) == 0x12000000) {
+        const u32 sf = i >> 31, opc = (i >> 29) & 3, N = (i >> 22) & 1;
+        const u32 immr = (i >> 16) & 0x3F, imms = (i >> 10) & 0x3F;
+        const u32 rn = (i >> 5) & 31, rd = i & 31;
+        u64 imm = 0;
+        if (DecodeBitMasks(N, imms, immr, sf != 0, imm)) {
+            const char* op = (opc == 0 || opc == 3) ? "&" : (opc == 1 ? "|" : "^");
+            std::string s = "{ uint64_t _r = " + Xz(rn) + " " + op + " 0x" ;
+            char hb[32]; snprintf(hb, sizeof hb, "%llxULL", (unsigned long long)imm);
+            s += hb; s += "; ";
+            if (!sf) s += "_r &= 0xFFFFFFFFULL; ";
+            if (rd != 31) s += "c->x[" + std::to_string(rd) + "] = _r; ";
+            if (opc == 3) s += "recomp_set_flags(c,0,_r,0,_r," + std::string(sf ? "1" : "0") + "); ";
+            s += "}";
+            put(s);
+            return true;
+        }
+    }
+
+    // Bitfield: UBFM/SBFM/BFM - the encoding behind LSL/LSR/ASR/UBFX/SBFX.
+    if ((i & 0x1F800000) == 0x13000000) {
+        const u32 sf = i >> 31, opc = (i >> 29) & 3;
+        const u32 immr = (i >> 16) & 0x3F, imms = (i >> 10) & 0x3F;
+        const u32 rn = (i >> 5) & 31, rd = i & 31;
+        const u32 width = sf ? 64 : 32;
+        // Only UBFM (opc 2) and SBFM (opc 0). BFM merges into the existing
+        // destination bits, which needs the insert mask tracked properly -
+        // left to the fallback rather than approximated, since wrong codegen
+        // is worse than an honest halt.
+        if (rd != 31 && opc != 1 && immr < width && imms < width) {
+            const char* mask = sf ? "" : " & 0xFFFFFFFFULL";
+            std::string src = Xz(rn);
+            std::string s = "{ uint64_t _s = " + src + mask + "; uint64_t _r; ";
+            if (imms >= immr) {
+                // Extract (imms-immr+1) bits starting at immr.
+                const u32 nbits = imms - immr + 1;
+                s += "_r = (_s >> " + std::to_string(immr) + ")";
+                if (nbits < 64) s += " & ((1ULL << " + std::to_string(nbits) + ") - 1)";
+                s += "; ";
+                if (opc == 0) { // SBFM: sign-extend from nbits
+                    s += "if (_r & (1ULL << " + std::to_string(nbits - 1) + ")) _r |= ~((1ULL << " +
+                         std::to_string(nbits) + ") - 1); ";
+                }
+            } else {
+                // Insert: bits [0..imms] moved to start at (width-immr).
+                const u32 nbits = imms + 1;
+                const u32 shift = width - immr;
+                s += "_r = (_s";
+                if (nbits < 64) s += " & ((1ULL << " + std::to_string(nbits) + ") - 1)";
+                s += ") << " + std::to_string(shift) + "; ";
+                if (opc == 0) {
+                    s += "if (_r & (1ULL << " + std::to_string(shift + nbits - 1) +
+                         ")) _r |= ~((1ULL << " + std::to_string(shift + nbits) + ") - 1); ";
+                }
+            }
+            if (!sf) s += "_r &= 0xFFFFFFFFULL; ";
+            s += "c->x[" + std::to_string(rd) + "] = _r; }";
+            put(s);
+            return true;
+        }
+    }
+
+    // Conditional select: CSEL/CSINC/CSINV/CSNEG.
+    if ((i & 0x1FE00000) == 0x1A800000) {
+        const u32 sf = i >> 31, op = (i >> 30) & 1, o2 = (i >> 10) & 1;
+        const u32 rm = (i >> 16) & 31, cond = (i >> 12) & 15, rn = (i >> 5) & 31, rd = i & 31;
+        if (rd != 31) {
+            std::string a = Xz(rn), b = Xz(rm);
+            std::string els = b;
+            if (!op && o2) els = "(" + b + " + 1)";            // CSINC
+            else if (op && !o2) els = "(~" + b + ")";           // CSINV
+            else if (op && o2) els = "((uint64_t)(0 - " + b + "))"; // CSNEG
+            std::string s = "{ uint64_t _r = recomp_cond(c," + std::to_string(cond) + ") ? " +
+                            a + " : " + els + "; ";
+            if (!sf) s += "_r &= 0xFFFFFFFFULL; ";
+            s += "c->x[" + std::to_string(rd) + "] = _r; }";
+            put(s);
+            return true;
+        }
+    }
+
+    // Load/store with unscaled 9-bit signed offset (LDUR/STUR) and the
+    // pre/post-indexed immediate forms.
+    if ((i & 0x3B000000) == 0x38000000 && ((i >> 24) & 1) == 0) {
+        const u32 size = i >> 30, opc = (i >> 22) & 3, mode = (i >> 10) & 3;
+        const u32 rn = (i >> 5) & 31, rt = i & 31;
+        s32 imm9 = (s32)((i >> 12) & 0x1FF);
+        if (imm9 & 0x100) imm9 |= ~0x1FF;
+        // mode 0 = LDUR/STUR, 1 = post-index, 3 = pre-index
+        if ((mode == 0 || mode == 1 || mode == 3) && size <= 3) {
+            const u32 bits = 8u << size;
+            const bool is_load = (opc & 1) != 0;
+            std::string s = "{ uint64_t _b=c->x[" + std::to_string(rn) + "]; int64_t _o=" +
+                            std::to_string((long long)imm9) + "; ";
+            const char* addr = (mode == 1) ? "_b" : "(_b+_o)";
+            if (is_load) {
+                if (rt != 31) {
+                    s += "c->x[" + std::to_string(rt) + "]=recomp_load" + std::to_string(bits) +
+                         "(c," + addr + "); ";
+                }
+            } else {
+                s += "recomp_store" + std::to_string(bits) + "(c," + addr + "," + Xz(rt) + "); ";
+            }
+            if (mode == 1 || mode == 3) s += "c->x[" + std::to_string(rn) + "]=_b+_o; ";
             s += "}";
             put(s);
             return true;
