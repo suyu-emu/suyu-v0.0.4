@@ -703,7 +703,19 @@ void NintendoAccountDialog::StartVgcSync() {
   (async function(){
     try {
       const el = document.querySelector('#data');
-      if (!el) { window.__suyu_vgc_result = JSON.stringify({error:'portal layout changed'}); return; }
+      if (!el) {
+        // Distinguish "not signed in" from "Nintendo changed the page", since
+        // the fix is completely different for each.
+        var signedOut = /sign|log ?in/i.test(document.title || '') ||
+                        location.href.indexOf('/login') !== -1 ||
+                        location.host.indexOf('accounts.nintendo.com') === -1;
+        window.__suyu_vgc_result = JSON.stringify({
+          error: signedOut
+            ? 'not signed in to Nintendo - complete the sign-in in this window, then sync again'
+            : 'the Virtual Game Card page did not contain the expected data (Nintendo may have changed it)'
+        });
+        return;
+      }
       const d = JSON.parse(el.getAttribute('data-json'));
       const all = [];
       let offset = 0, total = 0;
@@ -725,7 +737,15 @@ void NintendoAccountDialog::StartVgcSync() {
         const j = await r.json();
         const vv = j && j.data && j.data.account && j.data.account.vgc &&
                    j.data.account.vgc.vgcViews;
-        if (!vv) { window.__suyu_vgc_result = JSON.stringify({error: JSON.stringify(j).slice(0,400)}); return; }
+        if (!vv) {
+          // Prefer GraphQL's own error text over dumping the whole envelope.
+          var msg = (j && j.errors && j.errors.length && j.errors[0].message)
+                      ? j.errors[0].message
+                      : JSON.stringify(j).slice(0, 300);
+          window.__suyu_vgc_result =
+            JSON.stringify({error: 'HTTP ' + r.status + ': ' + msg});
+          return;
+        }
         total = vv.offsetInfo.total;
         all.push.apply(all, vv.views);
         offset += LIMIT;
