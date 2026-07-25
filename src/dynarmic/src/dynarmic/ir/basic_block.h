@@ -114,22 +114,22 @@ public:
     }
 
     /// Gets the terminal instruction for this basic block.
-    inline Terminal GetTerminal() const noexcept {
+    inline Term::Terminal GetTerminal() const noexcept {
         return terminal;
     }
     /// Sets the terminal instruction for this basic block.
-    inline void SetTerminal(Terminal term) noexcept {
+    inline void SetTerminal(Term::Terminal term) noexcept {
         ASSERT(!HasTerminal() && "Terminal has already been set.");
         terminal = std::move(term);
     }
     /// Replaces the terminal instruction for this basic block.
-    inline void ReplaceTerminal(Terminal term) noexcept {
+    inline void ReplaceTerminal(Term::Terminal term) noexcept {
         ASSERT(HasTerminal() && "Terminal has not been set.");
         terminal = std::move(term);
     }
     /// Determines whether or not this basic block has a terminal instruction.
     inline bool HasTerminal() const noexcept {
-        return terminal.which() != 0;
+        return !std::holds_alternative<std::monostate>(terminal);
     }
 
     /// Gets a mutable reference to the cycle count for this basic block.
@@ -156,7 +156,7 @@ public:
     /// Conditional to pass in order to execute this block
     Cond cond = Cond::AL;
     /// Terminal instruction of this block.
-    Terminal terminal = Term::Invalid{};
+    Term::Terminal terminal = std::monostate{};
     /// Number of cycles this block takes to execute if the conditional fails.
     size_t cond_failed_cycle_count = 0;
     /// Number of cycles this block takes to execute.

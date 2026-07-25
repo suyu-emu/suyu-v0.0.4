@@ -34,7 +34,8 @@ oaknut::Label EmitA32Cond(oaknut::CodeGenerator& code, EmitContext&, IR::Cond co
     return pass;
 }
 
-void EmitA32Terminal(oaknut::CodeGenerator& code, EmitContext& ctx, IR::Term::Terminal terminal, IR::LocationDescriptor initial_location, bool is_single_step);
+void EmitA32LeafTerminal(oaknut::CodeGenerator& code, EmitContext& ctx, IR::Term::LeafTerminal const& terminal, IR::LocationDescriptor initial_location, bool is_single_step);
+void EmitA32Terminal(oaknut::CodeGenerator& code, EmitContext& ctx, IR::Term::Terminal const& terminal, IR::LocationDescriptor initial_location, bool is_single_step);
 
 void EmitA32Terminal(oaknut::CodeGenerator& code, EmitContext& ctx, IR::Term::ReturnToDispatch, IR::LocationDescriptor, bool) {
     EmitRelocation(code, ctx, LinkTarget::ReturnToDispatcher);
@@ -125,31 +126,53 @@ void EmitA32Terminal(oaknut::CodeGenerator& code, EmitContext& ctx, IR::Term::Fa
 
 void EmitA32Terminal(oaknut::CodeGenerator& code, EmitContext& ctx, IR::Term::If terminal, IR::LocationDescriptor initial_location, bool is_single_step) {
     oaknut::Label pass = EmitA32Cond(code, ctx, terminal.if_);
-    EmitA32Terminal(code, ctx, terminal.else_, initial_location, is_single_step);
+    EmitA32LeafTerminal(code, ctx, terminal.else_, initial_location, is_single_step);
     code.l(pass);
-    EmitA32Terminal(code, ctx, terminal.then_, initial_location, is_single_step);
+    EmitA32LeafTerminal(code, ctx, terminal.then_, initial_location, is_single_step);
 }
 
 void EmitA32Terminal(oaknut::CodeGenerator& code, EmitContext& ctx, IR::Term::CheckBit terminal, IR::LocationDescriptor initial_location, bool is_single_step) {
     oaknut::Label fail;
     code.LDRB(Wscratch0, SP, offsetof(StackLayout, check_bit));
     code.CBZ(Wscratch0, fail);
-    EmitA32Terminal(code, ctx, terminal.then_, initial_location, is_single_step);
+    EmitA32LeafTerminal(code, ctx, terminal.then_, initial_location, is_single_step);
     code.l(fail);
-    EmitA32Terminal(code, ctx, terminal.else_, initial_location, is_single_step);
+    EmitA32LeafTerminal(code, ctx, terminal.else_, initial_location, is_single_step);
 }
 
 void EmitA32Terminal(oaknut::CodeGenerator& code, EmitContext& ctx, IR::Term::CheckHalt terminal, IR::LocationDescriptor initial_location, bool is_single_step) {
     oaknut::Label fail;
     code.LDAR(Wscratch0, Xhalt);
     code.CBNZ(Wscratch0, fail);
-    EmitA32Terminal(code, ctx, terminal.else_, initial_location, is_single_step);
+    EmitA32LeafTerminal(code, ctx, terminal.else_, initial_location, is_single_step);
     code.l(fail);
     EmitRelocation(code, ctx, LinkTarget::ReturnToDispatcher);
 }
 
-void EmitA32Terminal(oaknut::CodeGenerator& code, EmitContext& ctx, IR::Term::Terminal terminal, IR::LocationDescriptor initial_location, bool is_single_step) {
-    boost::apply_visitor([&](const auto& t) { EmitA32Terminal(code, ctx, t, initial_location, is_single_step); }, terminal);
+void EmitA32LeafTerminal(oaknut::CodeGenerator& code, EmitContext& ctx, IR::Term::LeafTerminal const& terminal, IR::LocationDescriptor initial_location, bool is_single_step) {
+    if (auto const x = std::get_if<IR::Term::ReturnToDispatch>(&terminal))
+        return EmitA32Terminal(code, ctx, *x, initial_location, is_single_step);
+    if (auto const x = std::get_if<IR::Term::LinkBlock>(&terminal))
+        return EmitA32Terminal(code, ctx, *x, initial_location, is_single_step);
+    if (auto const x = std::get_if<IR::Term::LinkBlockFast>(&terminal))
+        return EmitA32Terminal(code, ctx, *x, initial_location, is_single_step);
+    if (auto const x = std::get_if<IR::Term::PopRSBHint>(&terminal))
+        return EmitA32Terminal(code, ctx, *x, initial_location, is_single_step);
+    if (auto const x = std::get_if<IR::Term::FastDispatchHint>(&terminal))
+        return EmitA32Terminal(code, ctx, *x, initial_location, is_single_step);
+    UNREACHABLE();
+}
+
+void EmitA32Terminal(oaknut::CodeGenerator& code, EmitContext& ctx, IR::Term::Terminal const& terminal, IR::LocationDescriptor initial_location, bool is_single_step) {
+    if (auto const x = std::get_if<IR::Term::LeafTerminal>(&terminal))
+        return EmitA32LeafTerminal(code, ctx, *x, initial_location, is_single_step);
+    if (auto const x = std::get_if<IR::Term::If>(&terminal))
+        return EmitA32Terminal(code, ctx, *x, initial_location, is_single_step);
+    if (auto const x = std::get_if<IR::Term::CheckBit>(&terminal))
+        return EmitA32Terminal(code, ctx, *x, initial_location, is_single_step);
+    if (auto const x = std::get_if<IR::Term::CheckHalt>(&terminal))
+        return EmitA32Terminal(code, ctx, *x, initial_location, is_single_step);
+    UNREACHABLE();
 }
 
 void EmitA32Terminal(oaknut::CodeGenerator& code, EmitContext& ctx) {

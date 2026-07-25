@@ -43,32 +43,20 @@ namespace {
 using namespace Dynarmic;
 
 template<typename Fn>
-bool AnyLocationDescriptorForTerminalHas(IR::Terminal terminal, Fn fn) {
-    return boost::apply_visitor([&](auto t) -> bool {
-        using T = std::decay_t<decltype(t)>;
-        if constexpr (std::is_same_v<T, IR::Term::Invalid>) {
-            return false;
-        } else if constexpr (std::is_same_v<T, IR::Term::ReturnToDispatch>) {
-            return false;
-        } else if constexpr (std::is_same_v<T, IR::Term::LinkBlock>) {
-            return fn(t.next);
-        } else if constexpr (std::is_same_v<T, IR::Term::LinkBlockFast>) {
-            return fn(t.next);
-        } else if constexpr (std::is_same_v<T, IR::Term::PopRSBHint>) {
-            return false;
-        } else if constexpr (std::is_same_v<T, IR::Term::FastDispatchHint>) {
-            return false;
-        } else if constexpr (std::is_same_v<T, IR::Term::If>) {
-            return AnyLocationDescriptorForTerminalHas(t.then_, fn) || AnyLocationDescriptorForTerminalHas(t.else_, fn);
-        } else if constexpr (std::is_same_v<T, IR::Term::CheckBit>) {
-            return AnyLocationDescriptorForTerminalHas(t.then_, fn) || AnyLocationDescriptorForTerminalHas(t.else_, fn);
-        } else if constexpr (std::is_same_v<T, IR::Term::CheckHalt>) {
-            return AnyLocationDescriptorForTerminalHas(t.else_, fn);
-        } else {
-            ASSERT(false && "Invalid terminal type");
-            return false;
-        }
-    }, terminal);
+bool AnyLocationDescriptorForTerminalHas(IR::Term::Terminal terminal, Fn fn) {
+    if (auto const e = std::get_if<IR::Term::LeafTerminal>(&terminal)) {
+        if (auto const x = std::get_if<IR::Term::LinkBlock>(e))
+            return fn(x->next);
+        if (auto const x = std::get_if<IR::Term::LinkBlockFast>(e))
+            return fn(x->next);
+    }
+    if (auto const x = std::get_if<IR::Term::If>(&terminal))
+        return AnyLocationDescriptorForTerminalHas(x->then_, fn) || AnyLocationDescriptorForTerminalHas(x->else_, fn);
+    if (auto const x = std::get_if<IR::Term::CheckBit>(&terminal))
+        return AnyLocationDescriptorForTerminalHas(x->then_, fn) || AnyLocationDescriptorForTerminalHas(x->else_, fn);
+    if (auto const x = std::get_if<IR::Term::CheckHalt>(&terminal))
+        return AnyLocationDescriptorForTerminalHas(x->else_, fn);
+    return false;
 }
 
 bool ShouldTestInst(u32 instruction, u32 pc, bool is_thumb, bool is_last_inst, A32::ITState it_state = {}) {

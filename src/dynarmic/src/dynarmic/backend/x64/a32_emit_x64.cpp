@@ -175,7 +175,7 @@ finish_this_inst:
     if (conf.enable_cycle_counting)
         EmitAddCycles(block.CycleCount());
     code.mov(rbp, code.qword[rsp + ABI_SHADOW_SPACE + offsetof(StackLayout, abi_base_pointer)]);
-    EmitTerminal(block.GetTerminal(), ctx.Location().SetSingleStepping(false), ctx.IsSingleStep());
+    EmitTerminal(block.terminal, ctx.Location().SetSingleStepping(false), ctx.IsSingleStep());
     code.int3();
 
     for (auto& deferred_emit : ctx.deferred_emits)
@@ -219,7 +219,7 @@ void A32EmitX64::EmitCondPrelude(const A32EmitContext& ctx) {
     if (conf.enable_cycle_counting) {
         EmitAddCycles(ctx.block.ConditionFailedCycleCount());
     }
-    EmitTerminal(IR::Term::LinkBlock{ctx.block.ConditionFailedLocation()}, ctx.Location().SetSingleStepping(false), ctx.IsSingleStep());
+    EmitLeafTerminal(IR::Term::LinkBlock{ctx.block.ConditionFailedLocation()}, ctx.Location().SetSingleStepping(false), ctx.IsSingleStep());
     code.L(pass);
 }
 
@@ -1155,11 +1155,12 @@ void A32EmitX64::EmitSetUpperLocationDescriptor(IR::LocationDescriptor new_locat
 }
 
 namespace {
-void EmitTerminalImpl(A32EmitX64& e, IR::Term::ReturnToDispatch, IR::LocationDescriptor, bool) {
+bool EmitTerminalImpl(A32EmitX64& e, IR::Term::ReturnToDispatch, IR::LocationDescriptor, bool) {
     e.code.ReturnFromRunCode();
+    return true;
 }
 
-void EmitTerminalImpl(A32EmitX64& e, IR::Term::LinkBlock terminal, IR::LocationDescriptor initial_location, bool is_single_step) {
+bool EmitTerminalImpl(A32EmitX64& e, IR::Term::LinkBlock terminal, IR::LocationDescriptor initial_location, bool is_single_step) {
     e.EmitSetUpperLocationDescriptor(terminal.next, initial_location);
     if (!e.conf.HasOptimization(OptimizationFlag::BlockLinking) || is_single_step) {
         e.code.mov(MJitStateReg(A32::Reg::PC), A32::LocationDescriptor{terminal.next}.PC());
@@ -1186,9 +1187,10 @@ void EmitTerminalImpl(A32EmitX64& e, IR::Term::LinkBlock terminal, IR::LocationD
         e.PushRSBHelper(rax, rbx, terminal.next);
         e.code.ForceReturnFromRunCode();
     }
+    return true;
 }
 
-void EmitTerminalImpl(A32EmitX64& e, IR::Term::LinkBlockFast terminal, IR::LocationDescriptor initial_location, bool is_single_step) {
+bool EmitTerminalImpl(A32EmitX64& e, IR::Term::LinkBlockFast terminal, IR::LocationDescriptor initial_location, bool is_single_step) {
     e.EmitSetUpperLocationDescriptor(terminal.next, initial_location);
     if (!e.conf.HasOptimization(OptimizationFlag::BlockLinking) || is_single_step) {
         e.code.mov(MJitStateReg(A32::Reg::PC), A32::LocationDescriptor{terminal.next}.PC());
@@ -1201,55 +1203,78 @@ void EmitTerminalImpl(A32EmitX64& e, IR::Term::LinkBlockFast terminal, IR::Locat
             e.EmitPatchJmp(terminal.next);
         }
     }
+    return true;
 }
 
-void EmitTerminalImpl(A32EmitX64& e, IR::Term::PopRSBHint, IR::LocationDescriptor, bool is_single_step) {
+bool EmitTerminalImpl(A32EmitX64& e, IR::Term::PopRSBHint, IR::LocationDescriptor, bool is_single_step) {
     if (!e.conf.HasOptimization(OptimizationFlag::ReturnStackBuffer) || is_single_step) {
         e.code.ReturnFromRunCode();
     } else {
         e.code.jmp(e.terminal_handler_pop_rsb_hint);
     }
+    return true;
 }
 
-void EmitTerminalImpl(A32EmitX64& e, IR::Term::FastDispatchHint, IR::LocationDescriptor, bool is_single_step) {
+bool EmitTerminalImpl(A32EmitX64& e, IR::Term::FastDispatchHint, IR::LocationDescriptor, bool is_single_step) {
     if (!e.conf.HasOptimization(OptimizationFlag::FastDispatch) || is_single_step) {
         e.code.ReturnFromRunCode();
     } else {
         e.code.jmp(e.terminal_handler_fast_dispatch_hint);
     }
+    return true;
 }
 
-void EmitTerminalImpl(A32EmitX64& e, IR::Term::If terminal, IR::LocationDescriptor initial_location, bool is_single_step) {
+bool EmitTerminalImpl(A32EmitX64& e, IR::Term::If terminal, IR::LocationDescriptor initial_location, bool is_single_step) {
     Xbyak::Label pass = e.EmitCond(terminal.if_);
-    e.EmitTerminal(terminal.else_, initial_location, is_single_step);
+    e.EmitLeafTerminal(terminal.else_, initial_location, is_single_step);
     e.code.L(pass);
-    e.EmitTerminal(terminal.then_, initial_location, is_single_step);
+    e.EmitLeafTerminal(terminal.then_, initial_location, is_single_step);
+    return true;
 }
 
-void EmitTerminalImpl(A32EmitX64& e, IR::Term::CheckBit terminal, IR::LocationDescriptor initial_location, bool is_single_step) {
+bool EmitTerminalImpl(A32EmitX64& e, IR::Term::CheckBit terminal, IR::LocationDescriptor initial_location, bool is_single_step) {
     Xbyak::Label fail;
     e.code.cmp(e.code.byte[rsp + ABI_SHADOW_SPACE + offsetof(StackLayout, check_bit)], u8(0));
     e.code.jz(fail);
-    e.EmitTerminal(terminal.then_, initial_location, is_single_step);
+    e.EmitLeafTerminal(terminal.then_, initial_location, is_single_step);
     e.code.L(fail);
-    e.EmitTerminal(terminal.else_, initial_location, is_single_step);
+    e.EmitLeafTerminal(terminal.else_, initial_location, is_single_step);
+    return true;
 }
 
-void EmitTerminalImpl(A32EmitX64& e, IR::Term::CheckHalt terminal, IR::LocationDescriptor initial_location, bool is_single_step) {
+bool EmitTerminalImpl(A32EmitX64& e, IR::Term::CheckHalt terminal, IR::LocationDescriptor initial_location, bool is_single_step) {
     e.code.cmp(dword[e.code.ABI_JIT_PTR + offsetof(A32JitState, halt_reason)], 0);
     e.code.jne(e.code.GetForceReturnFromRunCodeAddress());
-    e.EmitTerminal(terminal.else_, initial_location, is_single_step);
+    e.EmitLeafTerminal(terminal.else_, initial_location, is_single_step);
+    return true;
 }
 
-void EmitTerminalImpl(A32EmitX64&, IR::Term::Invalid, IR::LocationDescriptor, bool) {
+}
+
+bool A32EmitX64::EmitLeafTerminal(IR::Term::LeafTerminal const& terminal, IR::LocationDescriptor initial_location, bool is_single_step) noexcept {
+    if (auto const x = std::get_if<IR::Term::ReturnToDispatch>(&terminal))
+        return EmitTerminalImpl(*this, *x, initial_location, is_single_step);
+    if (auto const x = std::get_if<IR::Term::LinkBlock>(&terminal))
+        return EmitTerminalImpl(*this, *x, initial_location, is_single_step);
+    if (auto const x = std::get_if<IR::Term::LinkBlockFast>(&terminal))
+        return EmitTerminalImpl(*this, *x, initial_location, is_single_step);
+    if (auto const x = std::get_if<IR::Term::PopRSBHint>(&terminal))
+        return EmitTerminalImpl(*this, *x, initial_location, is_single_step);
+    if (auto const x = std::get_if<IR::Term::FastDispatchHint>(&terminal))
+        return EmitTerminalImpl(*this, *x, initial_location, is_single_step);
     UNREACHABLE();
 }
-}
 
-void A32EmitX64::EmitTerminal(IR::Terminal terminal, IR::LocationDescriptor initial_location, bool is_single_step) noexcept {
-    boost::apply_visitor([this, initial_location, is_single_step](auto x) {
-        EmitTerminalImpl(*this, x, initial_location, is_single_step);
-    }, terminal);
+bool A32EmitX64::EmitTerminal(IR::Term::Terminal const& terminal, IR::LocationDescriptor initial_location, bool is_single_step) noexcept {
+    if (auto const e = std::get_if<IR::Term::LeafTerminal>(&terminal))
+        return EmitLeafTerminal(*e, initial_location, is_single_step);
+    if (auto const x = std::get_if<IR::Term::If>(&terminal))
+        return EmitTerminalImpl(*this, *x, initial_location, is_single_step);
+    if (auto const x = std::get_if<IR::Term::CheckBit>(&terminal))
+        return EmitTerminalImpl(*this, *x, initial_location, is_single_step);
+    if (auto const x = std::get_if<IR::Term::CheckHalt>(&terminal))
+        return EmitTerminalImpl(*this, *x, initial_location, is_single_step);
+    UNREACHABLE();
 }
 
 void A32EmitX64::EmitPatchJg(const IR::LocationDescriptor& target_desc, CodePtr target_code_ptr) {
