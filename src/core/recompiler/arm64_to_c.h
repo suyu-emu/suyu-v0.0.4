@@ -390,6 +390,108 @@ inline bool Translate(u32 i, u64 pc, std::string& out) {
         }
     }
 
+    // Data-processing 3-source: MADD/MSUB and the widening multiplies.
+    if ((i & 0x1F000000) == 0x1B000000) {
+        const u32 sf = i >> 31, op54 = (i >> 29) & 3, op31 = (i >> 21) & 7, o0 = (i >> 15) & 1;
+        const u32 rm = (i >> 16) & 31, ra = (i >> 10) & 31, rn = (i >> 5) & 31, rd = i & 31;
+        if (rd != 31 && op54 == 0) {
+            std::string expr;
+            if (op31 == 0) {
+                // MADD / MSUB
+                const std::string prod = "(" + Xz(rn) + " * " + Xz(rm) + ")";
+                expr = Xz(ra) + (o0 ? " - " : " + ") + prod;
+            } else if (op31 == 1 && !o0) {           // SMADDL
+                expr = Xz(ra) + " + (uint64_t)((int64_t)(int32_t)" + Xz(rn) +
+                       " * (int64_t)(int32_t)" + Xz(rm) + ")";
+            } else if (op31 == 1 && o0) {            // SMSUBL
+                expr = Xz(ra) + " - (uint64_t)((int64_t)(int32_t)" + Xz(rn) +
+                       " * (int64_t)(int32_t)" + Xz(rm) + ")";
+            } else if (op31 == 5 && !o0) {           // UMADDL
+                expr = Xz(ra) + " + ((uint64_t)(uint32_t)" + Xz(rn) +
+                       " * (uint64_t)(uint32_t)" + Xz(rm) + ")";
+            } else if (op31 == 5 && o0) {            // UMSUBL
+                expr = Xz(ra) + " - ((uint64_t)(uint32_t)" + Xz(rn) +
+                       " * (uint64_t)(uint32_t)" + Xz(rm) + ")";
+            } else if (op31 == 2) {                  // SMULH
+                expr = "recomp_smulh(" + Xz(rn) + "," + Xz(rm) + ")";
+            } else if (op31 == 6) {                  // UMULH
+                expr = "recomp_umulh(" + Xz(rn) + "," + Xz(rm) + ")";
+            }
+            if (!expr.empty()) {
+                std::string s = "{ uint64_t _r = " + expr + "; ";
+                if (!sf && op31 == 0) s += "_r &= 0xFFFFFFFFULL; ";
+                s += "c->x[" + std::to_string(rd) + "] = _r; }";
+                put(s);
+                return true;
+            }
+        }
+    }
+
+    // ADD/SUB extended register - the form used for pointer arithmetic with a
+    // 32-bit index, so extremely common around array and struct accesses.
+    if ((i & 0x1F200000) == 0x0B200000) {
+        const u32 sf = i >> 31, op = (i >> 30) & 1, S = (i >> 29) & 1;
+        const u32 rm = (i >> 16) & 31, option = (i >> 13) & 7, imm3 = (i >> 10) & 7;
+        const u32 rn = (i >> 5) & 31, rd = i & 31;
+        if (imm3 <= 4) {
+            std::string ext;
+            switch (option) {
+            case 0: ext = "(uint64_t)(uint8_t)" + Xz(rm); break;           // UXTB
+            case 1: ext = "(uint64_t)(uint16_t)" + Xz(rm); break;          // UXTH
+            case 2: ext = "(uint64_t)(uint32_t)" + Xz(rm); break;          // UXTW
+            case 3: ext = Xz(rm); break;                                    // UXTX/LSL
+            case 4: ext = "(uint64_t)(int64_t)(int8_t)" + Xz(rm); break;   // SXTB
+            case 5: ext = "(uint64_t)(int64_t)(int16_t)" + Xz(rm); break;  // SXTH
+            case 6: ext = "(uint64_t)(int64_t)(int32_t)" + Xz(rm); break;  // SXTW
+            case 7: ext = Xz(rm); break;                                    // SXTX
+            default: break;
+            }
+            if (!ext.empty()) {
+                if (imm3) ext = "((" + ext + ") << " + std::to_string(imm3) + ")";
+                std::string s = "{ uint64_t _a=" + Xz(rn) + ", _b=" + ext + "; uint64_t _r=" +
+                                std::string(op ? "_a-_b" : "_a+_b") + "; ";
+                if (!sf) s += "_r &= 0xFFFFFFFFULL; ";
+                if (rd != 31) s += "c->x[" + std::to_string(rd) + "]=_r; ";
+                if (S) s += "recomp_set_flags(c," + std::string(op ? "1" : "0") +
+                            ",_a,_b,_r," + (sf ? "1" : "0") + "); ";
+                s += "}";
+                put(s);
+                return true;
+            }
+        }
+    }
+
+    // Load/store with a register offset (the [base, Xm{, extend}] form).
+    if ((i & 0x3B200C00) == 0x38200800) {
+        const u32 size = i >> 30, opc = (i >> 22) & 3;
+        const u32 rm = (i >> 16) & 31, option = (i >> 13) & 7, S = (i >> 12) & 1;
+        const u32 rn = (i >> 5) & 31, rt = i & 31;
+        if (size <= 3 && (opc == 0 || opc == 1)) {
+            const u32 bits = 8u << size;
+            std::string idx;
+            switch (option) {
+            case 2: idx = "(uint64_t)(uint32_t)" + Xz(rm); break;          // UXTW
+            case 3: idx = Xz(rm); break;                                    // LSL
+            case 6: idx = "(uint64_t)(int64_t)(int32_t)" + Xz(rm); break;  // SXTW
+            case 7: idx = Xz(rm); break;                                    // SXTX
+            default: break;
+            }
+            if (!idx.empty()) {
+                if (S && size) idx = "((" + idx + ") << " + std::to_string(size) + ")";
+                const std::string addr = "(c->x[" + std::to_string(rn) + "] + " + idx + ")";
+                if (opc == 1) {
+                    if (rt != 31) {
+                        put("c->x[" + std::to_string(rt) + "] = recomp_load" +
+                            std::to_string(bits) + "(c," + addr + ");");
+                    }
+                } else {
+                    put("recomp_store" + std::to_string(bits) + "(c," + addr + "," + Xz(rt) + ");");
+                }
+                return true;
+            }
+        }
+    }
+
     // Scalar floating point. Only single (ftype 00) and double (ftype 01) are
     // handled; half-precision and the SIMD vector forms still fall through.
     // Values move through memcpy rather than type punning so this stays
@@ -665,6 +767,9 @@ typedef struct GuestContext {
 typedef void (*BlockFn)(GuestContext*);
 BlockFn recomp_lookup(uint64_t pc); void recomp_run(GuestContext* c);
 void recomp_set_flags(GuestContext*,int,uint64_t,uint64_t,uint64_t,int);
+/* High 64 bits of a 64x64 multiply, for SMULH/UMULH. */
+uint64_t recomp_smulh(uint64_t,uint64_t);
+uint64_t recomp_umulh(uint64_t,uint64_t);
 int  recomp_cond(GuestContext*,unsigned);
 uint64_t recomp_load8(GuestContext*,uint64_t); uint64_t recomp_load16(GuestContext*,uint64_t);
 uint64_t recomp_load32(GuestContext*,uint64_t); uint64_t recomp_load64(GuestContext*,uint64_t);
@@ -717,6 +822,21 @@ void recomp_store16(GuestContext* c,uint64_t a,uint64_t v){uint8_t* p=memptr(c,a
 void recomp_store32(GuestContext* c,uint64_t a,uint64_t v){uint8_t* p=memptr(c,a,4); uint32_t t=(uint32_t)v; if(p)memcpy(p,&t,4);}
 void recomp_store64(GuestContext* c,uint64_t a,uint64_t v){uint8_t* p=memptr(c,a,8); if(p)memcpy(p,&v,8);}
 
+uint64_t recomp_umulh(uint64_t a,uint64_t b){
+  /* Portable 64x64->high64: split into 32-bit halves. Avoids depending on
+     __int128 or MSVC intrinsics so the generated project stays plain C11. */
+  uint64_t al=a&0xFFFFFFFFULL, ah=a>>32, bl=b&0xFFFFFFFFULL, bh=b>>32;
+  uint64_t ll=al*bl, lh=al*bh, hl=ah*bl, hh=ah*bh;
+  uint64_t mid=(ll>>32)+(lh&0xFFFFFFFFULL)+(hl&0xFFFFFFFFULL);
+  return hh+(lh>>32)+(hl>>32)+(mid>>32);
+}
+uint64_t recomp_smulh(uint64_t a,uint64_t b){
+  uint64_t hi=recomp_umulh(a,b);
+  /* Convert the unsigned high half to the signed one. */
+  if((int64_t)a<0) hi-=b;
+  if((int64_t)b<0) hi-=a;
+  return hi;
+}
 void recomp_set_flags(GuestContext* c,int is_sub,uint64_t a,uint64_t b,uint64_t r,int is64){
   uint64_t m=is64?~0ULL:0xFFFFFFFFULL; r&=m;a&=m;b&=m;
   uint64_t s=is64?0x8000000000000000ULL:0x80000000ULL;
