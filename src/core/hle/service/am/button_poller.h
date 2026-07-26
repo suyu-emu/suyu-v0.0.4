@@ -33,9 +33,6 @@ public:
     void OnButtonStateChanged(WindowSystem& window_system);
 
 private:
-    std::mutex m_mutex;
-    std::condition_variable m_cv;
-    std::jthread m_thread;
     std::optional<std::chrono::steady_clock::time_point> m_home_button_press_start{};
     std::optional<std::chrono::steady_clock::time_point> m_capture_button_press_start{};
     std::optional<std::chrono::steady_clock::time_point> m_power_button_press_start{};

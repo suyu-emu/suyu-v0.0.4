@@ -74,6 +74,7 @@ void EmuWindow_SDL3::OnMouseButton(u32 button, u8 state, s32 x, s32 y) {
     } else {
         input_subsystem->GetMouse()->ReleaseButton(mouse_button);
     }
+    input_subsystem->GetMouse()->NotifyChanged();
 }
 
 void EmuWindow_SDL3::OnMouseMotion(s32 x, s32 y) {
@@ -81,6 +82,7 @@ void EmuWindow_SDL3::OnMouseMotion(s32 x, s32 y) {
     input_subsystem->GetMouse()->Move(x, y, 0, 0);
     input_subsystem->GetMouse()->MouseMove(touch_x, touch_y);
     input_subsystem->GetMouse()->TouchMove(touch_x, touch_y);
+    input_subsystem->GetMouse()->NotifyChanged();
 }
 
 void EmuWindow_SDL3::OnFingerDown(float x, float y, std::size_t id) {
