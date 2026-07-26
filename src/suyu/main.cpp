@@ -5960,9 +5960,11 @@ void GMainWindow::OnLoadLibretroCore() {
         !core_manager_->LaunchGame(rom_path)) {
         QMessageBox::warning(
             this, tr("Libretro Core"),
-            tr("Loaded the core, but launching failed. Make sure RetroArch is "
-               "installed and on your PATH - suyu launches libretro cores via "
-               "'retroarch.exe -L <core> <rom>' rather than hosting them directly."));
+            tr("Loaded the core, but launching failed. suyu runs libretro cores "
+               "through RetroArch ('retroarch -L <core> <rom>') rather than "
+               "hosting them itself, so RetroArch needs to be installed. suyu "
+               "looks for it in the usual install locations, including Steam, "
+               "as well as on PATH."));
     }
 }
 

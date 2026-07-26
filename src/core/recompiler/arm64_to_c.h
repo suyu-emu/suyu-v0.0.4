@@ -492,6 +492,84 @@ inline bool Translate(u32 i, u64 pc, std::string& out) {
         }
     }
 
+    // FP <-> integer conversions and FMOV between register files. These share
+    // bit 21 with the FP arithmetic forms and are distinguished by bits 15..10
+    // being zero, so they must be decoded ahead of the arithmetic/compare block
+    // below or every one of them is mis-decoded as FCMP.
+    if ((i & 0x5F200000) == 0x1E200000 && ((i >> 21) & 1) && ((i >> 10) & 0x3F) == 0) {
+        const u32 sf = i >> 31, ftype = (i >> 22) & 3;
+        const u32 rmode = (i >> 19) & 3, opcode = (i >> 16) & 7;
+        const u32 rn = (i >> 5) & 31, rd = i & 31;
+        if (ftype == 0 || ftype == 1) {
+            const bool dbl = (ftype == 1);
+            const char* ct = dbl ? "double" : "float";
+            const int fsz = dbl ? 8 : 4;
+            const std::string zero_d = "c->vreg[" + std::to_string(rd) + "][0]=0; c->vreg[" +
+                                       std::to_string(rd) + "][1]=0; ";
+
+            // SCVTF / UCVTF: integer register -> FP register.
+            if (rmode == 0 && (opcode == 2 || opcode == 3)) {
+                const std::string src = sf ? (opcode == 2 ? "(int64_t)" + Xz(rn)
+                                                          : "(uint64_t)" + Xz(rn))
+                                           : (opcode == 2 ? "(int32_t)" + Xz(rn)
+                                                          : "(uint32_t)" + Xz(rn));
+                put("{ " + std::string(ct) + " _r = (" + ct + ")(" + src + "); " + zero_d +
+                    "memcpy(&c->vreg[" + std::to_string(rd) + "][0],&_r," +
+                    std::to_string(fsz) + "); }");
+                return true;
+            }
+
+            // FCVTZS / FCVTZU: FP register -> integer register, round toward zero.
+            if (rmode == 3 && (opcode == 0 || opcode == 1) && rd != 31) {
+                const char* it = sf ? (opcode == 0 ? "int64_t" : "uint64_t")
+                                    : (opcode == 0 ? "int32_t" : "uint32_t");
+                std::string s = "{ " + std::string(ct) + " _a; memcpy(&_a,&c->vreg[" +
+                                std::to_string(rn) + "][0]," + std::to_string(fsz) + "); ";
+                s += "uint64_t _r = (uint64_t)(" + std::string(it) + ")_a; ";
+                if (!sf) s += "_r &= 0xFFFFFFFFULL; ";
+                s += "c->x[" + std::to_string(rd) + "] = _r; }";
+                put(s);
+                return true;
+            }
+
+            // FMOV between a general register and an FP register.
+            if (rmode == 0 && (opcode == 6 || opcode == 7)) {
+                if (opcode == 7) {           // GPR -> FP
+                    put("{ " + zero_d + "memcpy(&c->vreg[" + std::to_string(rd) + "][0],&" +
+                        (rn == 31 ? std::string("(uint64_t){0}") : "c->x[" + std::to_string(rn) + "]") +
+                        "," + std::to_string(fsz) + "); }");
+                    return true;
+                }
+                if (rd != 31) {              // FP -> GPR
+                    put("{ uint64_t _r=0; memcpy(&_r,&c->vreg[" + std::to_string(rn) + "][0]," +
+                        std::to_string(fsz) + "); c->x[" + std::to_string(rd) + "]=_r; }");
+                    return true;
+                }
+            }
+        }
+    }
+
+    // MRS/MSR against the small set of system registers a user-mode program
+    // actually touches. Anything else stays on the fallback rather than being
+    // silently invented.
+    if ((i & 0xFFF00000) == 0xD5300000 || (i & 0xFFF00000) == 0xD5100000) {
+        const bool is_read = ((i >> 21) & 1) != 0;   // MRS reads, MSR writes
+        const u32 sysreg = (i >> 5) & 0x7FFF;
+        const u32 rt = i & 31;
+        // TPIDR_EL0 (thread pointer) and TPIDRRO_EL0 are the ones that matter
+        // for ordinary code; both live in the context already.
+        constexpr u32 kTpidrEl0 = 0x5E82;
+        constexpr u32 kTpidrroEl0 = 0x5E83;
+        if (sysreg == kTpidrEl0 || sysreg == kTpidrroEl0) {
+            if (is_read) {
+                if (rt != 31) put("c->x[" + std::to_string(rt) + "] = c->tpidr_el0;");
+            } else {
+                put("c->tpidr_el0 = " + Xz(rt) + ";");
+            }
+            return true;
+        }
+    }
+
     // Scalar floating point. Only single (ftype 00) and double (ftype 01) are
     // handled; half-precision and the SIMD vector forms still fall through.
     // Values move through memcpy rather than type punning so this stays
@@ -755,6 +833,9 @@ typedef struct GuestContext {
        prefix of this struct up to that field, so appending here leaves that
        view valid. */
     uint64_t vreg[32][2];
+    /* Thread pointer (TPIDR_EL0). Read/written by MRS/MSR; user code uses it
+       for thread-local storage. */
+    uint64_t tpidr_el0;
     /* Save-data filesystem state */
     char save_dir[512];
     /* Heap break for SVC memory allocation */
