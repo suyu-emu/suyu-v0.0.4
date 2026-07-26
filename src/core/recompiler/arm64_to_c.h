@@ -220,8 +220,36 @@ inline bool Translate(u32 i, u64 pc, std::string& out) {
         u64 off = (u64)imm12 << size;
         std::string addr = "c->x[" + std::to_string(rn) + "] + " + std::to_string(off);
         const char* ty = size == 0 ? "8" : size == 1 ? "16" : size == 2 ? "32" : "64";
-        if (opc & 1) { if (rt != 31) { snprintf(buf, sizeof buf, "c->x[%u]=recomp_load%s(c,%s);", rt, ty, addr.c_str()); put(buf); } }
-        else { snprintf(buf, sizeof buf, "recomp_store%s(c,%s,%s);", ty, addr.c_str(), Xz(rt).c_str()); put(buf); }
+        // opc: 00 store, 01 load (zero-extend), 10 load signed to 64-bit,
+        // 11 load signed to 32-bit. Testing (opc & 1) got this wrong in both
+        // directions - opc 11 loaded without sign extension, and opc 10 (a
+        // *load*) fell into the store branch and wrote to memory instead.
+        if (opc == 0) {
+            snprintf(buf, sizeof buf, "recomp_store%s(c,%s,%s);", ty, addr.c_str(), Xz(rt).c_str());
+            put(buf);
+        } else if (opc == 1) {
+            if (rt != 31) {
+                snprintf(buf, sizeof buf, "c->x[%u]=recomp_load%s(c,%s);", rt, ty, addr.c_str());
+                put(buf);
+            }
+        } else if (size < 3) {
+            // Signed load: sign-extend from the accessed width.
+            const char* st = size == 0 ? "int8_t" : size == 1 ? "int16_t" : "int32_t";
+            if (rt != 31) {
+                std::string s = "{ uint64_t _r = (uint64_t)(int64_t)(" + std::string(st) +
+                                ")recomp_load" + ty + "(c," + addr + "); ";
+                if (opc == 3) s += "_r &= 0xFFFFFFFFULL; ";   // 32-bit destination
+                s += "c->x[" + std::to_string(rt) + "] = _r; }";
+                put(s);
+            }
+        } else {
+            // size==3 with opc>=2 is not a defined load/store here.
+            snprintf(buf, sizeof buf,
+                     "recomp_unhandled(c,0x%08xU,0x%llxULL); c->pc=0x%llxULL; return;", i,
+                     (unsigned long long)pc, (unsigned long long)next);
+            put(buf);
+            return false;
+        }
         return true;
     }
 
@@ -386,6 +414,39 @@ inline bool Translate(u32 i, u64 pc, std::string& out) {
             if (mode == 1 || mode == 3) s += "c->x[" + std::to_string(rn) + "]=_b+_o; ";
             s += "}";
             put(s);
+            return true;
+        }
+    }
+
+    // Load/store exclusive and acquire/release. The generated runtime is
+    // single-threaded, so the exclusive monitor can never be broken by another
+    // agent: LDXR/STXR reduce to a plain load/store with STXR always reporting
+    // success, and the acquire/release ordering has nothing to order against.
+    // That is exact for a single thread; under suyu's ArmRecomp backend, where
+    // real threads exist, these need the kernel's monitor instead - noted so
+    // the assumption is visible rather than silent.
+    if ((i & 0x3F000000) == 0x08000000) {
+        const u32 size = i >> 30, o2 = (i >> 23) & 1, L = (i >> 22) & 1, o1 = (i >> 21) & 1;
+        const u32 rs = (i >> 16) & 31, rt2 = (i >> 10) & 31, rn = (i >> 5) & 31, rt = i & 31;
+        // Pair variants (o1 set) are left to the fallback; only the single
+        // register forms are handled here.
+        if (!o1 && rt2 == 31) {
+            const u32 bits = 8u << size;
+            const std::string addr = "c->x[" + std::to_string(rn) + "]";
+            if (L) {
+                // LDXR / LDAXR / LDAR
+                if (rt != 31) {
+                    put("c->x[" + std::to_string(rt) + "] = recomp_load" +
+                        std::to_string(bits) + "(c," + addr + ");");
+                }
+            } else {
+                put("recomp_store" + std::to_string(bits) + "(c," + addr + "," + Xz(rt) + ");");
+                // STXR/STLXR report the status of the store in Rs; 0 is success.
+                // STLR (o2 set) has no status register.
+                if (!o2 && rs != 31) {
+                    put("c->x[" + std::to_string(rs) + "] = 0;");
+                }
+            }
             return true;
         }
     }
