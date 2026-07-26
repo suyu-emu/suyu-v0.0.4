@@ -2,6 +2,7 @@
 
 #include "nintendo_library/nintendo_library.h"
 
+#include "common/fs/path_util.h"
 #include "common/logging/log.h"
 
 namespace Core {
@@ -42,7 +43,72 @@ int16_t InputStateCallback(unsigned, unsigned, unsigned, unsigned) {
     return 0;
 }
 
-void EnvironmentCallback(unsigned, const char*) {}
+// The subset of environment commands a core genuinely needs to start. Numbers
+// are used directly rather than including libretro.h, which belongs to the
+// core-side build; they are fixed by the libretro ABI and cannot change.
+constexpr unsigned kEnvGetOverscan = 2;
+constexpr unsigned kEnvGetCanDupe = 3;
+constexpr unsigned kEnvSetMessage = 6;
+constexpr unsigned kEnvSetPerformanceLevel = 8;
+constexpr unsigned kEnvGetSystemDirectory = 9;
+constexpr unsigned kEnvSetPixelFormat = 10;
+constexpr unsigned kEnvSetInputDescriptors = 11;
+constexpr unsigned kEnvGetVariable = 15;
+constexpr unsigned kEnvSetVariables = 16;
+constexpr unsigned kEnvGetVariableUpdate = 17;
+constexpr unsigned kEnvSetSupportNoGame = 18;
+constexpr unsigned kEnvGetSaveDirectory = 31;
+
+bool EnvironmentCallback(unsigned cmd, void* data) {
+    switch (cmd) {
+    case kEnvGetCanDupe:
+        // Cores ask this before ever passing NULL to the video callback.
+        if (data) *static_cast<bool*>(data) = true;
+        return true;
+
+    case kEnvSetPixelFormat:
+        // Accept whatever the core asks for and remember it; refusing here
+        // makes many cores bail out during load.
+        if (data && g_active_wrapper) {
+            g_active_wrapper->SetPixelFormat(*static_cast<const int*>(data));
+        }
+        return true;
+
+    case kEnvGetSystemDirectory:
+    case kEnvGetSaveDirectory:
+        if (data && g_active_wrapper) {
+            *static_cast<const char**>(data) = g_active_wrapper->GetSystemDirectory();
+            return true;
+        }
+        return false;
+
+    case kEnvGetVariable:
+        // No core options are exposed yet, so report "unset" rather than
+        // claiming success with a stale pointer.
+        return false;
+
+    case kEnvGetVariableUpdate:
+        if (data) *static_cast<bool*>(data) = false;
+        return true;
+
+    case kEnvSetVariables:
+    case kEnvSetInputDescriptors:
+    case kEnvSetPerformanceLevel:
+    case kEnvSetSupportNoGame:
+    case kEnvGetOverscan:
+        // Accepted and ignored: these are advisory, and returning false makes
+        // some cores treat the frontend as unusable.
+        return true;
+
+    case kEnvSetMessage:
+        return true;
+
+    default:
+        // Unknown or unimplemented: false is the correct "not supported"
+        // answer and cores are required to cope with it.
+        return false;
+    }
+}
 } // namespace
 
 LibretroWrapper::LibretroWrapper() : nintendo_library(std::make_unique<Nintendo::Library>()) {}
@@ -90,6 +156,13 @@ bool LibretroWrapper::LoadCore(const std::string& core_path) {
 #undef LOAD_SYMBOL
 
     g_active_wrapper = this;
+    // Give cores somewhere to look for BIOS/system files before they can ask.
+    // Defaults to suyu's own data directory so a core that needs firmware has
+    // a real, writable location rather than a null pointer.
+    if (system_directory.empty()) {
+        system_directory =
+            Common::FS::GetSuyuPath(Common::FS::SuyuPath::SuyuDir).generic_string();
+    }
     retro_set_environment(&EnvironmentCallback);
     retro_set_video_refresh(&VideoRefreshCallback);
     retro_set_audio_sample(&AudioSampleCallback);

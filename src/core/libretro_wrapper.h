@@ -61,6 +61,26 @@ public:
     // Called from the free-function libretro callback trampolines; not part
     // of the public frontend API but must be callable from outside the class.
     void OnVideoFrame(const void* data, unsigned width, unsigned height, size_t pitch);
+
+    /// Pixel format the loaded core asked for (libretro RETRO_PIXEL_FORMAT_*).
+    /// Defaults to 0 (0RGB1555), which is what the ABI specifies when a core
+    /// never sets one.
+    void SetPixelFormat(int format) {
+        pixel_format = format;
+    }
+    [[nodiscard]] int GetPixelFormat() const {
+        return pixel_format;
+    }
+
+    /// Directory handed to cores for BIOS/system files and saves. Stable for
+    /// the lifetime of the wrapper so the pointer returned to a core stays
+    /// valid.
+    [[nodiscard]] const char* GetSystemDirectory() const {
+        return system_directory.c_str();
+    }
+    void SetSystemDirectory(std::string dir) {
+        system_directory = std::move(dir);
+    }
     void OnAudioSamples(const int16_t* data, size_t frames);
 
     // Nintendo Library integration
@@ -76,6 +96,11 @@ private:
     std::unique_ptr<Nintendo::Library> nintendo_library;
     VideoFrame last_frame;
     std::vector<int16_t> last_audio;
+    /// Pixel format the core requested; 0 (0RGB1555) is the ABI default.
+    int pixel_format = 0;
+    /// Backing store for the pointer handed to cores via
+    /// GET_SYSTEM_DIRECTORY / GET_SAVE_DIRECTORY.
+    std::string system_directory;
 
     // Libretro function pointers
     void (*retro_init)() = nullptr;
@@ -83,7 +108,12 @@ private:
     unsigned (*retro_api_version)() = nullptr;
     void (*retro_get_system_info)(struct retro_system_info* info) = nullptr;
     void (*retro_get_system_av_info)(struct retro_system_av_info* info) = nullptr;
-    void (*retro_set_environment)(void (*)(unsigned, const char*)) = nullptr;
+    // Must match libretro's retro_environment_t exactly: bool(unsigned, void*).
+    // It was previously declared as void(unsigned, const char*), so the
+    // callback was invoked through the wrong function-pointer type and its
+    // "result" was whatever happened to be in the return register - meaning
+    // every environment query a core made effectively failed.
+    void (*retro_set_environment)(bool (*)(unsigned, void*)) = nullptr;
     void (*retro_set_video_refresh)(void (*)(const void*, unsigned, unsigned, size_t)) = nullptr;
     void (*retro_set_audio_sample)(void (*)(int16_t, int16_t)) = nullptr;
     void (*retro_set_audio_sample_batch)(size_t (*)(const int16_t*, size_t)) = nullptr;
