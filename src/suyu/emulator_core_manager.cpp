@@ -8,6 +8,8 @@
 #include <QJsonObject>
 #include <QLibrary>
 #include <QProcess>
+#include <QProcessEnvironment>
+#include <QStandardPaths>
 #include <QTcpSocket>
 
 #include "suyu/emulator_core_manager.h"
@@ -27,6 +29,69 @@ EmulatorCoreManager::~EmulatorCoreManager() {
     DisconnectTroppical();
 }
 
+namespace {
+
+/// Directories a RetroArch install may live in. Relying on PATH alone is not
+/// enough: the common Windows installs (Steam, the standalone MSI, the
+/// portable build) put retroarch.exe somewhere that is never added to PATH,
+/// so launching by bare name simply failed for most users.
+QStringList RetroArchSearchDirs() {
+    QStringList dirs;
+#ifdef _WIN32
+    const auto env = QProcessEnvironment::systemEnvironment();
+    const QStringList roots = {
+        env.value(QStringLiteral("ProgramFiles(x86)")),
+        env.value(QStringLiteral("ProgramFiles")),
+        env.value(QStringLiteral("LOCALAPPDATA")),
+    };
+    for (const auto& root : roots) {
+        if (root.isEmpty()) {
+            continue;
+        }
+        dirs << root + QStringLiteral("/RetroArch");
+        dirs << root + QStringLiteral("/Steam/steamapps/common/RetroArch");
+    }
+    // Steam libraries are frequently on another drive entirely.
+    for (const auto& drive : QDir::drives()) {
+        const QString root = drive.absoluteFilePath();
+        dirs << root + QStringLiteral("SteamLibrary/steamapps/common/RetroArch");
+        dirs << root + QStringLiteral("Games/RetroArch");
+        dirs << root + QStringLiteral("RetroArch");
+    }
+#else
+    dirs << QStringLiteral("/usr/bin") << QStringLiteral("/usr/local/bin")
+         << QStringLiteral("/var/lib/flatpak/exports/bin")
+         << QDir::homePath() + QStringLiteral("/.local/share/flatpak/exports/bin");
+#endif
+    return dirs;
+}
+
+/// Absolute path to retroarch, or an empty string if it can't be found.
+QString FindRetroArchExecutable() {
+#ifdef _WIN32
+    const QString exe = QStringLiteral("retroarch.exe");
+#else
+    const QString exe = QStringLiteral("retroarch");
+#endif
+    for (const auto& dir : RetroArchSearchDirs()) {
+        const QString candidate = dir + QLatin1Char('/') + exe;
+        if (QFileInfo::exists(candidate)) {
+            return QDir::toNativeSeparators(candidate);
+        }
+    }
+    // Fall back to PATH, which is right when the user installed it that way.
+    const QString on_path = QStandardPaths::findExecutable(
+#ifdef _WIN32
+        QStringLiteral("retroarch")
+#else
+        QStringLiteral("retroarch")
+#endif
+    );
+    return on_path;
+}
+
+} // namespace
+
 void EmulatorCoreManager::ScanCores() {
     // Keep native core, remove previously scanned external cores
     if (cores_.size() > 1) {
@@ -35,6 +100,12 @@ void EmulatorCoreManager::ScanCores() {
 
     // Scan for libretro cores in common directories
     QStringList search_paths;
+    // Wherever RetroArch itself lives, its cores sit alongside it. This is how
+    // Steam and portable installs are picked up - they were missed entirely
+    // when only PATH-relative and ~/.config locations were checked.
+    for (const auto& dir : RetroArchSearchDirs()) {
+        search_paths << dir + QStringLiteral("/cores");
+    }
 #ifdef _WIN32
     search_paths << QStringLiteral("cores");
     search_paths << QDir::homePath() + QStringLiteral("/.config/retroarch/cores");
@@ -283,13 +354,15 @@ bool EmulatorCoreManager::LaunchGame(const QString& rom_path) {
     }
 
     case CoreType::Libretro: {
-        // Launch via RetroArch with the core and ROM
-        QString retroarch;
-#ifdef _WIN32
-        retroarch = QStringLiteral("retroarch.exe");
-#else
-        retroarch = QStringLiteral("retroarch");
-#endif
+        // Launch via RetroArch with the core and ROM. Resolve a real path
+        // rather than trusting PATH - see FindRetroArchExecutable().
+        const QString retroarch = FindRetroArchExecutable();
+        if (retroarch.isEmpty()) {
+            emit CoreLoadError(
+                tr("RetroArch was not found. Install it, or add it to PATH, to run "
+                   "libretro cores."));
+            return false;
+        }
         game_process_ = std::make_unique<QProcess>();
         game_process_->setProgram(retroarch);
         game_process_->setArguments(
