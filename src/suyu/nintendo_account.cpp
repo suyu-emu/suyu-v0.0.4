@@ -683,91 +683,36 @@ void NintendoAccountDialog::StartVgcSync() {
             // Still on a login/interstitial page - wait for the user.
             return;
         }
-        // Inject the collector. It stashes its result on window rather than
-        // returning it, because runJavaScript() resolves with the expression's
-        // immediate value and would otherwise just hand back a pending Promise.
-        static const char* kCollector = R"JS(
+        // Read only the page's bootstrap config here and run the actual
+        // GraphQL query natively. Issuing the query from inside the page fails
+        // with "TypeError: Failed to fetch" - the shop GraphQL endpoint is a
+        // different origin and the injected request does not satisfy its CORS
+        // preflight, which is precisely why the equivalent Playnite extension
+        // also goes out to a real HTTP client rather than staying in the page.
+        // A native request has no CORS to satisfy, and the idToken in this
+        // config is what actually authenticates the call.
+        static const char* kReadConfig = R"JS(
 (function(){
-  if (window.__suyu_vgc_running) { return; }
-  window.__suyu_vgc_running = true;
-  window.__suyu_vgc_result = null;
-  const q = `query getVgcs($idToken: String!, $country: CountryCode!, $language: LanguageCode!,
-    $shopId: Int!, $limit: Int!, $nasLanguage: String!, $offset: Int!,
-    $order: RequestableVgcViewOrder!, $sortBy: RequestableVgcViewSortBy!)
-    @inContext(country: $country, language: $language, shopId: $shopId) {
-    account { vgc { vgcViews(idToken: $idToken, limit: $limit, nasLanguage: $nasLanguage,
-      offset: $offset, order: $order, sortBy: $sortBy, isHidden: false) {
-      offsetInfo { total offset }
-      views { applicationId applicationName publisher icon { url } }
-    } } } }`;
-  (async function(){
-    try {
-      const el = document.querySelector('#data');
-      if (!el) {
-        // Distinguish "not signed in" from "Nintendo changed the page", since
-        // the fix is completely different for each.
-        var signedOut = /sign|log ?in/i.test(document.title || '') ||
-                        location.href.indexOf('/login') !== -1 ||
-                        location.host.indexOf('accounts.nintendo.com') === -1;
-        window.__suyu_vgc_result = JSON.stringify({
-          error: signedOut
-            ? 'not signed in to Nintendo - complete the sign-in in this window, then sync again'
-            : 'the Virtual Game Card page did not contain the expected data (Nintendo may have changed it)'
-        });
-        return;
-      }
-      const d = JSON.parse(el.getAttribute('data-json'));
-      const all = [];
-      let offset = 0, total = 0;
-      const LIMIT = 50;
-      do {
-        const r = await fetch(d.shopGraphQLApiUrl, {
-          method: 'POST',
-          credentials: 'include',
-          headers: {
-            'Content-Type': 'application/json',
-            'x-nintendo-savanna-client-id': d.savannaClientId
-          },
-          body: JSON.stringify({ query: q, variables: {
-            idToken: d.idToken, country: d.country || 'GB', language: d.language || 'en',
-            shopId: d.shopId || 3, limit: LIMIT, nasLanguage: d.nasLanguage || 'en-GB',
-            offset: offset, order: 'ASC', sortBy: 'ACTIVATED_DATE'
-          }})
-        });
-        const j = await r.json();
-        const vv = j && j.data && j.data.account && j.data.account.vgc &&
-                   j.data.account.vgc.vgcViews;
-        if (!vv) {
-          // Prefer GraphQL's own error text over dumping the whole envelope.
-          var msg = (j && j.errors && j.errors.length && j.errors[0].message)
-                      ? j.errors[0].message
-                      : JSON.stringify(j).slice(0, 300);
-          window.__suyu_vgc_result =
-            JSON.stringify({error: 'HTTP ' + r.status + ': ' + msg});
-          return;
-        }
-        total = vv.offsetInfo.total;
-        all.push.apply(all, vv.views);
-        offset += LIMIT;
-      } while (offset < total && all.length < 2000);
-      window.__suyu_vgc_result = JSON.stringify({games: all});
-    } catch (e) {
-      window.__suyu_vgc_result = JSON.stringify({error: String(e)});
+  try {
+    var el = document.querySelector('#data');
+    if (!el) {
+      var signedOut = /sign|log ?in/i.test(document.title || '') ||
+                      location.href.indexOf('/login') !== -1 ||
+                      location.host.indexOf('accounts.nintendo.com') === -1;
+      return JSON.stringify({error: signedOut
+        ? 'not signed in to Nintendo - complete the sign-in in this window, then sync again'
+        : 'the Virtual Game Card page did not contain the expected data (Nintendo may have changed it)'});
     }
-  })();
-})();
+    return el.getAttribute('data-json');
+  } catch (e) { return JSON.stringify({error: String(e)}); }
+})()
 )JS";
-        vgc_view_->page()->runJavaScript(QString::fromUtf8(kCollector));
-
-        // Poll for the stashed result.
-        if (!vgc_poll_timer_) {
-            vgc_poll_timer_ = new QTimer(this);
-            connect(vgc_poll_timer_, &QTimer::timeout, this,
-                    &NintendoAccountDialog::PollVgcResult);
-        }
-        vgc_poll_attempts_ = 0;
-        vgc_poll_timer_->start(500);
+        vgc_view_->page()->runJavaScript(QString::fromUtf8(kReadConfig),
+                                         [this](const QVariant& v) {
+            FetchVgcsNatively(v.toString());
+        });
         library_summary_label->setText(tr("Reading your Virtual Game Cards..."));
+        return;
     });
 
     vgc_view_->setUrl(QUrl(QStringLiteral(
@@ -781,6 +726,125 @@ void NintendoAccountDialog::StartVgcSync() {
     library_summary_label->setVisible(true);
     sync_library_button->setEnabled(true);
 #endif
+}
+
+void NintendoAccountDialog::FetchVgcsNatively(const QString& config_json) {
+    if (config_json.trimmed().isEmpty()) {
+        ApplyVgcJson(QStringLiteral(
+            "{\"error\":\"the Virtual Game Card page returned no configuration\"}"));
+        return;
+    }
+    const QJsonObject d = QJsonDocument::fromJson(config_json.toUtf8()).object();
+    if (d.contains(QStringLiteral("error"))) {
+        ApplyVgcJson(config_json);   // already shaped as an error payload
+        return;
+    }
+    if (d.value(QStringLiteral("idToken")).toString().isEmpty() ||
+        d.value(QStringLiteral("shopGraphQLApiUrl")).toString().isEmpty()) {
+        ApplyVgcJson(QStringLiteral(
+            "{\"error\":\"not signed in to Nintendo - complete the sign-in in this "
+            "window, then sync again\"}"));
+        return;
+    }
+    vgc_accum_ = QJsonArray();
+    FetchVgcPage(d, 0);
+}
+
+void NintendoAccountDialog::FetchVgcPage(const QJsonObject& config, int offset) {
+    static constexpr int kLimit = 50;
+    static const char* kQuery =
+        "query getVgcs($idToken: String!, $country: CountryCode!, $language: LanguageCode!,"
+        "$shopId: Int!, $limit: Int!, $nasLanguage: String!, $offset: Int!,"
+        "$order: RequestableVgcViewOrder!, $sortBy: RequestableVgcViewSortBy!)"
+        "@inContext(country: $country, language: $language, shopId: $shopId) {"
+        "account { vgc { vgcViews(idToken: $idToken, limit: $limit, nasLanguage: $nasLanguage,"
+        "offset: $offset, order: $order, sortBy: $sortBy, isHidden: false) {"
+        "offsetInfo { total offset }"
+        "views { applicationId applicationName publisher icon { url } } } } } }";
+
+    QJsonObject vars;
+    vars[QStringLiteral("idToken")] = config.value(QStringLiteral("idToken")).toString();
+    vars[QStringLiteral("country")] =
+        config.value(QStringLiteral("country")).toString(QStringLiteral("GB"));
+    vars[QStringLiteral("language")] =
+        config.value(QStringLiteral("language")).toString(QStringLiteral("en"));
+    vars[QStringLiteral("shopId")] = config.value(QStringLiteral("shopId")).toInt(3);
+    vars[QStringLiteral("nasLanguage")] =
+        config.value(QStringLiteral("nasLanguage")).toString(QStringLiteral("en-GB"));
+    vars[QStringLiteral("limit")] = kLimit;
+    vars[QStringLiteral("offset")] = offset;
+    vars[QStringLiteral("order")] = QStringLiteral("ASC");
+    vars[QStringLiteral("sortBy")] = QStringLiteral("ACTIVATED_DATE");
+
+    QJsonObject body;
+    body[QStringLiteral("query")] = QString::fromLatin1(kQuery);
+    body[QStringLiteral("variables")] = vars;
+
+    QNetworkRequest request{
+        QUrl(config.value(QStringLiteral("shopGraphQLApiUrl")).toString())};
+    request.setHeader(QNetworkRequest::ContentTypeHeader,
+                      QStringLiteral("application/json"));
+    request.setRawHeader("x-nintendo-savanna-client-id",
+                         config.value(QStringLiteral("savannaClientId"))
+                             .toString()
+                             .toUtf8());
+
+    if (!network_manager_) {
+        network_manager_ = new QNetworkAccessManager(this);
+    }
+    auto* reply =
+        network_manager_->post(request, QJsonDocument(body).toJson(QJsonDocument::Compact));
+    connect(reply, &QNetworkReply::finished, this, [this, reply, config, offset]() {
+        reply->deleteLater();
+        if (reply->error() != QNetworkReply::NoError) {
+            QJsonObject err;
+            err[QStringLiteral("error")] = reply->errorString();
+            ApplyVgcJson(QString::fromUtf8(
+                QJsonDocument(err).toJson(QJsonDocument::Compact)));
+            return;
+        }
+        const QJsonObject root =
+            QJsonDocument::fromJson(reply->readAll()).object();
+        const QJsonObject views = root.value(QStringLiteral("data"))
+                                      .toObject()
+                                      .value(QStringLiteral("account"))
+                                      .toObject()
+                                      .value(QStringLiteral("vgc"))
+                                      .toObject()
+                                      .value(QStringLiteral("vgcViews"))
+                                      .toObject();
+        if (views.isEmpty()) {
+            // Surface GraphQL's own message rather than the whole envelope.
+            const QJsonArray errors = root.value(QStringLiteral("errors")).toArray();
+            QJsonObject err;
+            err[QStringLiteral("error")] =
+                errors.isEmpty()
+                    ? QStringLiteral("Nintendo returned an unexpected response")
+                    : errors.first()
+                          .toObject()
+                          .value(QStringLiteral("message"))
+                          .toString();
+            ApplyVgcJson(QString::fromUtf8(
+                QJsonDocument(err).toJson(QJsonDocument::Compact)));
+            return;
+        }
+        for (const auto& v : views.value(QStringLiteral("views")).toArray()) {
+            vgc_accum_.append(v);
+        }
+        const int total = views.value(QStringLiteral("offsetInfo"))
+                              .toObject()
+                              .value(QStringLiteral("total"))
+                              .toInt();
+        const int next = offset + kLimit;
+        if (next < total && vgc_accum_.size() < 2000) {
+            FetchVgcPage(config, next);
+            return;
+        }
+        QJsonObject done;
+        done[QStringLiteral("games")] = vgc_accum_;
+        ApplyVgcJson(
+            QString::fromUtf8(QJsonDocument(done).toJson(QJsonDocument::Compact)));
+    });
 }
 
 void NintendoAccountDialog::PollVgcResult() {

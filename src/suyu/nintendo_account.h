@@ -4,6 +4,8 @@
 #pragma once
 
 #include <cstdio>
+#include <QJsonArray>
+#include <QJsonObject>
 #include <QDialog>
 #include <QLabel>
 #include <QLineEdit>
@@ -108,11 +110,17 @@ private:
     /// titles too, which a purchase/transaction list misses.
     void StartVgcSync();
     void PollVgcResult();
+    /// Runs the VGC GraphQL query from here rather than from inside the page.
+    /// The shop endpoint is a different origin and rejects the injected
+    /// request's CORS preflight, so an in-page fetch fails outright.
+    void FetchVgcsNatively(const QString& config_json);
+    void FetchVgcPage(const QJsonObject& config, int offset);
     void ApplyVgcJson(const QString& json);
     class QWebEngineView* vgc_view_ = nullptr;
     class QDialog* vgc_dialog_ = nullptr;
     class QTimer* vgc_poll_timer_ = nullptr;
     int vgc_poll_attempts_ = 0;
+    QJsonArray vgc_accum_;   ///< pages accumulated across FetchVgcPage calls
 
     QLabel* status_label{};
     QLabel* nickname_label{};
