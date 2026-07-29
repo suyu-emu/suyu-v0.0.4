@@ -5931,8 +5931,19 @@ void GMainWindow::OnLoadLibretroCore() {
         core_manager_->ScanCores();
     }
 
+    // Open where the cores actually are. ScanCores() has already found the
+    // RetroArch install, so starting in suyu's own directory - which never
+    // contains a core - just makes the user navigate there by hand.
+    QString start_dir;
+    for (const auto& core : core_manager_->AvailableCores()) {
+        if (core.type == EmulatorCoreManager::CoreType::Libretro && !core.path.isEmpty()) {
+            start_dir = QFileInfo(core.path).absolutePath();
+            break;
+        }
+    }
+
     const QString core_path = QFileDialog::getOpenFileName(
-        this, tr("Select a Libretro Core"), QString(),
+        this, tr("Select a Libretro Core"), start_dir,
 #ifdef _WIN32
         tr("Libretro Core (*.dll)")
 #elif defined(__APPLE__)
