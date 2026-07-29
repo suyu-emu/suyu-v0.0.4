@@ -54,18 +54,6 @@ public:
     /// automation can tell whether the handler itself runs versus the click
     /// never reaching the button.
     void TriggerOneClickSignInForTesting() {
-        // Raw-file diagnostic bypassing Common::Log entirely - three
-        // separate LOG_INFO call sites (AOT export, Social back-nav,
-        // Nintendo sign-in) have each independently produced zero output
-        // this session despite their surrounding code definitely executing,
-        // which points at something systemic in the logging pipeline
-        // itself rather than any one of these call sites. This writes with
-        // plain fopen/fprintf so a logger-pipeline bug can't hide whether
-        // this method actually runs.
-        if (FILE* f = fopen("C:\\Users\\charl\\Documents\\SuyuEclipse\\nnid_raw_diag.txt", "a")) {
-            fprintf(f, "TriggerOneClickSignInForTesting entered\n");
-            fclose(f);
-        }
         OpenBrowserLogin();
     }
 

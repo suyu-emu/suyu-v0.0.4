@@ -888,13 +888,7 @@ void NintendoAccountDialog::OnTokenSubmitted() {
 }
 
 void NintendoAccountDialog::OpenBrowserLogin() {
-    if (FILE* f = fopen("C:\\Users\\charl\\Documents\\SuyuEclipse\\nnid_raw_diag.txt", "a")) {
-        fprintf(f, "OpenBrowserLogin entered\n");
-        fclose(f);
-    }
-    LOG_INFO(Frontend, "NNID diag: OpenBrowserLogin() entered");
 #ifdef SUYU_USE_QT_WEB_ENGINE
-    LOG_INFO(Frontend, "NNID diag: SUYU_USE_QT_WEB_ENGINE branch taken");
     // Constructing a QWebEngineProfile/QWebEngineView synchronously inside
     // the click handler crashed live (0xc0000005 in Qt6Core.dll) - clicking
     // One-Click Sign In from inside this dialog's own nested exec() loop
@@ -903,15 +897,7 @@ void NintendoAccountDialog::OpenBrowserLogin() {
     // the next event loop iteration via a 0ms singleShot lets the click
     // event finish unwinding first, which is the standard fix for this
     // class of QtWebEngine re-entrancy crash.
-    if (FILE* f = fopen("C:\\Users\\charl\\Documents\\SuyuEclipse\\nnid_raw_diag.txt", "a")) {
-        fprintf(f, "before singleShot schedule, this->isVisible=%d\n", this->isVisible());
-        fclose(f);
-    }
     QTimer::singleShot(0, this, [this]() {
-    if (FILE* f = fopen("C:\\Users\\charl\\Documents\\SuyuEclipse\\nnid_raw_diag.txt", "a")) {
-        fprintf(f, "singleShot lambda fired, this->isVisible=%d\n", this->isVisible());
-        fclose(f);
-    }
     auto* dialog = new QDialog(this);
     dialog->setWindowTitle(tr("Nintendo Account Sign-In"));
     dialog->resize(900, 700);
@@ -981,18 +967,9 @@ void NintendoAccountDialog::OpenBrowserLogin() {
     };
 
     web_view->setUrl(authorize_url);
-    if (FILE* f = fopen("C:\\Users\\charl\\Documents\\SuyuEclipse\\nnid_raw_diag.txt", "a")) {
-        fprintf(f, "about to call dialog->show()\n");
-        fclose(f);
-    }
     dialog->show();
     dialog->raise();
     dialog->activateWindow();
-    if (FILE* f = fopen("C:\\Users\\charl\\Documents\\SuyuEclipse\\nnid_raw_diag.txt", "a")) {
-        fprintf(f, "after show(), isVisible=%d x=%d y=%d w=%d h=%d\n",
-                dialog->isVisible(), dialog->x(), dialog->y(), dialog->width(), dialog->height());
-        fclose(f);
-    }
     });
 #else
     // No WebEngine — open external browser and let user paste token manually
