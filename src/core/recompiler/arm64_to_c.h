@@ -1640,6 +1640,7 @@ inline const char* RuntimeH() {
     return R"RT(#ifndef SUYU_RECOMP_RUNTIME_H
 #define SUYU_RECOMP_RUNTIME_H
 #include <stdint.h>
+#include <stddef.h>   /* offsetof, for the layout assertions below */
 typedef struct GuestContext {
     uint64_t x[32]; uint64_t pc; uint8_t n,z,c,v;
     uint8_t* mem; uint64_t mem_size; uint64_t mem_base_vaddr; int halted;
@@ -1667,6 +1668,22 @@ typedef struct GuestContext {
     /* Open file handles for save data (simplified) */
     void* save_handles[16]; int save_handle_count;
 } GuestContext;
+
+/* Core::ArmRecomp mirrors the prefix of this struct with its own declaration
+   so the emulator can read and write guest state without including this
+   header. Nothing enforces that across the two builds, so the offsets are
+   pinned here: if a field is inserted rather than appended, this fails loudly
+   at generation time instead of silently handing the emulator the wrong
+   register file. Keep in sync with GuestContextView in
+   core/arm/recomp/arm_recomp.cpp. */
+/* A negative array size rather than _Static_assert: the generated project is
+   plain C compiled by whatever the user has, and MSVC's /TC mode rejects the
+   C11 form outright. This construct is valid in every C dialect. */
+typedef char recomp_layout_pc[offsetof(GuestContext, pc) == 256 ? 1 : -1];
+typedef char recomp_layout_svc[offsetof(GuestContext, pending_svc) == 304 ? 1 : -1];
+typedef char recomp_layout_vreg[offsetof(GuestContext, vreg) == 312 ? 1 : -1];
+typedef char recomp_layout_tpidr[offsetof(GuestContext, tpidr_el0) == 824 ? 1 : -1];
+
 typedef void (*BlockFn)(GuestContext*);
 BlockFn recomp_lookup(uint64_t pc); void recomp_run(GuestContext* c);
 void recomp_set_flags(GuestContext*,int,uint64_t,uint64_t,uint64_t,int);

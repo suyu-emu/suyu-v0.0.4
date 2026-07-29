@@ -25,7 +25,24 @@ struct GuestContextView {
     u64 mem_base_vaddr;
     int halted;
     u64 pending_svc;
+    // The SIMD/FP register file and thread pointer sit immediately after
+    // pending_svc in the emitted struct. They have to be modelled here rather
+    // than left off the end: the recompiler emits SIMD code, so a context
+    // switch that did not carry these would silently lose every floating-point
+    // and vector register the guest had live.
+    u64 vreg[32][2];
+    u64 tpidr_el0;
 };
+
+// Nothing links these two builds together, so the shared layout is pinned on
+// both sides: the generated runtime asserts the same four offsets against its
+// own GuestContext. If a field is ever inserted rather than appended, one of
+// the two fails to compile instead of the emulator silently reading the wrong
+// registers.
+static_assert(offsetof(GuestContextView, pc) == 256);
+static_assert(offsetof(GuestContextView, pending_svc) == 304);
+static_assert(offsetof(GuestContextView, vreg) == 312);
+static_assert(offsetof(GuestContextView, tpidr_el0) == 824);
 
 // The generated code signals an SVC by parking with this set. Kept in sync
 // with the emitted recomp_svc contract in core/recompiler/arm64_to_c.h.
@@ -142,7 +159,13 @@ void ArmRecomp::GetContext(Kernel::Svc::ThreadContext& ctx) const {
                  (static_cast<u32>(impl->ctx.z) << 30) |
                  (static_cast<u32>(impl->ctx.c) << 29) |
                  (static_cast<u32>(impl->ctx.v) << 28);
-    ctx.tpidr = impl->tpidrro_el0;
+    // u128 here is a pair of 64-bit halves, matching how the generated
+    // context stores each vector register.
+    for (size_t i = 0; i < 32; ++i) {
+        ctx.v[i][0] = impl->ctx.vreg[i][0];
+        ctx.v[i][1] = impl->ctx.vreg[i][1];
+    }
+    ctx.tpidr = impl->ctx.tpidr_el0;
 }
 
 void ArmRecomp::SetContext(const Kernel::Svc::ThreadContext& ctx) {
@@ -157,11 +180,20 @@ void ArmRecomp::SetContext(const Kernel::Svc::ThreadContext& ctx) {
     impl->ctx.z = (ctx.pstate >> 30) & 1;
     impl->ctx.c = (ctx.pstate >> 29) & 1;
     impl->ctx.v = (ctx.pstate >> 28) & 1;
+    for (size_t i = 0; i < 32; ++i) {
+        impl->ctx.vreg[i][0] = ctx.v[i][0];
+        impl->ctx.vreg[i][1] = ctx.v[i][1];
+    }
+    impl->ctx.tpidr_el0 = ctx.tpidr;
     impl->tpidrro_el0 = ctx.tpidr;
 }
 
 void ArmRecomp::SetTpidrroEl0(u64 value) {
     impl->tpidrro_el0 = value;
+    // The emitted MRS/MSR handlers read the thread pointer out of the guest
+    // context, so setting only the local copy left every guest read of
+    // TPIDR_EL0 returning zero - which breaks thread-local storage.
+    impl->ctx.tpidr_el0 = value;
 }
 
 void ArmRecomp::GetSvcArguments(std::span<uint64_t, 8> args) const {
