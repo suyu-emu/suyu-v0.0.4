@@ -885,6 +885,92 @@ inline bool Translate(u32 i, u64 pc, std::string& out) {
         }
     }
 
+    // Advanced SIMD copy: DUP, INS, SMOV and UMOV. These move single lanes
+    // between vector registers and the general registers, which is how any
+    // scalar value gets into or out of vector code - so they turn up
+    // constantly. imm5 encodes both the element width and the lane index:
+    // the position of its lowest set bit gives the width, and the bits above
+    // it give the index.
+    {
+        const bool vector_copy = (i & 0x9FE08400) == 0x0E000400;
+        const bool scalar_copy = (i & 0xFFE08400) == 0x5E000400;
+        if (vector_copy || scalar_copy) {
+            const u32 Q = (i >> 30) & 1, op = (i >> 29) & 1;
+            const u32 imm5 = (i >> 16) & 0x1F, imm4 = (i >> 11) & 0xF;
+            const u32 rn = (i >> 5) & 31, rd = i & 31;
+            int size = -1;
+            u32 index = 0;
+            if (imm5 & 1)      { size = 0; index = imm5 >> 1; }
+            else if (imm5 & 2) { size = 1; index = imm5 >> 2; }
+            else if (imm5 & 4) { size = 2; index = imm5 >> 3; }
+            else if (imm5 & 8) { size = 3; index = imm5 >> 4; }
+            if (size >= 0) {
+                const int esz = 1 << size;
+                const std::string sn = std::to_string(rn), sd = std::to_string(rd);
+                const std::string off = std::to_string(index * esz);
+                // Read the source lane into _e as a byte copy; this avoids any
+                // assumption about how the 128-bit register is split in two.
+                const std::string read_lane =
+                    "uint8_t _s[16]; memcpy(_s,c->vreg[" + sn + "],16); uint64_t _e=0; "
+                    "memcpy(&_e,_s+" + off + "," + std::to_string(esz) + "); ";
+
+                if (scalar_copy && !op && imm4 == 0) {
+                    // DUP (scalar): the named lane alone, rest of the register zeroed.
+                    put("{ " + read_lane + "c->vreg[" + sd + "][0]=_e; c->vreg[" + sd +
+                        "][1]=0; }");
+                    return true;
+                }
+                if (vector_copy && !op && (imm4 == 0 || imm4 == 1)) {
+                    // DUP (element) or DUP (general): every lane takes the value.
+                    const int lanes = (Q ? 16 : 8) / esz;
+                    std::string s = "{ ";
+                    s += (imm4 == 0) ? read_lane
+                                     : ("uint64_t _e=" + Xz(rn) + "; ");
+                    s += "uint8_t _d[16]; memset(_d,0,16); ";
+                    s += "for(int _i=0;_i<" + std::to_string(lanes) + ";_i++) memcpy(_d+_i*" +
+                         std::to_string(esz) + ",&_e," + std::to_string(esz) + "); ";
+                    s += "memcpy(c->vreg[" + sd + "],_d,16); }";
+                    put(s);
+                    return true;
+                }
+                if (vector_copy && !op && (imm4 == 5 || imm4 == 7) && rd != 31) {
+                    // SMOV / UMOV: one lane out into a general register.
+                    std::string s = "{ " + read_lane;
+                    if (imm4 == 5) {
+                        // Sign-extend from the element width.
+                        const char* st = size == 0 ? "int8_t"
+                                       : size == 1 ? "int16_t"
+                                                   : "int32_t";
+                        s += "uint64_t _r=(uint64_t)(int64_t)(" + std::string(st) + ")_e; ";
+                        if (!Q) s += "_r &= 0xFFFFFFFFULL; ";
+                        s += "c->x[" + sd + "]=_r; }";
+                    } else {
+                        s += "c->x[" + sd + "]=_e; }";
+                    }
+                    put(s);
+                    return true;
+                }
+                if (vector_copy && !op && imm4 == 3) {
+                    // INS (general): overwrite one lane, leave the others alone.
+                    put("{ uint8_t _d[16]; memcpy(_d,c->vreg[" + sd + "],16); uint64_t _e=" +
+                        Xz(rn) + "; memcpy(_d+" + off + ",&_e," + std::to_string(esz) +
+                        "); memcpy(c->vreg[" + sd + "],_d,16); }");
+                    return true;
+                }
+                if (vector_copy && op) {
+                    // INS (element): imm4 holds the source lane, above the bits
+                    // the element width occupies.
+                    const u32 src_index = imm4 >> size;
+                    put("{ uint8_t _s[16],_d[16]; memcpy(_s,c->vreg[" + sn +
+                        "],16); memcpy(_d,c->vreg[" + sd + "],16); memcpy(_d+" + off + ",_s+" +
+                        std::to_string(src_index * esz) + "," + std::to_string(esz) +
+                        "); memcpy(c->vreg[" + sd + "],_d,16); }");
+                    return true;
+                }
+            }
+        }
+    }
+
     // Advanced SIMD modified immediate - MOVI and MVNI. The immediate is
     // scattered across two fields (abc at 18..16, defgh at 9..5) and cmode
     // decides how those eight bits expand, so it has to be rebuilt rather
