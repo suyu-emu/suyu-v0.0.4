@@ -899,6 +899,18 @@ void NintendoAccountDialog::ApplyVgcJson(const QString& json) {
                             .toObject()
                             .value(QStringLiteral("url"))
                             .toString();
+        // Nintendo returns a template ending in a literal "${size}" that the
+        // client is meant to substitute, e.g.
+        //   https://atum-img-lp1.cdn.nintendo.net/i/c/<hash>_${size}
+        // Left as-is the URL 404s, which is why synced titles showed no cover
+        // art. The CDN serves the full-size asset when the suffix is dropped
+        // entirely, and no documented size token was accepted in its place.
+        const int size_marker = game.icon_url.indexOf(QStringLiteral("_${size}"));
+        if (size_marker >= 0) {
+            game.icon_url.truncate(size_marker);
+        } else {
+            game.icon_url.remove(QStringLiteral("${size}"));
+        }
         if (game.title.trimmed().isEmpty()) {
             continue;
         }

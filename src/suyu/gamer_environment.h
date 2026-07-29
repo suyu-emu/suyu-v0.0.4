@@ -124,6 +124,11 @@ private:
     void PopulateFromModel();
     void ShowGameMenu(QListWidgetItem* item, const QPoint& global_pos);
     void RequestCoverArtwork(const QString& game_path, const QString& title);
+    /// Fetches cover art from a known URL rather than searching for it by
+    /// name. Nintendo-account entries carry the exact artwork URL, so the
+    /// name-based search - which often fails to match - is skipped for them.
+    void RequestCoverArtworkFromUrl(const QString& game_path, const QString& title,
+                                    const QString& url);
     /// Persists "this account title lives at this ROM path" so a located game
     /// stays launchable across restarts and library rescans.
     static void RememberLocatedRom(const QString& title_id, const QString& rom_path);

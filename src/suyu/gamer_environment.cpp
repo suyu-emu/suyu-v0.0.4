@@ -1975,9 +1975,17 @@ void GamerEnvironment::PopulateFromModel() {
         item->setSizeHint(QSize(GameCardDelegate::CARD_W + GameCardDelegate::PAD * 2 + 8,
                                 GameCardDelegate::CARD_H + GameCardDelegate::PAD * 2 + 8));
         game_grid_->addItem(item);
-        // Same artwork path as local games, so these don't stand out as
-        // second-class entries in the grid.
-        RequestCoverArtwork(item->data(Qt::UserRole).toString(), owned.title);
+        // Account entries carry Nintendo's own icon URL, which names the exact
+        // title. Prefer it over the name-based IGDB search used for local
+        // games: that search has to guess from a title string and simply fails
+        // for a lot of these, leaving the card blank when correct art was
+        // already to hand.
+        if (!owned.icon_url.isEmpty()) {
+            RequestCoverArtworkFromUrl(item->data(Qt::UserRole).toString(), owned.title,
+                                       owned.icon_url);
+        } else {
+            RequestCoverArtwork(item->data(Qt::UserRole).toString(), owned.title);
+        }
     }
 
     game_grid_->setUpdatesEnabled(true);
@@ -2044,6 +2052,57 @@ void GamerEnvironment::ApplyCoverToItem(const QString& game_path, const QIcon& i
             return;
         }
     }
+}
+
+void GamerEnvironment::RequestCoverArtworkFromUrl(const QString& game_path,
+                                                  const QString& title,
+                                                  const QString& url) {
+    if (!cover_network_manager_ || title.trimmed().isEmpty() || url.isEmpty()) {
+        return;
+    }
+
+    const QString key = title.trimmed().toLower();
+    if (cover_icon_cache_.contains(key)) {
+        ApplyCoverToItem(game_path, cover_icon_cache_.value(key));
+        return;
+    }
+    if (cover_requests_in_flight_.contains(key)) {
+        return;
+    }
+
+    const QString cache_path = CoverCachePathForTitle(title);
+    if (QFileInfo::exists(cache_path)) {
+        QPixmap px(cache_path);
+        if (!px.isNull()) {
+            const QIcon cached_icon(px);
+            cover_icon_cache_.insert(key, cached_icon);
+            ApplyCoverToItem(game_path, cached_icon);
+            return;
+        }
+    }
+
+    cover_requests_in_flight_.insert(key);
+
+    QNetworkRequest request{QUrl(url)};
+    request.setAttribute(QNetworkRequest::RedirectPolicyAttribute,
+                         QNetworkRequest::NoLessSafeRedirectPolicy);
+    QNetworkReply* reply = cover_network_manager_->get(request);
+    connect(reply, &QNetworkReply::finished, this,
+            [this, reply, key, game_path, cache_path]() {
+                reply->deleteLater();
+                cover_requests_in_flight_.remove(key);
+                if (reply->error() != QNetworkReply::NoError) {
+                    return;
+                }
+                QPixmap px;
+                if (!px.loadFromData(reply->readAll()) || px.isNull()) {
+                    return;
+                }
+                px.save(cache_path, "PNG");
+                const QIcon icon(px);
+                cover_icon_cache_.insert(key, icon);
+                ApplyCoverToItem(game_path, icon);
+            });
 }
 
 void GamerEnvironment::RequestCoverArtwork(const QString& game_path, const QString& title) {
