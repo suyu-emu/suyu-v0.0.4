@@ -440,6 +440,8 @@ private slots:
     void OnToggleFoldersInList();
     void OnExportGame();
     void OnLoadLibretroCore();
+    /// Loads a statically recompiled image and points the CPU backend at it.
+    void OnLoadRecompiledImage();
     void OnNintendoAccount();
     void OnSteamIntegration();
     void OnOpenUserManual();

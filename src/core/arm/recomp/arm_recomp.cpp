@@ -8,6 +8,7 @@
 #include "core/arm/recomp/arm_recomp.h"
 #include "core/core.h"
 #include "core/hle/kernel/k_thread.h"
+#include "core/memory.h"
 
 namespace Core {
 
@@ -32,6 +33,18 @@ struct GuestContextView {
     // and vector register the guest had live.
     u64 vreg[32][2];
     u64 tpidr_el0;
+    const void* host_mem;
+};
+
+// Matches RecompHostMem in the generated runtime. The recompiled code calls
+// through this for every guest access, so that it reads and writes the
+// emulator's address space rather than the flat buffer the standalone runtime
+// would otherwise own - without it the recompiled code and the HLE kernel
+// would be looking at two different memories.
+struct RecompHostMem {
+    void* user;
+    u64 (*load)(void* user, u64 va, u32 size);
+    void (*store)(void* user, u64 va, u32 size, u64 value);
 };
 
 // Nothing links these two builds together, so the shared layout is pinned on
@@ -43,6 +56,7 @@ static_assert(offsetof(GuestContextView, pc) == 256);
 static_assert(offsetof(GuestContextView, pending_svc) == 304);
 static_assert(offsetof(GuestContextView, vreg) == 312);
 static_assert(offsetof(GuestContextView, tpidr_el0) == 824);
+static_assert(offsetof(GuestContextView, host_mem) == 832);
 
 // The generated code signals an SVC by parking with this set. Kept in sync
 // with the emitted recomp_svc contract in core/recompiler/arm64_to_c.h.
@@ -65,11 +79,37 @@ struct ArmRecomp::Impl {
     Impl(System& system_, RecompLookupFn lookup_) : system{system_}, lookup{lookup_} {
         std::memset(&ctx, 0, sizeof(ctx));
         ctx.pending_svc = kNoPendingSvc;
+        // Point the recompiled code at the emulator's address space.
+        bridge.user = this;
+        bridge.load = &Impl::HostLoad;
+        bridge.store = &Impl::HostStore;
+        ctx.host_mem = &bridge;
+    }
+
+    static u64 HostLoad(void* user, u64 va, u32 size) {
+        auto& memory = static_cast<Impl*>(user)->system.ApplicationMemory();
+        switch (size) {
+        case 1: return memory.Read8(va);
+        case 2: return memory.Read16(va);
+        case 4: return memory.Read32(va);
+        default: return memory.Read64(va);
+        }
+    }
+
+    static void HostStore(void* user, u64 va, u32 size, u64 value) {
+        auto& memory = static_cast<Impl*>(user)->system.ApplicationMemory();
+        switch (size) {
+        case 1: memory.Write8(va, static_cast<u8>(value)); break;
+        case 2: memory.Write16(va, static_cast<u16>(value)); break;
+        case 4: memory.Write32(va, static_cast<u32>(value)); break;
+        default: memory.Write64(va, value); break;
+        }
     }
 
     System& system;
     RecompLookupFn lookup{};
     GuestContextView ctx{};
+    RecompHostMem bridge{};
     u64 tpidrro_el0{};
     std::atomic<bool> interrupted{false};
 };
