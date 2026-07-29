@@ -144,6 +144,13 @@ inline bool Translate(u32 i, u64 pc, std::string& out) {
 
     if ((i & 0xFFFFF01F) == 0xD503201F) { put("/* nop/hint */"); return true; }
 
+    // Memory barriers: DSB, DMB, ISB and CLREX. The generated runtime executes
+    // one guest thread on one host thread, so there is no other observer for
+    // these to order against and nothing to synchronise - they are genuinely
+    // no-ops here. Under Core::ArmRecomp, where real threads exist, these need
+    // the host's own barriers instead; noted so the assumption stays visible.
+    if ((i & 0xFFFFF01F) == 0xD503301F) { put("/* barrier */"); return true; }
+
     if ((i & 0x1F800000) == 0x12800000) { // MOVZ/MOVN/MOVK
         u32 sf = i >> 31, opc = (i >> 29) & 3, hw = (i >> 21) & 3, imm16 = (i >> 5) & 0xFFFF, rd = i & 31;
         if (rd != 31) {
@@ -813,10 +820,20 @@ inline bool Translate(u32 i, u64 pc, std::string& out) {
                 }
             }
 
-            // FCMP / FCMPE - sets NZCV from an ordered comparison.
-            if (((i >> 10) & 3) == 0 && ((i >> 16) & 0x1F) < 32 && ((i >> 14) & 3) == 0 &&
-                ((i >> 4) & 1) == 0 && (i & 0x0000000F) == 0) {
-                std::string s = ld_n + ld_m;
+            // FCMP / FCMPE, including the compare-against-zero forms. The
+            // low five bits are opcode2: bit 3 selects the #0.0 variant (Rm is
+            // then not a register at all) and bit 4 selects the signalling
+            // form, which differs only in how it reports NaNs and so produces
+            // the same flags here. Requiring all five to be clear, as before,
+            // matched only a quarter of the compares in real code.
+            if (((i >> 10) & 0xF) == 8 && ((i >> 14) & 3) == 0 && (i & 7) == 0) {
+                const bool cmp_zero = ((i >> 3) & 1) != 0;
+                std::string s = ld_n;
+                if (cmp_zero) {
+                    s += std::string("_b = (") + ct + ")0; ";
+                } else {
+                    s += ld_m;
+                }
                 // Unordered (either NaN) sets C and V per the architecture.
                 s += "if (_a != _a || _b != _b) { c->n=0; c->z=0; c->c=1; c->v=1; } ";
                 s += "else { c->n = (_a < _b); c->z = (_a == _b); "
@@ -865,6 +882,44 @@ inline bool Translate(u32 i, u64 pc, std::string& out) {
                 break;
             }
             if (!s.empty()) { put(s); return true; }
+        }
+    }
+
+    // Advanced SIMD modified immediate - MOVI and MVNI. The immediate is
+    // scattered across two fields (abc at 18..16, defgh at 9..5) and cmode
+    // decides how those eight bits expand, so it has to be rebuilt rather
+    // than read out directly.
+    if ((i & 0x9FF80400) == 0x0F000400) {
+        const u32 Q = (i >> 30) & 1, op = (i >> 29) & 1;
+        const u32 cmode = (i >> 12) & 0xF;
+        const u32 rd = i & 31;
+        const u32 imm8 = (((i >> 16) & 7) << 5) | ((i >> 5) & 0x1F);
+        u64 lo = 0;
+        bool ok = false;
+        if (cmode == 0xE) {
+            if (!op) {
+                // MOVI Vd.8B/16B, #imm8 - the byte repeated across the vector.
+                lo = 0x0101010101010101ULL * (u64)imm8;
+                ok = true;
+            } else {
+                // MOVI Vd.2D / Dd, #imm64 - each bit of imm8 expands to a
+                // whole byte of 0x00 or 0xFF.
+                for (u32 b = 0; b < 8; ++b) {
+                    if ((imm8 >> b) & 1) lo |= 0xFFULL << (b * 8);
+                }
+                ok = true;
+            }
+        }
+        if (ok) {
+            char hb[48];
+            snprintf(hb, sizeof hb, "0x%llxULL", (unsigned long long)lo);
+            // op=1 with cmode=1110 is a 64-bit value: it fills the upper half
+            // only when Q selects the full 128-bit register. The 8-bit form
+            // replicates across whichever width Q selects.
+            const std::string hi = Q ? std::string(hb) : std::string("0");
+            put("c->vreg[" + std::to_string(rd) + "][0]=" + hb + "; c->vreg[" +
+                std::to_string(rd) + "][1]=" + hi + ";");
+            return true;
         }
     }
 
