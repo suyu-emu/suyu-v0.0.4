@@ -695,6 +695,80 @@ inline bool Translate(u32 i, u64 pc, std::string& out) {
         }
     }
 
+    // FCSEL - the floating-point conditional select. Shares the scalar FP
+    // encoding but is picked out by bits 11..10 being 11, so it is matched
+    // before the arithmetic and compare forms below.
+    if ((i & 0x5F200C00) == 0x1E200C00) {
+        const u32 ftype = (i >> 22) & 3;
+        const u32 rm = (i >> 16) & 31, cond = (i >> 12) & 15;
+        const u32 rn = (i >> 5) & 31, rd = i & 31;
+        if (ftype == 0 || ftype == 1) {
+            const int fsz = (ftype == 1) ? 8 : 4;
+            // Selecting whole register halves rather than reinterpreting the
+            // value keeps this exact for NaN payloads too.
+            put("{ uint64_t _r = recomp_cond(c," + std::to_string(cond) + ") ? c->vreg[" +
+                std::to_string(rn) + "][0] : c->vreg[" + std::to_string(rm) + "][0]; " +
+                (fsz == 4 ? "_r &= 0xFFFFFFFFULL; " : "") + "c->vreg[" + std::to_string(rd) +
+                "][0]=_r; c->vreg[" + std::to_string(rd) + "][1]=0; }");
+            return true;
+        }
+    }
+
+    // Data-processing (1 source): RBIT, REV16, REV32, REV, CLZ and CLS.
+    // The mask must stop at bit 16: bits 15..10 are the opcode being switched
+    // on below, so including them would pin this to RBIT alone.
+    if ((i & 0x7FFF0000) == 0x5AC00000) {
+        const u32 sf = i >> 31, opcode = (i >> 10) & 0x3F;
+        const u32 rn = (i >> 5) & 31, rd = i & 31;
+        const u32 width = sf ? 64 : 32;
+        if (rd != 31) {
+            const std::string w = std::to_string(width);
+            const std::string src =
+                sf ? Xz(rn) : ("(" + Xz(rn) + " & 0xFFFFFFFFULL)");
+            std::string s;
+            switch (opcode) {
+            case 0:   // RBIT - reverse every bit
+                s = "{ uint64_t _v=" + src + ", _r=0; for(int _i=0;_i<" + w +
+                    ";_i++){ _r=(_r<<1)|((_v>>_i)&1ULL); } c->x[" + std::to_string(rd) + "]=_r; }";
+                break;
+            case 1:   // REV16 - reverse bytes within each halfword
+                s = "{ uint64_t _v=" + src + ", _r=0; for(int _i=0;_i<" + w +
+                    "/8;_i++){ int _p=(_i^1)*8; _r|=((_v>>(_i*8))&0xFFULL)<<_p; } c->x[" +
+                    std::to_string(rd) + "]=_r; }";
+                break;
+            case 2:   // REV32 on 64-bit, REV on 32-bit: bytes within each word
+                if (!sf) {
+                    s = "{ uint64_t _v=" + src + ", _r=0; for(int _i=0;_i<4;_i++){ "
+                        "_r|=((_v>>(_i*8))&0xFFULL)<<((3-_i)*8); } c->x[" +
+                        std::to_string(rd) + "]=_r; }";
+                } else {
+                    s = "{ uint64_t _v=" + src + ", _r=0; for(int _i=0;_i<8;_i++){ "
+                        "int _p=((_i&4)|(3-(_i&3)))*8; _r|=((_v>>(_i*8))&0xFFULL)<<_p; } c->x[" +
+                        std::to_string(rd) + "]=_r; }";
+                }
+                break;
+            case 3:   // REV (64-bit only) - reverse all bytes
+                if (sf) {
+                    s = "{ uint64_t _v=" + src + ", _r=0; for(int _i=0;_i<8;_i++){ "
+                        "_r|=((_v>>(_i*8))&0xFFULL)<<((7-_i)*8); } c->x[" +
+                        std::to_string(rd) + "]=_r; }";
+                }
+                break;
+            case 4:   // CLZ
+                s = "{ uint64_t _v=" + src + "; int _n=0; while(_n<" + w + " && !((_v>>(" + w +
+                    "-1-_n))&1ULL)) _n++; c->x[" + std::to_string(rd) + "]=(uint64_t)_n; }";
+                break;
+            case 5:   // CLS - leading sign bits, not counting the sign itself
+                s = "{ uint64_t _v=" + src + "; int _n=0; while(_n<" + w +
+                    "-1 && (((_v>>(" + w + "-1-_n))&1ULL)==((_v>>(" + w +
+                    "-2-_n))&1ULL))) _n++; c->x[" + std::to_string(rd) + "]=(uint64_t)_n; }";
+                break;
+            default: break;
+            }
+            if (!s.empty()) { put(s); return true; }
+        }
+    }
+
     // MRS/MSR against the small set of system registers a user-mode program
     // actually touches. Anything else stays on the fallback rather than being
     // silently invented.
@@ -777,6 +851,21 @@ inline bool Translate(u32 i, u64 pc, std::string& out) {
                 }
                 if (op) {
                     put(ld_n + ld_m + "_r = _a " + op + " _b; " + st_d);
+                    return true;
+                }
+                // FMAX/FMIN propagate a NaN operand; the NM forms return the
+                // other operand instead, which is exactly what fmax/fmin do.
+                std::string expr2;
+                switch (opcode) {
+                case 4: expr2 = "(_a!=_a||_b!=_b) ? (_a+_b) : (_a>_b?_a:_b)"; break;  // FMAX
+                case 5: expr2 = "(_a!=_a||_b!=_b) ? (_a+_b) : (_a<_b?_a:_b)"; break;  // FMIN
+                case 6: expr2 = dbl ? "fmax(_a,_b)" : "fmaxf(_a,_b)"; break;          // FMAXNM
+                case 7: expr2 = dbl ? "fmin(_a,_b)" : "fminf(_a,_b)"; break;          // FMINNM
+                case 8: expr2 = "-(_a*_b)"; break;                                    // FNMUL
+                default: break;
+                }
+                if (!expr2.empty()) {
+                    put(ld_n + ld_m + "_r = " + expr2 + "; " + st_d);
                     return true;
                 }
             }
