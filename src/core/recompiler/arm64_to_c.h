@@ -992,6 +992,28 @@ inline bool Translate(u32 i, u64 pc, std::string& out) {
             if (opcode == 0x0C) cmp = U ? ">=" : ">";      // FCMGE / FCMGT
             else if (opcode == 0x0D) cmp = U ? "<=" : "=="; // FCMLE / FCMEQ
             else if (opcode == 0x0E && !U) cmp = "<";       // FCMLT
+            // SCVTF / UCVTF: convert the integer in each lane to a float of the
+            // same width. This is the vector counterpart of the general-register
+            // conversion handled further up - the operand is a lane here, not a
+            // general register.
+            if (opcode == 0x1D) {
+                const char* ct = dbl ? "double" : "float";
+                const int fsz = dbl ? 8 : 4;
+                const int bytes = scl_misc ? fsz : (Q ? 16 : 8);
+                const int lanes = bytes / fsz;
+                const std::string ity = std::string(U ? "uint" : "int") +
+                                        std::to_string(fsz * 8) + "_t";
+                std::string s = "{ " + ity + " _a[" + std::to_string(lanes) + "]; " +
+                                std::string(ct) + " _r[" + std::to_string(lanes) + "]; ";
+                s += "memcpy(_a,c->vreg[" + std::to_string(rn) + "]," + std::to_string(bytes) + "); ";
+                s += "for(int _i=0;_i<" + std::to_string(lanes) + ";_i++) _r[_i]=(" +
+                     std::string(ct) + ")_a[_i]; ";
+                s += "c->vreg[" + std::to_string(rd) + "][0]=0; c->vreg[" + std::to_string(rd) +
+                     "][1]=0; ";
+                s += "memcpy(c->vreg[" + std::to_string(rd) + "],_r," + std::to_string(bytes) + "); }";
+                put(s);
+                return true;
+            }
             if (cmp) {
                 const char* ct = dbl ? "double" : "float";
                 const int fsz = dbl ? 8 : 4;
