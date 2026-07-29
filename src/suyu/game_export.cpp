@@ -554,11 +554,44 @@ struct NsoAnalysisResult {
     u32 data_size{};
     u32 total_blocks{};
     u32 total_instructions{};
+    /// Guest address of the first real instruction. An NSO's .text does not
+    /// start with code, so this is not simply text_vaddr.
+    u64 entry_vaddr{};
     std::vector<u8> text_bytes;
     std::vector<u8> rodata_bytes;
     std::vector<u8> data_bytes;
     std::vector<Arm64BasicBlock> blocks;
 };
+
+/// Offset of the first real instruction within a decompressed .text.
+///
+/// An NSO's .text opens with a branch word, then the MOD0 header the offset at
+/// +4 points at, then zero padding - none of which is code. Starting a
+/// recompiled image at .text+0 therefore begins mid-header, and because
+/// nothing branches to the true entry it never becomes a block start either.
+static u32 FindNsoEntryOffset(std::span<const u8> text) {
+    if (text.size() < 0x10) {
+        return 0;
+    }
+    u32 mod0_off = 0;
+    std::memcpy(&mod0_off, text.data() + 4, sizeof(mod0_off));
+
+    // MOD0 itself is 0x1C bytes; walk past it and then over the padding to the
+    // first non-zero word.
+    size_t off = (static_cast<size_t>(mod0_off) + 0x1C + 3) & ~size_t{3};
+    if (off >= text.size()) {
+        return 0;
+    }
+    while (off + 4 <= text.size()) {
+        u32 word = 0;
+        std::memcpy(&word, text.data() + off, sizeof(word));
+        if (word != 0) {
+            return static_cast<u32>(off);
+        }
+        off += 4;
+    }
+    return 0;
+}
 
 /// Parse and analyze a single NSO file using the VFS.
 static std::optional<NsoAnalysisResult> AnalyzeNsoFile(const FileSys::VirtualFile& nso_file,
@@ -604,6 +637,7 @@ static std::optional<NsoAnalysisResult> AnalyzeNsoFile(const FileSys::VirtualFil
     }
 
     result.text_bytes = text_data;
+    result.entry_vaddr = static_cast<u64>(result.text_vaddr) + FindNsoEntryOffset(result.text_bytes);
 
     // Read and decompress .rodata segment (segment 1)
     {
@@ -830,7 +864,8 @@ static bool SerializeTranslatedBlocks(const NsoAnalysisResult& mod, const QStrin
 
 QString GameExportDialog::RunAotPrecompile(const QString& exefs_dir,
                                            const QString& cache_dir,
-                                           RecompileBackend backend) {
+                                           RecompileBackend backend,
+                                           const QString& game_name) {
     QDir().mkpath(cache_dir);
 
     const QString manifest_path = cache_dir + QDir::separator() + QStringLiteral("aot_manifest.json");
@@ -959,7 +994,10 @@ QString GameExportDialog::RunAotPrecompile(const QString& exefs_dir,
             mod.name.toStdString(), mod.text_bytes.data(), mod.text_bytes.size(), mod.text_vaddr,
             mod_dir.toStdString(), /*source_only=*/false,
             mod.rodata_bytes.empty() ? nullptr : mod.rodata_bytes.data(), mod.rodata_bytes.size(),
-            mod.data_bytes.empty() ? nullptr : mod.data_bytes.data(), mod.data_bytes.size());
+            mod.data_bytes.empty() ? nullptr : mod.data_bytes.data(), mod.data_bytes.size(),
+            // Without these the image starts at .text+0, which is the MOD0
+            // header rather than code, and identifies itself only by address.
+            mod.entry_vaddr, game_name.toStdString());
         recomp_total_blocks += stats.blocks;
     }
     // One-command native build scripts (the user can run these to produce the actual executable).
@@ -1276,7 +1314,7 @@ void GameExportDialog::OnExport() {
                                        : QStringLiteral("Dynarmic")));
     QApplication::processEvents();
 
-    const QString cache_result = RunAotPrecompile(exefs_work, cache_work, backend);
+    const QString cache_result = RunAotPrecompile(exefs_work, cache_work, backend, game_name);
     if (cache_result.isEmpty()) {
         status_label->setText(tr("AOT pre-compilation failed."));
         progress_bar->setValue(0);

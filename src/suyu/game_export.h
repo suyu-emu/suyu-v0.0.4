@@ -77,7 +77,7 @@ private:
     /// AOT export: scan ARM code and serialize translated compiler artifacts.
     /// Returns path to the generated cache directory, or empty string on failure.
     QString RunAotPrecompile(const QString& exefs_dir, const QString& cache_dir,
-                             RecompileBackend backend);
+                             RecompileBackend backend, const QString& game_name);
 
     /// Package the translated output into a platform-specific export bundle.
     bool PackageNativeExport(const QString& rom_path, const QString& cache_dir,
