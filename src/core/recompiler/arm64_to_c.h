@@ -215,7 +215,12 @@ inline bool Translate(u32 i, u64 pc, std::string& out) {
         return true;
     }
 
-    if ((i & 0x3B000000) == 0x39000000) { // LDR/STR immediate unsigned offset
+    // LDR/STR immediate unsigned offset. Bit 26 is the V bit: it selects the
+    // SIMD/FP register file rather than the general registers. Leaving it out
+    // of the mask made every "LDR s0, [x1, #8]" compile into an integer load
+    // of x0 - silently wrong code rather than an honest fallback. The SIMD
+    // form is handled separately further down.
+    if ((i & 0x3F000000) == 0x39000000) {
         u32 size = (i >> 30) & 3, opc = (i >> 22) & 3, imm12 = (i >> 10) & 0xFFF, rn = (i >> 5) & 31, rt = i & 31;
         u64 off = (u64)imm12 << size;
         std::string addr = "c->x[" + std::to_string(rn) + "] + " + std::to_string(off);
@@ -270,7 +275,8 @@ inline bool Translate(u32 i, u64 pc, std::string& out) {
     // closes with these, so without them a real game stops at its first
     // prologue. Covers the signed-offset, pre-index and post-index forms for
     // both 32- and 64-bit operands.
-    if ((i & 0x3A000000) == 0x28000000) {
+    // Bit 26 (V) must be clear here; the SIMD/FP pair form is handled below.
+    if ((i & 0x3E000000) == 0x28000000) {
         const u32 opc = i >> 30;            // 0 = 32-bit, 2 = 64-bit
         const bool is_load = (i >> 22) & 1;
         const u32 mode = (i >> 23) & 3;     // 1 post-index, 2 signed offset, 3 pre-index
@@ -333,10 +339,42 @@ inline bool Translate(u32 i, u64 pc, std::string& out) {
         const u32 immr = (i >> 16) & 0x3F, imms = (i >> 10) & 0x3F;
         const u32 rn = (i >> 5) & 31, rd = i & 31;
         const u32 width = sf ? 64 : 32;
-        // Only UBFM (opc 2) and SBFM (opc 0). BFM merges into the existing
-        // destination bits, which needs the insert mask tracked properly -
-        // left to the fallback rather than approximated, since wrong codegen
-        // is worse than an honest halt.
+
+        // BFM (opc 1) - the encoding behind BFI and BFXIL. Unlike UBFM/SBFM it
+        // merges into the destination, leaving the bits outside the inserted
+        // field untouched, so it needs an explicit mask rather than a shift.
+        if (rd != 31 && opc == 1 && immr < width && imms < width) {
+            u32 nbits, src_shift, dst_pos;
+            if (imms >= immr) {          // BFXIL: extract to the bottom of Rd
+                nbits = imms - immr + 1;
+                src_shift = immr;
+                dst_pos = 0;
+            } else {                     // BFI: insert at (width - immr)
+                nbits = imms + 1;
+                src_shift = 0;
+                dst_pos = width - immr;
+            }
+            if (nbits + dst_pos <= width) {
+                // Build the field mask at 64 bits; nbits is < 64 here because
+                // dst_pos + nbits <= width <= 64 and a 64-wide field would
+                // make the shift below undefined.
+                const u64 field = (nbits >= 64) ? ~0ULL : ((1ULL << nbits) - 1ULL);
+                const u64 mask = field << dst_pos;
+                char mb[48], fb[48];
+                snprintf(mb, sizeof mb, "0x%llxULL", (unsigned long long)mask);
+                snprintf(fb, sizeof fb, "0x%llxULL", (unsigned long long)field);
+                std::string s = "{ uint64_t _s = " + Xz(rn);
+                if (src_shift) s += " >> " + std::to_string(src_shift);
+                s += "; uint64_t _r = (c->x[" + std::to_string(rd) + "] & ~" + mb +
+                     ") | ((_s & " + fb + ") << " + std::to_string(dst_pos) + "); ";
+                if (!sf) s += "_r &= 0xFFFFFFFFULL; ";
+                s += "c->x[" + std::to_string(rd) + "] = _r; }";
+                put(s);
+                return true;
+            }
+        }
+
+        // UBFM (opc 2) and SBFM (opc 0).
         if (rd != 31 && opc != 1 && immr < width && imms < width) {
             const char* mask = sf ? "" : " & 0xFFFFFFFFULL";
             std::string src = Xz(rn);
@@ -370,6 +408,32 @@ inline bool Translate(u32 i, u64 pc, std::string& out) {
         }
     }
 
+    // Conditional compare: CCMP/CCMN, both the register and 5-bit immediate
+    // forms. When the condition holds this behaves as an ordinary compare;
+    // when it does not, the flags are loaded straight from the nzcv field.
+    // Short-circuit conditionals in C compile to chains of these.
+    if ((i & 0x1FE00000) == 0x1A400000 && ((i >> 29) & 1) && ((i >> 10) & 1) == 0 &&
+        ((i >> 4) & 1) == 0) {
+        const u32 sf = i >> 31, op = (i >> 30) & 1;   // op: 0 = CCMN, 1 = CCMP
+        const u32 imm_or_rm = (i >> 16) & 31, cond = (i >> 12) & 15;
+        const bool is_imm = ((i >> 11) & 1) != 0;
+        const u32 rn = (i >> 5) & 31, nzcv = i & 15;
+        const std::string b = is_imm ? (std::to_string(imm_or_rm) + "ULL") : Xz(imm_or_rm);
+        std::string s = "{ if (recomp_cond(c," + std::to_string(cond) + ")) { ";
+        s += "uint64_t _a=" + Xz(rn) + ", _b=" + b + ", _r=" +
+             std::string(op ? "_a-_b" : "_a+_b") + "; ";
+        if (!sf) s += "_r &= 0xFFFFFFFFULL; ";
+        s += "recomp_set_flags(c," + std::string(op ? "1" : "0") + ",_a,_b,_r," +
+             (sf ? "1" : "0") + "); ";
+        s += "} else { ";
+        s += "c->n=" + std::to_string((nzcv >> 3) & 1) + "; ";
+        s += "c->z=" + std::to_string((nzcv >> 2) & 1) + "; ";
+        s += "c->c=" + std::to_string((nzcv >> 1) & 1) + "; ";
+        s += "c->v=" + std::to_string(nzcv & 1) + "; } }";
+        put(s);
+        return true;
+    }
+
     // Conditional select: CSEL/CSINC/CSINV/CSNEG.
     if ((i & 0x1FE00000) == 0x1A800000) {
         const u32 sf = i >> 31, op = (i >> 30) & 1, o2 = (i >> 10) & 1;
@@ -391,7 +455,8 @@ inline bool Translate(u32 i, u64 pc, std::string& out) {
 
     // Load/store with unscaled 9-bit signed offset (LDUR/STUR) and the
     // pre/post-indexed immediate forms.
-    if ((i & 0x3B000000) == 0x38000000 && ((i >> 24) & 1) == 0) {
+    // Again bit 26 (V) must be clear - the SIMD/FP form is handled below.
+    if ((i & 0x3F000000) == 0x38000000 && ((i >> 24) & 1) == 0) {
         const u32 size = i >> 30, opc = (i >> 22) & 3, mode = (i >> 10) & 3;
         const u32 rn = (i >> 5) & 31, rt = i & 31;
         s32 imm9 = (s32)((i >> 12) & 0x1FF);
@@ -523,11 +588,17 @@ inline bool Translate(u32 i, u64 pc, std::string& out) {
     }
 
     // Load/store with a register offset (the [base, Xm{, extend}] form).
-    if ((i & 0x3B200C00) == 0x38200800) {
+    // Bit 26 (V) clear: general registers only, SIMD/FP form handled below.
+    if ((i & 0x3F200C00) == 0x38200800) {
         const u32 size = i >> 30, opc = (i >> 22) & 3;
         const u32 rm = (i >> 16) & 31, option = (i >> 13) & 7, S = (i >> 12) & 1;
         const u32 rn = (i >> 5) & 31, rt = i & 31;
-        if (size <= 3 && (opc == 0 || opc == 1)) {
+        // opc 00 stores, 01 loads zero-extended, 10 loads sign-extended to 64
+        // bits and 11 sign-extended to 32. The signed forms are common - an
+        // indexed read of an int32 array compiles to LDRSW with a register
+        // offset - so leaving them out put thousands of real loads on the
+        // fallback.
+        if (size <= 3 && !(opc >= 2 && size == 3)) {
             const u32 bits = 8u << size;
             std::string idx;
             switch (option) {
@@ -540,13 +611,20 @@ inline bool Translate(u32 i, u64 pc, std::string& out) {
             if (!idx.empty()) {
                 if (S && size) idx = "((" + idx + ") << " + std::to_string(size) + ")";
                 const std::string addr = "(c->x[" + std::to_string(rn) + "] + " + idx + ")";
-                if (opc == 1) {
+                if (opc == 0) {
+                    put("recomp_store" + std::to_string(bits) + "(c," + addr + "," + Xz(rt) + ");");
+                } else if (opc == 1) {
                     if (rt != 31) {
                         put("c->x[" + std::to_string(rt) + "] = recomp_load" +
                             std::to_string(bits) + "(c," + addr + ");");
                     }
-                } else {
-                    put("recomp_store" + std::to_string(bits) + "(c," + addr + "," + Xz(rt) + ");");
+                } else if (rt != 31) {
+                    const char* st = size == 0 ? "int8_t" : size == 1 ? "int16_t" : "int32_t";
+                    std::string s = "{ uint64_t _r = (uint64_t)(int64_t)(" + std::string(st) +
+                                    ")recomp_load" + std::to_string(bits) + "(c," + addr + "); ";
+                    if (opc == 3) s += "_r &= 0xFFFFFFFFULL; ";   // 32-bit destination
+                    s += "c->x[" + std::to_string(rt) + "] = _r; }";
+                    put(s);
                 }
                 return true;
             }
@@ -651,6 +729,34 @@ inline bool Translate(u32 i, u64 pc, std::string& out) {
                                      "][1]=0; memcpy(&c->vreg[" + std::to_string(rd) + "][0],&_r," +
                                      std::to_string(sz) + "); }";
 
+            // FMOV (immediate). This must be decoded before FCMP below: it
+            // also has bits 11..10 clear, so an FMOV whose imm8 and Rd happen
+            // to line up would otherwise be read as a compare and silently
+            // clobber the flags instead of loading a constant.
+            if (((i >> 10) & 7) == 4 && ((i >> 5) & 0x1F) == 0) {
+                const u32 imm8 = (i >> 13) & 0xFF;
+                // VFPExpandImm: sign, then exponent as NOT(b6) followed by b6
+                // repeated, then imm8<5:4>, then imm8<3:0> as the top of the
+                // mantissa. Built at double width and narrowed if needed.
+                const u32 sgn = (imm8 >> 7) & 1;
+                const u32 b6 = (imm8 >> 6) & 1;
+                const u64 e11 = ((u64)(b6 ^ 1) << 10) | (b6 ? (0xFFULL << 2) : 0ULL) |
+                                ((imm8 >> 4) & 3);
+                const u64 dbits = ((u64)sgn << 63) | (e11 << 52) | ((u64)(imm8 & 0xF) << 48);
+                char hb[64];
+                if (dbl) {
+                    snprintf(hb, sizeof hb, "0x%llxULL", (unsigned long long)dbits);
+                } else {
+                    double dv; memcpy(&dv, &dbits, 8);
+                    const float fv = (float)dv;
+                    u32 fbits; memcpy(&fbits, &fv, 4);
+                    snprintf(hb, sizeof hb, "0x%xULL", fbits);
+                }
+                put("c->vreg[" + std::to_string(rd) + "][0]=" + hb + "; c->vreg[" +
+                    std::to_string(rd) + "][1]=0;");
+                return true;
+            }
+
             // Two-source: FMUL/FDIV/FADD/FSUB (opcode in bits 15..12).
             if (((i >> 10) & 3) == 2) {
                 const u32 opcode = (i >> 12) & 15;
@@ -664,6 +770,28 @@ inline bool Translate(u32 i, u64 pc, std::string& out) {
                 }
                 if (op) {
                     put(ld_n + ld_m + "_r = _a " + op + " _b; " + st_d);
+                    return true;
+                }
+            }
+
+            // FCVT between precisions. It shares the one-source encoding but
+            // its source and destination widths differ, so it cannot use the
+            // shared load/store fragments below, which assume both are ftype.
+            // Opcode 0001xx, where the low two bits name the destination:
+            // 00 single, 01 double, 11 half. Half stays on the fallback.
+            if (((i >> 10) & 0x1F) == 0x10 && (((i >> 15) & 0x3C) == 0x04)) {
+                const u32 dst = (i >> 15) & 3;
+                if (ftype == 0 && dst == 1) {           // single -> double
+                    put("{ float _s; double _d; memcpy(&_s,&c->vreg[" + std::to_string(rn) +
+                        "][0],4); _d=(double)_s; c->vreg[" + std::to_string(rd) +
+                        "][1]=0; memcpy(&c->vreg[" + std::to_string(rd) + "][0],&_d,8); }");
+                    return true;
+                }
+                if (ftype == 1 && dst == 0) {           // double -> single
+                    put("{ double _d; float _s; memcpy(&_d,&c->vreg[" + std::to_string(rn) +
+                        "][0],8); _s=(float)_d; c->vreg[" + std::to_string(rd) +
+                        "][0]=0; c->vreg[" + std::to_string(rd) +
+                        "][1]=0; memcpy(&c->vreg[" + std::to_string(rd) + "][0],&_s,4); }");
                     return true;
                 }
             }
@@ -697,6 +825,314 @@ inline bool Translate(u32 i, u64 pc, std::string& out) {
                 put(s);
                 return true;
             }
+        }
+    }
+
+    // Data-processing 2-source: UDIV, SDIV, and variable-shift forms LSLV/LSRV/ASRV/RORV.
+    // Encoding: sf 0 0 1 1 0 1 0 1 Rm opcode Rn Rd
+    if ((i & 0x5FE00000) == 0x1AC00000) {
+        const u32 sf = i >> 31;
+        const u32 rm = (i >> 16) & 31, opcode = (i >> 10) & 63;
+        const u32 rn = (i >> 5) & 31, rd = i & 31;
+        if (rd != 31) {
+            const std::string xn = "c->x[" + std::to_string(rn) + "]";
+            const std::string xm = "c->x[" + std::to_string(rm) + "]";
+            std::string s;
+            switch (opcode) {
+            case 2:  // UDIV - divide by 0 yields 0 per ARM spec
+                if (sf) s = "{ uint64_t _r=" + xm + "?" + xn + "/" + xm + ":0; c->x[" + std::to_string(rd) + "]=_r; }";
+                else    s = "{ uint32_t _a=(uint32_t)" + xn + ",_b=(uint32_t)" + xm + "; c->x[" + std::to_string(rd) + "]=(uint64_t)(_b?_a/_b:0); }";
+                break;
+            case 3:  // SDIV
+                if (sf) s = "{ int64_t _a=(int64_t)" + xn + ",_b=(int64_t)" + xm + "; c->x[" + std::to_string(rd) + "]=(uint64_t)(_b?_a/_b:0); }";
+                else    s = "{ int32_t _a=(int32_t)(uint32_t)" + xn + ",_b=(int32_t)(uint32_t)" + xm + "; c->x[" + std::to_string(rd) + "]=(uint64_t)(uint32_t)(_b?_a/_b:0); }";
+                break;
+            case 8:  // LSLV
+                if (sf) s = "{ c->x[" + std::to_string(rd) + "]=" + xn + "<<(" + xm + "&63); }";
+                else    s = "{ c->x[" + std::to_string(rd) + "]=(uint64_t)(uint32_t)((uint32_t)" + xn + "<<(" + xm + "&31)); }";
+                break;
+            case 9:  // LSRV
+                if (sf) s = "{ c->x[" + std::to_string(rd) + "]=" + xn + ">>(" + xm + "&63); }";
+                else    s = "{ c->x[" + std::to_string(rd) + "]=(uint64_t)((uint32_t)" + xn + ">>(" + xm + "&31)); }";
+                break;
+            case 10: // ASRV
+                if (sf) s = "{ c->x[" + std::to_string(rd) + "]=(uint64_t)((int64_t)" + xn + ">>(" + xm + "&63)); }";
+                else    s = "{ c->x[" + std::to_string(rd) + "]=(uint64_t)(uint32_t)((int32_t)(uint32_t)" + xn + ">>(" + xm + "&31)); }";
+                break;
+            case 11: // RORV
+                if (sf) s = "{ uint64_t _a=" + xn + ",_s=" + xm + "&63; c->x[" + std::to_string(rd) + "]=_s?(_a>>_s)|(_a<<(64-_s)):_a; }";
+                else    s = "{ uint32_t _a=(uint32_t)" + xn + ",_s=(uint32_t)" + xm + "&31; c->x[" + std::to_string(rd) + "]=(uint64_t)(uint32_t)(_s?(_a>>_s)|(_a<<(32-_s)):_a); }";
+                break;
+            }
+            if (!s.empty()) { put(s); return true; }
+        }
+    }
+
+    // Advanced SIMD three-register same (0x0E/0x4E/0x6E group).
+    // Bit pattern: Q U 0 1 1 1 0 size 1 Rm opcode 1 Rn Rd
+    // Fixed bits: [28:24]=01110, bit[21]=1, bit[10]=1
+    // Handles the most common vector operations needed by games.
+    // Element operations use memcpy to stay strictly conforming C.
+    if ((i & 0x9F200400) == 0x0E200400) {
+        const u32 Q    = (i >> 30) & 1;   // 0=64-bit half-register, 1=128-bit full
+        const u32 U    = (i >> 29) & 1;
+        const u32 size = (i >> 22) & 3;   // 0=B 1=H 2=S 3=D (integer); sz for FP
+        const u32 rm   = (i >> 16) & 31;
+        const u32 opc5 = (i >> 11) & 31;  // bits[15:11]
+        const u32 rn   = (i >> 5)  & 31;
+        const u32 rd   = i & 31;
+        const int vbytes = Q ? 16 : 8;
+        const int esz   = 1 << size;      // bytes per integer element
+        const int nelems = vbytes / esz;
+
+        // Bitwise ops (opcode=3): AND/BIC/ORR/ORN (U=0); EOR/BSL/BIT/BIF (U=1).
+        // These operate on the full register; element size encodes which variant.
+        if (opc5 == 3) {
+            // Build body string; if left empty, fall through to unhandled.
+            std::string body;
+            const std::string vd0 = "c->vreg[" + std::to_string(rd) + "][0]";
+            const std::string vd1 = "c->vreg[" + std::to_string(rd) + "][1]";
+            const std::string vn0 = "c->vreg[" + std::to_string(rn) + "][0]";
+            const std::string vn1 = "c->vreg[" + std::to_string(rn) + "][1]";
+            const std::string vm0 = "c->vreg[" + std::to_string(rm) + "][0]";
+            const std::string vm1 = "c->vreg[" + std::to_string(rm) + "][1]";
+            if (!U) {
+                const char* op0 = nullptr; const char* op1 = nullptr;
+                if      (size == 0) { op0="&";  op1="&";  }   // AND
+                else if (size == 1) { op0="&~"; op1="&~"; }   // BIC
+                else if (size == 2) { op0="|";  op1="|";  }   // ORR
+                else                { op0="|~"; op1="|~"; }   // ORN
+                body = vd0 + "=" + vn0 + op0 + vm0 + "; " + vd1 + "=" + vn1 + op1 + vm1 + "; ";
+            } else {
+                if (size == 0) {  // EOR
+                    body = vd0 + "=" + vn0 + "^" + vm0 + "; " + vd1 + "=" + vn1 + "^" + vm1 + "; ";
+                } else if (size == 1) {  // BSL: Vd = (Vd & Vn) | (~Vd & Vm)
+                    body = vd0 + "=(" + vd0 + "&" + vn0 + ")|(~" + vd0 + "&" + vm0 + "); ";
+                    body += vd1 + "=(" + vd1 + "&" + vn1 + ")|(~" + vd1 + "&" + vm1 + "); ";
+                }
+                // BIT (size=2) / BIF (size=3): leave on fallback
+            }
+            if (!body.empty()) {
+                std::string s = "{ " + body;
+                if (!Q) s += vd1 + "=0; ";
+                s += "}";
+                put(s);
+                return true;
+            }
+        }
+
+        // Integer ADD (opc5=16, U=0) and SUB (opc5=16, U=1), element-wise.
+        if (opc5 == 16) {
+            const char* iop = U ? "-" : "+";
+            const int b8 = 8 * esz;
+            const std::string ty = "uint" + std::to_string(b8) + "_t";
+            std::string s = "{ " + ty + " _a[" + std::to_string(nelems) + "],_b[" + std::to_string(nelems) + "],_r[" + std::to_string(nelems) + "]; ";
+            s += "memcpy(_a,c->vreg[" + std::to_string(rn) + "]," + std::to_string(vbytes) + "); ";
+            s += "memcpy(_b,c->vreg[" + std::to_string(rm) + "]," + std::to_string(vbytes) + "); ";
+            s += "for(int _i=0;_i<" + std::to_string(nelems) + ";_i++) _r[_i]=(" + ty + ")(_a[_i]" + iop + "_b[_i]); ";
+            s += "memcpy(c->vreg[" + std::to_string(rd) + "],_r," + std::to_string(vbytes) + "); ";
+            if (!Q) s += "c->vreg[" + std::to_string(rd) + "][1]=0; ";
+            s += "}";
+            put(s);
+            return true;
+        }
+
+        // MUL (opcode 10011, U=0) - element-wise multiply, integer only.
+        // U=1 at the same opcode is PMUL (polynomial), which is not the same
+        // operation and stays on the fallback.
+        if (opc5 == 0x13 && !U && size < 3) {
+            const int b8 = 8 * esz;
+            const std::string ty = "uint" + std::to_string(b8) + "_t";
+            std::string s = "{ " + ty + " _a[" + std::to_string(nelems) + "],_b[" + std::to_string(nelems) + "],_r[" + std::to_string(nelems) + "]; ";
+            s += "memcpy(_a,c->vreg[" + std::to_string(rn) + "]," + std::to_string(vbytes) + "); ";
+            s += "memcpy(_b,c->vreg[" + std::to_string(rm) + "]," + std::to_string(vbytes) + "); ";
+            s += "for(int _i=0;_i<" + std::to_string(nelems) + ";_i++) _r[_i]=(" + ty + ")(_a[_i]*_b[_i]); ";
+            s += "memcpy(c->vreg[" + std::to_string(rd) + "],_r," + std::to_string(vbytes) + "); ";
+            if (!Q) s += "c->vreg[" + std::to_string(rd) + "][1]=0; ";
+            s += "}";
+            put(s);
+            return true;
+        }
+
+        // FP three-register same. Here the two "size" bits mean something
+        // different from the integer forms: bit 23 is an opcode-extension bit
+        // (it picks FSUB over FADD, FMLS over FMLA) and bit 22 is sz, the
+        // element width. Treating bit 23 as part of an element size is what
+        // makes FADD look like an unrelated instruction, so the two are split
+        // apart explicitly here.
+        {
+            const u32 a   = (i >> 23) & 1;   // opcode extension, not a size bit
+            const bool dbl = ((i >> 22) & 1) != 0;   // sz: 0 = float, 1 = double
+            const char* ct = dbl ? "double" : "float";
+            const int fsz  = dbl ? 8 : 4;
+            const int fne  = vbytes / fsz;
+            // Emit an element-wise FP operation, optionally accumulating into rd.
+            auto fp_op = [&](const char* expr, bool acc) {
+                std::string s = "{ ";
+                s += std::string(ct) + " _a[" + std::to_string(fne) + "]";
+                s += ",_b[" + std::to_string(fne) + "]";
+                if (acc) s += ",_d[" + std::to_string(fne) + "]";
+                s += ",_r[" + std::to_string(fne) + "]; ";
+                s += "memcpy(_a,c->vreg[" + std::to_string(rn) + "]," + std::to_string(vbytes) + "); ";
+                s += "memcpy(_b,c->vreg[" + std::to_string(rm) + "]," + std::to_string(vbytes) + "); ";
+                if (acc) s += "memcpy(_d,c->vreg[" + std::to_string(rd) + "]," + std::to_string(vbytes) + "); ";
+                s += "for(int _i=0;_i<" + std::to_string(fne) + ";_i++) _r[_i]=(" + std::string(ct) + ")(" + expr + "); ";
+                s += "memcpy(c->vreg[" + std::to_string(rd) + "],_r," + std::to_string(vbytes) + "); ";
+                if (!Q) s += "c->vreg[" + std::to_string(rd) + "][1]=0; ";
+                s += "}";
+                put(s);
+            };
+            // opcode 11001: FMLA (a=0) / FMLS (a=1), both U=0.
+            if (opc5 == 0x19 && !U) {
+                fp_op(a ? "_d[_i]-_a[_i]*_b[_i]" : "_d[_i]+_a[_i]*_b[_i]", true);
+                return true;
+            }
+            // opcode 11010: FADD (a=0) / FSUB (a=1), both U=0.
+            if (opc5 == 0x1A && !U) {
+                fp_op(a ? "_a[_i]-_b[_i]" : "_a[_i]+_b[_i]", false);
+                return true;
+            }
+            // opcode 11011 with U=1 and a=0 is FMUL. The U=0 encoding at the
+            // same opcode is FMULX, which differs on infinity times zero, so
+            // it is deliberately left alone rather than aliased to FMUL.
+            if (opc5 == 0x1B && U && !a) {
+                fp_op("_a[_i]*_b[_i]", false);
+                return true;
+            }
+            // opcode 11111 with U=1 and a=0 is FDIV.
+            if (opc5 == 0x1F && U && !a) {
+                fp_op("_a[_i]/_b[_i]", false);
+                return true;
+            }
+        }
+    }
+
+    // SIMD/FP load/store pair with V=1 (LDP/STP for S, D, Q registers).
+    // Same general format as the integer pair handler, but with SIMD registers.
+    // Sizes: opc=00→32-bit(S), opc=01→64-bit(D), opc=10→128-bit(Q).
+    if ((i & 0x3E000000) == 0x2C000000) {
+        const u32 opc = i >> 30;
+        const bool is_load = (i >> 22) & 1;
+        const u32 mode = (i >> 23) & 3;    // 1=post, 2=signed-offset, 3=pre
+        const u32 rt2 = (i >> 10) & 31, rn = (i >> 5) & 31, rt = i & 31;
+        s32 imm7 = (s32)((i >> 15) & 0x7F);
+        if (imm7 & 0x40) imm7 |= ~0x7F;
+        if ((opc <= 2) && mode >= 1 && mode <= 3) {
+            const u32 sz = opc == 0 ? 4 : opc == 1 ? 8 : 16;
+            const s64 off = (s64)imm7 * (s64)sz;
+            const int bits = sz * 8;
+            std::string s = "{ uint64_t _b=c->x[" + std::to_string(rn) + "]; int64_t _o=" + std::to_string((long long)off) + "; ";
+            // std::string, not const char*: this gets concatenated with byte
+            // offsets below, and as a pointer that silently becomes pointer
+            // arithmetic on the literal rather than building an expression.
+            const std::string addr = (mode == 1) ? std::string("_b") : std::string("(_b+_o)");
+            if (is_load) {
+                if (sz <= 8) {
+                    s += "{ uint64_t _v=recomp_load" + std::to_string(bits) + "(c," + addr + "); memcpy(&c->vreg[" + std::to_string(rt) + "][0],&_v," + std::to_string(sz) + "); c->vreg[" + std::to_string(rt) + "][1]=0; }";
+                    s += "{ uint64_t _v=recomp_load" + std::to_string(bits) + "(c," + addr + "+" + std::to_string(sz) + "); memcpy(&c->vreg[" + std::to_string(rt2) + "][0],&_v," + std::to_string(sz) + "); c->vreg[" + std::to_string(rt2) + "][1]=0; }";
+                } else {
+                    // 128-bit: two 64-bit loads per register
+                    s += "{ c->vreg[" + std::to_string(rt) + "][0]=recomp_load64(c," + addr + "); c->vreg[" + std::to_string(rt) + "][1]=recomp_load64(c," + addr + "+8); }";
+                    s += "{ c->vreg[" + std::to_string(rt2) + "][0]=recomp_load64(c," + addr + "+16); c->vreg[" + std::to_string(rt2) + "][1]=recomp_load64(c," + addr + "+24); }";
+                }
+            } else {
+                if (sz <= 8) {
+                    s += "{ uint64_t _v=0; memcpy(&_v,&c->vreg[" + std::to_string(rt) + "][0]," + std::to_string(sz) + "); recomp_store" + std::to_string(bits) + "(c," + addr + ",_v); }";
+                    s += "{ uint64_t _v=0; memcpy(&_v,&c->vreg[" + std::to_string(rt2) + "][0]," + std::to_string(sz) + "); recomp_store" + std::to_string(bits) + "(c," + addr + "+" + std::to_string(sz) + ",_v); }";
+                } else {
+                    s += "{ recomp_store64(c," + addr + ",c->vreg[" + std::to_string(rt) + "][0]); recomp_store64(c," + addr + "+8,c->vreg[" + std::to_string(rt) + "][1]); }";
+                    s += "{ recomp_store64(c," + addr + "+16,c->vreg[" + std::to_string(rt2) + "][0]); recomp_store64(c," + addr + "+24,c->vreg[" + std::to_string(rt2) + "][1]); }";
+                }
+            }
+            if (mode == 1 || mode == 3) s += "c->x[" + std::to_string(rn) + "]=_b+_o; ";
+            s += "}";
+            put(s);
+            return true;
+        }
+    }
+
+    // SIMD/FP single-register load and store: the V=1 counterparts of the
+    // integer forms handled further up. Access width is a scale value where
+    // 0..3 mean 1/2/4/8 bytes and 4 means a whole 16-byte Q register; the
+    // 16-byte case is encoded as size==00 with the high bit of opc set, which
+    // is why the width cannot simply be read off the size field.
+    const auto simd_scale = [](u32 size, u32 opc) {
+        return (size == 0 && (opc & 2)) ? 4 : (int)size;
+    };
+    const auto simd_mem = [&](u32 rt, const std::string& ea, int scale, bool is_load) {
+        const int nb = 1 << scale;
+        const std::string v0 = "c->vreg[" + std::to_string(rt) + "][0]";
+        const std::string v1 = "c->vreg[" + std::to_string(rt) + "][1]";
+        if (is_load) {
+            if (nb == 16) {
+                return v0 + "=recomp_load64(c," + ea + "); " + v1 + "=recomp_load64(c,(" + ea + ")+8); ";
+            }
+            // Narrower loads zero the rest of the register, as the architecture
+            // requires - the destination is written whole, not merged into.
+            return "{ uint64_t _v=recomp_load" + std::to_string(nb * 8) + "(c," + ea + "); " +
+                   v0 + "=_v; " + v1 + "=0; } ";
+        }
+        if (nb == 16) {
+            return "recomp_store64(c," + ea + "," + v0 + "); recomp_store64(c,(" + ea + ")+8," + v1 + "); ";
+        }
+        return "{ uint64_t _v=0; memcpy(&_v,&" + v0 + "," + std::to_string(nb) + "); recomp_store" +
+               std::to_string(nb * 8) + "(c," + ea + ",_v); } ";
+    };
+
+    // LDR/STR (SIMD, register offset): [Xn, Xm{, extend {amount}}].
+    if ((i & 0x3F200C00) == 0x3C200800) {
+        const u32 size = i >> 30, opc = (i >> 22) & 3;
+        const u32 rn = (i >> 5) & 31, rt = i & 31;
+        const u32 option = (i >> 13) & 7, S = (i >> 12) & 1;
+        const int scale = simd_scale(size, opc);
+        const std::string rm_str = "c->x[" + std::to_string((i >> 16) & 31) + "]";
+        std::string idx;
+        switch (option) {
+        case 2: idx = "(uint64_t)(uint32_t)" + rm_str; break;                      // UXTW
+        case 3: idx = rm_str; break;                                                // LSL/UXTX
+        case 6: idx = "(uint64_t)(int64_t)(int32_t)(uint32_t)" + rm_str; break;    // SXTW
+        case 7: idx = rm_str; break;                                                // SXTX
+        default: break;
+        }
+        if (!idx.empty()) {
+            // The shift amount, when enabled, is the access scale - not the
+            // size field, which disagrees with it for the 16-byte form.
+            if (S && scale) idx = "((" + idx + ")<<" + std::to_string(scale) + ")";
+            const std::string ea = "(c->x[" + std::to_string(rn) + "]+" + idx + ")";
+            put("{ " + simd_mem(rt, ea, scale, (opc & 1) != 0) + "}");
+            return true;
+        }
+    }
+
+    // LDR/STR (SIMD, unsigned 12-bit immediate offset) - the commonest form.
+    if ((i & 0x3F000000) == 0x3D000000) {
+        const u32 size = i >> 30, opc = (i >> 22) & 3;
+        const u32 imm12 = (i >> 10) & 0xFFF, rn = (i >> 5) & 31, rt = i & 31;
+        const int scale = simd_scale(size, opc);
+        const std::string ea = "(c->x[" + std::to_string(rn) + "]+" +
+                               std::to_string((unsigned long long)imm12 << scale) + "ULL)";
+        put("{ " + simd_mem(rt, ea, scale, (opc & 1) != 0) + "}");
+        return true;
+    }
+
+    // LDUR/STUR (SIMD) and the pre/post-indexed immediate forms.
+    if ((i & 0x3F000000) == 0x3C000000 && ((i >> 24) & 1) == 0) {
+        const u32 size = i >> 30, opc = (i >> 22) & 3, mode = (i >> 10) & 3;
+        const u32 rn = (i >> 5) & 31, rt = i & 31;
+        s32 imm9 = (s32)((i >> 12) & 0x1FF);
+        if (imm9 & 0x100) imm9 |= ~0x1FF;
+        if (mode == 0 || mode == 1 || mode == 3) {
+            const int scale = simd_scale(size, opc);
+            std::string s = "{ uint64_t _b=c->x[" + std::to_string(rn) + "]; int64_t _o=" +
+                            std::to_string((long long)imm9) + "; ";
+            // Post-index accesses the unmodified base; the other two add the
+            // offset first. Pre- and post-index both write the base back.
+            const std::string ea = (mode == 1) ? "_b" : "(_b+_o)";
+            s += simd_mem(rt, ea, scale, (opc & 1) != 0);
+            if (mode == 1 || mode == 3) s += "c->x[" + std::to_string(rn) + "]=_b+_o; ";
+            s += "}";
+            put(s);
+            return true;
         }
     }
 
