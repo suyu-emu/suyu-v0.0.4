@@ -974,6 +974,79 @@ inline bool Translate(u32 i, u64 pc, std::string& out) {
         }
     }
 
+    // Advanced SIMD two-register misc, floating-point compare against zero:
+    // FCMGT, FCMGE, FCMEQ, FCMLE and FCMLT. A true lane is all-ones, which is
+    // what the following select/AND normally consumes. Only the bit-23-clear
+    // group is decoded; the rest stays on the fallback.
+    {
+        const bool vec_misc = (i & 0x9F3E0C00) == 0x0E200800;
+        // Bit 29 is U and must stay out of the mask, or only the U=0 half of
+        // each pair (FCMEQ but not FCMLE, FCMGT but not FCMGE) would match.
+        const bool scl_misc = (i & 0xDF3E0C00) == 0x5E200800;
+        if (vec_misc || scl_misc) {
+            const u32 Q = (i >> 30) & 1, U = (i >> 29) & 1;
+            const u32 opcode = (i >> 12) & 0x1F;
+            const bool dbl = ((i >> 22) & 1) != 0;
+            const u32 rn = (i >> 5) & 31, rd = i & 31;
+            const char* cmp = nullptr;
+            if (opcode == 0x0C) cmp = U ? ">=" : ">";      // FCMGE / FCMGT
+            else if (opcode == 0x0D) cmp = U ? "<=" : "=="; // FCMLE / FCMEQ
+            else if (opcode == 0x0E && !U) cmp = "<";       // FCMLT
+            if (cmp) {
+                const char* ct = dbl ? "double" : "float";
+                const int fsz = dbl ? 8 : 4;
+                // A scalar form touches one lane; a vector form covers the
+                // whole selected width.
+                const int bytes = scl_misc ? fsz : (Q ? 16 : 8);
+                const int lanes = bytes / fsz;
+                const std::string uty = "uint" + std::to_string(fsz * 8) + "_t";
+                std::string s = "{ " + std::string(ct) + " _a[" + std::to_string(lanes) + "]; " +
+                                uty + " _r[" + std::to_string(lanes) + "]; ";
+                s += "memcpy(_a,c->vreg[" + std::to_string(rn) + "]," + std::to_string(bytes) + "); ";
+                s += "for(int _i=0;_i<" + std::to_string(lanes) + ";_i++) _r[_i]=(_a[_i]" + cmp +
+                     "(" + ct + ")0) ? (" + uty + ")~(" + uty + ")0 : (" + uty + ")0; ";
+                s += "c->vreg[" + std::to_string(rd) + "][0]=0; c->vreg[" + std::to_string(rd) +
+                     "][1]=0; ";
+                s += "memcpy(c->vreg[" + std::to_string(rd) + "],_r," + std::to_string(bytes) + "); }";
+                put(s);
+                return true;
+            }
+        }
+    }
+
+    // FMUL by indexed element. Rm is only four bits here, extended by M, and
+    // the lane index is split across H and L - reading Rm as the usual five
+    // bits would silently address the wrong register.
+    {
+        const bool vec_idx = (i & 0x9F00F400) == 0x0F009000;
+        const bool scl_idx = (i & 0xFF00F400) == 0x5F009000;
+        if ((vec_idx || scl_idx) && ((i >> 23) & 1) == 1) {
+            const u32 Q = (i >> 30) & 1;
+            const bool dbl = ((i >> 22) & 1) != 0;
+            const u32 rn = (i >> 5) & 31, rd = i & 31;
+            const u32 rm = ((i >> 16) & 15) | (((i >> 20) & 1) << 4);
+            const u32 H = (i >> 11) & 1, L = (i >> 21) & 1;
+            const u32 index = dbl ? H : ((H << 1) | L);
+            const char* ct = dbl ? "double" : "float";
+            const int fsz = dbl ? 8 : 4;
+            const int bytes = scl_idx ? fsz : (Q ? 16 : 8);
+            const int lanes = bytes / fsz;
+            if (!(dbl && L)) {   // L must be zero for the 64-bit form
+                std::string s = "{ " + std::string(ct) + " _a[" + std::to_string(lanes) +
+                                "],_r[" + std::to_string(lanes) + "],_m; ";
+                s += "memcpy(_a,c->vreg[" + std::to_string(rn) + "]," + std::to_string(bytes) + "); ";
+                s += "memcpy(&_m,(const uint8_t*)c->vreg[" + std::to_string(rm) + "]+" +
+                     std::to_string(index * fsz) + "," + std::to_string(fsz) + "); ";
+                s += "for(int _i=0;_i<" + std::to_string(lanes) + ";_i++) _r[_i]=_a[_i]*_m; ";
+                s += "c->vreg[" + std::to_string(rd) + "][0]=0; c->vreg[" + std::to_string(rd) +
+                     "][1]=0; ";
+                s += "memcpy(c->vreg[" + std::to_string(rd) + "],_r," + std::to_string(bytes) + "); }";
+                put(s);
+                return true;
+            }
+        }
+    }
+
     // Advanced SIMD copy: DUP, INS, SMOV and UMOV. These move single lanes
     // between vector registers and the general registers, which is how any
     // scalar value gets into or out of vector code - so they turn up
