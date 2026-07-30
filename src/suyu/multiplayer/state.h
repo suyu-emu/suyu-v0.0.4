@@ -67,6 +67,10 @@ public:
     void UpdateGameList(QStandardItemModel* game_list);
 
     QString FindLocalGamePath(u64 program_id) const;
+    /// Falls back to matching a room's advertised game by name when its title
+    /// ID does not match any local copy.
+    QString FindLocalGameByName(const QString& name) const;
+    bool LaunchLocalGamePath(const QString& path);
     bool LaunchLocalGame(u64 program_id);
 
 public slots:

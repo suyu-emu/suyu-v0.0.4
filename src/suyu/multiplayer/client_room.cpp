@@ -147,14 +147,20 @@ void ClientRoomWindow::LaunchPreferredGame() {
 
     const auto room_information = member->GetRoomInformation();
     const auto program_id = room_information.preferred_game.id;
-    if (program_id == 0) {
+    const auto preferred_name = QString::fromStdString(room_information.preferred_game.name);
+    if (program_id == 0 && preferred_name.trimmed().isEmpty()) {
         QMessageBox::information(this, tr("No Preferred Game"),
                                  tr("This room does not advertise a preferred game."));
         return;
     }
 
-    if (!parent->LaunchLocalGame(program_id)) {
-        const auto preferred_name = QString::fromStdString(room_information.preferred_game.name);
+    // By ID first, then by the advertised name.
+    QString local_path = parent->FindLocalGamePath(program_id);
+    if (local_path.isEmpty()) {
+        local_path = parent->FindLocalGameByName(preferred_name);
+    }
+
+    if (!parent->LaunchLocalGamePath(local_path)) {
         QMessageBox::warning(this, tr("Preferred Game Not Available"),
                              preferred_name.isEmpty()
                                  ? tr("The room's preferred game is not available in your game library.")
@@ -170,11 +176,19 @@ void ClientRoomWindow::UpdateView() {
             auto memberlist = member->GetMemberInformation();
             ui->chat->SetPlayerList(memberlist);
             const auto information = member->GetRoomInformation();
-            ui->launch_preferred_game->setEnabled(
+            // Enabled when the game can be found either way - by title ID, or
+            // by the name the room advertises. Requiring an ID match left the
+            // button dead for rooms whose ID does not line up with the local
+            // copy, which is most of them.
+            auto* state = static_cast<MultiplayerState*>(parentWidget());
+            const bool have_by_id =
                 information.preferred_game.id != 0 &&
-                !static_cast<MultiplayerState*>(parentWidget())
-                     ->FindLocalGamePath(information.preferred_game.id)
-                     .isEmpty());
+                !state->FindLocalGamePath(information.preferred_game.id).isEmpty();
+            const bool have_by_name =
+                !state->FindLocalGameByName(
+                          QString::fromStdString(information.preferred_game.name))
+                     .isEmpty();
+            ui->launch_preferred_game->setEnabled(have_by_id || have_by_name);
             setWindowTitle(QString(tr("%1 - %2 (%3/%4 members) - connected"))
                                .arg(QString::fromStdString(information.name))
                                .arg(QString::fromStdString(information.preferred_game.name))
@@ -199,16 +213,19 @@ void ClientRoomWindow::MaybeAutoLaunchPreferredGame(const Network::RoomInformati
         return;
     }
 
-    const auto local_path = parent->FindLocalGamePath(info.preferred_game.id);
+    const auto preferred_name = QString::fromStdString(info.preferred_game.name);
+    auto local_path = parent->FindLocalGamePath(info.preferred_game.id);
+    if (local_path.isEmpty()) {
+        local_path = parent->FindLocalGameByName(preferred_name);
+    }
     if (local_path.isEmpty()) {
         return;
     }
 
     auto_launch_attempted_ = true;
-    const auto preferred_name = QString::fromStdString(info.preferred_game.name);
     const auto game_name = preferred_name.isEmpty() ? tr("the preferred game") : preferred_name;
 
-    if (parent->LaunchLocalGame(info.preferred_game.id)) {
+    if (parent->LaunchLocalGamePath(local_path)) {
         ui->chat->AppendStatusMessage(
             tr("Launched your local copy of %1 to match the room.").arg(game_name));
     } else {

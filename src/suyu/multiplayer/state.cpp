@@ -82,6 +82,28 @@ QString FindLocalGamePathRecursive(const QAbstractItemModel* model, const QModel
     return {};
 }
 
+QString FindLocalGameByNameRecursive(const QAbstractItemModel* model, const QModelIndex& parent,
+                                     const QString& wanted) {
+    const auto row_count = model->rowCount(parent);
+    for (int row = 0; row < row_count; ++row) {
+        const auto index = model->index(row, 0, parent);
+        const QString title = index.data(Qt::DisplayRole).toString().trimmed().toLower();
+        const QString path = index.data(GameListItemPath::FullPathRole).toString();
+        // Compare loosely: room names carry decoration ("Smash Ultimate - EU"),
+        // so an exact match would rarely fire.
+        if (!path.isEmpty() && !title.isEmpty() &&
+            (title.contains(wanted) || wanted.contains(title))) {
+            return path;
+        }
+
+        const auto child_path = FindLocalGameByNameRecursive(model, index, wanted);
+        if (!child_path.isEmpty()) {
+            return child_path;
+        }
+    }
+    return {};
+}
+
 } // namespace
 
 QString MultiplayerState::FindLocalGamePath(u64 program_id) const {
@@ -90,6 +112,27 @@ QString MultiplayerState::FindLocalGamePath(u64 program_id) const {
     }
 
     return FindLocalGamePathRecursive(game_list_model, QModelIndex{}, program_id);
+}
+
+QString MultiplayerState::FindLocalGameByName(const QString& name) const {
+    if (name.trimmed().isEmpty() || game_list_model == nullptr) {
+        return {};
+    }
+    // Rooms frequently advertise a game by name while carrying a title ID that
+    // does not match the local copy - a different region, or none at all - so
+    // matching on the ID alone leaves the launch button greyed out on a game
+    // the user plainly owns. Falling back to the name is what makes joining a
+    // room and actually getting into the game one step instead of several.
+    const QString wanted = name.trimmed().toLower();
+    return FindLocalGameByNameRecursive(game_list_model, QModelIndex{}, wanted);
+}
+
+bool MultiplayerState::LaunchLocalGamePath(const QString& path) {
+    if (path.isEmpty() || parentWidget() == nullptr) {
+        return false;
+    }
+    return QMetaObject::invokeMethod(parentWidget(), "OnGameListLoadFile", Qt::DirectConnection,
+                                     Q_ARG(QString, path), Q_ARG(u64, 0));
 }
 
 bool MultiplayerState::LaunchLocalGame(u64 program_id) {
