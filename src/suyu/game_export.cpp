@@ -789,16 +789,28 @@ static bool SerializeTranslatedBlocks(const NsoAnalysisResult& mod, const QStrin
 
     const std::span<const u8> text_span{mod.text_bytes.data(), mod.text_bytes.size()};
 
-    // A full commercial title can have tens of thousands of basic blocks
-    // (confirmed live: Smash Ultimate alone generates 90,000+), each
-    // processed synchronously on the GUI thread with no event pumping in
-    // between. That's not a hang/deadlock - CPU usage stays high and real
-    // files keep getting written the whole time - but Windows still marks
-    // the window "Not Responding" and the UI can't repaint, which reads
-    // exactly like a hang to a user. Pumping the event loop periodically
-    // keeps the window responsive (repaints, can still be dragged/moved)
-    // without needing a full move-to-background-thread rewrite of a
-    // pipeline that touches several dialog widgets throughout.
+    // This phase dumps two files per basic block - the raw bytes and a
+    // Dynarmic IR listing - purely as debugging material. It is off by default
+    // because the counts involved make it unusable otherwise: Smash Ultimate
+    // has about 2.68 million blocks, so it wants roughly 5.4 million files, and
+    // the filesystem becomes the entire cost of an export that otherwise takes
+    // seconds. Measured before this was gated: 187,000 files written in a few
+    // minutes with no end in sight, which is what the long-standing report of
+    // the exporter "hanging past 15%" actually was. Nothing in the recompiler
+    // path reads these - EmitProject works from mod.text_bytes directly.
+    //
+    // An earlier comment here put the block count at "90,000+" and explained
+    // the symptom as the window merely failing to repaint. Both were wrong.
+    const bool dump_blocks =
+        !qEnvironmentVariableIsEmpty("SUYU_AOT_DUMP_BLOCKS");
+    if (!dump_blocks) {
+        // Leave the count at zero rather than reporting the block total: the
+        // manifest publishes this as "ir_blocks_serialized", and nothing was
+        // serialized. The number that matters for the recompiler is
+        // recompiled_c_blocks, which is counted separately.
+        return true;
+    }
+
     size_t blocks_processed = 0;
     for (const auto& block : mod.blocks) {
         if (++blocks_processed % 250 == 0) {
