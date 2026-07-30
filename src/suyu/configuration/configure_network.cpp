@@ -24,6 +24,8 @@ ConfigureNetwork::~ConfigureNetwork() = default;
 
 void ConfigureNetwork::ApplyConfiguration() {
     Settings::values.network_interface = ui->network_interface->currentText().toStdString();
+    Settings::values.network_replacement_host =
+        ui->network_replacement_host->text().trimmed().toStdString();
 }
 
 void ConfigureNetwork::changeEvent(QEvent* event) {
@@ -45,4 +47,8 @@ void ConfigureNetwork::SetConfiguration() {
 
     ui->network_interface->setCurrentText(QString::fromStdString(network_interface));
     ui->network_interface->setEnabled(runtime_lock);
+
+    ui->network_replacement_host->setText(
+        QString::fromStdString(Settings::values.network_replacement_host.GetValue()));
+    ui->network_replacement_host->setEnabled(runtime_lock);
 }
