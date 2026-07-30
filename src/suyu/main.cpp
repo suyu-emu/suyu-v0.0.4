@@ -85,6 +85,7 @@ static FileSys::VirtualFile VfsDirectoryCreateFileWrapper(const FileSys::Virtual
 #include <QClipboard>
 #include <QDesktopServices>
 #include <QDir>
+#include <QDirIterator>
 #include <QFile>
 #include <QFileInfo>
 #include <QFileDialog>
@@ -5999,16 +6000,23 @@ void GMainWindow::OnLoadRecompiledImage() {
         return;
     }
 
-    // Held for the process lifetime: the recompiled blocks live in this
-    // library, so unloading it while a game is running would pull the code out
-    // from under the CPU.
-    static QLibrary* loaded_image = nullptr;
+    // A title is several NSO modules - main, rtld, sdk, subsdk0 - and each
+    // recompiles to its own image. Execution begins in rtld, the dynamic
+    // linker, not in main, so loading a single image is not enough: the very
+    // first block lookup misses and the CPU halts with "No recompiled block at
+    // PC". Every image for the title is loaded and their lookups chained.
+    //
+    // Held for the process lifetime: the recompiled blocks live in these
+    // libraries, so unloading one while a game is running would pull the code
+    // out from under the CPU.
+    static std::vector<QLibrary*> loaded_images;
+    static std::vector<Core::RecompLookupFn> loaded_lookups;
 
     // An image stays selected until it is cleared, and every later game would
     // then try to run on it. Since an image only covers the one title it was
     // built from, offer to go back to the JIT rather than leaving that as a
     // trap the user has to work out for themselves.
-    if (loaded_image) {
+    if (!loaded_images.empty()) {
         const auto choice = QMessageBox::question(
             this, tr("Recompiled Image"),
             tr("A recompiled image is already loaded, and every game started now will try to "
@@ -6016,60 +6024,87 @@ void GMainWindow::OnLoadRecompiledImage() {
             QMessageBox::Yes | QMessageBox::No, QMessageBox::Yes);
         if (choice == QMessageBox::Yes) {
             Core::SetRecompLookup(nullptr);
-            loaded_image->unload();
-            loaded_image->deleteLater();
-            loaded_image = nullptr;
+            for (auto* lib : loaded_images) {
+                lib->unload();
+                lib->deleteLater();
+            }
+            loaded_images.clear();
+            loaded_lookups.clear();
             return;
         }
     }
 
-    const QString path = QFileDialog::getOpenFileName(
-        this, tr("Select a Recompiled Image"), QString(),
+    // Ask for the directory the export produced rather than one library, so
+    // every module of the title is picked up together.
+    const QString dir = QFileDialog::getExistingDirectory(
+        this, tr("Select the recompiled folder for this game"));
+    if (dir.isEmpty()) {
+        return;
+    }
+
 #ifdef _WIN32
-        tr("Recompiled Image (*.dll)")
+    const QString pattern = QStringLiteral("*.dll");
 #elif defined(__APPLE__)
-        tr("Recompiled Image (*.dylib)")
+    const QString pattern = QStringLiteral("*.dylib");
 #else
-        tr("Recompiled Image (*.so)")
+    const QString pattern = QStringLiteral("*.so");
 #endif
-    );
-    if (path.isEmpty()) {
-        return;
+
+    QDirIterator it(dir, {pattern}, QDir::Files, QDirIterator::Subdirectories);
+    std::vector<QLibrary*> found;
+    std::vector<Core::RecompLookupFn> lookups;
+    while (it.hasNext()) {
+        auto* lib = new QLibrary(it.next(), this);
+        if (!lib->load()) {
+            lib->deleteLater();
+            continue;
+        }
+        const auto fn =
+            reinterpret_cast<Core::RecompLookupFn>(lib->resolve("recomp_image_lookup"));
+        if (!fn) {
+            // Some other library that happens to sit in the tree.
+            lib->unload();
+            lib->deleteLater();
+            continue;
+        }
+        found.push_back(lib);
+        lookups.push_back(fn);
     }
 
-    auto* lib = new QLibrary(path, this);
-    if (!lib->load()) {
-        QMessageBox::warning(this, tr("Recompiled Image"),
-                             tr("Could not load the image: %1").arg(lib->errorString()));
-        lib->deleteLater();
-        return;
-    }
-
-    using LookupFn = Core::RecompLookupFn;
-    const auto lookup = reinterpret_cast<LookupFn>(lib->resolve("recomp_image_lookup"));
-    if (!lookup) {
+    if (found.empty()) {
         QMessageBox::warning(
             this, tr("Recompiled Image"),
-            tr("That library does not export recomp_image_lookup, so it is not a recompiled "
-               "image built by suyu's static recompiler."));
-        lib->unload();
-        lib->deleteLater();
+            tr("No recompiled images were found in that folder. Export the game first - the "
+               "images are built under its 'recompiled' directory, one per module."));
         return;
     }
 
-    if (loaded_image) {
-        loaded_image->unload();
-        loaded_image->deleteLater();
+    for (auto* lib : loaded_images) {
+        lib->unload();
+        lib->deleteLater();
     }
-    loaded_image = lib;
+    loaded_images = std::move(found);
+    loaded_lookups = std::move(lookups);
 
-    Core::SetRecompLookup(lookup);
+    // Ask each module in turn; the first one that owns the address wins. A
+    // plain function pointer is required here, so the table has to be a
+    // namespace-scope static rather than a capture.
+    static const auto chained = [](u64 pc) -> Core::RecompBlockFn {
+        for (const auto& fn : loaded_lookups) {
+            if (auto* block = fn(pc)) {
+                return block;
+            }
+        }
+        return nullptr;
+    };
+    Core::SetRecompLookup(+chained);
     QMessageBox::information(
         this, tr("Recompiled Image"),
-        tr("Loaded. The next game you start will run on the static recompiler instead of the "
-           "JIT, driven by suyu's own kernel, services and GPU.\n\nThis is experimental: the "
-           "image only covers the code the static pass reached, and execution stops if the "
-           "game branches outside it."));
+        tr("Loaded %1 module image(s). The next game you start will run on the static "
+           "recompiler instead of the JIT, driven by suyu's own kernel, services and GPU."
+           "\n\nThis is experimental: the images only cover the code the static pass reached, "
+           "and execution stops if the game branches outside it.")
+            .arg(loaded_images.size()));
 }
 
 void GMainWindow::OnLoadLibretroCore() {
