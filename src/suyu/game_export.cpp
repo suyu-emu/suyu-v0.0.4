@@ -1011,6 +1011,38 @@ QString GameExportDialog::RunAotPrecompile(const QString& exefs_dir,
             // header rather than code, and identifies itself only by address.
             mod.entry_vaddr, game_name.toStdString());
         recomp_total_blocks += stats.blocks;
+
+        // Actually build it. Emitting sources and a build script left the user
+        // with a directory of C rather than something runnable, even though
+        // this path is the "build" option - they had to find and run the script
+        // themselves. cmake is invoked directly here; if it isn't installed the
+        // sources and the script are still there, which is the source-only
+        // outcome rather than a failure.
+        const QString cmake = QStandardPaths::findExecutable(QStringLiteral("cmake"));
+        if (!cmake.isEmpty()) {
+            status_label->setText(tr("Compiling %1 (this takes a while)...").arg(mod.name));
+            QApplication::processEvents();
+
+            const QString build_dir = mod_dir + QDir::separator() + QStringLiteral("build");
+            QProcess configure;
+            configure.start(cmake, {QStringLiteral("-S"), mod_dir, QStringLiteral("-B"), build_dir});
+            configure.waitForFinished(-1);
+            if (configure.exitCode() == 0) {
+                QProcess build;
+                // Both targets: the executable and the shared library suyu
+                // loads to run this image on its own CPU backend.
+                build.start(cmake, {QStringLiteral("--build"), build_dir, QStringLiteral("--config"),
+                                    QStringLiteral("Release")});
+                build.waitForFinished(-1);
+                if (build.exitCode() != 0) {
+                    LOG_WARNING(Frontend, "Recompiled module {} failed to compile",
+                                mod.name.toStdString());
+                }
+            } else {
+                LOG_WARNING(Frontend, "cmake could not configure recompiled module {}",
+                            mod.name.toStdString());
+            }
+        }
     }
     // One-command native build scripts (the user can run these to produce the actual executable).
     {

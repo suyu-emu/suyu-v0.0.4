@@ -587,10 +587,20 @@ void GameListWorker::run() {
                 if (UISettings::values.show_folders_in_list)
                     DirEntryReady(game_list_dir);
 
-                ScanFileSystem(ScanTarget::FillManualContentProvider, game_dir.path,
-                               game_dir.deep_scan, game_list_dir);
-                ScanFileSystem(ScanTarget::PopulateGameList, game_dir.path, game_dir.deep_scan,
-                               game_list_dir);
+                // Contained per directory. A single unreadable folder - a
+                // permission-denied path inside a broad directory like
+                // Downloads is enough - used to throw out to the handler
+                // around the whole loop, so every game directory after it was
+                // silently skipped and its games never appeared.
+                try {
+                    ScanFileSystem(ScanTarget::FillManualContentProvider, game_dir.path,
+                                   game_dir.deep_scan, game_list_dir);
+                    ScanFileSystem(ScanTarget::PopulateGameList, game_dir.path, game_dir.deep_scan,
+                                   game_list_dir);
+                } catch (const std::exception& e) {
+                    LOG_ERROR(Frontend, "Skipping game directory '{}': {}", game_dir.path,
+                              e.what());
+                }
             }
         }
 

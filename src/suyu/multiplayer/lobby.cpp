@@ -214,7 +214,30 @@ void Lobby::OnJoinRoom(const QModelIndex& source) {
     });
     watcher->setFuture(f);
 
-    // TODO(jroweboy): disable widgets and display a connecting while we wait
+    // Joining happens on a worker thread and nothing was ever connected to the
+    // watcher, so the result was discarded: the dialog just sat there whether
+    // the join succeeded or failed. That is the whole of "I click join and
+    // nothing happens". Give immediate feedback, then close on success or
+    // report the failure.
+    setCursor(Qt::WaitCursor);
+    ui->room_list->setEnabled(false);
+    disconnect(watcher, &QFutureWatcher<void>::finished, nullptr, nullptr);
+    connect(watcher, &QFutureWatcher<void>::finished, this, [this]() {
+        setCursor(Qt::ArrowCursor);
+        ui->room_list->setEnabled(true);
+        const auto member = room_network.GetRoomMember().lock();
+        if (member && member->IsConnected()) {
+            close();
+            return;
+        }
+        // Join() reports the specific reason through the room-member error
+        // signal, which MultiplayerState already surfaces; this only covers
+        // the case where it returned without connecting and said nothing.
+        if (!member || member->GetState() != Network::RoomMember::State::Joining) {
+            NetworkMessage::ErrorManager::ShowError(
+                NetworkMessage::ErrorManager::UNABLE_TO_CONNECT);
+        }
+    });
 
     // Save settings
     UISettings::values.multiplayer_nickname = ui->nickname->text().toStdString();
