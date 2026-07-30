@@ -3930,9 +3930,9 @@ void GMainWindow::OnMenuReportCompatibility() {
         compatdb.exec();
     } else {
         QMessageBox::critical(
-            this, tr("Missing Eden Account"),
-            tr("In order to submit a game compatibility test case, you must link your Eden "
-               "account.<br><br/>To link your Eden account, go to Emulation &gt; Configuration "
+            this, tr("Missing suyu Account"),
+            tr("In order to submit a game compatibility test case, you must link your suyu "
+               "account.<br><br/>To link your suyu account, go to Emulation &gt; Configuration "
                "&gt; "
                "Web."));
     }
