@@ -8,6 +8,7 @@
 #include "core/arm/recomp/arm_recomp.h"
 #include "core/core.h"
 #include "core/hle/kernel/k_thread.h"
+#include "core/arm/debug.h"
 #include "core/memory.h"
 
 namespace Core {
@@ -106,12 +107,33 @@ struct ArmRecomp::Impl {
         }
     }
 
+    /// Base address of the module containing `pc`, so an address can be turned
+    /// into the module-relative offset a recompiled image is keyed by. The
+    /// module list is fixed once the process is running, so it is read once.
+    u64 ModuleBaseFor(Kernel::KThread* thread, u64 pc) {
+        if (!modules_read) {
+            modules_read = true;
+            if (auto* process = thread->GetOwnerProcess()) {
+                modules = FindModules(process);
+            }
+        }
+        u64 base = 0;
+        for (const auto& [module_base, name] : modules) {
+            if (pc >= module_base && module_base >= base) {
+                base = module_base;
+            }
+        }
+        return base;
+    }
+
     System& system;
     RecompLookupFn lookup{};
     GuestContextView ctx{};
     RecompHostMem bridge{};
     u64 tpidrro_el0{};
     std::atomic<bool> interrupted{false};
+    Loader::AppLoader::Modules modules{};
+    bool modules_read{false};
 };
 
 ArmRecomp::ArmRecomp(System& system, bool uses_wall_clock, RecompLookupFn lookup)
@@ -139,7 +161,17 @@ HaltReason ArmRecomp::RunThread(Kernel::KThread* thread) {
             impl->ctx.pending_svc = kNoPendingSvc;
         }
 
-        const RecompBlockFn block = impl->lookup(impl->ctx.pc);
+        // A recompiled image is keyed by each block's offset within its own
+        // module, because that is all the static pass can know: an NSO's
+        // segment header carries the offset inside the module, not the address
+        // the loader will map it to, and that address changes per run anyway.
+        // The PC here is a module-relative address in the process, so it has to
+        // be reduced to an offset before the image can be asked about it -
+        // otherwise every single lookup misses and the very first block halts.
+        RecompBlockFn block = impl->lookup(impl->ctx.pc);
+        if (!block) {
+            block = impl->lookup(impl->ctx.pc - impl->ModuleBaseFor(thread, impl->ctx.pc));
+        }
         if (!block) {
             // No recompiled block covers this address. This is a genuine gap
             // (indirect branch into code the static pass never reached), not
