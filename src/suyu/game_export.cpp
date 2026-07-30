@@ -271,6 +271,15 @@ void GameExportDialog::SetupUi() {
     aot_full_scan_checkbox->setChecked(false);
     layout->addWidget(aot_full_scan_checkbox);
 
+    compile_output_checkbox = new QCheckBox(
+        tr("Compile the recompiled code into binaries (needs CMake and a C compiler)"), this);
+    compile_output_checkbox->setToolTip(
+        tr("On, the exported C is built into a native executable and the shared library suyu "
+           "loads to run the game on its own recompiler. Off, only the sources and a build "
+           "script are written, which is much faster and lets you compile them yourself."));
+    compile_output_checkbox->setChecked(true);
+    layout->addWidget(compile_output_checkbox);
+
     include_save_data_checkbox = new QCheckBox(tr("Include save data for this game"), this);
     include_save_data_checkbox->setChecked(true);
     layout->addWidget(include_save_data_checkbox);
@@ -1018,7 +1027,9 @@ QString GameExportDialog::RunAotPrecompile(const QString& exefs_dir,
         // themselves. cmake is invoked directly here; if it isn't installed the
         // sources and the script are still there, which is the source-only
         // outcome rather than a failure.
-        const QString cmake = QStandardPaths::findExecutable(QStringLiteral("cmake"));
+        const QString cmake = compile_output_checkbox->isChecked()
+                                  ? QStandardPaths::findExecutable(QStringLiteral("cmake"))
+                                  : QString();
         if (!cmake.isEmpty()) {
             status_label->setText(tr("Compiling %1 (this takes a while)...").arg(mod.name));
             QApplication::processEvents();

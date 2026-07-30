@@ -92,6 +92,8 @@ private:
     QCheckBox* include_shader_cache_checkbox{};
     QCheckBox* include_custom_config_checkbox{};
     QCheckBox* aot_full_scan_checkbox{};
+    /// Whether to compile the recompiled sources, or emit source only.
+    QCheckBox* compile_output_checkbox{};
     QProgressBar* progress_bar{};
     QPushButton* export_button{};
     QLabel* status_label{};
