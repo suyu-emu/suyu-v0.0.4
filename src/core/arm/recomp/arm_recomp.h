@@ -39,6 +39,14 @@ using RecompLookupFn = RecompBlockFn (*)(u64 pc);
  */
 void SetRecompLookup(RecompLookupFn lookup);
 
+/// Called once per loaded module when a process starts, so each recompiled
+/// image can be told where its module actually landed. Addresses baked in by
+/// the static pass are module-relative - the loader picks the real base at run
+/// time - so without this every pointer the guest computes is short by that
+/// base and lands near null.
+using RecompBaseFn = void (*)(const char* module, u64 base);
+void SetRecompBaseSetter(RecompBaseFn setter);
+
 /// Returns the registered lookup, or nullptr when no recompiled image is
 /// loaded and the JIT should be used.
 RecompLookupFn GetRecompLookup();

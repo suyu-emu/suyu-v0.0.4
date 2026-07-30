@@ -6011,6 +6011,11 @@ void GMainWindow::OnLoadRecompiledImage() {
     // out from under the CPU.
     static std::vector<QLibrary*> loaded_images;
     static std::vector<Core::RecompLookupFn> loaded_lookups;
+    // Module name -> that image's base setter. The export puts each module in
+    // its own directory, so the directory name identifies which module an
+    // image belongs to, and the kernel reports module names when the process
+    // starts. Matching the two is what lets an image be told its load base.
+    static std::map<std::string, void (*)(u64)> loaded_base_setters;
 
     // An image stays selected until it is cleared, and every later game would
     // then try to run on it. Since an image only covers the one title it was
@@ -6053,6 +6058,7 @@ void GMainWindow::OnLoadRecompiledImage() {
     QDirIterator it(dir, {pattern}, QDir::Files, QDirIterator::Subdirectories);
     std::vector<QLibrary*> found;
     std::vector<Core::RecompLookupFn> lookups;
+    std::map<std::string, void (*)(u64)> base_setters;
     while (it.hasNext()) {
         auto* lib = new QLibrary(it.next(), this);
         if (!lib->load()) {
@@ -6069,6 +6075,21 @@ void GMainWindow::OnLoadRecompiledImage() {
         }
         found.push_back(lib);
         lookups.push_back(fn);
+
+        // The module this image was built from is the directory holding it,
+        // walking up past the build output folders cmake created.
+        QDir owner = QFileInfo(lib->fileName()).absoluteDir();
+        while (owner.dirName() == QStringLiteral("Release") ||
+               owner.dirName() == QStringLiteral("Debug") ||
+               owner.dirName() == QStringLiteral("build")) {
+            if (!owner.cdUp()) {
+                break;
+            }
+        }
+        if (auto* set_base = reinterpret_cast<void (*)(u64)>(
+                lib->resolve("recomp_image_set_base"))) {
+            base_setters.emplace(owner.dirName().toStdString(), set_base);
+        }
     }
 
     if (found.empty()) {
@@ -6085,6 +6106,20 @@ void GMainWindow::OnLoadRecompiledImage() {
     }
     loaded_images = std::move(found);
     loaded_lookups = std::move(lookups);
+    loaded_base_setters = std::move(base_setters);
+
+    // Kernel module names carry an "nn" prefix that the export directories do
+    // not ("nnrtld" against "rtld"), so try both spellings.
+    Core::SetRecompBaseSetter([](const char* module, u64 base) {
+        std::string name = module;
+        auto entry = loaded_base_setters.find(name);
+        if (entry == loaded_base_setters.end() && name.rfind("nn", 0) == 0) {
+            entry = loaded_base_setters.find(name.substr(2));
+        }
+        if (entry != loaded_base_setters.end()) {
+            entry->second(base);
+        }
+    });
 
     // Ask each module in turn; the first one that owns the address wins. A
     // plain function pointer is required here, so the table has to be a

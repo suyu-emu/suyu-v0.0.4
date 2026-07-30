@@ -215,8 +215,12 @@ inline bool Translate(u32 i, u64 pc, std::string& out) {
     if ((i & 0x1F000000) == 0x10000000) { // ADR/ADRP
         u32 op = i >> 31, rd = i & 31; s64 immhi = (s32)(((i >> 5) & 0x7FFFF) << 13) >> 13; u32 immlo = (i >> 29) & 3;
         if (rd != 31) {
-            if (op) { u64 b = (pc & ~0xFFFULL); s64 imm = ((immhi << 2) | immlo) << 12; snprintf(buf, sizeof buf, "c->x[%u]=0x%llxULL + (int64_t)%lld;", rd, (unsigned long long)b, (long long)imm); }
-            else { s64 imm = (immhi << 2) | immlo; snprintf(buf, sizeof buf, "c->x[%u]=0x%llxULL + (int64_t)%lld;", rd, (unsigned long long)pc, (long long)imm); }
+            // These produce data pointers the guest then dereferences, so they
+            // have to be real addresses. Everything the static pass knows is
+            // module-relative, so the module's load base is added at run time -
+            // without it every computed pointer lands near null.
+            if (op) { u64 b = (pc & ~0xFFFULL); s64 imm = ((immhi << 2) | immlo) << 12; snprintf(buf, sizeof buf, "c->x[%u]=g_module_base + 0x%llxULL + (int64_t)%lld;", rd, (unsigned long long)b, (long long)imm); }
+            else { s64 imm = (immhi << 2) | immlo; snprintf(buf, sizeof buf, "c->x[%u]=g_module_base + 0x%llxULL + (int64_t)%lld;", rd, (unsigned long long)pc, (long long)imm); }
             put(buf);
         }
         return true;
@@ -257,7 +261,7 @@ inline bool Translate(u32 i, u64 pc, std::string& out) {
         } else {
             // size==3 with opc>=2 is not a defined load/store here.
             snprintf(buf, sizeof buf,
-                     "recomp_unhandled(c,0x%08xU,0x%llxULL); c->pc=0x%llxULL; return;", i,
+                     "recomp_unhandled(c,0x%08xU,0x%llxULL); c->pc=g_module_base+0x%llxULL; return;", i,
                      (unsigned long long)pc, (unsigned long long)next);
             put(buf);
             return false;
@@ -267,16 +271,16 @@ inline bool Translate(u32 i, u64 pc, std::string& out) {
 
     u64 t = 0;
     if (DirectBranchTarget(i, pc, t)) {
-        if ((i & 0xFC000000) == 0x94000000) { snprintf(buf, sizeof buf, "c->x[30]=0x%llxULL;", (unsigned long long)next); put(buf); }
-        snprintf(buf, sizeof buf, "c->pc=0x%llxULL; return;", (unsigned long long)t); put(buf); return false;
+        if ((i & 0xFC000000) == 0x94000000) { snprintf(buf, sizeof buf, "c->x[30]=g_module_base+0x%llxULL;", (unsigned long long)next); put(buf); }
+        snprintf(buf, sizeof buf, "c->pc=g_module_base+0x%llxULL; return;", (unsigned long long)t); put(buf); return false;
     }
     if ((i & 0xFFFFFC1F) == 0xD65F0000) { put("c->pc=c->x[30]; return; /* RET */"); return false; }
     if ((i & 0xFFFFFC1F) == 0xD61F0000) { u32 rn = (i >> 5) & 31; snprintf(buf, sizeof buf, "c->pc=c->x[%u]; return; /* BR */", rn); put(buf); return false; }
-    if ((i & 0xFFFFFC1F) == 0xD63F0000) { u32 rn = (i >> 5) & 31; snprintf(buf, sizeof buf, "c->x[30]=0x%llxULL; c->pc=c->x[%u]; return; /* BLR */", (unsigned long long)next, rn); put(buf); return false; }
-    if ((i & 0xFF000010) == 0x54000000) { s64 off = ((s32)((i >> 5) << 13) >> 13); u64 tt = pc + off * 4; u32 cond = i & 15; snprintf(buf, sizeof buf, "if (recomp_cond(c,%u)) { c->pc=0x%llxULL; } else { c->pc=0x%llxULL; } return;", cond, (unsigned long long)tt, (unsigned long long)next); put(buf); return false; }
-    if ((i & 0x7E000000) == 0x34000000) { u32 sf = i >> 31; bool nz = (i >> 24) & 1; u32 rt = i & 31; s64 off = ((s32)(((i >> 5) & 0x7FFFF) << 13) >> 13); u64 tt = pc + off * 4; std::string v = sf ? Xz(rt) : Wz(rt); snprintf(buf, sizeof buf, "if ((%s)%s0) { c->pc=0x%llxULL; } else { c->pc=0x%llxULL; } return;", v.c_str(), nz ? "!=" : "==", (unsigned long long)tt, (unsigned long long)next); put(buf); return false; }
-    if ((i & 0x7E000000) == 0x36000000) { bool nz = (i >> 24) & 1; u32 b = ((i >> 31) << 5) | ((i >> 19) & 31); u32 rt = i & 31; s64 off = ((s32)(((i >> 5) & 0x3FFF) << 18) >> 18); u64 tt = pc + off * 4; snprintf(buf, sizeof buf, "if (((c->x[%u]>>%u)&1)%s0) { c->pc=0x%llxULL; } else { c->pc=0x%llxULL; } return;", rt, b, nz ? "!=" : "==", (unsigned long long)tt, (unsigned long long)next); put(buf); return false; }
-    if ((i & 0xFFE0001F) == 0xD4000001) { u32 imm = (i >> 5) & 0xFFFF; snprintf(buf, sizeof buf, "c->pc=0x%llxULL; c->pending_svc=%uULL; recomp_svc(c,%u); return;", (unsigned long long)next, imm, imm); put(buf); return false; }
+    if ((i & 0xFFFFFC1F) == 0xD63F0000) { u32 rn = (i >> 5) & 31; snprintf(buf, sizeof buf, "c->x[30]=g_module_base+0x%llxULL; c->pc=c->x[%u]; return; /* BLR */", (unsigned long long)next, rn); put(buf); return false; }
+    if ((i & 0xFF000010) == 0x54000000) { s64 off = ((s32)((i >> 5) << 13) >> 13); u64 tt = pc + off * 4; u32 cond = i & 15; snprintf(buf, sizeof buf, "if (recomp_cond(c,%u)) { c->pc=g_module_base+0x%llxULL; } else { c->pc=g_module_base+0x%llxULL; } return;", cond, (unsigned long long)tt, (unsigned long long)next); put(buf); return false; }
+    if ((i & 0x7E000000) == 0x34000000) { u32 sf = i >> 31; bool nz = (i >> 24) & 1; u32 rt = i & 31; s64 off = ((s32)(((i >> 5) & 0x7FFFF) << 13) >> 13); u64 tt = pc + off * 4; std::string v = sf ? Xz(rt) : Wz(rt); snprintf(buf, sizeof buf, "if ((%s)%s0) { c->pc=g_module_base+0x%llxULL; } else { c->pc=g_module_base+0x%llxULL; } return;", v.c_str(), nz ? "!=" : "==", (unsigned long long)tt, (unsigned long long)next); put(buf); return false; }
+    if ((i & 0x7E000000) == 0x36000000) { bool nz = (i >> 24) & 1; u32 b = ((i >> 31) << 5) | ((i >> 19) & 31); u32 rt = i & 31; s64 off = ((s32)(((i >> 5) & 0x3FFF) << 18) >> 18); u64 tt = pc + off * 4; snprintf(buf, sizeof buf, "if (((c->x[%u]>>%u)&1)%s0) { c->pc=g_module_base+0x%llxULL; } else { c->pc=g_module_base+0x%llxULL; } return;", rt, b, nz ? "!=" : "==", (unsigned long long)tt, (unsigned long long)next); put(buf); return false; }
+    if ((i & 0xFFE0001F) == 0xD4000001) { u32 imm = (i >> 5) & 0xFFFF; snprintf(buf, sizeof buf, "c->pc=g_module_base+0x%llxULL; c->pending_svc=%uULL; recomp_svc(c,%u); return;", (unsigned long long)next, imm, imm); put(buf); return false; }
 
     // STP/LDP - load/store pair. Every non-leaf AArch64 function opens and
     // closes with these, so without them a real game stops at its first
@@ -1461,7 +1465,7 @@ inline bool Translate(u32 i, u64 pc, std::string& out) {
         }
     }
 
-    snprintf(buf, sizeof buf, "recomp_unhandled(c,0x%08xU,0x%llxULL); c->pc=0x%llxULL; return;", i, (unsigned long long)pc, (unsigned long long)next);
+    snprintf(buf, sizeof buf, "recomp_unhandled(c,0x%08xU,0x%llxULL); c->pc=g_module_base+0x%llxULL; return;", i, (unsigned long long)pc, (unsigned long long)next);
     put(buf); return false;
 }
 
@@ -1617,6 +1621,9 @@ inline RecompileStats EmitProject(const std::string& mod, const u8* text, size_t
           "#define RECOMP_API __attribute__((visibility(\"default\")))\n"
           "#endif\n\n"
           "RECOMP_API BlockFn recomp_image_lookup(uint64_t pc){ return recomp_lookup(pc); }\n\n"
+          "/* Tells this image where its module actually got loaded, so the\n"
+          "   addresses it computes are real rather than module-relative. */\n"
+          "RECOMP_API void recomp_image_set_base(uint64_t base){ g_module_base = base; }\n\n"
           "/* Reports the entry PC so the loader does not have to be told it\n"
           "   separately or parse the image again. */\n"
        << "RECOMP_API uint64_t recomp_image_entry(void){ return 0x"
@@ -1732,6 +1739,16 @@ typedef char recomp_layout_vreg[offsetof(GuestContext, vreg) == 312 ? 1 : -1];
 typedef char recomp_layout_tpidr[offsetof(GuestContext, tpidr_el0) == 824 ? 1 : -1];
 typedef char recomp_layout_host[offsetof(GuestContext, host_mem) == 832 ? 1 : -1];
 
+/* Where this module is actually loaded in the guest's address space.
+   Every address the static pass bakes in - ADR/ADRP results, branch targets,
+   return addresses - is relative to the module, because that is all it can
+   know: the loader picks the real base at run time and it differs per run.
+   Leaving it zero gives the module-relative behaviour the standalone runtime
+   wants; the emulator sets it once at load so computed data pointers land in
+   real memory rather than near null. One global per image, since each module
+   is its own shared library. */
+extern uint64_t g_module_base;
+
 typedef void (*BlockFn)(GuestContext*);
 BlockFn recomp_lookup(uint64_t pc); void recomp_run(GuestContext* c);
 void recomp_set_flags(GuestContext*,int,uint64_t,uint64_t,uint64_t,int);
@@ -1800,6 +1817,8 @@ void recomp_store8 (GuestContext* c,uint64_t a,uint64_t v){memstore(c,a,1,v);}
 void recomp_store16(GuestContext* c,uint64_t a,uint64_t v){memstore(c,a,2,v);}
 void recomp_store32(GuestContext* c,uint64_t a,uint64_t v){memstore(c,a,4,v);}
 void recomp_store64(GuestContext* c,uint64_t a,uint64_t v){memstore(c,a,8,v);}
+
+uint64_t g_module_base = 0;
 
 uint64_t recomp_umulh(uint64_t a,uint64_t b){
   /* Portable 64x64->high64: split into 32-bit halves. Avoids depending on

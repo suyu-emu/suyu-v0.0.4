@@ -66,10 +66,15 @@ constexpr u64 kNoPendingSvc = ~0ULL;
 
 namespace {
 std::atomic<RecompLookupFn> g_recomp_lookup{nullptr};
+std::atomic<RecompBaseFn> g_recomp_base_setter{nullptr};
 } // namespace
 
 void SetRecompLookup(RecompLookupFn lookup) {
     g_recomp_lookup.store(lookup, std::memory_order_release);
+}
+
+void SetRecompBaseSetter(RecompBaseFn setter) {
+    g_recomp_base_setter.store(setter, std::memory_order_release);
 }
 
 RecompLookupFn GetRecompLookup() {
@@ -115,6 +120,13 @@ struct ArmRecomp::Impl {
             modules_read = true;
             if (auto* process = thread->GetOwnerProcess()) {
                 modules = FindModules(process);
+                // Now that the loader has placed everything, tell each image
+                // where its own module went.
+                if (const auto setter = g_recomp_base_setter.load(std::memory_order_acquire)) {
+                    for (const auto& [module_base, name] : modules) {
+                        setter(name.c_str(), module_base);
+                    }
+                }
             }
         }
         u64 base = 0;
