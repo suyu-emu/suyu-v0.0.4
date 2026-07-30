@@ -208,6 +208,16 @@ void GameCardDelegate::paint(QPainter* painter, const QStyleOptionViewItem& opti
     painter->save();
     painter->setRenderHints(QPainter::Antialiasing | QPainter::SmoothPixmapTransform);
 
+    // Account titles with no local ROM keep a "nintendo://" path. Setting the
+    // item's foreground only dims its text, which left the cover art at full
+    // strength and made an unplayable entry look identical to a playable one.
+    // Dimming the whole card is what actually reads as "you don't have this".
+    const bool unplayable =
+        index.data(Qt::UserRole).toString().startsWith(QStringLiteral("nintendo://"));
+    if (unplayable) {
+        painter->setOpacity(0.45);
+    }
+
     const QRect r = option.rect.adjusted(PAD, PAD, -PAD, -PAD);
 
     // ── Card background ───────────────────────────────────────────────────────

@@ -439,6 +439,9 @@ private slots:
     void OnToggleStatusBar();
     void OnToggleFoldersInList();
     void OnExportGame();
+    /// Switch-style first-boot setup. Chains the dialogs that already exist
+    /// rather than duplicating them; runs once, then never again.
+    void RunFirstRunSetupIfNeeded();
     void OnLoadLibretroCore();
     /// Loads a statically recompiled image and points the CPU backend at it.
     void OnLoadRecompiledImage();

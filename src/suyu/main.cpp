@@ -95,6 +95,7 @@ static FileSys::VirtualFile VfsDirectoryCreateFileWrapper(const FileSys::Virtual
 #include <QProgressDialog>
 #include <QPushButton>
 #include <QScreen>
+#include <QSplashScreen>
 #include <QShortcut>
 #include <QSortFilterProxyModel>
 #include <QStandardPaths>
@@ -707,6 +708,14 @@ GMainWindow::GMainWindow(std::unique_ptr<QtConfig> config_, bool has_broken_vulk
     }
     if (!game_path.isEmpty()) {
         BootGame(game_path, ApplicationAppletParameters());
+    }
+
+    // Deferred to the event loop so the main window is up and painted behind
+    // the setup rather than it appearing over a blank screen. Skipped entirely
+    // when a game was launched directly from the command line - that user is
+    // not sitting down to a first run.
+    if (game_path.isEmpty()) {
+        QTimer::singleShot(0, this, [this]() { RunFirstRunSetupIfNeeded(); });
     }
 }
 
@@ -5930,6 +5939,58 @@ void GMainWindow::OnExportGame() {
     dialog.exec();
 }
 
+void GMainWindow::RunFirstRunSetupIfNeeded() {
+    QSettings settings(QStringLiteral("suyu"), QStringLiteral("suyu"));
+    if (settings.value(QStringLiteral("first_run_done"), false).toBool()) {
+        return;
+    }
+    // Written before the dialog runs, not after: if any step crashes or the
+    // user force-quits, they get their emulator next launch rather than this
+    // screen again.
+    settings.setValue(QStringLiteral("first_run_done"), true);
+
+    QDialog dialog(this);
+    dialog.setWindowTitle(tr("Welcome to suyu"));
+    auto* layout = new QVBoxLayout(&dialog);
+
+    auto* heading = new QLabel(tr("<h2>Let's get you set up</h2>"), &dialog);
+    layout->addWidget(heading);
+    auto* blurb = new QLabel(
+        tr("Each step is optional and you can change any of it later from the Tools menu."),
+        &dialog);
+    blurb->setWordWrap(true);
+    layout->addWidget(blurb);
+
+    // Each entry is a button plus a one-line explanation of what it does, so
+    // the user isn't agreeing to something unexplained on first launch.
+    const auto add_step = [&](const QString& text, const QString& detail, auto handler) {
+        auto* button = new QPushButton(text, &dialog);
+        layout->addWidget(button);
+        auto* note = new QLabel(QStringLiteral("<small>%1</small>").arg(detail), &dialog);
+        note->setWordWrap(true);
+        note->setStyleSheet(QStringLiteral("color: #999; margin-bottom: 8px;"));
+        layout->addWidget(note);
+        connect(button, &QPushButton::clicked, &dialog, handler);
+    };
+
+    add_step(tr("Set up a user profile"),
+             tr("Creates the Switch user your saves are stored against."),
+             [this]() { OnOpenControllerMenu(); });
+    add_step(tr("Link your Nintendo Account"),
+             tr("Imports the games you own so your library shows them, with cover art."),
+             [this]() { OnNintendoAccount(); });
+    add_step(tr("Set up Steam"),
+             tr("Adds suyu and your games to Steam so they launch from your Steam library."),
+             [this]() { OnSteamIntegration(); });
+
+    auto* done = new QPushButton(tr("Finish"), &dialog);
+    done->setDefault(true);
+    layout->addWidget(done);
+    connect(done, &QPushButton::clicked, &dialog, &QDialog::accept);
+
+    dialog.exec();
+}
+
 void GMainWindow::OnLoadRecompiledImage() {
     if (emulation_running) {
         QMessageBox::warning(this, tr("Recompiled Image"),
@@ -7588,9 +7649,18 @@ int main(int argc, char* argv[]) {
     // generating shaders
     setlocale(LC_ALL, "C");
 
+    // Constructing the main window takes a noticeable moment - it builds the
+    // whole UI and scans the game library - during which nothing is on screen
+    // and the app looks like it failed to start. Show the logo until the window
+    // is ready, the way most editors and launchers do.
+    QSplashScreen splash{QIcon(QStringLiteral(":/img/suyu_logo.svg")).pixmap(QSize(420, 420))};
+    splash.show();
+    app.processEvents();
+
     GMainWindow main_window{std::move(config), has_broken_vulkan};
     // After settings have been loaded by GMainWindow, apply the filter
     main_window.show();
+    splash.finish(&main_window);
 
     const QStringList launch_args = QCoreApplication::arguments();
     std::optional<AppMode> requested_mode;

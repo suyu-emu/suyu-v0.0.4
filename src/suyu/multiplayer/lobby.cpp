@@ -88,9 +88,12 @@ Lobby::Lobby(QWidget* parent, QStandardItemModel* list,
     connect(&room_list_watcher, &QFutureWatcher<AnnounceMultiplayerRoom::RoomList>::finished, this,
             &Lobby::OnRefreshLobby);
 
-    // Load persistent filters after events are connected to make sure they apply
-    ui->search->setText(
-        QString::fromStdString(UISettings::values.multiplayer_filter_text.GetValue()));
+    // Load persistent filters after events are connected to make sure they apply.
+    // The search box is deliberately not restored: a search typed in an earlier
+    // session silently hides most of the lobby on the next open, which reads as
+    // "multiplayer is broken" rather than "a filter is active". Measured live -
+    // 128 rooms available, 42 shown, because "smash" was still in the box.
+    // The checkbox filters are visible at a glance, so those still persist.
     ui->games_owned->setChecked(UISettings::values.multiplayer_filter_games_owned.GetValue());
     ui->hide_empty->setChecked(UISettings::values.multiplayer_filter_hide_empty.GetValue());
     ui->hide_full->setChecked(UISettings::values.multiplayer_filter_hide_full.GetValue());
