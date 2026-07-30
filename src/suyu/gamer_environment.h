@@ -17,6 +17,8 @@
 #include <QStyledItemDelegate>
 #include <QTextBrowser>
 #include <QDateTime>
+#include <QElapsedTimer>
+#include <QTimer>
 #include <QHash>
 #include <QSet>
 #include <QVBoxLayout>
@@ -88,6 +90,9 @@ signals:
 protected:
     bool eventFilter(QObject* watched, QEvent* event) override;
     void paintEvent(QPaintEvent* event) override;
+    /// Drives the slow drift of the ambient background marks.
+    QElapsedTimer ambient_clock_;
+    QTimer* ambient_timer_{};
 
 private slots:
     void OnGameDoubleClicked(QListWidgetItem* item);

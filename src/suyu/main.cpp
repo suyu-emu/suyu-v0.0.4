@@ -1659,6 +1659,10 @@ void GMainWindow::ConnectWidgetEvents() {
     connect(game_list, &GameList::CreateShortcut, this, &GMainWindow::OnGameListCreateShortcut);
     connect(game_list, &GameList::CreateSteamShortcut, this,
             &GMainWindow::OnGameListCreateSteamShortcut);
+    // Opens the same export dialog as the menu, but already pointed at the
+    // game that was right-clicked.
+    connect(game_list, &GameList::RecompileGameRequested, this,
+            [this](const std::string&) { OnExportGame(); });
     connect(game_list, &GameList::AddDirectory, this, &GMainWindow::OnGameListAddDirectory);
     connect(game_list_placeholder, &GameListPlaceholder::AddDirectory, this,
             &GMainWindow::OnGameListAddDirectory);

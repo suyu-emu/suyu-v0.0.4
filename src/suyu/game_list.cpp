@@ -686,6 +686,10 @@ void GameList::AddGamePopup(QMenu& context_menu, u64 program_id, const std::stri
         shortcut_menu->addAction(tr("Add to Applications Menu"));
 #endif
     QAction* add_to_steam = context_menu.addAction(tr("Add to Steam"));
+    // The static recompiler was only reachable from a file menu that gave no
+    // hint it applied to a specific game. Offering it on the game itself is
+    // where anyone would look for it.
+    QAction* recompile = context_menu.addAction(tr("Recompile for PC..."));
     context_menu.addSeparator();
     QAction* properties = context_menu.addAction(tr("Properties"));
 
@@ -791,6 +795,9 @@ void GameList::AddGamePopup(QMenu& context_menu, u64 program_id, const std::stri
     connect(add_to_steam, &QAction::triggered, [this, program_id, path]() {
         emit CreateSteamShortcut(program_id, path);
     });
+    recompile->setVisible(program_id != 0 && !is_owned_placeholder);
+    connect(recompile, &QAction::triggered,
+            [this, path]() { emit RecompileGameRequested(path); });
     connect(properties, &QAction::triggered,
             [this, path]() { emit OpenPerGameGeneralRequested(path); });
 };

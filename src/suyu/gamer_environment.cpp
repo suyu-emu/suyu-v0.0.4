@@ -406,6 +406,13 @@ GamerEnvironment::GamerEnvironment(GameList* game_list, GMainWindow* parent)
     setAttribute(Qt::WA_OpaquePaintEvent, true);
     setAutoFillBackground(false);
 
+    // Slow repaint driving the drifting background marks. 20fps is plenty for
+    // something this faint and this slow, and keeps it off the critical path.
+    ambient_clock_.start();
+    ambient_timer_ = new QTimer(this);
+    connect(ambient_timer_, &QTimer::timeout, this, qOverload<>(&QWidget::update));
+    ambient_timer_->start(50);
+
     // Initialize the network manager BEFORE SetupUI() so that BuildSocialPage()
     // can call LoadRedditFeed() and the request will actually be dispatched.
     reddit_network_manager_ = new QNetworkAccessManager(this);
@@ -1855,6 +1862,34 @@ void GamerEnvironment::paintEvent(QPaintEvent*) {
         orb.setColorAt(0.50, QColor( 60,   0, 110,  25));
         orb.setColorAt(1.00, QColor(  0,   0,   0,   0));
         p.fillRect(rect(), orb);
+    }
+
+    // ── Ambient drifting suyu marks ───────────────────────────────────────────
+    // Faint, slow-moving logos so the background has some life rather than
+    // being a flat gradient. Positions come from a fixed pseudo-random spread
+    // driven by an elapsed-time phase, so it loops smoothly and costs nothing
+    // to keep running.
+    {
+        static const QPixmap mark =
+            QIcon(QStringLiteral(":/img/suyu_logo.svg")).pixmap(QSize(160, 160));
+        if (!mark.isNull()) {
+            const qreal t = ambient_clock_.isValid()
+                                ? qreal(ambient_clock_.elapsed()) / 1000.0
+                                : 0.0;
+            p.setRenderHint(QPainter::SmoothPixmapTransform, true);
+            for (int i = 0; i < 7; ++i) {
+                // Each mark gets its own size, speed and drift direction.
+                const qreal seed = qreal(i) * 1.7;
+                const qreal scale = 0.35 + 0.10 * qreal((i * 37) % 5);
+                const qreal speed = 6.0 + qreal((i * 13) % 9);
+                const qreal x = width() * (0.5 + 0.55 * std::sin(t / speed + seed));
+                const qreal y = height() * (0.5 + 0.55 * std::cos(t / (speed * 1.3) + seed * 2));
+                const int size = int(mark.width() * scale);
+                p.setOpacity(0.05);
+                p.drawPixmap(QRect(int(x) - size / 2, int(y) - size / 2, size, size), mark);
+            }
+            p.setOpacity(1.0);
+        }
     }
 
     // ── Sidebar translucent overlay ───────────────────────────────────────────

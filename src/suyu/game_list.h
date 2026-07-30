@@ -130,6 +130,8 @@ signals:
     void CreateShortcut(u64 program_id, const std::string& game_path,
                         GameListShortcutTarget target);
     void CreateSteamShortcut(u64 program_id, const std::string& game_path);
+    /// Recompile this game into a native PC build via the static recompiler.
+    void RecompileGameRequested(const std::string& game_path);
     void NavigateToGamedbEntryRequested(u64 program_id,
                                         const CompatibilityList& compatibility_list);
     void OpenPerGameGeneralRequested(const std::string& file);
