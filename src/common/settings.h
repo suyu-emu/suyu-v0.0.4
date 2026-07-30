@@ -869,6 +869,15 @@ struct Values {
                                            Category::Network};
     SwitchableSetting<bool> airplane_mode{linkage, false, "airplane_mode", Category::Network};
 
+    /// Hostname to answer with when a game asks for one of Nintendo's online
+    /// services. Those are unreachable and are otherwise refused; pointing this
+    /// at a replacement network - Nextendo and similar, which reimplement
+    /// identity and matchmaking and which a modded console reaches by
+    /// redirecting its DNS - turns the refusal into a redirect. Empty keeps the
+    /// refuse-everything behaviour.
+    Setting<std::string> network_replacement_host{linkage, "", "network_replacement_host",
+                                                  Category::Network};
+
     // WebService
     Setting<std::string> web_api_url{linkage, "api.ynet-fun.xyz", "web_api_url",
                                      Category::WebService};
