@@ -348,15 +348,35 @@ bool SteamIntegration::AddGameShortcut(const QString& game_title, const QString&
         }
     }
 
-    // Check if shortcut with this title already exists
-    for (const auto& sc : shortcuts) {
-        if (sc.app_name == game_title) {
-            return true; // Already present
-        }
-    }
-
     // Path to the currently running suyu executable
     const QString exe_path = QCoreApplication::applicationFilePath();
+
+    // A shortcut with this title may already exist. Matching on the name alone
+    // and returning was not enough: an entry written by an earlier install
+    // keeps pointing at that install's executable, so Steam goes on launching a
+    // binary that has since moved or been deleted - which looks like the Steam
+    // integration silently doing nothing. Seen live, pointing at a different
+    // suyu directory entirely. Repoint it instead, and only leave it alone when
+    // it already refers to this executable.
+    const QString quoted_exe = QStringLiteral("\"%1\"").arg(exe_path);
+    for (auto& sc : shortcuts) {
+        if (sc.app_name != game_title) {
+            continue;
+        }
+        const QString existing = QString(sc.exe).remove(QLatin1Char('"'));
+        if (QFileInfo(existing) == QFileInfo(exe_path)) {
+            return true; // Already correct
+        }
+        sc.exe = quoted_exe;
+        sc.start_dir = QStringLiteral("\"%1\"").arg(QFileInfo(exe_path).absolutePath());
+        sc.shortcut_path = QFileInfo(exe_path).absolutePath();
+        QFile out(vdf_path);
+        if (!out.open(QIODevice::WriteOnly)) {
+            return false;
+        }
+        out.write(SerializeShortcutsVdf(shortcuts));
+        return true;
+    }
 
     SteamShortcut new_sc;
     new_sc.app_name = game_title;
