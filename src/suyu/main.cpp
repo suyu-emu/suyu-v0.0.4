@@ -718,6 +718,12 @@ GMainWindow::GMainWindow(std::unique_ptr<QtConfig> config_, bool has_broken_vulk
     if (game_path.isEmpty()) {
         QTimer::singleShot(0, this, [this]() { RunFirstRunSetupIfNeeded(); });
     }
+
+    // Auto-load a recompiled image at startup when pointed at one, so the whole
+    // path can be exercised without the folder picker.
+    if (!qEnvironmentVariableIsEmpty("SUYU_RECOMP_DIR")) {
+        QTimer::singleShot(0, this, [this]() { OnLoadRecompiledImage(); });
+    }
 }
 
 GMainWindow::~GMainWindow() {
@@ -6044,9 +6050,14 @@ void GMainWindow::OnLoadRecompiledImage() {
     }
 
     // Ask for the directory the export produced rather than one library, so
-    // every module of the title is picked up together.
-    const QString dir = QFileDialog::getExistingDirectory(
-        this, tr("Select the recompiled folder for this game"));
+    // every module of the title is picked up together. SUYU_RECOMP_DIR skips
+    // the picker - it makes the whole load headless-testable, which the file
+    // dialog is not when a system overlay steals focus.
+    QString dir = QString::fromLocal8Bit(qgetenv("SUYU_RECOMP_DIR"));
+    if (dir.isEmpty()) {
+        dir = QFileDialog::getExistingDirectory(
+            this, tr("Select the recompiled folder for this game"));
+    }
     if (dir.isEmpty()) {
         return;
     }
@@ -6152,13 +6163,18 @@ void GMainWindow::OnLoadRecompiledImage() {
         return nullptr;
     };
     Core::SetRecompLookup(+chained);
-    QMessageBox::information(
-        this, tr("Recompiled Image"),
-        tr("Loaded %1 module image(s). The next game you start will run on the static "
-           "recompiler instead of the JIT, driven by suyu's own kernel, services and GPU."
-           "\n\nThis is experimental: the images only cover the code the static pass reached, "
-           "and execution stops if the game branches outside it.")
-            .arg(loaded_images.size()));
+    LOG_INFO(Frontend, "Loaded {} recompiled module image(s)", loaded_images.size());
+    // No modal when the load was driven by the environment variable - that path
+    // is meant to run unattended.
+    if (qEnvironmentVariableIsEmpty("SUYU_RECOMP_DIR")) {
+        QMessageBox::information(
+            this, tr("Recompiled Image"),
+            tr("Loaded %1 module image(s). The next game you start will run on the static "
+               "recompiler instead of the JIT, driven by suyu's own kernel, services and GPU."
+               "\n\nThis is experimental: the images only cover the code the static pass reached, "
+               "and execution stops if the game branches outside it.")
+                .arg(loaded_images.size()));
+    }
 }
 
 void GMainWindow::OnLoadLibretroCore() {

@@ -4,6 +4,7 @@
 // SPDX-FileCopyrightText: Copyright 2020 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
+#include "common/logging/log.h"
 #include "common/scope_exit.h"
 #include "common/settings.h"
 #include "core/core.h"
@@ -27,6 +28,14 @@ void PhysicalCore::RunThread(KernelCore& kernel, Kernel::KThread* thread) {
     auto* process = thread->GetOwnerProcess();
     auto& system = kernel.System();
     auto* interface = process->GetArmInterface(m_core_index);
+
+    {
+        static bool announced = false;
+        if (!announced) {
+            announced = true;
+            LOG_INFO(Kernel, "PhysicalCore::RunThread reached, core={}", m_core_index);
+        }
+    }
 
     interface->Initialize();
 

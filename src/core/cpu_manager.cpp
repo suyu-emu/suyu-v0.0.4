@@ -4,6 +4,7 @@
 // SPDX-FileCopyrightText: Copyright 2018 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
+#include "common/logging/log.h"
 #include "common/fiber.h"
 #include "common/scope_exit.h"
 #include "common/thread.h"
@@ -73,6 +74,7 @@ void CpuManager::HandleInterrupt(Kernel::KernelCore& kernel) {
 void CpuManager::MultiCoreRunGuestThread(Kernel::KernelCore& kernel) {
     // Similar to UserModeThreadStarter in HOS
     auto* thread = Kernel::GetCurrentThreadPointer(kernel);
+    LOG_INFO(Core, "CpuManager: guest fiber running, thread={}", fmt::ptr(thread));
     kernel.CurrentScheduler()->OnThreadStart(kernel);
 
     while (true) {
