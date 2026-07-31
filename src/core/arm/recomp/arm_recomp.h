@@ -44,7 +44,13 @@ void SetRecompLookup(RecompLookupFn lookup);
 /// the static pass are module-relative - the loader picks the real base at run
 /// time - so without this every pointer the guest computes is short by that
 /// base and lands near null.
-using RecompBaseFn = void (*)(const char* module, u64 base);
+/// `index` is the module's position in load order, lowest base first. Names
+/// cannot be relied on to identify a module: a game's main NSO is named after
+/// the game ("cross2_Release.nss"), and its sdk and subsdk modules carry names
+/// like "nnSdk" and "multimedia", none of which match the file names the
+/// exporter used. Load order is the same on every title - rtld, main, the
+/// subsdks, then sdk - so the index is what actually lines up.
+using RecompBaseFn = void (*)(size_t index, const char* module, u64 base);
 void SetRecompBaseSetter(RecompBaseFn setter);
 
 /// Returns the registered lookup, or nullptr when no recompiled image is

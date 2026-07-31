@@ -123,8 +123,10 @@ struct ArmRecomp::Impl {
                 // Now that the loader has placed everything, tell each image
                 // where its own module went.
                 if (const auto setter = g_recomp_base_setter.load(std::memory_order_acquire)) {
+                    // modules is keyed by base, so iteration is load order.
+                    size_t index = 0;
                     for (const auto& [module_base, name] : modules) {
-                        setter(name.c_str(), module_base);
+                        setter(index++, name.c_str(), module_base);
                     }
                 }
             }
@@ -154,6 +156,14 @@ ArmRecomp::ArmRecomp(System& system, bool uses_wall_clock, RecompLookupFn lookup
 ArmRecomp::~ArmRecomp() = default;
 
 HaltReason ArmRecomp::RunThread(Kernel::KThread* thread) {
+    // Logged once so it is obvious from a log whether the backend was ever
+    // entered at all. A run with no errors is otherwise indistinguishable from
+    // a run where the guest thread was never scheduled onto it.
+    static bool announced = false;
+    if (!announced) {
+        announced = true;
+        LOG_INFO(Core_ARM, "ArmRecomp::RunThread entered, pc={:#x}", impl->ctx.pc);
+    }
     if (!impl->lookup) {
         LOG_ERROR(Core_ARM, "No recompiled code registered; cannot run thread");
         return HaltReason::BreakLoop;

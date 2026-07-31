@@ -1309,6 +1309,7 @@ void KProcess::InitializeInterfaces(KernelCore& kernel) {
     // above this point are unchanged and the recompiled code gets the real HLE
     // stack instead of the generated runtime's stub SVC handler.
     if (const auto recomp_lookup = Core::GetRecompLookup()) {
+        LOG_INFO(Kernel, "Using ArmRecomp: a recompiled image is registered");
         for (size_t i = 0; i < Core::Hardware::NUM_CPU_CORES; i++) {
             m_arm_interfaces[i] =
                 std::make_unique<Core::ArmRecomp>(kernel.System(), kernel.IsMulticore(),

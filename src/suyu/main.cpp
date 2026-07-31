@@ -6114,14 +6114,29 @@ void GMainWindow::OnLoadRecompiledImage() {
 
     // Kernel module names carry an "nn" prefix that the export directories do
     // not ("nnrtld" against "rtld"), so try both spellings.
-    Core::SetRecompBaseSetter([](const char* module, u64 base) {
+    Core::SetRecompBaseSetter([](size_t index, const char* module, u64 base) {
+        // Try the name first - it works for rtld - then fall back to load
+        // order. A game's own modules are not named after the files they were
+        // exported from: main is named after the game ("cross2_Release.nss"),
+        // and the others come through as "nnSdk" and "multimedia". Load order
+        // is identical across titles, so position is the dependable key.
+        static const char* kByLoadOrder[] = {"rtld", "main", "subsdk0", "sdk"};
+
         std::string name = module;
         auto entry = loaded_base_setters.find(name);
         if (entry == loaded_base_setters.end() && name.rfind("nn", 0) == 0) {
             entry = loaded_base_setters.find(name.substr(2));
         }
+        if (entry == loaded_base_setters.end() && index < std::size(kByLoadOrder)) {
+            entry = loaded_base_setters.find(kByLoadOrder[index]);
+        }
         if (entry != loaded_base_setters.end()) {
             entry->second(base);
+            LOG_INFO(Frontend, "Recompiled image for module '{}' (#{}) based at {:#x}", name,
+                     index, base);
+        } else {
+            LOG_WARNING(Frontend, "No recompiled image for module '{}' (#{}, base {:#x})", name,
+                        index, base);
         }
     });
 
