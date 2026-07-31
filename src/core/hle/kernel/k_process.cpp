@@ -1026,7 +1026,10 @@ Result KProcess::Run(KernelCore& kernel, s32 priority, size_t stack_size) {
     }
 
     // Run our thread.
+    LOG_INFO(Kernel, "KProcess::Run starting main thread, entry={:#x}, prio={}",
+             GetInteger(this->GetEntryPoint()), priority);
     R_TRY(main_thread->Run(kernel));
+    LOG_INFO(Kernel, "KProcess::Run main thread started");
 
     // Open a reference to represent that we're running.
     this->Open(kernel);
@@ -1308,8 +1311,15 @@ void KProcess::InitializeInterfaces(KernelCore& kernel) {
     // still goes through ArmInterface, so the kernel, the services and the GPU
     // above this point are unchanged and the recompiled code gets the real HLE
     // stack instead of the generated runtime's stub SVC handler.
-    if (const auto recomp_lookup = Core::GetRecompLookup()) {
-        LOG_INFO(Kernel, "Using ArmRecomp: a recompiled image is registered");
+    // Only the application runs on a recompiled image. A registered lookup is
+    // global, so without this guard every system/HLE process created after it
+    // - the service modules that come up during boot - would also be handed
+    // ArmRecomp and the game's image, which is not their code at all. They come
+    // up before the application starts, so wedging them there is why boot never
+    // reaches the application's own thread.
+    if (const auto recomp_lookup = this->IsApplication() ? Core::GetRecompLookup() : nullptr) {
+        LOG_INFO(Kernel, "Using ArmRecomp for process '{}' (is_app={})", this->GetName(),
+                 this->IsApplication());
         for (size_t i = 0; i < Core::Hardware::NUM_CPU_CORES; i++) {
             m_arm_interfaces[i] =
                 std::make_unique<Core::ArmRecomp>(kernel.System(), kernel.IsMulticore(),
