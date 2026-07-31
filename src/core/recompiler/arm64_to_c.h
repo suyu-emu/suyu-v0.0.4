@@ -136,6 +136,19 @@ inline std::string Wz(u32 r) {
     return r == 31 ? std::string("(uint32_t)0") : ("(uint32_t)c->x[" + std::to_string(r) + "]");
 }
 
+/// Register 31 as the stack pointer rather than the zero register.
+///
+/// AArch64 spells both with the same encoding and the meaning depends on the
+/// instruction: ADD/SUB with an immediate or an extended register read it as
+/// SP, while the shifted-register and logical forms read it as XZR. Using the
+/// zero-register spelling everywhere makes every function prologue -
+/// "sub sp, sp, #N", "add x29, sp, #N" - compute from zero, so the frame lands
+/// at a tiny address and every local access writes into unmapped memory near
+/// null.
+inline std::string Xsp(u32 r) {
+    return "c->x[" + std::to_string(r) + "]";
+}
+
 // Append C for one instruction. Returns false if the instruction terminates the block.
 inline bool Translate(u32 i, u64 pc, std::string& out) {
     char buf[256];
@@ -178,10 +191,16 @@ inline bool Translate(u32 i, u64 pc, std::string& out) {
                  (unsigned long long)imm, op ? "_a-_b" : "_a+_b");
         std::string s = buf;
         if (!sf) s += "_r&=0xFFFFFFFFULL; ";
-        s += "c->x[" + std::to_string(rd) + "]=_r; ";
+        // With the flag-setting form, register 31 as the destination is the
+        // zero register - that encoding is CMP - so the result is dropped.
+        // Without it, register 31 is SP and the write is real.
+        if (!(rd == 31 && S)) s += "c->x[" + std::to_string(rd) + "]=_r; ";
         if (S) s += "recomp_set_flags(c," + std::string(op ? "1" : "0") + ",_a,_b,_r," + (sf ? "1" : "0") + "); ";
         s += "}";
-        if (rd != 31 || S) put(s);
+        // Register 31 is SP here, not the zero register, so a write to it is
+        // real and must not be discarded: dropping it throws away every
+        // "sub sp, sp, #N" that opens a stack frame.
+        put(s);
         return true;
     }
 
@@ -585,10 +604,13 @@ inline bool Translate(u32 i, u64 pc, std::string& out) {
             }
             if (!ext.empty()) {
                 if (imm3) ext = "((" + ext + ") << " + std::to_string(imm3) + ")";
-                std::string s = "{ uint64_t _a=" + Xz(rn) + ", _b=" + ext + "; uint64_t _r=" +
+                // Rn is SP here, not the zero register, and so is Rd unless the
+                // flag-setting form is used - where it really is the zero
+                // register, because that is CMP.
+                std::string s = "{ uint64_t _a=" + Xsp(rn) + ", _b=" + ext + "; uint64_t _r=" +
                                 std::string(op ? "_a-_b" : "_a+_b") + "; ";
                 if (!sf) s += "_r &= 0xFFFFFFFFULL; ";
-                if (rd != 31) s += "c->x[" + std::to_string(rd) + "]=_r; ";
+                if (rd != 31 || !S) s += "c->x[" + std::to_string(rd) + "]=_r; ";
                 if (S) s += "recomp_set_flags(c," + std::string(op ? "1" : "0") +
                             ",_a,_b,_r," + (sf ? "1" : "0") + "); ";
                 s += "}";
