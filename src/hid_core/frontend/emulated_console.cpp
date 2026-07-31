@@ -100,6 +100,7 @@ void EmulatedConsole::ReloadInput() {
     motion.gyro = emulated_motion.GetGyroscope();
     motion.rotation = emulated_motion.GetRotations();
     motion.orientation = emulated_motion.GetOrientation();
+    motion.quaternion = emulated_motion.GetQuaternion();
     motion.is_at_rest = !emulated_motion.IsMoving(motion_sensitivity);
 
     // Unique index for identifying touch device source
