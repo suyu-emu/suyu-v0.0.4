@@ -135,7 +135,6 @@ if (YUZU_STATIC_BUILD)
 
         # these libs do not properly provide static libs/let you do it with cmake
         set(fmt_FORCE_BUNDLED ON)
-        set(SPIRV-Headers_FORCE_BUNDLED ON)
         set(zstd_FORCE_BUNDLED ON)
     endif()
 endif()

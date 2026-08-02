@@ -185,9 +185,6 @@ endif()
 
 set(BUILD_SHARED_LIBS OFF)
 
-# SPIRV Headers
-AddJsonPackage(spirv-headers)
-
 # Sirit
 if (YUZU_USE_BUNDLED_SIRIT)
     AddJsonPackage(sirit-ci)
