@@ -1,8 +1,10 @@
 // SPDX-FileCopyrightText: Copyright 2026 suyu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
+#include <algorithm>
 #include <atomic>
 #include <cstring>
+#include <string>
 
 #include "common/logging/log.h"
 #include "core/arm/recomp/arm_recomp.h"
@@ -140,6 +142,59 @@ struct ArmRecomp::Impl {
         return base;
     }
 
+    // Pre-apply R_AARCH64_RELATIVE relocations for a module by walking its
+    // dynamic section (found via MOD0). Under dynarmic, rtld runs its own
+    // self-relocation loop correctly; under ArmRecomp the recompiled loop exits
+    // early, leaving most relocations un-applied and corrupting data reads.
+    void ApplyRelaRelocations(u64 mod_base) {
+        auto& mem = system.ApplicationMemory();
+        // MOD0 magic "MOD0" = 0x30444F4D. It sits at the start of rodata
+        // (typically mod+0x2000 for rtld), but the actual location is pointed
+        // to by a 4-byte offset at mod+4 (per NSO ABI). Try both locations.
+        // Scan the first few KB for the MOD0 signature.
+        u64 mod0_va = 0;
+        for (u64 off = 0; off < 0x4000; off += 4) {
+            if (mem.Read32(mod_base + off) == 0x30444F4Du) {
+                mod0_va = mod_base + off;
+                break;
+            }
+        }
+        if (!mod0_va) return;
+
+        // MOD0 layout: magic(4), dyn_offset(4), bss_start(4), bss_end(4)
+        // dyn_offset is relative to the MOD0 header itself.
+        const u32 dyn_rel_off = mem.Read32(mod0_va + 4);
+        const u64 dyn_va = mod0_va + dyn_rel_off;
+
+        // Parse the dynamic section (64-bit tag-value pairs).
+        constexpr u32 DT_NULL = 0, DT_RELA = 7, DT_RELASZ = 8, DT_RELAENT = 9;
+        u64 rela_va = 0, rela_sz = 0, rela_ent = 24;
+        for (u64 p = dyn_va; ; p += 16) {
+            const u64 tag = mem.Read64(p);
+            const u64 val = mem.Read64(p + 8);
+            if (tag == DT_NULL) break;
+            if (tag == DT_RELA)   rela_va  = mod_base + val;
+            if (tag == DT_RELASZ) rela_sz  = val;
+            if (tag == DT_RELAENT) rela_ent = val;
+            if (p - dyn_va > 0x1000) break; // safety
+        }
+        if (!rela_va || !rela_sz) return;
+
+        // Apply each R_AARCH64_RELATIVE entry (type 0x403).
+        constexpr u32 R_AARCH64_RELATIVE = 0x403;
+        u32 applied = 0;
+        for (u64 p = rela_va; p < rela_va + rela_sz; p += rela_ent) {
+            const u64 r_offset = mem.Read64(p);
+            const u64 r_info   = mem.Read64(p + 8);
+            const u64 r_addend = mem.Read64(p + 16);
+            if ((r_info & 0xFFFFFFFF) == R_AARCH64_RELATIVE) {
+                mem.Write64(mod_base + r_offset, mod_base + r_addend);
+                ++applied;
+            }
+        }
+        LOG_INFO(Core_ARM, "recomp: pre-applied {} RELA relocations for module base={:#x}", applied, mod_base);
+    }
+
     System& system;
     RecompLookupFn lookup{};
     GuestContextView ctx{};
@@ -148,6 +203,10 @@ struct ArmRecomp::Impl {
     std::atomic<bool> interrupted{false};
     Loader::AppLoader::Modules modules{};
     bool modules_read{false};
+    bool rela_applied{false};
+    static constexpr size_t kTrail = 32;
+    u64 trail[kTrail]{};
+    size_t trail_pos{0};
 };
 
 ArmRecomp::ArmRecomp(System& system, bool uses_wall_clock, RecompLookupFn lookup)
@@ -169,6 +228,33 @@ HaltReason ArmRecomp::RunThread(Kernel::KThread* thread) {
         return HaltReason::BreakLoop;
     }
 
+    // Registering every loaded image's base with the host dispatcher is a
+    // side effect of this call, not something its return value is used for
+    // here - the dispatcher needs it done once before the first lookup, or
+    // every image's base stays 0 and every lookup misses.
+    static bool bases_registered = false;
+    if (!bases_registered) {
+        bases_registered = true;
+        impl->ModuleBaseFor(thread, impl->ctx.pc);
+    }
+
+    if (!impl->rela_applied) {
+        impl->rela_applied = true;
+        // Snapshot 0x273c BEFORE our RELA pass to pinpoint corruption source.
+        auto dump273c = [&](const char* tag) {
+            if (impl->modules.empty()) return;
+            const u64 mbase = impl->modules.begin()->first;
+            std::string dump;
+            for (u64 i = 0; i < 0x60; i += 4)
+                dump += fmt::format("{:08x} ", Impl::HostLoad(impl.get(), mbase + 0x273c + i, 4));
+            LOG_INFO(Core_ARM, "recomp {} mod+0x273c (base {:#x}): {}", tag, mbase, dump);
+        };
+        dump273c("BEFORE-RELA");
+        for (const auto& [module_base, name] : impl->modules)
+            impl->ApplyRelaRelocations(module_base);
+        dump273c("AFTER-RELA");
+    }
+
     impl->interrupted.store(false, std::memory_order_relaxed);
     impl->ctx.halted = 0;
 
@@ -187,12 +273,52 @@ HaltReason ArmRecomp::RunThread(Kernel::KThread* thread) {
         // module, because that is all the static pass can know: an NSO's
         // segment header carries the offset inside the module, not the address
         // the loader will map it to, and that address changes per run anyway.
-        // The PC here is a module-relative address in the process, so it has to
-        // be reduced to an offset before the image can be asked about it -
-        // otherwise every single lookup misses and the very first block halts.
+        // The host-side dispatcher (suyu's chained lookup) owns picking which
+        // image the PC belongs to and reducing to that image's offset before
+        // calling into it - a second offset-based retry here used to guess
+        // which image based only on pc-base, but two images can both define a
+        // block at the same offset (every module has one at offset 0), so a
+        // guess made without knowing which image owns the address silently
+        // ran the wrong module's code with no error. Ask with the absolute PC
+        // and let the dispatcher own the reduction.
+        // Rolling trail of the last few PCs. A wild indirect branch reports
+        // only the address it landed on, which says nothing about which block
+        // computed it; without the predecessors there is no way to tell a bad
+        // GOT read from a bad emitted branch.
+        impl->trail[impl->trail_pos++ & (Impl::kTrail - 1)] = impl->ctx.pc;
+
+        // Log pre-dispatch state for the jump-table block to diagnose the GOT bug.
+        const u64 base = impl->modules.empty() ? 0 : impl->modules.begin()->first;
+        if (impl->ctx.pc - base == 0x34c && base != 0) {
+            LOG_ERROR(Core_ARM, "recomp jt dispatch: base={:#x} x0={:#x} x18={:#x} mem@x18={:#x} mem@x18+x0*4={:#x}",
+                      base, impl->ctx.x[0], impl->ctx.x[18],
+                      Impl::HostLoad(impl.get(), impl->ctx.x[18], 4),
+                      Impl::HostLoad(impl.get(), impl->ctx.x[18] + impl->ctx.x[0]*4, 4));
+        }
+
         RecompBlockFn block = impl->lookup(impl->ctx.pc);
         if (!block) {
-            block = impl->lookup(impl->ctx.pc - impl->ModuleBaseFor(thread, impl->ctx.pc));
+            std::string trail;
+            const size_t count = std::min<size_t>(impl->trail_pos, Impl::kTrail);
+            for (size_t i = 0; i < count; ++i) {
+                const u64 p = impl->trail[(impl->trail_pos - count + i) & (Impl::kTrail - 1)];
+                trail += fmt::format("{:#x} ", p);
+            }
+            LOG_ERROR(Core_ARM, "recomp PC trail (oldest first): {}", trail);
+            LOG_ERROR(Core_ARM, "recomp regs x16={:#x} x17={:#x} x30={:#x} sp={:#x}",
+                      impl->ctx.x[16], impl->ctx.x[17], impl->ctx.x[30], impl->ctx.x[31]);
+            LOG_ERROR(Core_ARM, "recomp regs x0={:#x} x15={:#x} x18={:#x} x19={:#x}",
+                      impl->ctx.x[0], impl->ctx.x[15], impl->ctx.x[18], impl->ctx.x[19]);
+            {
+                const u64 mbase = impl->modules.empty() ? 0 : impl->modules.begin()->first;
+                for (u64 seg : {0x0ULL, 0x2000ULL, 0x3000ULL}) {
+                    std::string dump;
+                    for (u64 i = 0; i < 0x40; i += 4) {
+                        dump += fmt::format("{:08x} ", Impl::HostLoad(impl.get(), mbase + seg + i, 4));
+                    }
+                    LOG_ERROR(Core_ARM, "recomp mem mod+{:#x} (base {:#x}): {}", seg, mbase, dump);
+                }
+            }
         }
         if (!block) {
             // No recompiled block covers this address. This is a genuine gap

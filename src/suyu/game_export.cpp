@@ -16,6 +16,7 @@
 #include <QListWidget>
 #include <QMessageBox>
 #include <QProcess>
+#include <QSettings>
 #include <QStandardPaths>
 #include <QTextStream>
 #include <QThread>
@@ -65,6 +66,14 @@ static bool CopyFileReplacingExisting(const QString& src, const QString& dst) {
         return false;
     }
 
+    // An unchanged copy is left alone. The bundled payload is the ROM itself -
+    // 18.5 GB for Smash Ultimate - and re-copying it on every export dominates
+    // the run for no gain when the same file is already sitting there.
+    if (dst_info.exists() && dst_info.isFile() && dst_info.size() == src_info.size() &&
+        dst_info.lastModified() >= src_info.lastModified()) {
+        return true;
+    }
+
     if (QFile::exists(dst) && !QFile::remove(dst)) {
         return false;
     }
@@ -72,20 +81,24 @@ static bool CopyFileReplacingExisting(const QString& src, const QString& dst) {
     return QFile::copy(src, dst);
 }
 
-static bool CopyPathReplacingExisting(const QString& src, const QString& dst) {
-    const QFileInfo src_info(src);
-    if (!src_info.exists()) {
-        return false;
-    }
+// True when both paths name the same location on disk, so a "copy" between
+// them would be a no-op at best.
+static bool IsSamePath(const QString& a, const QString& b) {
+    return QDir::cleanPath(QFileInfo(a).absoluteFilePath()).compare(
+               QDir::cleanPath(QFileInfo(b).absoluteFilePath()), Qt::CaseInsensitive) == 0;
+}
 
-    if (src_info.isDir()) {
-        if (QFileInfo::exists(dst) && !QDir(dst).removeRecursively()) {
-            return false;
-        }
-        return CopyDirectoryRecursive(src, dst);
+// Copy a directory unless it is already in place.
+//
+// The AOT cache is now generated straight into the package, so the packaging
+// step finds source and destination identical. Copying it anyway meant
+// duplicating gigabytes of generated C - Smash Ultimate's cache is about 6 GB -
+// onto itself, which is where exports were dying.
+static bool CopyDirectoryUnlessInPlace(const QString& src, const QString& dst) {
+    if (IsSamePath(src, dst)) {
+        return QDir(src).exists();
     }
-
-    return CopyFileReplacingExisting(src, dst);
+    return CopyDirectoryRecursive(src, dst);
 }
 
 static bool CopyDirectoryRecursive(const QString& src, const QString& dst) {
@@ -271,14 +284,30 @@ void GameExportDialog::SetupUi() {
     aot_full_scan_checkbox->setChecked(false);
     layout->addWidget(aot_full_scan_checkbox);
 
-    compile_output_checkbox = new QCheckBox(
-        tr("Compile the recompiled code into binaries (needs CMake and a C compiler)"), this);
-    compile_output_checkbox->setToolTip(
-        tr("On, the exported C is built into a native executable and the shared library suyu "
-           "loads to run the game on its own recompiler. Off, only the sources and a build "
-           "script are written, which is much faster and lets you compile them yourself."));
-    compile_output_checkbox->setChecked(true);
-    layout->addWidget(compile_output_checkbox);
+    // Source vs Build is a real, explicit choice rather than an easily-missed
+    // checkbox, because the two produce completely different deliverables and
+    // "I picked build and got a folder of C" was the reported complaint. Source
+    // stays the default: a large title lifts to gigabytes of C - Smash
+    // Ultimate's main module alone is ~3 GB across 139 translation units - and
+    // compiling that is hours of C-compiler work, so it must be asked for, not
+    // stumbled into. When Build IS chosen the export compiles all the way to a
+    // binary and fails loudly if it cannot, instead of silently degrading.
+    auto* format_row = new QHBoxLayout();
+    format_row->addWidget(new QLabel(tr("Export Format:"), this));
+    output_format_combo = new QComboBox(this);
+    output_format_combo->addItem(
+        tr("Source — generate C project only (fast, compile it yourself)"));
+    output_format_combo->addItem(
+        tr("Build — compile to a standalone executable (slow, needs CMake + a C compiler)"));
+    output_format_combo->setToolTip(
+        tr("Source writes the recompiled C plus a CMakeLists.txt and a build script, and stops "
+           "there. Build additionally runs CMake to completion, producing the standalone "
+           "'recompiled' executable and the shared library suyu loads to run the game on its own "
+           "recompiler. Build can take hours on large titles; the window stays responsive while "
+           "it works."));
+    output_format_combo->setCurrentIndex(0);
+    format_row->addWidget(output_format_combo, 1);
+    layout->addLayout(format_row);
 
     include_save_data_checkbox = new QCheckBox(tr("Include save data for this game"), this);
     include_save_data_checkbox->setChecked(true);
@@ -293,9 +322,10 @@ void GameExportDialog::SetupUi() {
     layout->addWidget(include_custom_config_checkbox);
 
     auto* note_label = new QLabel(
-          tr("Exports a buildable C project that compiles into a standalone PC executable. "
-              "The executable includes a runtime with save/load support and runs independently "
-              "of the emulator. Build with CMake + any C compiler."),
+          tr("Statically recompiles the game into C. The resulting standalone executable includes "
+             "a runtime with save/load support and runs independently of the emulator. Choose "
+             "Build above to have suyu compile it for you (slow on large titles), or Source to "
+             "get the C project and compile it yourself with CMake + any C compiler."),
         this);
     note_label->setWordWrap(true);
     note_label->setStyleSheet(QStringLiteral("color: #888;"));
@@ -883,6 +913,10 @@ static bool SerializeTranslatedBlocks(const NsoAnalysisResult& mod, const QStrin
 // AOT Pre-compilation — Real Implementation
 // ---------------------------------------------------------------------------
 
+bool GameExportDialog::WantsCompiledOutput() const {
+    return output_format_combo && output_format_combo->currentIndex() == 1;
+}
+
 QString GameExportDialog::RunAotPrecompile(const QString& exefs_dir,
                                            const QString& cache_dir,
                                            RecompileBackend backend,
@@ -890,12 +924,24 @@ QString GameExportDialog::RunAotPrecompile(const QString& exefs_dir,
     QDir().mkpath(cache_dir);
 
     const QString manifest_path = cache_dir + QDir::separator() + QStringLiteral("aot_manifest.json");
-    const QString blockmap_dir = cache_dir + QDir::separator() + QStringLiteral("blockmaps");
-    const QString code_dir = cache_dir + QDir::separator() + QStringLiteral("code");
-    const QString ir_dir = cache_dir + QDir::separator() + QStringLiteral("ir");
-    QDir().mkpath(blockmap_dir);
-    QDir().mkpath(code_dir);
-    QDir().mkpath(ir_dir);
+
+    // blockmaps/, ir/ and code/ are debugging material for a codegen stage that
+    // no longer exists: nothing in suyu or in the generated project reads any of
+    // them, and EmitProject works from the module's text bytes directly. They
+    // used to be created (and blockmaps written) on every export, which put
+    // three dead directories at the top of every package. They are now produced
+    // only when explicitly asked for, by the same switch that gates the
+    // per-block dumps.
+    const bool dump_debug_artifacts = !qEnvironmentVariableIsEmpty("SUYU_AOT_DUMP_BLOCKS");
+    const QString debug_root = cache_dir + QDir::separator() + QStringLiteral("debug");
+    const QString blockmap_dir = debug_root + QDir::separator() + QStringLiteral("blockmaps");
+    const QString code_dir = debug_root + QDir::separator() + QStringLiteral("code");
+    const QString ir_dir = debug_root + QDir::separator() + QStringLiteral("ir");
+    if (dump_debug_artifacts) {
+        QDir().mkpath(blockmap_dir);
+        QDir().mkpath(code_dir);
+        QDir().mkpath(ir_dir);
+    }
 
     const bool full_scan = aot_full_scan_checkbox->isChecked();
     const bool ballistic_requested = backend == RecompileBackend::Ballistic;
@@ -996,7 +1042,9 @@ QString GameExportDialog::RunAotPrecompile(const QString& exefs_dir,
         total_blocks += mod.total_blocks;
         total_instructions += mod.total_instructions;
         total_text_bytes += mod.text_size;
-        SerializeTranslatedBlocks(mod, ir_dir, code_dir, &total_ir_blocks, &total_ir_failures);
+        if (dump_debug_artifacts) {
+            SerializeTranslatedBlocks(mod, ir_dir, code_dir, &total_ir_blocks, &total_ir_failures);
+        }
     }
 
     // Static recompilation: lift each module's AArch64 .text into a buildable, cross-platform C
@@ -1024,35 +1072,113 @@ QString GameExportDialog::RunAotPrecompile(const QString& exefs_dir,
         // Actually build it. Emitting sources and a build script left the user
         // with a directory of C rather than something runnable, even though
         // this path is the "build" option - they had to find and run the script
-        // themselves. cmake is invoked directly here; if it isn't installed the
-        // sources and the script are still there, which is the source-only
-        // outcome rather than a failure.
-        const QString cmake = compile_output_checkbox->isChecked()
+        // themselves. cmake is invoked directly here.
+        const QString cmake = WantsCompiledOutput()
                                   ? QStandardPaths::findExecutable(QStringLiteral("cmake"))
                                   : QString();
+        if (WantsCompiledOutput() && cmake.isEmpty()) {
+            // Build mode promises an executable. Falling back to source-only
+            // here is precisely the failure the user reported, so surface it
+            // rather than pretending the export did what was asked.
+            LOG_ERROR(Frontend, "Build export requested but cmake was not found on PATH");
+            QMessageBox::critical(
+                this, tr("Export Failed"),
+                tr("Export Format is set to Build, but CMake could not be found on your PATH, so "
+                   "no executable can be produced.\n\nInstall CMake (and a C compiler) and try "
+                   "again, or choose the Source export format if you only want the generated C."));
+            return {};
+        }
         if (!cmake.isEmpty()) {
             status_label->setText(tr("Compiling %1 (this takes a while)...").arg(mod.name));
             QApplication::processEvents();
 
             const QString build_dir = mod_dir + QDir::separator() + QStringLiteral("build");
+            // waitForFinished(-1) blocks the GUI thread outright, and a module
+            // this size keeps cmake busy for hours - long enough that Windows
+            // marks the window "Not Responding" and the run is indistinguishable
+            // from a crash. Wait in short slices and pump the event loop between
+            // them so the dialog keeps painting and stays reportable instead.
+            const auto run_cmake = [](QProcess& proc, const QString& program,
+                                      const QStringList& args) -> int {
+                proc.start(program, args);
+                if (!proc.waitForStarted(30000)) {
+                    return -1;
+                }
+                while (!proc.waitForFinished(100)) {
+                    if (proc.state() == QProcess::NotRunning) {
+                        break;
+                    }
+                    QApplication::processEvents();
+                }
+                return proc.exitCode();
+            };
+
             QProcess configure;
-            configure.start(cmake, {QStringLiteral("-S"), mod_dir, QStringLiteral("-B"), build_dir});
-            configure.waitForFinished(-1);
-            if (configure.exitCode() == 0) {
+            const int configure_rc = run_cmake(
+                configure, cmake,
+                {QStringLiteral("-S"), mod_dir, QStringLiteral("-B"), build_dir});
+            if (configure_rc == 0) {
                 QProcess build;
                 // Both targets: the executable and the shared library suyu
                 // loads to run this image on its own CPU backend.
-                build.start(cmake, {QStringLiteral("--build"), build_dir, QStringLiteral("--config"),
-                                    QStringLiteral("Release")});
-                build.waitForFinished(-1);
-                if (build.exitCode() != 0) {
-                    LOG_WARNING(Frontend, "Recompiled module {} failed to compile",
-                                mod.name.toStdString());
+                const int build_rc =
+                    run_cmake(build, cmake,
+                              {QStringLiteral("--build"), build_dir, QStringLiteral("--config"),
+                               QStringLiteral("Release")});
+                if (build_rc != 0) {
+                    LOG_ERROR(Frontend, "Recompiled module {} failed to compile:\n{}",
+                              mod.name.toStdString(),
+                              QString::fromLocal8Bit(build.readAllStandardError())
+                                  .right(4000)
+                                  .toStdString());
+                    QMessageBox::critical(
+                        this, tr("Build Failed"),
+                        tr("Export Format is set to Build, but compiling module '%1' failed, so no "
+                           "executable was produced.\n\nThe generated sources and CMakeLists.txt "
+                           "are still in:\n%2\n\nSee the suyu log for the compiler output.")
+                            .arg(mod.name, mod_dir));
+                    return {};
                 }
             } else {
-                LOG_WARNING(Frontend, "cmake could not configure recompiled module {}",
-                            mod.name.toStdString());
+                LOG_ERROR(Frontend, "cmake could not configure recompiled module {}:\n{}",
+                          mod.name.toStdString(),
+                          QString::fromLocal8Bit(configure.readAllStandardError())
+                              .right(4000)
+                              .toStdString());
+                QMessageBox::critical(
+                    this, tr("Build Failed"),
+                    tr("Export Format is set to Build, but CMake could not configure module '%1', "
+                       "so no executable was produced.\n\nThe generated sources are still in:\n%2"
+                       "\n\nA working C compiler toolchain is required. See the suyu log for the "
+                       "CMake output.")
+                        .arg(mod.name, mod_dir));
+                return {};
             }
+
+            // cmake exiting 0 is necessary but not sufficient proof that the
+            // deliverable exists (a target can be skipped, or land somewhere
+            // unexpected). Build mode's whole contract is "there is a binary at
+            // the end", so verify one actually got written before claiming so.
+            const QStringList produced =
+                QDir(build_dir).entryList({QStringLiteral("*.exe"), QStringLiteral("*.dll"),
+                                           QStringLiteral("*.so"), QStringLiteral("*.dylib"),
+                                           QStringLiteral("recompiled")},
+                                          QDir::Files, QDir::Name) +
+                QDir(build_dir + QDir::separator() + QStringLiteral("Release"))
+                    .entryList({QStringLiteral("*.exe"), QStringLiteral("*.dll")}, QDir::Files,
+                               QDir::Name);
+            if (produced.isEmpty()) {
+                LOG_ERROR(Frontend, "Build of module {} reported success but produced no binary",
+                          mod.name.toStdString());
+                QMessageBox::critical(
+                    this, tr("Build Failed"),
+                    tr("CMake reported success for module '%1' but no executable or library was "
+                       "found in:\n%2")
+                        .arg(mod.name, build_dir));
+                return {};
+            }
+            LOG_INFO(Frontend, "Built recompiled module {}: {}", mod.name.toStdString(),
+                     produced.join(QStringLiteral(", ")).toStdString());
         }
     }
     // One-command native build scripts (the user can run these to produce the actual executable).
@@ -1081,9 +1207,13 @@ QString GameExportDialog::RunAotPrecompile(const QString& exefs_dir,
         }
     }
 
-    // Write block map files for each module (binary format for runtime consumption)
+    // Write block map files for each module (binary format, debugging only -
+    // see the note by dump_debug_artifacts above).
     // Format per entry: [u32 vaddr][u32 size][u32 instruction_count][u32 flags]
     for (const auto& mod : module_results) {
+        if (!dump_debug_artifacts) {
+            break;
+        }
         const QString map_path = blockmap_dir + QDir::separator() + mod.name +
                                  QStringLiteral(".blockmap");
         QFile map_file(map_path);
@@ -1128,7 +1258,8 @@ QString GameExportDialog::RunAotPrecompile(const QString& exefs_dir,
         out << "  \"ir_translation_failures\": " << total_ir_failures << ",\n";
         out << "  \"host_machine_code_blocks\": 0,\n";
         out << "  \"recompiled_c_blocks\": " << recomp_total_blocks << ",\n";
-        out << "  \"recompiled_project\": \"recompiled/<module>/ (buildable C, cross-platform CMake)\",\n";
+        out << "  \"recompiled_project\": \"recompiled/<module>/ (buildable C, cross-platform CMake; "
+               "generated units in <module>/src, build output in <module>/build)\",\n";
         out << "  \"native_build_scripts\": [\"recompiled/build_native_windows.cmd\", \"recompiled/build_native_unix.sh\"],\n";
         out << "  \"requires_runtime_codegen\": false,\n";
         out << "  \"modules\": [\n";
@@ -1145,9 +1276,15 @@ QString GameExportDialog::RunAotPrecompile(const QString& exefs_dir,
             out << "      \"data_size\": " << mod.data_size << ",\n";
             out << "      \"blocks\": " << mod.total_blocks << ",\n";
             out << "      \"instructions\": " << mod.total_instructions << ",\n";
-                 out << "      \"blockmap_file\": \"blockmaps/" << mod.name << ".blockmap\",\n";
-                 out << "      \"ir_directory\": \"ir/" << mod.name << "\",\n";
-                 out << "      \"guest_code_directory\": \"code/" << mod.name << "\"\n";
+            out << "      \"project_directory\": \"recompiled/" << mod.name << "\",\n";
+            out << "      \"sources_directory\": \"recompiled/" << mod.name << "/src\"";
+            if (dump_debug_artifacts) {
+                out << ",\n      \"blockmap_file\": \"debug/blockmaps/" << mod.name
+                    << ".blockmap\",\n";
+                out << "      \"ir_directory\": \"debug/ir/" << mod.name << "\",\n";
+                out << "      \"guest_code_directory\": \"debug/code/" << mod.name << "\"";
+            }
+            out << "\n";
             out << "    }" << (i + 1 < module_results.size() ? "," : "") << "\n";
         }
         out << "  ],\n";
@@ -1169,15 +1306,48 @@ QString GameExportDialog::RunAotPrecompile(const QString& exefs_dir,
 // Standalone packaging
 // ---------------------------------------------------------------------------
 
+// Where the AOT cache lives inside a finished package, per target platform.
+// PackageNativeExport lays the package out; this has to agree with it exactly,
+// because the export now generates the cache directly at this path instead of
+// staging it elsewhere and copying it in.
+static QString AotCacheDirFor(const QString& output_dir, const QString& game_name,
+                              GameExportDialog::TargetPlatform platform) {
+    switch (platform) {
+    case GameExportDialog::TargetPlatform::Linux:
+        return output_dir + QDir::separator() + game_name + QStringLiteral(".AppDir") +
+               QDir::separator() + QStringLiteral("usr/bin") + QDir::separator() +
+               QStringLiteral("aot_cache");
+    case GameExportDialog::TargetPlatform::MacOS:
+        return output_dir + QDir::separator() + game_name + QStringLiteral(".app") +
+               QDir::separator() + QStringLiteral("Contents") + QDir::separator() +
+               QStringLiteral("Resources") + QDir::separator() + QStringLiteral("aot_cache");
+    case GameExportDialog::TargetPlatform::Windows:
+    default:
+        return output_dir + QDir::separator() + game_name + QDir::separator() +
+               QStringLiteral("aot_cache");
+    }
+}
+
 bool GameExportDialog::PackageNativeExport(const QString& rom_path, const QString& cache_dir,
                                            const QString& output_dir, const QString& game_name,
                                            TargetPlatform platform) {
-    const QFileInfo rom_info(rom_path);
-    const bool rom_is_directory = rom_info.isDir();
-    const QString rom_extension =
-        rom_info.suffix().isEmpty() ? QStringLiteral("") : QStringLiteral(".") + rom_info.suffix();
-    const QString bundled_entry_name =
-        rom_is_directory ? game_name : game_name + rom_extension;
+    // The original ROM used to be copied into every package. It is not needed
+    // there: the recompiled project carries the guest segments it executes in
+    // <module>/data, and nothing in the package or in suyu ever opened the copy.
+    // All it did was add the ROM's full size - several gigabytes for an XCI - to
+    // an output that is otherwise tens of megabytes of C. The source is recorded
+    // by path instead, so the export can still be traced back to it.
+    const auto write_source_reference = [&rom_path](const QString& dir) {
+        QFile ref(dir + QDir::separator() + QStringLiteral("game_source.txt"));
+        if (!ref.open(QIODevice::WriteOnly | QIODevice::Text)) {
+            return;
+        }
+        QTextStream out(&ref);
+        out << "Recompiled from: " << QDir::toNativeSeparators(rom_path) << "\n"
+            << "The ROM is referenced, not bundled - the generated project runs from the guest\n"
+            << "segments in aot_cache/recompiled/<module>/data and does not read this file.\n";
+        ref.close();
+    };
 
     switch (platform) {
     case TargetPlatform::Windows: {
@@ -1186,14 +1356,10 @@ bool GameExportDialog::PackageNativeExport(const QString& rom_path, const QStrin
             return false;
         }
 
-        // Bundle game data
-        const QString bundled_rom = pkg_dir + QDir::separator() + bundled_entry_name;
-        if (!CopyPathReplacingExisting(rom_path, bundled_rom)) {
-            return false;
-        }
+        write_source_reference(pkg_dir);
 
         // Copy AOT cache
-        if (!CopyDirectoryRecursive(cache_dir,
+        if (!CopyDirectoryUnlessInPlace(cache_dir,
                                     pkg_dir + QDir::separator() + QStringLiteral("aot_cache"))) {
             return false;
         }
@@ -1204,11 +1370,16 @@ bool GameExportDialog::PackageNativeExport(const QString& rom_path, const QStrin
             out << "Suyu native export — standalone PC executable\n\n";
             out << "This directory contains a statically recompiled game that runs without the emulator.\n";
             out << "Contents:\n";
-            out << "- " << bundled_entry_name << " : bundled game payload\n";
+            out << "- game_source.txt : path of the ROM this was recompiled from\n";
             out << "- aot_cache/recompiled/ : buildable C projects (one per module)\n";
             out << "- aot_cache/recompiled/build_native_windows.cmd : one-click Windows build\n";
-            out << "- aot_cache/recompiled/build_native_unix.sh : one-click Linux/macOS build\n";
-            out << "- aot_cache/recompiled/<module>/data/ : bundled text/rodata/data segments\n\n";
+            out << "- aot_cache/recompiled/build_native_unix.sh : one-click Linux/macOS build\n\n";
+            out << "Each module directory holds:\n";
+            out << "- CMakeLists.txt, main.c, recomp_export.c, recomp_runtime.{c,h}\n";
+            out << "- src/ : the generated translation units\n";
+            out << "- data/ : bundled text/rodata/data segments\n";
+            out << "- build/ : CMake build output (recompiled executable + recompiled_image "
+                   "library)\n\n";
             out << "Build: cd aot_cache/recompiled && build_native_windows.cmd (or ./build_native_unix.sh)\n";
             out << "Run: the resulting executable creates a save_data/ directory next to itself.\n";
             out << "Save data persists across runs — no emulator required.\n";
@@ -1226,14 +1397,10 @@ bool GameExportDialog::PackageNativeExport(const QString& rom_path, const QStrin
             return false;
         }
 
-        // Bundle game data
-        const QString bundled_rom = bin_dir + QDir::separator() + bundled_entry_name;
-        if (!CopyPathReplacingExisting(rom_path, bundled_rom)) {
-            return false;
-        }
+        write_source_reference(bin_dir);
 
         // Copy AOT cache
-        if (!CopyDirectoryRecursive(cache_dir,
+        if (!CopyDirectoryUnlessInPlace(cache_dir,
                                     bin_dir + QDir::separator() + QStringLiteral("aot_cache"))) {
             return false;
         }
@@ -1259,14 +1426,10 @@ bool GameExportDialog::PackageNativeExport(const QString& rom_path, const QStrin
             return false;
         }
 
-        // Bundle game data
-        const QString bundled_rom = res_dir + QDir::separator() + bundled_entry_name;
-        if (!CopyPathReplacingExisting(rom_path, bundled_rom)) {
-            return false;
-        }
+        write_source_reference(res_dir);
 
         // Copy AOT cache
-        if (!CopyDirectoryRecursive(cache_dir,
+        if (!CopyDirectoryUnlessInPlace(cache_dir,
                                     res_dir + QDir::separator() + QStringLiteral("aot_cache"))) {
             return false;
         }
@@ -1285,6 +1448,114 @@ bool GameExportDialog::PackageNativeExport(const QString& rom_path, const QStrin
     }
 
     return false;
+}
+
+// ---------------------------------------------------------------------------
+// Locating already-built standalone recompiled executables
+// ---------------------------------------------------------------------------
+
+namespace {
+constexpr char kOutputRootsKey[] = "recompile/output_roots";
+} // namespace
+
+QStringList GameExportDialog::RecompileOutputRoots() {
+    QSettings settings(QStringLiteral("suyu"), QStringLiteral("suyu"));
+    QStringList roots = settings.value(QString::fromLatin1(kOutputRootsKey)).toStringList();
+
+    // The dialog defaults to Downloads, and the test harness writes into an
+    // aot_test_output next to the working directory, so both are worth
+    // checking even before the user has ever completed an export.
+    const QString downloads = QStandardPaths::writableLocation(QStandardPaths::DownloadLocation);
+    if (!downloads.isEmpty()) {
+        roots.append(downloads);
+    }
+    roots.append(QDir::currentPath() + QDir::separator() + QStringLiteral("aot_test_output"));
+
+    // In a development tree suyu runs out of build/bin, so the export root the
+    // test harness writes to sits a couple of levels above the executable.
+    QDir up(QCoreApplication::applicationDirPath());
+    for (int level = 0; level < 4; ++level) {
+        roots.append(up.absoluteFilePath(QStringLiteral("aot_test_output")));
+        if (!up.cdUp()) {
+            break;
+        }
+    }
+
+    roots.removeDuplicates();
+    return roots;
+}
+
+void GameExportDialog::RememberOutputRoot(const QString& dir) {
+    if (dir.isEmpty()) {
+        return;
+    }
+    QSettings settings(QStringLiteral("suyu"), QStringLiteral("suyu"));
+    QStringList roots = settings.value(QString::fromLatin1(kOutputRootsKey)).toStringList();
+    roots.removeAll(dir);
+    roots.prepend(dir);
+    while (roots.size() > 8) {
+        roots.removeLast();
+    }
+    settings.setValue(QString::fromLatin1(kOutputRootsKey), roots);
+}
+
+QStringList GameExportDialog::FindRecompiledExecutables(const QString& game_name,
+                                                        const QString& rom_path) {
+    // The export directory is named after the ROM's base name, which for a
+    // library entry is usually but not always the display title.
+    QStringList names;
+    if (!game_name.isEmpty()) {
+        names.append(game_name);
+    }
+    if (!rom_path.isEmpty()) {
+        const QString base = QFileInfo(rom_path).completeBaseName();
+        if (!base.isEmpty()) {
+            names.append(base);
+        }
+    }
+    names.removeDuplicates();
+
+    // A package can be laid out for any of the three target platforms, and the
+    // build directory is single- or multi-config depending on the generator.
+    static const QStringList package_suffixes = {
+        QStringLiteral("/aot_cache/recompiled"),
+        QStringLiteral(".AppDir/usr/bin/aot_cache/recompiled"),
+        QStringLiteral(".app/Contents/Resources/aot_cache/recompiled"),
+    };
+    static const QStringList exe_candidates = {
+        QStringLiteral("build/Release/recompiled.exe"),
+        QStringLiteral("build/Debug/recompiled.exe"),
+        QStringLiteral("build/recompiled.exe"),
+        QStringLiteral("build/recompiled"),
+    };
+
+    QStringList found;
+    for (const QString& root : RecompileOutputRoots()) {
+        for (const QString& name : names) {
+            for (const QString& suffix : package_suffixes) {
+                const QString recomp_root = root + QDir::separator() + name + suffix;
+                QDir dir(recomp_root);
+                if (!dir.exists()) {
+                    continue;
+                }
+                const QStringList modules =
+                    dir.entryList(QDir::Dirs | QDir::NoDotAndDotDot, QDir::Name);
+                for (const QString& mod : modules) {
+                    for (const QString& rel : exe_candidates) {
+                        const QString exe =
+                            recomp_root + QDir::separator() + mod + QDir::separator() + rel;
+                        const QFileInfo info(exe);
+                        if (info.exists() && info.isFile()) {
+                            found.append(QDir::toNativeSeparators(info.absoluteFilePath()));
+                            break;
+                        }
+                    }
+                }
+            }
+        }
+    }
+    found.removeDuplicates();
+    return found;
 }
 
 // ---------------------------------------------------------------------------
@@ -1320,6 +1591,10 @@ void GameExportDialog::OnExport() {
     const QFileInfo rom_info(rom_path);
     const QString game_name = rom_info.completeBaseName();
 
+    // Recorded before the run rather than after: even a half-finished export
+    // leaves buildable output here, and this is how the library later finds it.
+    RememberOutputRoot(output_dir);
+
     export_button->setEnabled(false);
     progress_bar->setVisible(true);
     progress_bar->setValue(0);
@@ -1336,7 +1611,12 @@ void GameExportDialog::OnExport() {
     const QString work_dir = output_dir + QDir::separator() +
                              QStringLiteral(".aot_work_") + game_name;
     const QString exefs_work = work_dir + QDir::separator() + QStringLiteral("exefs");
-    const QString cache_work = work_dir + QDir::separator() + QStringLiteral("cache");
+    // The AOT cache is generated straight into the package it belongs in
+    // rather than into the work area. It is by far the largest thing an export
+    // produces - about 6 GB of C for Smash Ultimate - and staging it only to
+    // copy it across meant writing 12 GB and holding both at once, which is
+    // where large exports were failing during packaging.
+    const QString cache_work = AotCacheDirFor(output_dir, game_name, platform);
     QDir().mkpath(exefs_work);
     QDir().mkpath(cache_work);
     progress_bar->setValue(5);

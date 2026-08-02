@@ -51,6 +51,22 @@ public:
     /// directly.
     void TriggerExportForTesting(const QString& rom_path, const QString& output_dir);
 
+    /// Every standalone recompiled executable that has already been built for
+    /// this game, one per recompiled module, newest-looking first. Empty when
+    /// the game was never exported, or was exported but never compiled.
+    ///
+    /// @param game_name  Library title of the game.
+    /// @param rom_path   ROM path; its base name is what the exporter actually
+    ///                   names the output directory, which is often not the
+    ///                   library title, so both are tried.
+    static QStringList FindRecompiledExecutables(const QString& game_name,
+                                                 const QString& rom_path = {});
+
+    /// Directories that have been used as export output, most recent first.
+    static QStringList RecompileOutputRoots();
+    /// Remember @p dir as an export output root for future lookups.
+    static void RememberOutputRoot(const QString& dir);
+
     enum class TargetPlatform {
         Windows,
         Linux,
@@ -92,8 +108,13 @@ private:
     QCheckBox* include_shader_cache_checkbox{};
     QCheckBox* include_custom_config_checkbox{};
     QCheckBox* aot_full_scan_checkbox{};
-    /// Whether to compile the recompiled sources, or emit source only.
-    QCheckBox* compile_output_checkbox{};
+    /// Export format: index 0 = source only, index 1 = build to a native binary.
+    /// "Build" is a promise, not a hint - when it is selected the export runs
+    /// cmake to completion and reports a hard error if a binary cannot be
+    /// produced, rather than quietly degrading to a folder of C.
+    QComboBox* output_format_combo{};
+    /// True when output_format_combo selects the build-to-binary format.
+    bool WantsCompiledOutput() const;
     QProgressBar* progress_bar{};
     QPushButton* export_button{};
     QLabel* status_label{};

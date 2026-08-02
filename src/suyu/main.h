@@ -445,6 +445,18 @@ private slots:
     void OnLoadLibretroCore();
     /// Loads a statically recompiled image and points the CPU backend at it.
     void OnLoadRecompiledImage();
+    /// Loads every module image under `dir` and installs the dispatcher.
+    /// Returns how many were loaded (0 = none found). Never shows a dialog, so
+    /// the single-game launcher can call it before booting, unattended.
+    int LoadRecompiledImagesFrom(const QString& dir);
+    void UnloadRecompiledImages();
+    bool RecompiledImagesLoaded() const;
+    /// Finds the built recompiled images that belong to a game file, if the
+    /// game sits inside an export package. Empty when there are none.
+    static QString FindRecompiledImageDirFor(const QString& game_path);
+    /// Strips the library UI down to the one game this build launches.
+    void EnterSingleGameMode();
+    void OnLaunchRecompiledBuild(const QString& game_name, const std::string& game_path);
     void OnNintendoAccount();
     void OnSteamIntegration();
     void OnOpenUserManual();
@@ -587,6 +599,9 @@ private:
     QString current_game_path;
     // Whether a user was set on the command line (skips UserSelector if it's forced to show up)
     bool user_flag_cmd_line = false;
+    /// This build exists to run one baked-in game: no library, and closing the
+    /// game closes the application.
+    bool single_game_mode_ = false;
 
     bool auto_paused = false;
     bool auto_muted = false;

@@ -67,6 +67,13 @@ private:
     void HandleRequest(const QByteArray& data, QTcpSocket* socket);
     void RegisterBuiltinTools();
 
+    /// Sockets whose client went away while one of their own requests was
+    /// still being handled. They are destroyed once the handler returns rather
+    /// than at the moment of disconnection - see OnReadyRead.
+    QList<QTcpSocket*> sockets_awaiting_delete_;
+    /// Number of request handlers currently on the stack.
+    int active_requests_{0};
+
     std::unique_ptr<QTcpServer> server_;
     QList<ToolInfo> tools_;
     std::function<QJsonObject()> state_provider_;

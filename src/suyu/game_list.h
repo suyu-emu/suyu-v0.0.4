@@ -132,6 +132,8 @@ signals:
     void CreateSteamShortcut(u64 program_id, const std::string& game_path);
     /// Recompile this game into a native PC build via the static recompiler.
     void RecompileGameRequested(const std::string& game_path);
+    /// Run an already-built standalone recompiled build instead of emulating.
+    void LaunchRecompiledRequested(const QString& game_name, const std::string& game_path);
     void NavigateToGamedbEntryRequested(u64 program_id,
                                         const CompatibilityList& compatibility_list);
     void OpenPerGameGeneralRequested(const std::string& file);
@@ -167,7 +169,8 @@ private:
     void RemoveFavorite(u64 program_id);
 
     void PopupContextMenu(const QPoint& menu_location);
-    void AddGamePopup(QMenu& context_menu, u64 program_id, const std::string& path);
+    void AddGamePopup(QMenu& context_menu, u64 program_id, const std::string& path,
+                      const QString& game_name = {});
     void AddCustomDirPopup(QMenu& context_menu, QModelIndex selected);
     void AddPermDirPopup(QMenu& context_menu, QModelIndex selected);
     void AddFavoritesPopup(QMenu& context_menu);

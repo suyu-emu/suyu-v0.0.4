@@ -435,6 +435,19 @@ void McpServer::OnNewConnection() {
         connect(socket, &QTcpSocket::readyRead, this, &McpServer::OnReadyRead);
         connect(socket, &QTcpSocket::disconnected, this, [this, address, socket]() {
             emit ClientDisconnected(address);
+            if (active_requests_ > 0) {
+                // The socket is somewhere below us on the stack, emitting the
+                // readyRead that started the request. Destroying it now - even
+                // via deleteLater, because a long handler spins the event loop
+                // and the deferred delete is delivered there - leaves Qt's
+                // signal machinery unwinding through freed memory when the
+                // handler finally returns. Exporting a large game takes minutes
+                // and outlives most clients, which is how that crash was found.
+                if (!sockets_awaiting_delete_.contains(socket)) {
+                    sockets_awaiting_delete_.append(socket);
+                }
+                return;
+            }
             socket->deleteLater();
         });
     }
@@ -447,7 +460,19 @@ void McpServer::OnReadyRead() {
     }
 
     const QByteArray data = socket->readAll();
+    ++active_requests_;
     HandleRequest(data, socket);
+    --active_requests_;
+
+    // Sockets that disconnected while handlers were running are released here,
+    // once no handler is on the stack and Qt is done with the sender.
+    if (active_requests_ == 0) {
+        const QList<QTcpSocket*> pending = std::move(sockets_awaiting_delete_);
+        sockets_awaiting_delete_.clear();
+        for (QTcpSocket* pending_socket : pending) {
+            pending_socket->deleteLater();
+        }
+    }
 }
 
 void McpServer::HandleRequest(const QByteArray& data, QTcpSocket* socket) {

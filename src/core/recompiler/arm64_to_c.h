@@ -56,10 +56,30 @@ inline bool IsTerminator(u32 i) {
     return false;
 }
 
+// Statically known target of a direct branch, if the instruction has one.
+//
+// This has to cover every form whose target the translator bakes in, not just
+// the unconditional imm26 pair: a conditional branch's target is equally
+// static, and it is overwhelmingly the common case for loop back-edges. Leaving
+// B.cond/CBZ/CBNZ/TBZ/TBNZ out here meant their targets never began a block, so
+// the generated code would set pc to an address that recomp_lookup - which
+// matches block starts exactly - could not resolve, and execution died with
+// "No recompiled block at PC" at the top of the first loop it entered.
 inline bool DirectBranchTarget(u32 i, u64 pc, u64& out) {
-    if ((i & 0xFC000000) == 0x14000000 || (i & 0xFC000000) == 0x94000000) {
+    if ((i & 0xFC000000) == 0x14000000 || (i & 0xFC000000) == 0x94000000) { // B / BL
         s32 imm26 = (s32)(i << 6) >> 6;
         out = pc + (s64)imm26 * 4;
+        return true;
+    }
+    if ((i & 0xFF000010) == 0x54000000 ||    // B.cond
+        (i & 0x7E000000) == 0x34000000) {    // CBZ / CBNZ
+        s64 imm19 = ((s32)(((i >> 5) & 0x7FFFF) << 13) >> 13);
+        out = pc + imm19 * 4;
+        return true;
+    }
+    if ((i & 0x7E000000) == 0x36000000) {    // TBZ / TBNZ
+        s64 imm14 = ((s32)(((i >> 5) & 0x3FFF) << 18) >> 18);
+        out = pc + imm14 * 4;
         return true;
     }
     return false;
@@ -279,17 +299,20 @@ inline bool Translate(u32 i, u64 pc, std::string& out) {
             }
         } else {
             // size==3 with opc>=2 is not a defined load/store here.
-            snprintf(buf, sizeof buf,
-                     "recomp_unhandled(c,0x%08xU,0x%llxULL); c->pc=g_module_base+0x%llxULL; return;", i,
-                     (unsigned long long)pc, (unsigned long long)next);
+            snprintf(buf, sizeof buf, "recomp_unhandled(c,0x%08xU,0x%llxULL);", i,
+                     (unsigned long long)pc);
             put(buf);
-            return false;
+            return true;
         }
         return true;
     }
 
     u64 t = 0;
-    if (DirectBranchTarget(i, pc, t)) {
+    // Only the unconditional forms here: DirectBranchTarget also decodes
+    // B.cond/CBZ/TBZ for block discovery, but those have their own translations
+    // further down and must not be turned into unconditional jumps.
+    if (((i & 0xFC000000) == 0x14000000 || (i & 0xFC000000) == 0x94000000) &&
+        DirectBranchTarget(i, pc, t)) {
         if ((i & 0xFC000000) == 0x94000000) { snprintf(buf, sizeof buf, "c->x[30]=g_module_base+0x%llxULL;", (unsigned long long)next); put(buf); }
         snprintf(buf, sizeof buf, "c->pc=g_module_base+0x%llxULL; return;", (unsigned long long)t); put(buf); return false;
     }
@@ -1487,8 +1510,14 @@ inline bool Translate(u32 i, u64 pc, std::string& out) {
         }
     }
 
-    snprintf(buf, sizeof buf, "recomp_unhandled(c,0x%08xU,0x%llxULL); c->pc=g_module_base+0x%llxULL; return;", i, (unsigned long long)pc, (unsigned long long)next);
-    put(buf); return false;
+    // An instruction the decoder doesn't know is reported and stepped over
+    // rather than ending the block. recomp_unhandled is a non-fatal stub, and
+    // ending the block here would set pc to the following instruction - an
+    // address that block discovery never marked as a block start, so the
+    // dispatcher could not resolve it and execution would stop dead at the
+    // first unimplemented opcode instead of continuing past it.
+    snprintf(buf, sizeof buf, "recomp_unhandled(c,0x%08xU,0x%llxULL);", i, (unsigned long long)pc);
+    put(buf); return true;
 }
 
 inline std::string FuncName(const std::string& mod, u64 v) {
@@ -1506,7 +1535,14 @@ struct RecompileStats {
 };
 
 // Emit a buildable C project that statically recompiles `text` (raw AArch64 .text at `base`).
-// Writes recompiled_<mod>.c, the shared runtime, main.c and CMakeLists.txt into out_dir.
+// Layout written into out_dir:
+//   CMakeLists.txt, main.c, recomp_export.c, recomp_runtime.{c,h}   <- hand-readable top level
+//   src/recompiled_<mod>.c, src/recompiled_<mod>_<n>.c              <- generated translation units
+//   data/{text,rodata,data}.bin                                     <- bundled guest segments
+//   build/                                                          <- cmake's one canonical build dir
+// The translation units are kept in src/ rather than the module root: a large
+// title emits hundreds of them, and loose in the root they bury the four files
+// anyone actually needs to look at.
 // Optional rodata/data parameters bundle those segments so the exported exe is self-contained.
 inline RecompileStats EmitProject(const std::string& mod, const u8* text, size_t n_bytes, u64 base,
                                   const std::string& out_dir, bool source_only,
@@ -1538,15 +1574,22 @@ inline RecompileStats EmitProject(const std::string& mod, const u8* text, size_t
     // exporter needed that much RAM on top of the game's own data - enough that
     // exporting a large title died partway, after the biggest module and before
     // the rest, leaving an incomplete and inconsistent set of images behind.
+    const auto make_dir = [](const std::string& p) {
 #ifdef _WIN32
-    _mkdir(out_dir.c_str());
+        _mkdir(p.c_str());
 #else
-    mkdir(out_dir.c_str(), 0755);
+        mkdir(p.c_str(), 0755);
 #endif
+    };
+    make_dir(out_dir);
+    // Every generated translation unit lands here, keeping the module root down
+    // to the few files a human reads.
+    const std::string src_dir = out_dir + "/src";
+    make_dir(src_dir);
     std::vector<std::ofstream> units;
     units.reserve(unit_count);
     for (size_t u = 0; u < unit_count; ++u) {
-        units.emplace_back(out_dir + "/recompiled_" + mod + "_" + std::to_string(u) + ".c",
+        units.emplace_back(src_dir + "/recompiled_" + mod + "_" + std::to_string(u) + ".c",
                            std::ios::binary);
         units.back() << "/* auto-generated by suyu static recompiler - DO NOT EDIT */\n"
                         "#include \"recomp_runtime.h\"\n"
@@ -1567,7 +1610,16 @@ inline RecompileStats EmitProject(const std::string& mod, const u8* text, size_t
             rcu << body;
             if (!open) { ++stats.translated_terminators; break; }
         }
-        if (open) rcu << "    c->pc=0x" << std::hex << (b.vaddr + b.size) << std::dec << "ULL; return;\n";
+        // A block that ends by running off its own end still has to hand the
+        // dispatcher an absolute guest address, exactly as every branch
+        // terminator above does. Emitting the bare module-relative offset here
+        // was silently catastrophic: the host dispatcher picks the owning image
+        // by "greatest base not exceeding the PC", so a small unbased value has
+        // no owner at all and falls through to the "try every image at the raw
+        // PC" path - which happily returns *some other module's* block at the
+        // same offset and runs it against this module's register state.
+        if (open) rcu << "    c->pc=g_module_base+0x" << std::hex << (b.vaddr + b.size) << std::dec
+                      << "ULL; return;\n";
         rcu << "}\n\n";
     }
 
@@ -1623,12 +1675,17 @@ inline RecompileStats EmitProject(const std::string& mod, const u8* text, size_t
     mc << "  free(mem);\n  return 0;\n}\n";
 
     std::ostringstream cm;
+    // The generated units live in src/ and include "recomp_runtime.h" from the
+    // module root, so the root has to be on the include path.
     cm << "cmake_minimum_required(VERSION 3.13)\nproject(suyu_recompiled C)\nset(CMAKE_C_STANDARD 11)\n"
-       << "add_executable(recompiled main.c recompiled_" << mod << ".c recomp_runtime.c";
+       << "include_directories(${CMAKE_CURRENT_SOURCE_DIR})\n\n"
+       << "# Generated translation units, all under src/.\nset(RECOMP_SOURCES\n"
+       << "    src/recompiled_" << mod << ".c";
     for (size_t u = 0; u < unit_count; ++u) {
-        cm << "\n    recompiled_" << mod << "_" << u << ".c";
+        cm << "\n    src/recompiled_" << mod << "_" << u << ".c";
     }
-    cm << ")\n"
+    cm << ")\n\n"
+       << "add_executable(recompiled main.c recomp_runtime.c ${RECOMP_SOURCES})\n"
        << "# Portable C11: Windows->.exe, Linux/FreeBSD/OpenBSD->ELF, macOS->Mach-O\n\n";
 
     // A second target builds the same code as a shared library exporting the
@@ -1636,12 +1693,8 @@ inline RecompileStats EmitProject(const std::string& mod, const u8* text, size_t
     // Core::ArmRecomp: the emulator supplies memory and services through the
     // host bridge, so main.c - which owns a flat buffer and a stub SVC handler
     // - is deliberately left out of this target.
-    cm << "add_library(recompiled_image SHARED recomp_export.c recompiled_" << mod
-       << ".c recomp_runtime.c";
-    for (size_t u = 0; u < unit_count; ++u) {
-        cm << "\n    recompiled_" << mod << "_" << u << ".c";
-    }
-    cm << ")\n"
+    cm << "add_library(recompiled_image SHARED recomp_export.c recomp_runtime.c "
+          "${RECOMP_SOURCES})\n"
        << "set_target_properties(recompiled_image PROPERTIES C_VISIBILITY_PRESET hidden)\n";
 
     std::ostringstream ex;
@@ -1664,18 +1717,15 @@ inline RecompileStats EmitProject(const std::string& mod, const u8* text, size_t
        << "RECOMP_API uint64_t recomp_image_entry(void){ return 0x"
        << std::hex << (entry_pc ? entry_pc : base) << std::dec << "ULL; }\n";
 
-#ifdef _WIN32
-    _mkdir(out_dir.c_str());
-#else
-    mkdir(out_dir.c_str(), 0755);
-#endif
     auto write = [&](const std::string& name, const std::string& data) {
         std::ofstream o(out_dir + "/" + name, std::ios::binary);
         o.write(data.data(), (std::streamsize)data.size());
     };
     write("recomp_runtime.h", RuntimeH());
     write("recomp_runtime.c", RuntimeC());
-    write("recompiled_" + mod + ".c", rc.str());
+    // The dispatch table is generated code like the block bodies, so it belongs
+    // with them rather than at the top level.
+    write("src/recompiled_" + mod + ".c", rc.str());
     // The unit files were streamed out as blocks were translated; just make
     // sure everything has reached disk.
     for (auto& u : units) {
@@ -1689,11 +1739,7 @@ inline RecompileStats EmitProject(const std::string& mod, const u8* text, size_t
     // Bundle text/rodata/data as binary blobs so the exe can load them at startup
     {
         std::string data_subdir = out_dir + "/data";
-#ifdef _WIN32
-        _mkdir(data_subdir.c_str());
-#else
-        mkdir(data_subdir.c_str(), 0755);
-#endif
+        make_dir(data_subdir);
         // Always write text.bin
         {
             std::ofstream o(data_subdir + "/text.bin", std::ios::binary);

@@ -270,15 +270,21 @@ struct System::Impl {
     }
 
     SystemResultStatus SetupForApplicationProcess(System& system, Frontend::EmuWindow& emu_window) {
+        LOG_INFO(Core, "SetupForApplicationProcess: host1x_core");
         host1x_core.emplace(system);
+        LOG_INFO(Core, "SetupForApplicationProcess: CreateGPU");
         VideoCore::CreateGPU(gpu_core, emu_window, system);
         if (!gpu_core)
             return SystemResultStatus::ErrorVideoCore;
+        LOG_INFO(Core, "SetupForApplicationProcess: CreateGPU done");
 
         audio_core.emplace(system);
+        LOG_INFO(Core, "SetupForApplicationProcess: audio_core done");
 
         service_manager = std::make_shared<Service::SM::ServiceManager>(kernel);
+        LOG_INFO(Core, "SetupForApplicationProcess: service_manager done");
         services.emplace(service_manager, system, stop_event.get_token());
+        LOG_INFO(Core, "SetupForApplicationProcess: services done");
 
         is_powered_on = true;
         exit_locked = false;
@@ -333,7 +339,9 @@ struct System::Impl {
         LaunchTimestampCache::SaveLaunchTimestamp(params.program_id);
 
         // Make the process created be the application
+        LOG_INFO(Core, "Load: calling kernel.MakeApplicationProcess");
         kernel.MakeApplicationProcess(process->GetHandle());
+        LOG_INFO(Core, "Load: kernel.MakeApplicationProcess returned");
 
         // Set up the rest of the system.
         SystemResultStatus init_result{SetupForApplicationProcess(system, emu_window)};
@@ -350,7 +358,9 @@ struct System::Impl {
 
         // Register with applet manager
         // All threads are started, begin main process execution, now that we're in the clear
+        LOG_INFO(Core, "SetupForApplicationProcess: calling CreateAndInsertByFrontendAppletParameters");
         applet_manager.CreateAndInsertByFrontendAppletParameters(std::move(process), params);
+        LOG_INFO(Core, "SetupForApplicationProcess: CreateAndInsertByFrontendAppletParameters returned");
 
         if (Settings::values.gamecard_inserted) {
             if (Settings::values.gamecard_current_game) {

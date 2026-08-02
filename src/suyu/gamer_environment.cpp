@@ -1870,8 +1870,17 @@ void GamerEnvironment::paintEvent(QPaintEvent*) {
     // driven by an elapsed-time phase, so it loops smoothly and costs nothing
     // to keep running.
     {
+        // Use the square standalone suyu mark (dist/suyu.svg), NOT the wide
+        // "suyu__Logo-Pill" lockup that :/img/suyu_logo.svg maps to. That
+        // pill asset is 2421x912 and includes the "suyu" wordmark on an
+        // opaque black rounded-rect; rendering it into a square 160x160 tile
+        // and then blitting it into a square QRect stretched the wordmark and
+        // painted a black pill behind it, which is exactly the "wrong suyu
+        // asset" seen drifting across the library background. The 512x512
+        // mark is square by construction, so it tiles/drifts undistorted and
+        // has no baked-in background plate.
         static const QPixmap mark =
-            QIcon(QStringLiteral(":/img/suyu_logo.svg")).pixmap(QSize(160, 160));
+            QIcon(QStringLiteral(":/img/suyu.svg")).pixmap(QSize(256, 256));
         if (!mark.isNull()) {
             const qreal t = ambient_clock_.isValid()
                                 ? qreal(ambient_clock_.elapsed()) / 1000.0

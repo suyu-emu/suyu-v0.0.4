@@ -25,6 +25,7 @@
 #include "core/file_sys/patch_manager.h"
 #include "core/file_sys/registered_cache.h"
 #include "suyu/compatibility_list.h"
+#include "suyu/game_export.h"
 #include "suyu/game_list.h"
 #include "suyu/game_list_p.h"
 #include "suyu/game_list_worker.h"
@@ -629,7 +630,8 @@ void GameList::PopupContextMenu(const QPoint& menu_location) {
     switch (selected.data(GameListItem::TypeRole).value<GameListItemType>()) {
     case GameListItemType::Game:
         AddGamePopup(context_menu, selected.data(GameListItemPath::ProgramIdRole).toULongLong(),
-                     selected.data(GameListItemPath::FullPathRole).toString().toStdString());
+                     selected.data(GameListItemPath::FullPathRole).toString().toStdString(),
+                     selected.data(GameListItemPath::TitleRole).toString());
         break;
     case GameListItemType::CustomDir:
         AddPermDirPopup(context_menu, selected);
@@ -649,7 +651,8 @@ void GameList::PopupContextMenu(const QPoint& menu_location) {
     context_menu.exec(tree_view->viewport()->mapToGlobal(menu_location));
 }
 
-void GameList::AddGamePopup(QMenu& context_menu, u64 program_id, const std::string& path) {
+void GameList::AddGamePopup(QMenu& context_menu, u64 program_id, const std::string& path,
+                            const QString& game_name) {
     QAction* favorite = context_menu.addAction(tr("Favorite"));
     context_menu.addSeparator();
     QAction* start_game = context_menu.addAction(tr("Start Game"));
@@ -690,6 +693,15 @@ void GameList::AddGamePopup(QMenu& context_menu, u64 program_id, const std::stri
     // hint it applied to a specific game. Offering it on the game itself is
     // where anyone would look for it.
     QAction* recompile = context_menu.addAction(tr("Recompile for PC..."));
+    // Only offered once a standalone build actually exists on disk. Starting
+    // the game normally stays the default everywhere else, including
+    // double-click - this is a deliberate second choice, not a replacement.
+    const QStringList recompiled_builds =
+        GameExportDialog::FindRecompiledExecutables(game_name, QString::fromStdString(path));
+    QAction* launch_recompiled = nullptr;
+    if (!recompiled_builds.isEmpty()) {
+        launch_recompiled = context_menu.addAction(tr("Launch Recompiled Build"));
+    }
     context_menu.addSeparator();
     QAction* properties = context_menu.addAction(tr("Properties"));
 
@@ -798,6 +810,11 @@ void GameList::AddGamePopup(QMenu& context_menu, u64 program_id, const std::stri
     recompile->setVisible(program_id != 0 && !is_owned_placeholder);
     connect(recompile, &QAction::triggered,
             [this, path]() { emit RecompileGameRequested(path); });
+    if (launch_recompiled != nullptr) {
+        connect(launch_recompiled, &QAction::triggered, [this, game_name, path]() {
+            emit LaunchRecompiledRequested(game_name, path);
+        });
+    }
     connect(properties, &QAction::triggered,
             [this, path]() { emit OpenPerGameGeneralRequested(path); });
 };
