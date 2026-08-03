@@ -252,19 +252,7 @@ Result ILibraryAppletSelfAccessor::GetMainAppletApplicationDesiredLanguage(
     // Default to 0 (all languages supported)
     u32 supported_languages = 0;
 
-    const auto res = [this, identity] {
-        const FileSys::PatchManager pm{identity.application_id, system.GetFileSystemController(),
-                                       system.GetContentProvider()};
-        auto metadata = pm.GetControlMetadata();
-        if (metadata.first != nullptr) {
-            return metadata;
-        }
-
-        const FileSys::PatchManager pm_update{FileSys::GetUpdateTitleID(identity.application_id),
-                                              system.GetFileSystemController(),
-                                              system.GetContentProvider()};
-        return pm_update.GetControlMetadata();
-    }();
+    const auto res = FileSys::PatchManager::GetMetadataFromBaseOrUpdate(system, identity.application_id);
 
     if (res.first != nullptr) {
         supported_languages = res.first->GetSupportedLanguages();

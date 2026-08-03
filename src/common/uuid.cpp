@@ -208,4 +208,12 @@ UUID UUID::MakeRandomRFC4122V4() {
     return uuid;
 }
 
+UUID UUID::MakeRFC4122V5(std::span<u8, 20> sha1) {
+    UUID uuid{};
+    std::memcpy(&uuid.uuid, sha1.data(), sizeof(UUID));
+    uuid.uuid[8] = 0x80 | (uuid.uuid[8] & 0x3F);
+    uuid.uuid[6] = 0x50 | (uuid.uuid[6] & 0xF);
+    return uuid;
+}
+
 } // namespace Common

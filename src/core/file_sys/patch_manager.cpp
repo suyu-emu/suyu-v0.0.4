@@ -1156,4 +1156,14 @@ PatchManager::Metadata PatchManager::ParseControlNCA(const NCA& nca) const {
 
     return {std::move(nacp), icon_file};
 }
+
+[[nodiscard]] PatchManager::Metadata PatchManager::GetMetadataFromBaseOrUpdate(Core::System& system, u64 application_id) noexcept {
+    const FileSys::PatchManager pm{application_id, system.GetFileSystemController(), system.GetContentProvider()};
+    auto metadata = pm.GetControlMetadata();
+    if (metadata.first != nullptr)
+        return metadata;
+    const FileSys::PatchManager pm_update{FileSys::GetUpdateTitleID(application_id), system.GetFileSystemController(), system.GetContentProvider()};
+    return pm_update.GetControlMetadata();
+}
+
 } // namespace FileSys

@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2022 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -5,6 +8,7 @@
 
 #include <array>
 #include <functional>
+#include <span>
 #include <string>
 
 #include "common/common_types.h"
@@ -86,28 +90,20 @@ struct UUID {
         };
     }
 
-    /**
-     * Creates a random UUID.
-     *
-     * @returns A random UUID.
-     */
-    static UUID MakeRandom();
+    /// @brief Creates a random UUID.
+    /// @returns A random UUID.
+    [[nodiscard]] static UUID MakeRandom();
 
-    /**
-     * Creates a random UUID with a seed.
-     *
-     * @param seed A seed to initialize the Mersenne-Twister RNG
-     *
-     * @returns A random UUID.
-     */
-    static UUID MakeRandomWithSeed(u32 seed);
+    /// @brief Creates a random UUID with a seed.
+    /// @param seed A seed to initialize the Mersenne-Twister RNG
+    /// @returns A random UUID.
+    [[nodiscard]] static UUID MakeRandomWithSeed(u32 seed);
 
-    /**
-     * Creates a random UUID. The generated UUID is RFC 4122 Version 4 compliant.
-     *
-     * @returns A random UUID that is RFC 4122 Version 4 compliant.
-     */
-    static UUID MakeRandomRFC4122V4();
+    /// @brief Creates a random UUID. The generated UUID is RFC 4122 Version 4 compliant.
+    /// @returns A random UUID that is RFC 4122 Version 4 compliant.
+    [[nodiscard]] static UUID MakeRandomRFC4122V4();
+
+    [[nodiscard]] static UUID MakeRFC4122V5(std::span<u8, 20> sha1);
 
     friend constexpr bool operator==(const UUID& lhs, const UUID& rhs) = default;
 };
