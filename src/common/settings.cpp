@@ -118,7 +118,7 @@ void LogSettings() {
     for (auto& [category, settings] : values.linkage.by_category) {
         for (const auto& setting : settings) {
             // Hide the token secret, for security reasons.
-            if (setting->Id() != values.eden_token.Id()) {
+            if (setting->Id() != values.suyu_token.Id()) {
                 auto const is_default = setting->ToString() == setting->DefaultToString();
                 auto const name = fmt::format(
                     "{:c}{:c} {}.{}",

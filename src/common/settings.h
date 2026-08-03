@@ -881,10 +881,10 @@ struct Values {
     // WebService
     Setting<std::string> web_api_url{linkage, "api.ynet-fun.xyz", "web_api_url",
                                      Category::WebService};
-    Setting<std::string> eden_username{linkage, "suyu", "eden_username",
+    Setting<std::string> suyu_username{linkage, "suyu", "suyu_username",
                                        Category::WebService};
-    Setting<std::string> eden_token{linkage, "",
-                                    "eden_token", Category::WebService};
+    Setting<std::string> suyu_token{linkage, "",
+                                    "suyu_token", Category::WebService};
 
     // Add-Ons
     std::map<u64, std::vector<std::string>> disabled_addons;

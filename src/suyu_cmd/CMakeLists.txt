@@ -12,7 +12,7 @@ function(create_resource file output filename)
     file(WRITE "${PROJECT_BINARY_DIR}/dist/${output}" "const unsigned char ${filename}[] = {${filedata}};\nconst unsigned ${filename}_size = sizeof(${filename});\n")
 endfunction()
 
-if (SUYU_CMD)  # Corrected variable name from SUZU_CMD to SUYU_CMD
+if (SUYU_CMD OR YUZU_CMD)
     add_executable(suyu-cmd
         emu_window/emu_window_sdl2.cpp
         emu_window/emu_window_sdl2.h
@@ -46,7 +46,9 @@ if (SUYU_CMD)  # Corrected variable name from SUZU_CMD to SUYU_CMD
     create_resource("../../dist/suyu.bmp" "suyu_cmd/suyu_icon.h" "suyu_icon")
     target_include_directories(suyu-cmd PRIVATE ${RESOURCES_DIR})
 
-    target_link_libraries(suyu-cmd PRIVATE SDL2::SDL2 Vulkan::Headers)
+    target_link_libraries(suyu-cmd PRIVATE SDL3::SDL3 Vulkan::Headers VulkanMemoryAllocator)
+    # FFmpeg headers are not transitively exposed by core; add them explicitly
+    target_include_directories(suyu-cmd PRIVATE ${FFmpeg_INCLUDE_DIR})
 
     if(UNIX)
         if (APPLE)
@@ -66,7 +68,7 @@ if (SUYU_CMD)  # Corrected variable name from SUZU_CMD to SUYU_CMD
         target_link_libraries(suyu-cmd PRIVATE ${PLATFORM_LIBRARIES} Threads::Threads)  # Fixed typo: yuzu-cmd -> suyu-cmd
     endif()
 
-    if (MSVC AND SUYU_USE_BUNDLED_SDL2)
+    if (MSVC AND SUYU_USE_BUNDLED_SDL3)
         include(CopySuyuSDLDeps)
         copy_suyu_SDL_deps(suyu-cmd)
     endif()

@@ -6,7 +6,7 @@
 #include <string>
 
 #define SDL_MAIN_HANDLED
-#include <SDL.h>
+#include <SDL3/SDL.h>
 
 #include <fmt/format.h>
 #include <glad/glad.h>
@@ -27,7 +27,7 @@ public:
 
     ~SDLGLContext() {
         DoneCurrent();
-        SDL_GL_DeleteContext(context);
+        SDL_GL_DestroyContext(context);
     }
 
     void SwapBuffers() override {
@@ -38,7 +38,7 @@ public:
         if (is_current) {
             return;
         }
-        is_current = SDL_GL_MakeCurrent(window, context) == 0;
+        is_current = SDL_GL_MakeCurrent(window, context);
     }
 
     void DoneCurrent() override {
@@ -94,13 +94,11 @@ EmuWindow_SDL2_GL::EmuWindow_SDL2_GL(InputCommon::InputSubsystem* input_subsyste
                                            Common::g_scm_branch, Common::g_scm_desc);
     render_window =
         SDL_CreateWindow(window_title.c_str(),
-                         SDL_WINDOWPOS_UNDEFINED, // x position
-                         SDL_WINDOWPOS_UNDEFINED, // y position
                          Layout::ScreenUndocked::Width, Layout::ScreenUndocked::Height,
-                         SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE | SDL_WINDOW_ALLOW_HIGHDPI);
+                         SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE | SDL_WINDOW_HIGH_PIXEL_DENSITY);
 
     if (render_window == nullptr) {
-        LOG_CRITICAL(Frontend, "Failed to create SDL2 window! {}", SDL_GetError());
+        LOG_CRITICAL(Frontend, "Failed to create SDL3 window! {}", SDL_GetError());
         exit(1);
     }
 
@@ -117,15 +115,15 @@ EmuWindow_SDL2_GL::EmuWindow_SDL2_GL(InputCommon::InputSubsystem* input_subsyste
     core_context = CreateSharedContext();
 
     if (window_context == nullptr) {
-        LOG_CRITICAL(Frontend, "Failed to create SDL2 GL context: {}", SDL_GetError());
+        LOG_CRITICAL(Frontend, "Failed to create SDL3 GL context: {}", SDL_GetError());
         exit(1);
     }
     if (core_context == nullptr) {
-        LOG_CRITICAL(Frontend, "Failed to create shared SDL2 GL context: {}", SDL_GetError());
+        LOG_CRITICAL(Frontend, "Failed to create shared SDL3 GL context: {}", SDL_GetError());
         exit(1);
     }
 
-    if (!gladLoadGLLoader(static_cast<GLADloadproc>(SDL_GL_GetProcAddress))) {
+    if (!gladLoadGLLoader(reinterpret_cast<GLADloadproc>(SDL_GL_GetProcAddress))) {
         LOG_CRITICAL(Frontend, "Failed to initialize GL functions! {}", SDL_GetError());
         exit(1);
     }
@@ -145,7 +143,7 @@ EmuWindow_SDL2_GL::EmuWindow_SDL2_GL(InputCommon::InputSubsystem* input_subsyste
 
 EmuWindow_SDL2_GL::~EmuWindow_SDL2_GL() {
     core_context.reset();
-    SDL_GL_DeleteContext(window_context);
+    SDL_GL_DestroyContext(window_context);
 }
 
 std::unique_ptr<Core::Frontend::GraphicsContext> EmuWindow_SDL2_GL::CreateSharedContext() const {

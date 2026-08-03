@@ -328,14 +328,14 @@ int main(int argc, char** argv) {
             LOG_INFO(Network, "Hosting a public room");
             Settings::values.web_api_url = web_api_url;
             PadToken(token);
-            Settings::values.eden_username = UsernameFromDisplayToken(token);
-            username = Settings::values.eden_username.GetValue();
-            Settings::values.eden_token = TokenFromDisplayToken(token);
+            Settings::values.suyu_username = UsernameFromDisplayToken(token);
+            username = Settings::values.suyu_username.GetValue();
+            Settings::values.suyu_token = TokenFromDisplayToken(token);
         } else {
             LOG_INFO(Network, "Hosting a public room");
             Settings::values.web_api_url = web_api_url;
-            Settings::values.eden_username = username;
-            Settings::values.eden_token = token;
+            Settings::values.suyu_username = username;
+            Settings::values.suyu_token = token;
         }
     }
     if (!announce && enable_suyu_mods) {

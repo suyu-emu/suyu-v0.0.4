@@ -1637,13 +1637,48 @@ inline RecompileStats EmitProject(const std::string& mod, const u8* text, size_t
        << "  while(lo<hi){ unsigned m=lo+(hi-lo)/2; if(_tbl[m].va<pc) lo=m+1; else hi=m; }\n"
        << "  return (lo<sizeof(_tbl)/sizeof(_tbl[0]) && _tbl[lo].va==pc)?_tbl[lo].fn:0;\n}\n";
 
+    const std::string title_str = display_title.empty() ? mod : display_title;
     std::ostringstream mc;
-    mc << "#include \"recomp_runtime.h\"\n#include <stdio.h>\n#include <stdlib.h>\n#include <string.h>\n\n";
+    mc << "#include \"recomp_runtime.h\"\n#include <stdio.h>\n#include <stdlib.h>\n#include <string.h>\n";
+    mc << "#ifdef HAVE_SDL2\n#include <SDL2/SDL.h>\n#endif\n\n";
     mc << "#define GUEST_MEM_SIZE (256ULL * 1024 * 1024) /* 256 MB */\n\n";
-    mc << "static const char* kGameTitle = \"" << (display_title.empty() ? mod : display_title)
-       << "\";\n\n";
+    mc << "static const char* kGameTitle = \"" << title_str << "\";\n\n";
+    mc << "#ifdef HAVE_SDL2\n";
+    mc << "static SDL_Window*   g_sdl_window   = NULL;\n";
+    mc << "static SDL_Renderer* g_sdl_renderer = NULL;\n";
+    mc << "static SDL_Texture*  g_sdl_texture  = NULL;\n";
+    mc << "static int g_fb_w = 1280, g_fb_h = 720;\n\n";
+    mc << "/* Called from the SVC handler when the guest flushes a framebuffer.\n";
+    mc << "   fb: CPU-accessible RGBA8 pixels, w x h. */\n";
+    mc << "void recomp_sdl_blit(const void* fb, int w, int h) {\n";
+    mc << "  if(!g_sdl_renderer) return;\n";
+    mc << "  if(w!=g_fb_w || h!=g_fb_h || !g_sdl_texture) {\n";
+    mc << "    if(g_sdl_texture) SDL_DestroyTexture(g_sdl_texture);\n";
+    mc << "    g_sdl_texture = SDL_CreateTexture(g_sdl_renderer,\n";
+    mc << "      SDL_PIXELFORMAT_RGBA32, SDL_TEXTUREACCESS_STREAMING, w, h);\n";
+    mc << "    g_fb_w=w; g_fb_h=h;\n";
+    mc << "  }\n";
+    mc << "  SDL_UpdateTexture(g_sdl_texture, NULL, fb, w*4);\n";
+    mc << "  SDL_RenderClear(g_sdl_renderer);\n";
+    mc << "  SDL_RenderCopy(g_sdl_renderer, g_sdl_texture, NULL, NULL);\n";
+    mc << "  SDL_RenderPresent(g_sdl_renderer);\n}\n\n";
+    mc << "static int sdl_pump_events(void) {\n";
+    mc << "  SDL_Event e;\n";
+    mc << "  while(SDL_PollEvent(&e)) {\n";
+    mc << "    if(e.type==SDL_QUIT) return 0;\n";
+    mc << "    if(e.type==SDL_KEYDOWN && e.key.keysym.sym==SDLK_ESCAPE) return 0;\n";
+    mc << "  }\n  return 1;\n}\n#endif /* HAVE_SDL2 */\n\n";
     mc << "int main(int argc, char** argv){\n";
-    mc << "  printf(\"=== %s ===\\n\", kGameTitle);\n";
+    mc << "  printf(\"=== %s ===\\n\", kGameTitle);\n\n";
+    mc << "#ifdef HAVE_SDL2\n";
+    mc << "  if(SDL_Init(SDL_INIT_VIDEO) == 0) {\n";
+    mc << "    g_sdl_window = SDL_CreateWindow(kGameTitle,\n";
+    mc << "      SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, 1280, 720, SDL_WINDOW_RESIZABLE);\n";
+    mc << "    if(g_sdl_window)\n";
+    mc << "      g_sdl_renderer = SDL_CreateRenderer(g_sdl_window, -1, SDL_RENDERER_ACCELERATED);\n";
+    mc << "  } else {\n";
+    mc << "    fprintf(stderr, \"[recomp] SDL2 init failed: %s (running headless)\\n\", SDL_GetError());\n";
+    mc << "  }\n#endif\n\n";
     mc << "  uint8_t* mem = (uint8_t*)calloc(1, (size_t)GUEST_MEM_SIZE);\n";
     mc << "  if(!mem){ fprintf(stderr,\"Failed to allocate guest memory\\n\"); return 1; }\n";
     mc << "  GuestContext c; memset(&c,0,sizeof c);\n";
@@ -1653,25 +1688,35 @@ inline RecompileStats EmitProject(const std::string& mod, const u8* text, size_t
     mc << "  c.heap_cur=c.heap_base; c.heap_end=c.mem_base_vaddr+GUEST_MEM_SIZE;\n";
     mc << "  c.x[31]=c.mem_base_vaddr + GUEST_MEM_SIZE - 16; /* SP */\n";
     mc << "  c.pc=0x" << std::hex << (entry_pc ? entry_pc : base) << std::dec << "ULL;\n\n";
-    mc << "  /* Init save-data directory next to this executable */\n";
     mc << "  recomp_save_init(&c, argv[0]);\n\n";
-    mc << "  /* Load bundled data segments if present */\n";
     mc << "  { char data_dir[512];\n";
     mc << "    snprintf(data_dir,sizeof data_dir,\"%s\",argv[0]);\n";
     mc << "    char* sl=strrchr(data_dir,'\\\\'); if(!sl) sl=strrchr(data_dir,'/'); if(sl) *(sl+1)=0; else data_dir[0]=0;\n";
     mc << "    strncat(data_dir,\"data\",sizeof(data_dir)-strlen(data_dir)-1);\n";
     mc << "    recomp_load_segments(&c,data_dir);\n  }\n\n";
-    mc << "  /* Auto-load save state if it exists */\n";
     mc << "  { uint64_t sz=0;\n";
     mc << "    if(recomp_save_exists(&c,\"autosave.bin\")){\n";
     mc << "      recomp_save_read(&c,\"autosave.bin\",c.mem,(uint64_t)GUEST_MEM_SIZE,&sz);\n";
     mc << "      printf(\"[recomp] Restored autosave (%llu bytes)\\n\",(unsigned long long)sz);\n";
     mc << "    }\n  }\n\n";
-    mc << "  printf(\"[recomp] Starting execution at pc=0x%llx\\n\",(unsigned long long)c.pc);\n";
-    mc << "  recomp_run(&c);\n\n";
-    mc << "  /* Auto-save on exit */\n";
+    mc << "  printf(\"[recomp] Starting at pc=0x%llx\\n\",(unsigned long long)c.pc);\n";
+    mc << "  /* Main loop: pump SDL events while the guest runs */\n";
+    mc << "#ifdef HAVE_SDL2\n";
+    mc << "  while(!c.halted) {\n";
+    mc << "    if(!sdl_pump_events()) break;\n";
+    mc << "    recomp_run(&c); /* runs until SVC or halt */\n";
+    mc << "  }\n";
+    mc << "#else\n";
+    mc << "  recomp_run(&c);\n";
+    mc << "#endif\n\n";
     mc << "  recomp_save_write(&c,\"autosave.bin\",c.mem,(uint64_t)GUEST_MEM_SIZE);\n";
     mc << "  printf(\"[recomp] halted at pc=0x%llx\\n\",(unsigned long long)c.pc);\n";
+    mc << "#ifdef HAVE_SDL2\n";
+    mc << "  if(g_sdl_texture)  SDL_DestroyTexture(g_sdl_texture);\n";
+    mc << "  if(g_sdl_renderer) SDL_DestroyRenderer(g_sdl_renderer);\n";
+    mc << "  if(g_sdl_window)   SDL_DestroyWindow(g_sdl_window);\n";
+    mc << "  SDL_Quit();\n";
+    mc << "#endif\n";
     mc << "  free(mem);\n  return 0;\n}\n";
 
     std::ostringstream cm;
@@ -1679,6 +1724,9 @@ inline RecompileStats EmitProject(const std::string& mod, const u8* text, size_t
     // module root, so the root has to be on the include path.
     cm << "cmake_minimum_required(VERSION 3.13)\nproject(suyu_recompiled C)\nset(CMAKE_C_STANDARD 11)\n"
        << "include_directories(${CMAKE_CURRENT_SOURCE_DIR})\n\n"
+       << "# Optional: SDL2 window for display output.\n"
+       << "# Install SDL2 (e.g. vcpkg install sdl2) to enable the game window.\n"
+       << "find_package(SDL2 QUIET)\n\n"
        << "# Generated translation units, all under src/.\nset(RECOMP_SOURCES\n"
        << "    src/recompiled_" << mod << ".c";
     for (size_t u = 0; u < unit_count; ++u) {
@@ -1686,6 +1734,14 @@ inline RecompileStats EmitProject(const std::string& mod, const u8* text, size_t
     }
     cm << ")\n\n"
        << "add_executable(recompiled main.c recomp_runtime.c ${RECOMP_SOURCES})\n"
+       << "if(SDL2_FOUND)\n"
+       << "  target_compile_definitions(recompiled PRIVATE HAVE_SDL2)\n"
+       << "  target_include_directories(recompiled PRIVATE ${SDL2_INCLUDE_DIRS})\n"
+       << "  target_link_libraries(recompiled ${SDL2_LIBRARIES})\n"
+       << "  message(STATUS \"SDL2 found — recompiled will open a game window\")\n"
+       << "else()\n"
+       << "  message(STATUS \"SDL2 not found — running headless (no window)\")\n"
+       << "endif()\n"
        << "# Portable C11: Windows->.exe, Linux/FreeBSD/OpenBSD->ELF, macOS->Mach-O\n\n";
 
     // A second target builds the same code as a shared library exporting the

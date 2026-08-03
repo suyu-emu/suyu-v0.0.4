@@ -22,7 +22,7 @@
      <item>
       <widget class="QGroupBox" name="groupBoxWebConfig">
        <property name="title">
-        <string>Eden Web Service</string>
+        <string>Suyu Web Service</string>
        </property>
        <layout class="QVBoxLayout" name="verticalLayoutEdenWebService">
         <item>

@@ -1019,7 +1019,7 @@ QWidget* GamerEnvironment::BuildSocialPage() {
                         window.__suyuLoginSkinned = true;
                         var lcss = document.createElement('style');
                         lcss.textContent = ''
-                            + 'html,body{background:linear-gradient(180deg,#8f6fd1 0%,#5a3d99 100%) !important;}'
+                            + 'html,body{background:linear-gradient(180deg,#0a001c 0%,#1e0037 100%) !important;}'
                             + '.content{max-width:400px !important;margin:60px auto !important;'
                             + '  background:#fff !important;border-radius:24px !important;'
                             + '  box-shadow:0 4px 0 rgba(0,0,0,0.2) !important;padding:24px !important;}'
@@ -1067,7 +1067,7 @@ QWidget* GamerEnvironment::BuildSocialPage() {
                         window.__suyuPostSkinned = true;
                         var pcss = document.createElement('style');
                         pcss.textContent = ''
-                            + 'html,body{background:linear-gradient(180deg,#8f6fd1 0%,#5a3d99 100%) '
+                            + 'html,body{background:linear-gradient(180deg,#0a001c 0%,#1e0037 100%) '
                             + '  url(__SUYU_TILE_URI__) !important;background-size:auto,220px;'
                             + '  background-blend-mode:normal,overlay;background-repeat:no-repeat,repeat;'
                             + '  font-family:"Segoe UI",sans-serif !important;}'
@@ -1182,13 +1182,13 @@ QWidget* GamerEnvironment::BuildSocialPage() {
                         + '}'
                         + '@media (prefers-color-scheme: dark) {'
                         + '  html,body{background:'
-                        + '    linear-gradient(180deg,rgba(123,95,199,0.94) 0%,rgba(58,42,92,0.94) 100%),'
+                        + '    linear-gradient(180deg,rgba(10,0,28,0.97) 0%,rgba(30,0,55,0.97) 100%),'
                         + '    url(__SUYU_TILE_URI__) !important;'
                         + '    background-size:auto,220px;background-blend-mode:normal,overlay;'
                         + '    background-repeat:no-repeat,repeat;}'
                         + '}'
                         + 'html,body{background:'
-                        + '  linear-gradient(180deg,rgba(143,111,209,0.94) 0%,rgba(90,61,153,0.94) 100%),'
+                        + '  linear-gradient(180deg,rgba(10,0,28,0.97) 0%,rgba(30,0,55,0.97) 100%),'
                         + '  url(__SUYU_TILE_URI__);'
                         + '  background-size:auto,220px;background-blend-mode:normal,overlay;'
                         + '  background-repeat:no-repeat,repeat;'
@@ -1953,6 +1953,13 @@ void GamerEnvironment::PopulateFromModel() {
 
                     if (raw_path.endsWith(QStringLiteral(".nca"), Qt::CaseInsensitive) ||
                         raw_path.contains(QStringLiteral(".cnmt.nca"), Qt::CaseInsensitive)) {
+                        continue;
+                    }
+
+                    // Skip account-library placeholders (owned:// scheme) — they have no
+                    // local file and are added below with proper greying via the nintendo://
+                    // path. Including them here would render them at full opacity.
+                    if (raw_path.startsWith(QStringLiteral("owned://"), Qt::CaseInsensitive)) {
                         continue;
                     }
 

@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 suyu Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 // SPDX-FileCopyrightText: 2017 Citra Emulator Project
@@ -72,9 +72,9 @@ void ConfigureWeb::SetConfiguration() {
     connect(ui->edit_token, &QLineEdit::textChanged, this, &ConfigureWeb::VerifyLogin);
 
     ui->edit_username->setText(
-        QString::fromStdString(Settings::values.eden_username.GetValue()));
+        QString::fromStdString(Settings::values.suyu_username.GetValue()));
     ui->edit_token->setText(
-        QString::fromStdString(Settings::values.eden_token.GetValue()));
+        QString::fromStdString(Settings::values.suyu_token.GetValue()));
     ui->edit_web_api_url->setText(
         QString::fromStdString(Settings::values.web_api_url.GetValue()));
 
@@ -98,8 +98,8 @@ void ConfigureWeb::GenerateToken() {
 
 void ConfigureWeb::ApplyConfiguration() {
     UISettings::values.enable_discord_presence = ui->toggle_discordrpc->isChecked();
-    Settings::values.eden_username = ui->edit_username->text().toStdString();
-    Settings::values.eden_token = ui->edit_token->text().toStdString();
+    Settings::values.suyu_username = ui->edit_username->text().toStdString();
+    Settings::values.suyu_token = ui->edit_token->text().toStdString();
     Settings::values.web_api_url = ui->edit_web_api_url->text().toStdString();
 }
 

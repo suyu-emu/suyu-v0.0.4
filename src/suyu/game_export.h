@@ -108,6 +108,9 @@ private:
     QCheckBox* include_shader_cache_checkbox{};
     QCheckBox* include_custom_config_checkbox{};
     QCheckBox* aot_full_scan_checkbox{};
+    /// When checked and a module fails to recompile, emit a stub that falls back
+    /// to the dynarmic interpreter for that module instead of aborting the export.
+    QCheckBox* fallback_to_interpreter_checkbox{};
     /// Export format: index 0 = source only, index 1 = build to a native binary.
     /// "Build" is a promise, not a hint - when it is selected the export runs
     /// cmake to completion and reports a hard error if a binary cannot be

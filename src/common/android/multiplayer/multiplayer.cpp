@@ -209,8 +209,8 @@ NetPlayStatus AndroidMultiplayer::NetPlayCreateRoom(const std::string &ipaddress
     LOG_INFO(WebService, "Web Service enabled");
     if (isPublic) {
         WebService::Client client(Settings::values.web_api_url.GetValue(),
-                                  Settings::values.eden_username.GetValue(),
-                                  Settings::values.eden_token.GetValue());
+                                  Settings::values.suyu_username.GetValue(),
+                                  Settings::values.suyu_token.GetValue());
 
         token = client.GetExternalJWT(room->GetVerifyUID()).returned_data;
 

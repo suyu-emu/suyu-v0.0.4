@@ -284,6 +284,16 @@ void GameExportDialog::SetupUi() {
     aot_full_scan_checkbox->setChecked(false);
     layout->addWidget(aot_full_scan_checkbox);
 
+    fallback_to_interpreter_checkbox = new QCheckBox(
+        tr("Fall back to interpreter if a module fails to recompile"), this);
+    fallback_to_interpreter_checkbox->setChecked(true);
+    fallback_to_interpreter_checkbox->setToolTip(
+        tr("When checked: if a module cannot be recompiled (e.g. too complex, "
+           "unsupported instructions), the export continues and that module will "
+           "use the dynarmic JIT at runtime instead of the static recompiled code. "
+           "When unchecked: any recompile failure aborts the entire export."));
+    layout->addWidget(fallback_to_interpreter_checkbox);
+
     // Source vs Build is a real, explicit choice rather than an easily-missed
     // checkbox, because the two produce completely different deliverables and
     // "I picked build and got a folder of C" was the reported complaint. Source
@@ -322,10 +332,11 @@ void GameExportDialog::SetupUi() {
     layout->addWidget(include_custom_config_checkbox);
 
     auto* note_label = new QLabel(
-          tr("Statically recompiles the game into C. The resulting standalone executable includes "
-             "a runtime with save/load support and runs independently of the emulator. Choose "
-             "Build above to have suyu compile it for you (slow on large titles), or Source to "
-             "get the C project and compile it yourself with CMake + any C compiler."),
+          tr("Translates the game's ARM64 code into C. Output mirrors the ROM structure: "
+             "exefs/ holds one C project per module (main, rtld, sdk, ...). "
+             "Build has suyu compile it for you (slow on large titles). "
+             "Source gives you the C + CMakeLists.txt to compile yourself. "
+             "With fallback enabled, modules that fail recompile use the dynarmic JIT at runtime."),
         this);
     note_label->setWordWrap(true);
     note_label->setStyleSheet(QStringLiteral("color: #888;"));
@@ -345,7 +356,7 @@ void GameExportDialog::SetupUi() {
     layout->addWidget(status_label);
 
     // Export button
-    export_button = new QPushButton(tr("Export (Recompile)"), this);
+    export_button = new QPushButton(tr("Export Game"), this);
     layout->addWidget(export_button);
 
     connect(rom_library_btn, &QPushButton::clicked, this, &GameExportDialog::OnSelectFromLibrary);
@@ -1048,38 +1059,99 @@ QString GameExportDialog::RunAotPrecompile(const QString& exefs_dir,
     }
 
     // Static recompilation: lift each module's AArch64 .text into a buildable, cross-platform C
-    // project (Windows .exe / Linux+BSD ELF / macOS Mach-O), plus the recompiled PC source itself.
-    // This is the real "recompile" path — it emits native-compilable code, not a repackaged frontend.
-    const QString recomp_root = cache_dir + QDir::separator() + QStringLiteral("recompiled");
+    // project. Output mirrors the ROM's exefs structure (hactool/NxFileViewer convention):
+    //   exefs/
+    //     nso/       <- raw NSO binaries (already extracted above)
+    //     main/      <- C project for the main module
+    //     rtld/      <- C project for rtld
+    //     sdk/       <- C project for sdk
+    //     ...
+    //     CMakeLists.txt  <- top-level: builds all modules
+    const QString recomp_root = cache_dir + QDir::separator() + QStringLiteral("exefs");
     QDir().mkpath(recomp_root);
+
+    // Move raw NSOs into exefs/nso/ so the layout stays clean
+    const QString nso_raw_dir = recomp_root + QDir::separator() + QStringLiteral("nso");
+    QDir().mkpath(nso_raw_dir);
+    {
+        const QString old_exefs = cache_dir + QDir::separator() + QStringLiteral("exefs");
+        // If the raw NSO directory was written alongside us, move its files into nso/
+        QDirIterator nso_it(old_exefs, QDir::Files | QDir::NoDotAndDotDot);
+        while (nso_it.hasNext()) {
+            const QString src = nso_it.next();
+            const QString dst = nso_raw_dir + QDir::separator() + QFileInfo(src).fileName();
+            if (src != dst) {
+                QFile::rename(src, dst);
+            }
+        }
+    }
+
+    const bool fallback_enabled = fallback_to_interpreter_checkbox &&
+                                  fallback_to_interpreter_checkbox->isChecked();
+
     u64 recomp_total_blocks = 0;
+    QStringList recomp_module_dirs;
+    QStringList fallback_modules;
+
     for (const auto& mod : module_results) {
         if (mod.text_bytes.empty()) {
             continue;
         }
         const QString mod_dir = recomp_root + QDir::separator() + mod.name;
         QDir().mkpath(mod_dir);
-        const auto stats = suyu::recomp::EmitProject(
-            mod.name.toStdString(), mod.text_bytes.data(), mod.text_bytes.size(), mod.text_vaddr,
-            mod_dir.toStdString(), /*source_only=*/false,
-            mod.rodata_bytes.empty() ? nullptr : mod.rodata_bytes.data(), mod.rodata_bytes.size(),
-            mod.data_bytes.empty() ? nullptr : mod.data_bytes.data(), mod.data_bytes.size(),
-            // Without these the image starts at .text+0, which is the MOD0
-            // header rather than code, and identifies itself only by address.
-            mod.entry_vaddr, game_name.toStdString());
-        recomp_total_blocks += stats.blocks;
 
-        // Actually build it. Emitting sources and a build script left the user
-        // with a directory of C rather than something runnable, even though
-        // this path is the "build" option - they had to find and run the script
-        // themselves. cmake is invoked directly here.
+        suyu::recomp::RecompileStats stats{};
+        bool emit_ok = false;
+        try {
+            stats = suyu::recomp::EmitProject(
+                mod.name.toStdString(), mod.text_bytes.data(), mod.text_bytes.size(),
+                mod.text_vaddr, mod_dir.toStdString(), /*source_only=*/false,
+                mod.rodata_bytes.empty() ? nullptr : mod.rodata_bytes.data(),
+                mod.rodata_bytes.size(),
+                mod.data_bytes.empty() ? nullptr : mod.data_bytes.data(), mod.data_bytes.size(),
+                mod.entry_vaddr, game_name.toStdString());
+            emit_ok = true;
+        } catch (const std::exception& e) {
+            LOG_ERROR(Frontend, "EmitProject failed for module {}: {}", mod.name.toStdString(),
+                      e.what());
+        } catch (...) {
+            LOG_ERROR(Frontend, "EmitProject failed for module {} (unknown error)",
+                      mod.name.toStdString());
+        }
+
+        if (!emit_ok) {
+            if (!fallback_enabled) {
+                QMessageBox::critical(
+                    this, tr("Export Failed"),
+                    tr("Module '%1' could not be recompiled.\n\nEnable 'Fall back to interpreter' "
+                       "to skip failed modules and use the dynarmic JIT for them at runtime.")
+                        .arg(mod.name));
+                return {};
+            }
+            // Emit a stub CMakeLists so the top-level build doesn't break on this dir
+            {
+                QFile stub(mod_dir + QDir::separator() + QStringLiteral("CMakeLists.txt"));
+                if (stub.open(QIODevice::WriteOnly | QIODevice::Text)) {
+                    QTextStream o(&stub);
+                    o << "# Module " << mod.name
+                      << " fell back to dynarmic JIT — no static recompilation available.\n"
+                         "# At runtime suyu will use the interpreter for this module.\n"
+                         "message(STATUS \"[fallback] " << mod.name << " uses dynarmic\")\n";
+                }
+            }
+            fallback_modules.append(mod.name);
+            LOG_WARNING(Frontend, "Module {} fell back to dynarmic interpreter", mod.name.toStdString());
+            continue;
+        }
+
+        recomp_total_blocks += stats.blocks;
+        recomp_module_dirs.append(mod.name);
+
+        // Actually build it (only in Build mode).
         const QString cmake = WantsCompiledOutput()
                                   ? QStandardPaths::findExecutable(QStringLiteral("cmake"))
                                   : QString();
         if (WantsCompiledOutput() && cmake.isEmpty()) {
-            // Build mode promises an executable. Falling back to source-only
-            // here is precisely the failure the user reported, so surface it
-            // rather than pretending the export did what was asked.
             LOG_ERROR(Frontend, "Build export requested but cmake was not found on PATH");
             QMessageBox::critical(
                 this, tr("Export Failed"),
@@ -1093,11 +1165,6 @@ QString GameExportDialog::RunAotPrecompile(const QString& exefs_dir,
             QApplication::processEvents();
 
             const QString build_dir = mod_dir + QDir::separator() + QStringLiteral("build");
-            // waitForFinished(-1) blocks the GUI thread outright, and a module
-            // this size keeps cmake busy for hours - long enough that Windows
-            // marks the window "Not Responding" and the run is indistinguishable
-            // from a crash. Wait in short slices and pump the event loop between
-            // them so the dialog keeps painting and stays reportable instead.
             const auto run_cmake = [](QProcess& proc, const QString& program,
                                       const QStringList& args) -> int {
                 proc.start(program, args);
@@ -1119,8 +1186,6 @@ QString GameExportDialog::RunAotPrecompile(const QString& exefs_dir,
                 {QStringLiteral("-S"), mod_dir, QStringLiteral("-B"), build_dir});
             if (configure_rc == 0) {
                 QProcess build;
-                // Both targets: the executable and the shared library suyu
-                // loads to run this image on its own CPU backend.
                 const int build_rc =
                     run_cmake(build, cmake,
                               {QStringLiteral("--build"), build_dir, QStringLiteral("--config"),
@@ -1131,11 +1196,17 @@ QString GameExportDialog::RunAotPrecompile(const QString& exefs_dir,
                               QString::fromLocal8Bit(build.readAllStandardError())
                                   .right(4000)
                                   .toStdString());
+                    if (fallback_enabled) {
+                        LOG_WARNING(Frontend, "Module {} compile failed, falling back to dynarmic",
+                                    mod.name.toStdString());
+                        fallback_modules.append(mod.name);
+                        continue;
+                    }
                     QMessageBox::critical(
                         this, tr("Build Failed"),
-                        tr("Export Format is set to Build, but compiling module '%1' failed, so no "
-                           "executable was produced.\n\nThe generated sources and CMakeLists.txt "
-                           "are still in:\n%2\n\nSee the suyu log for the compiler output.")
+                        tr("Compiling module '%1' failed.\n\nThe generated sources are still in:\n"
+                           "%2\n\nEnable 'Fall back to interpreter' to continue despite build "
+                           "failures. See the suyu log for compiler output.")
                             .arg(mod.name, mod_dir));
                     return {};
                 }
@@ -1145,20 +1216,20 @@ QString GameExportDialog::RunAotPrecompile(const QString& exefs_dir,
                           QString::fromLocal8Bit(configure.readAllStandardError())
                               .right(4000)
                               .toStdString());
+                if (fallback_enabled) {
+                    LOG_WARNING(Frontend, "Module {} cmake configure failed, falling back to dynarmic",
+                                mod.name.toStdString());
+                    fallback_modules.append(mod.name);
+                    continue;
+                }
                 QMessageBox::critical(
                     this, tr("Build Failed"),
-                    tr("Export Format is set to Build, but CMake could not configure module '%1', "
-                       "so no executable was produced.\n\nThe generated sources are still in:\n%2"
-                       "\n\nA working C compiler toolchain is required. See the suyu log for the "
-                       "CMake output.")
+                    tr("CMake could not configure module '%1'.\n\nThe generated sources are in:\n"
+                       "%2\n\nEnable 'Fall back to interpreter' to continue despite failures.")
                         .arg(mod.name, mod_dir));
                 return {};
             }
 
-            // cmake exiting 0 is necessary but not sufficient proof that the
-            // deliverable exists (a target can be skipped, or land somewhere
-            // unexpected). Build mode's whole contract is "there is a binary at
-            // the end", so verify one actually got written before claiming so.
             const QStringList produced =
                 QDir(build_dir).entryList({QStringLiteral("*.exe"), QStringLiteral("*.dll"),
                                            QStringLiteral("*.so"), QStringLiteral("*.dylib"),
@@ -1170,10 +1241,13 @@ QString GameExportDialog::RunAotPrecompile(const QString& exefs_dir,
             if (produced.isEmpty()) {
                 LOG_ERROR(Frontend, "Build of module {} reported success but produced no binary",
                           mod.name.toStdString());
+                if (fallback_enabled) {
+                    fallback_modules.append(mod.name);
+                    continue;
+                }
                 QMessageBox::critical(
                     this, tr("Build Failed"),
-                    tr("CMake reported success for module '%1' but no executable or library was "
-                       "found in:\n%2")
+                    tr("CMake reported success for module '%1' but no binary was found in:\n%2")
                         .arg(mod.name, build_dir));
                 return {};
             }
@@ -1181,28 +1255,47 @@ QString GameExportDialog::RunAotPrecompile(const QString& exefs_dir,
                      produced.join(QStringLiteral(", ")).toStdString());
         }
     }
-    // One-command native build scripts (the user can run these to produce the actual executable).
+
+    // Top-level CMakeLists.txt: includes all module subdirs so `cmake -S exefs -B build`
+    // builds everything in one shot.
+    {
+        QFile top_cmake(recomp_root + QDir::separator() + QStringLiteral("CMakeLists.txt"));
+        if (top_cmake.open(QIODevice::WriteOnly | QIODevice::Text)) {
+            QTextStream o(&top_cmake);
+            o << "cmake_minimum_required(VERSION 3.13)\n"
+                 "project(" << game_name << "_recompiled C)\n\n"
+                 "# Add each recompiled module as a subdirectory.\n"
+                 "# Each module builds its own 'recompiled' exe and 'recompiled_image' shared lib.\n";
+            for (const auto& m : recomp_module_dirs) {
+                o << "if(EXISTS \"${CMAKE_CURRENT_SOURCE_DIR}/" << m << "/CMakeLists.txt\")\n"
+                  << "  add_subdirectory(" << m << ")\n"
+                  << "endif()\n";
+            }
+            if (!fallback_modules.isEmpty()) {
+                o << "\n# Modules using dynarmic JIT fallback (not recompiled):\n";
+                for (const auto& m : fallback_modules) {
+                    o << "# " << m << "\n";
+                }
+            }
+        }
+    }
+
+    // One-command build scripts.
     {
         QFile bw(recomp_root + QDir::separator() + QStringLiteral("build_native_windows.cmd"));
         if (bw.open(QIODevice::WriteOnly | QIODevice::Text)) {
             QTextStream o(&bw);
             o << "@echo off\r\n"
-                 "rem Build every recompiled module into a native .exe (needs cmake + a C compiler).\r\n"
-                 "for /d %%M in (*) do (\r\n"
-                 "  if exist \"%%M\\CMakeLists.txt\" (\r\n"
-                 "    cmake -S \"%%M\" -B \"%%M\\build\" && cmake --build \"%%M\\build\" --config Release\r\n"
-                 "  )\r\n"
-                 ")\r\n";
+                 "rem Build all recompiled modules (needs cmake + a C compiler).\r\n"
+                 "cmake -S . -B build && cmake --build build --config Release\r\n";
             bw.close();
         }
         QFile bs(recomp_root + QDir::separator() + QStringLiteral("build_native_unix.sh"));
         if (bs.open(QIODevice::WriteOnly | QIODevice::Text)) {
             QTextStream o(&bs);
             o << "#!/bin/sh\n"
-                 "# Build every recompiled module into a native binary (ELF on Linux/BSD, Mach-O on macOS).\n"
-                 "for m in */ ; do\n"
-                 "  [ -f \"$m/CMakeLists.txt\" ] && cmake -S \"$m\" -B \"$m/build\" && cmake --build \"$m/build\"\n"
-                 "done\n";
+                 "# Build all recompiled modules.\n"
+                 "cmake -S . -B build && cmake --build build\n";
             bs.close();
         }
     }
@@ -1364,25 +1457,59 @@ bool GameExportDialog::PackageNativeExport(const QString& rom_path, const QStrin
             return false;
         }
 
+        // Bundle suyu-cmd.exe (renamed to the game name) and its runtime DLLs so the
+        // package runs standalone — suyu-cmd provides the HLE+GPU+audio stack.
+        const QString bin_dir = QCoreApplication::applicationDirPath();
+        const QString launcher_src = bin_dir + QStringLiteral("/suyu-cmd.exe");
+        const QString launcher_dst = pkg_dir + QDir::separator() + game_name + QStringLiteral(".exe");
+        if (QFile::exists(launcher_src)) {
+            QFile::remove(launcher_dst);
+            QFile::copy(launcher_src, launcher_dst);
+
+            // DLLs required by suyu-cmd (FFmpeg, DXC, OpenSSL — SDL3 is statically linked)
+            static constexpr const char* kRuntimeDlls[] = {
+                "avcodec-61.dll", "avformat-61.dll", "avutil-59.dll",
+                "swresample-5.dll", "swscale-8.dll",
+                "dxcompiler.dll", "dxil.dll",
+                "libcrypto-3-x64.dll", "libssl-3-x64.dll",
+                // fallback names used by some builds
+                "libcrypto.dll", "libssl.dll",
+            };
+            for (const char* dll : kRuntimeDlls) {
+                const QString src = bin_dir + QLatin1Char('/') + QLatin1String(dll);
+                if (QFile::exists(src)) {
+                    const QString dst = pkg_dir + QDir::separator() + QLatin1String(dll);
+                    QFile::remove(dst);
+                    QFile::copy(src, dst);
+                }
+            }
+        }
+
+        // Write a one-click launch script using the original ROM path
+        QFile bat(pkg_dir + QDir::separator() + QStringLiteral("launch.bat"));
+        if (bat.open(QIODevice::WriteOnly | QIODevice::Text)) {
+            QTextStream out(&bat);
+            out << "@echo off\n";
+            out << "\"" << game_name << ".exe\" -g \"" << QDir::toNativeSeparators(rom_path) << "\"\n";
+            bat.close();
+        }
+
         QFile readme(pkg_dir + QDir::separator() + QStringLiteral("README_NATIVE_EXPORT.txt"));
         if (readme.open(QIODevice::WriteOnly | QIODevice::Text)) {
             QTextStream out(&readme);
             out << "Suyu native export — standalone PC executable\n\n";
-            out << "This directory contains a statically recompiled game that runs without the emulator.\n";
+            out << "Run: double-click launch.bat  (or drag your ROM onto " << game_name << ".exe)\n";
+            out << "No emulator installation required — HLE, Vulkan GPU, and audio are all bundled.\n\n";
             out << "Contents:\n";
-            out << "- game_source.txt : path of the ROM this was recompiled from\n";
-            out << "- aot_cache/recompiled/ : buildable C projects (one per module)\n";
-            out << "- aot_cache/recompiled/build_native_windows.cmd : one-click Windows build\n";
-            out << "- aot_cache/recompiled/build_native_unix.sh : one-click Linux/macOS build\n\n";
-            out << "Each module directory holds:\n";
-            out << "- CMakeLists.txt, main.c, recomp_export.c, recomp_runtime.{c,h}\n";
-            out << "- src/ : the generated translation units\n";
-            out << "- data/ : bundled text/rodata/data segments\n";
-            out << "- build/ : CMake build output (recompiled executable + recompiled_image "
-                   "library)\n\n";
-            out << "Build: cd aot_cache/recompiled && build_native_windows.cmd (or ./build_native_unix.sh)\n";
-            out << "Run: the resulting executable creates a save_data/ directory next to itself.\n";
-            out << "Save data persists across runs — no emulator required.\n";
+            out << "- launch.bat      : one-click launcher (uses the original ROM path)\n";
+            out << "- " << game_name << ".exe : standalone launcher (HLE + Vulkan GPU + audio)\n";
+            out << "- *.dll           : runtime libraries\n";
+            out << "- aot_cache/      : AOT-recompiled CPU modules\n";
+            out << "- game_source.txt : original ROM path\n\n";
+            out << "Keys: prod/title keys are read from %APPDATA%\\suyu\\keys — copy them there\n";
+            out << "once if not already present.\n\n";
+            out << "To move the package: copy your ROM alongside " << game_name << ".exe,\n";
+            out << "then run: " << game_name << ".exe  (auto-detects *.xci/*.nsp in the same folder)\n";
             readme.close();
         }
 

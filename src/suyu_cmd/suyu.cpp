@@ -1,8 +1,10 @@
 // SPDX-FileCopyrightText: 2014 Citra Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
+#include <array>
 #include <chrono>
 #include <exception>
+#include <filesystem>
 #include <iostream>
 #include <memory>
 #include <regex>
@@ -209,6 +211,7 @@ int main(int argc, char** argv) {
     Common::Log::Initialize();
     Common::Log::SetColorConsoleBackendEnabled(true);
     Common::Log::Start();
+    LOG_INFO(Frontend, "suyu-cmd starting up...");
     Common::DetachedTasks detached_tasks;
 
     int option_index = 0;
@@ -370,13 +373,40 @@ int main(int argc, char** argv) {
 
     Common::ConfigureNvidiaEnvironmentFlags();
 
+    // Auto-detect ROM alongside the executable when no -g flag is given
     if (filepath.empty() && !static_cast<u32>(load_parameters.applet_id)) {
-        LOG_CRITICAL(Frontend, "Failed to load ROM: No ROM specified");
+#ifdef _WIN32
+        wchar_t exe_path_w[MAX_PATH];
+        GetModuleFileNameW(nullptr, exe_path_w, MAX_PATH);
+        const std::filesystem::path exe_dir = std::filesystem::path(exe_path_w).parent_path();
+#else
+        const std::filesystem::path exe_dir =
+            std::filesystem::canonical("/proc/self/exe").parent_path();
+#endif
+        static constexpr std::array<std::string_view, 3> exts{".xci", ".nsp", ".nca"};
+        for (const auto& entry : std::filesystem::directory_iterator(exe_dir)) {
+            const auto ext = Common::ToLower(entry.path().extension().string());
+            for (const auto e : exts) {
+                if (ext == e) {
+#ifdef _WIN32
+                    filepath = Common::UTF16ToUTF8(entry.path().wstring());
+#else
+                    filepath = entry.path().string();
+#endif
+                    LOG_INFO(Frontend, "Auto-detected ROM: {}", filepath);
+                    goto rom_found;
+                }
+            }
+        }
+        LOG_CRITICAL(Frontend, "No ROM specified and none found next to exe");
         return -1;
+        rom_found:;
     }
 
+    LOG_INFO(Frontend, "suyu-cmd: Initializing system...");
     Core::System system{};
     system.Initialize();
+    LOG_INFO(Frontend, "suyu-cmd: System initialized.");
 
     InputCommon::InputSubsystem input_subsystem{};
 
@@ -385,7 +415,9 @@ int main(int argc, char** argv) {
 
     std::unique_ptr<EmuWindow_SDL2> emu_window;
     switch (Settings::values.renderer_backend.GetValue()) {
-    case Settings::RendererBackend::OpenGL:
+    case Settings::RendererBackend::OpenGL_GLSL:
+    case Settings::RendererBackend::OpenGL_GLASM:
+    case Settings::RendererBackend::OpenGL_SPIRV:
         emu_window = std::make_unique<EmuWindow_SDL2_GL>(&input_subsystem, system, fullscreen);
         break;
     case Settings::RendererBackend::Vulkan:
@@ -395,14 +427,12 @@ int main(int argc, char** argv) {
     case Settings::RendererBackend::Metal:
         emu_window = std::make_unique<EmuWindow_SDL2_MTL>(&input_subsystem, system, fullscreen);
         break;
-#else
-    case Settings::RendererBackend::Metal:
-        LOG_ERROR(Frontend, "Metal backend is only supported on Apple platforms");
-        emu_window = std::make_unique<EmuWindow_SDL2_VK>(&input_subsystem, system, fullscreen);
-        break;
 #endif
     case Settings::RendererBackend::Null:
         emu_window = std::make_unique<EmuWindow_SDL2_Null>(&input_subsystem, system, fullscreen);
+        break;
+    default:
+        emu_window = std::make_unique<EmuWindow_SDL2_VK>(&input_subsystem, system, fullscreen);
         break;
     }
 
@@ -411,6 +441,7 @@ int main(int argc, char** argv) {
     system.CoreTiming().SetTimerResolutionNs(Common::Windows::GetCurrentTimerResolution());
 #endif
 
+    LOG_INFO(Frontend, "suyu-cmd: Window created, loading game...");
     system.SetContentProvider(std::make_unique<FileSys::ContentProviderUnion>());
     system.SetFilesystem(std::make_shared<FileSys::RealVfsFilesystem>());
     system.GetFileSystemController().CreateFactories(*system.GetFilesystem());
@@ -418,8 +449,18 @@ int main(int argc, char** argv) {
 
     if (static_cast<u32>(load_parameters.applet_id)) {
         // code below based off of suyu/main.cpp : GMainWindow::OnHomeMenu()
-        Service::AM::AppletProgramId applet_prog_id =
-            Service::AM::AppletIdToProgramId(load_parameters.applet_id);
+        // Inline minimal mapping (AppletIdToProgramId is in an anonymous namespace)
+        const auto applet_id_to_prog_id = [](Service::AM::AppletId id) -> Service::AM::AppletProgramId {
+            using namespace Service::AM;
+            switch (id) {
+            case AppletId::QLaunch:        return AppletProgramId::QLaunch;
+            case AppletId::Starter:        return AppletProgramId::Starter;
+            case AppletId::Auth:           return AppletProgramId::Auth;
+            case AppletId::OverlayDisplay: return AppletProgramId::OverlayDisplay;
+            default:                       return static_cast<AppletProgramId>(0);
+            }
+        };
+        Service::AM::AppletProgramId applet_prog_id = applet_id_to_prog_id(load_parameters.applet_id);
         auto sysnand = system.GetFileSystemController().GetSystemNANDContents();
         if (!sysnand) {
             LOG_CRITICAL(Frontend, "Failed to load applet: Firmware not installed.");
@@ -437,7 +478,9 @@ int main(int argc, char** argv) {
     } else {
         load_parameters.applet_id = Service::AM::AppletId::Application;
     }
+    LOG_INFO(Frontend, "suyu-cmd: Calling system.Load for '{}'...", filepath);
     const Core::SystemResultStatus load_result{system.Load(*emu_window, filepath, load_parameters)};
+    LOG_INFO(Frontend, "suyu-cmd: system.Load returned: {}", static_cast<int>(load_result));
 
     switch (load_result) {
     case Core::SystemResultStatus::ErrorGetLoader:

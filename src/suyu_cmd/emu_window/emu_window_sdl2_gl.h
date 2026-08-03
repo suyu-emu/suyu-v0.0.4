@@ -4,6 +4,7 @@
 #pragma once
 
 #include <memory>
+#include <SDL3/SDL.h>
 #include "core/frontend/emu_window.h"
 #include "suyu_cmd/emu_window/emu_window_sdl2.h"
 
@@ -26,8 +27,6 @@ public:
 private:
     /// Whether the GPU and driver supports the OpenGL extension required
     bool SupportsRequiredGLExtensions();
-
-    using SDL_GLContext = void*;
 
     /// The OpenGL context associated with the window
     SDL_GLContext window_context;

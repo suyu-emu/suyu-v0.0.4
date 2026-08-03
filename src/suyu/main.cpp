@@ -3977,8 +3977,8 @@ void GMainWindow::OnMenuReportCompatibility() {
         return;
     }
 
-    if (!Settings::values.eden_token.GetValue().empty() &&
-        !Settings::values.eden_username.GetValue().empty()) {
+    if (!Settings::values.suyu_token.GetValue().empty() &&
+        !Settings::values.suyu_username.GetValue().empty()) {
         CompatDB compatdb{this};
         compatdb.exec();
     } else {
