@@ -63,3 +63,5 @@ artifacts
 /install*
 vulkansdk*.exe
 *.tar.zst
+/aot_test_output
+*.log
