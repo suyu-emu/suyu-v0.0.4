@@ -37,6 +37,7 @@
 #include <QJsonObject>
 #include <QDateTime>
 #include <QEvent>
+#include <QResizeEvent>
 #include <QMetaObject>
 #include <QMouseEvent>
 #include <QRegularExpression>
@@ -1828,6 +1829,15 @@ void GamerEnvironment::ApplyNavSelection(QPushButton* btn) {
 // ─────────────────────────────────────────────────────────────────────────────
 // paintEvent — gradient background + sidebar overlay
 // ─────────────────────────────────────────────────────────────────────────────
+void GamerEnvironment::resizeEvent(QResizeEvent* event) {
+    QWidget::resizeEvent(event);
+    // Auto-hide sidebar on narrow windows (tablet/small-screen mode)
+    if (sidebar_) {
+        const bool narrow = width() < 600;
+        sidebar_->setVisible(!narrow);
+    }
+}
+
 void GamerEnvironment::paintEvent(QPaintEvent*) {
     QPainter p(this);
     p.setRenderHint(QPainter::Antialiasing, false);

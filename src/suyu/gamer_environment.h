@@ -90,6 +90,7 @@ signals:
 protected:
     bool eventFilter(QObject* watched, QEvent* event) override;
     void paintEvent(QPaintEvent* event) override;
+    void resizeEvent(QResizeEvent* event) override;
     /// Drives the slow drift of the ambient background marks.
     QElapsedTimer ambient_clock_;
     QTimer* ambient_timer_{};

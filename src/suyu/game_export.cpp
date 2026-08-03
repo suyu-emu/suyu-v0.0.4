@@ -4,8 +4,10 @@
 #include "suyu/game_export.h"
 
 #include <QApplication>
+#include <QBuffer>
 #include <QCheckBox>
 #include <QCoreApplication>
+#include <QPixmap>
 #include <QDir>
 #include <QDirIterator>
 #include <QFile>
@@ -16,6 +18,7 @@
 #include <QListWidget>
 #include <QMessageBox>
 #include <QProcess>
+#include <QRegularExpression>
 #include <QSettings>
 #include <QStandardPaths>
 #include <QTextStream>
@@ -27,6 +30,10 @@
 #include <cstring>
 #include <span>
 #include <vector>
+
+#ifdef _WIN32
+#include <windows.h>
+#endif
 
 #include "common/assert.h"
 #include "common/logging/log.h"
@@ -367,6 +374,10 @@ void GameExportDialog::SetupUi() {
 
 void GameExportDialog::SetLibraryEntries(QVector<LibraryEntry> entries) {
     library_entries_ = std::move(entries);
+}
+
+void GameExportDialog::SetGameIcon(const QPixmap& icon) {
+    game_icon_ = icon;
 }
 
 void GameExportDialog::SetRomPath(const QString& path, quint64 program_id) {
@@ -810,6 +821,63 @@ static FileSys::VirtualDir ExtractExeFsFromRom(const std::string& rom_path) {
         }
     }
 
+    return nullptr;
+}
+
+// Save every file in a VirtualDir to disk recursively.
+// Returns number of bytes written, -1 on failure.
+static qint64 DumpVirtualDir(const FileSys::VirtualDir& vdir, const QString& dest_dir) {
+    if (!vdir) return 0;
+    QDir().mkpath(dest_dir);
+    qint64 total = 0;
+    for (const auto& f : vdir->GetFiles()) {
+        const auto data = f->ReadAllBytes();
+        QFile out(dest_dir + QLatin1Char('/') + QString::fromStdString(f->GetName()));
+        if (!out.open(QIODevice::WriteOnly)) return -1;
+        out.write(reinterpret_cast<const char*>(data.data()),
+                  static_cast<qint64>(data.size()));
+        total += static_cast<qint64>(data.size());
+    }
+    for (const auto& sub : vdir->GetSubdirectories()) {
+        const qint64 r = DumpVirtualDir(
+            sub, dest_dir + QLatin1Char('/') + QString::fromStdString(sub->GetName()));
+        if (r < 0) return -1;
+        total += r;
+    }
+    return total;
+}
+
+// Extract the romfs VirtualFile from a ROM (NSP/XCI/NCA). Returns nullptr if not available.
+static FileSys::VirtualFile ExtractRomFsFromRom(const std::string& rom_path) {
+    auto vfs = std::make_shared<FileSys::RealVfsFilesystem>();
+    auto file = vfs->OpenFile(rom_path, FileSys::OpenMode::Read);
+    if (!file) return nullptr;
+    const std::string name = file->GetName();
+    auto pos = name.rfind('.'); std::string ext;
+    if (pos != std::string::npos) { ext = name.substr(pos); std::transform(ext.begin(),ext.end(),ext.begin(),::tolower); }
+
+    const auto romfs_from_nsp = [](const std::shared_ptr<FileSys::NSP>& nsp) -> FileSys::VirtualFile {
+        if (nsp->GetStatus() != Loader::ResultStatus::Success) return nullptr;
+        const auto nca = nsp->GetNCA(nsp->GetProgramTitleID(), FileSys::ContentRecordType::Program);
+        return nca ? nca->GetRomFS() : nullptr;
+    };
+
+    if (ext == ".nsp") {
+        auto nsp = std::make_shared<FileSys::NSP>(file);
+        if (auto r = romfs_from_nsp(nsp)) return r;
+    }
+    if (ext == ".xci") {
+        auto xci = std::make_shared<FileSys::XCI>(file);
+        if (xci->GetStatus() == Loader::ResultStatus::Success) {
+            auto sec = xci->GetSecurePartitionNSP();
+            if (sec) if (auto r = romfs_from_nsp(sec)) return r;
+        }
+    }
+    if (ext == ".nca") {
+        auto nca = std::make_shared<FileSys::NCA>(file);
+        if (nca->GetStatus() == Loader::ResultStatus::Success)
+            return nca->GetRomFS();
+    }
     return nullptr;
 }
 
@@ -1286,8 +1354,34 @@ QString GameExportDialog::RunAotPrecompile(const QString& exefs_dir,
         if (bw.open(QIODevice::WriteOnly | QIODevice::Text)) {
             QTextStream o(&bw);
             o << "@echo off\r\n"
-                 "rem Build all recompiled modules (needs cmake + a C compiler).\r\n"
-                 "cmake -S . -B build && cmake --build build --config Release\r\n";
+                 "rem Build all recompiled modules.\r\n"
+                 "rem Auto-detect cmake from Visual Studio if not on PATH.\r\n"
+                 "where cmake >nul 2>&1\r\n"
+                 "if %errorlevel% neq 0 (\r\n"
+                 "  set \"CMAKE_SEARCH=\"\r\n"
+                 "  for /d %%V in (\"C:\\Program Files\\Microsoft Visual Studio\\2022\\*\") do (\r\n"
+                 "    if exist \"%%V\\Common7\\IDE\\CommonExtensions\\Microsoft\\CMake\\CMake\\bin\\cmake.exe\" (\r\n"
+                 "      set \"CMAKE_SEARCH=%%V\\Common7\\IDE\\CommonExtensions\\Microsoft\\CMake\\CMake\\bin\\cmake.exe\"\r\n"
+                 "    )\r\n"
+                 "  )\r\n"
+                 "  if defined CMAKE_SEARCH (\r\n"
+                 "    echo Using VS cmake: %CMAKE_SEARCH%\r\n"
+                 "    set \"CMAKE=%CMAKE_SEARCH%\"\r\n"
+                 "  ) else (\r\n"
+                 "    echo ERROR: cmake not found. Install CMake or Visual Studio.\r\n"
+                 "    pause & exit /b 1\r\n"
+                 "  )\r\n"
+                 ") else (\r\n"
+                 "  set \"CMAKE=cmake\"\r\n"
+                 ")\r\n"
+                 "for /d %%M in (*) do (\r\n"
+                 "  if exist \"%%M\\CMakeLists.txt\" (\r\n"
+                 "    echo Building %%M ...\r\n"
+                 "    \"%CMAKE%\" -S \"%%M\" -B \"%%M\\build\" && \"%CMAKE%\" --build \"%%M\\build\" --config Release\r\n"
+                 "  )\r\n"
+                 ")\r\n"
+                 "echo Done.\r\n"
+                 "pause\r\n";
             bw.close();
         }
         QFile bs(recomp_root + QDir::separator() + QStringLiteral("build_native_unix.sh"));
@@ -1451,6 +1545,50 @@ bool GameExportDialog::PackageNativeExport(const QString& rom_path, const QStrin
 
         write_source_reference(pkg_dir);
 
+        // ── Extract exefs (NSO executables) → <pkg>/exefs/ ──────────────────────
+        // This gives the package the same structure as Switch ROM viewers show.
+        // suyu-cmd auto-detects exefs/main next to it and loads from there.
+        const QString exefs_dst = pkg_dir + QStringLiteral("/exefs");
+        auto exefs_vdir = ExtractExeFsFromRom(rom_path.toStdString());
+        if (exefs_vdir) {
+            DumpVirtualDir(exefs_vdir, exefs_dst);
+        }
+
+        // ── Extract romfs → <pkg>/exefs/romfs.bin ────────────────────────────────
+        // DeconstructedRomDirectory loader looks for a .romfs file alongside the NSOs.
+        // Romfs can be several GB — only extract if VFS gives it without copying the file.
+        if (exefs_vdir) {
+            auto romfs_vf = ExtractRomFsFromRom(rom_path.toStdString());
+            if (romfs_vf) {
+                const qint64 romfs_size = static_cast<qint64>(romfs_vf->GetSize());
+                // Only inline-extract small romfs (< 512 MB); large ones are left as
+                // a reference so the package doesn't balloon. Users can copy the
+                // original ROM alongside the exe — auto-detect will load it directly.
+                constexpr qint64 kMaxInlineRomFs = 512LL * 1024 * 1024;
+                if (romfs_size > 0 && romfs_size <= kMaxInlineRomFs) {
+                    const auto romfs_bytes = romfs_vf->ReadAllBytes();
+                    QFile rf(exefs_dst + QStringLiteral("/romfs.bin"));
+                    if (rf.open(QIODevice::WriteOnly)) {
+                        rf.write(reinterpret_cast<const char*>(romfs_bytes.data()),
+                                 static_cast<qint64>(romfs_bytes.size()));
+                        rf.close();
+                    }
+                } else if (romfs_size > kMaxInlineRomFs) {
+                    // Write a note so the user knows where to get it
+                    QFile note(pkg_dir + QStringLiteral("/romfs_note.txt"));
+                    if (note.open(QIODevice::WriteOnly | QIODevice::Text)) {
+                        QTextStream o(&note);
+                        o << "Game data (romfs) is " << (romfs_size / 1024 / 1024) << " MB — too large to bundle.\n"
+                          << "To make this package fully standalone:\n"
+                          << "  Copy your original ROM (" << QFileInfo(rom_path).fileName()
+                          << ") into this folder.\n"
+                          << "The launcher will detect it automatically.\n";
+                        note.close();
+                    }
+                }
+            }
+        }
+
         // Copy AOT cache
         if (!CopyDirectoryUnlessInPlace(cache_dir,
                                     pkg_dir + QDir::separator() + QStringLiteral("aot_cache"))) {
@@ -1465,6 +1603,38 @@ bool GameExportDialog::PackageNativeExport(const QString& rom_path, const QStrin
         if (QFile::exists(launcher_src)) {
             QFile::remove(launcher_dst);
             QFile::copy(launcher_src, launcher_dst);
+
+            // Embed game icon into the launcher exe via Windows resource update API
+            if (!game_icon_.isNull()) {
+#ifdef _WIN32
+                QByteArray icon_png;
+                { QBuffer buf(&icon_png); buf.open(QIODevice::WriteOnly);
+                  game_icon_.save(&buf, "PNG"); }
+                if (!icon_png.isEmpty()) {
+#pragma pack(push,1)
+                    struct GrpEntry { BYTE w,h,cc,res; WORD pl,bpp; DWORD sz; WORD id; };
+                    struct GrpDir  { WORD reserved,type,count; GrpEntry e[1]; };
+#pragma pack(pop)
+                    GrpDir grp{};
+                    grp.type=1; grp.count=1;
+                    grp.e[0].w=(BYTE)std::min(game_icon_.width(),255);
+                    grp.e[0].h=(BYTE)std::min(game_icon_.height(),255);
+                    grp.e[0].pl=1; grp.e[0].bpp=32;
+                    grp.e[0].sz=(DWORD)icon_png.size(); grp.e[0].id=1;
+                    const std::wstring dstW = launcher_dst.toStdWString();
+                    HANDLE h = BeginUpdateResourceW(dstW.c_str(), FALSE);
+                    if (h) {
+                        UpdateResourceW(h,RT_ICON,MAKEINTRESOURCEW(1),
+                            MAKELANGID(LANG_NEUTRAL,SUBLANG_NEUTRAL),
+                            (LPVOID)icon_png.data(),(DWORD)icon_png.size());
+                        UpdateResourceW(h,RT_GROUP_ICON,MAKEINTRESOURCEW(1),
+                            MAKELANGID(LANG_NEUTRAL,SUBLANG_NEUTRAL),
+                            (LPVOID)&grp,sizeof(grp));
+                        EndUpdateResourceW(h,FALSE);
+                    }
+                }
+#endif
+            }
 
             // DLLs required by suyu-cmd (FFmpeg, DXC, OpenSSL — SDL3 is statically linked)
             static constexpr const char* kRuntimeDlls[] = {
@@ -1659,6 +1829,19 @@ QStringList GameExportDialog::FindRecompiledExecutables(const QString& game_name
     QStringList found;
     for (const QString& root : RecompileOutputRoots()) {
         for (const QString& name : names) {
+            // New layout: <root>/<GameName>/<GameName>.exe (suyu-cmd launcher)
+            const QString pkg_launcher = root + QDir::separator() + name +
+                                         QDir::separator() + name +
+#ifdef _WIN32
+                                         QStringLiteral(".exe");
+#else
+                                         QString{};
+#endif
+            if (QFile::exists(pkg_launcher)) {
+                found.prepend(QDir::toNativeSeparators(pkg_launcher));
+            }
+
+            // Legacy layout: deep in aot_cache/recompiled/<module>/build/
             for (const QString& suffix : package_suffixes) {
                 const QString recomp_root = root + QDir::separator() + name + suffix;
                 QDir dir(recomp_root);
@@ -1716,7 +1899,17 @@ void GameExportDialog::OnExport() {
     const bool include_shader_cache = include_shader_cache_checkbox->isChecked();
     const bool include_custom_config = include_custom_config_checkbox->isChecked();
     const QFileInfo rom_info(rom_path);
-    const QString game_name = rom_info.completeBaseName();
+    // Prefer the NACP/library title; fall back to filename if not found.
+    QString game_name = rom_info.completeBaseName();
+    for (const auto& entry : library_entries_) {
+        if (QFileInfo(entry.path) == rom_info && !entry.title.trimmed().isEmpty()) {
+            game_name = entry.title.trimmed();
+            // Strip characters that are illegal in Windows filenames
+            static const QRegularExpression kIllegal(QStringLiteral("[\\\\/:*?\"<>|]"));
+            game_name.replace(kIllegal, QStringLiteral("_"));
+            break;
+        }
+    }
 
     // Recorded before the run rather than after: even a half-finished export
     // leaves buildable output here, and this is how the library later finds it.

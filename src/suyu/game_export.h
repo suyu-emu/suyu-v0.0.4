@@ -44,6 +44,8 @@ public:
     /// Set the game ROM path and optional title-id for portable data bundling.
     void SetRomPath(const QString& path, quint64 program_id = 0);
     void SetLibraryEntries(QVector<LibraryEntry> entries);
+    /// Provide the game's artwork so it can be embedded as the launcher exe icon.
+    void SetGameIcon(const QPixmap& icon);
 
     /// Test-only: drive a full export run without needing to click through
     /// the dialog's file pickers/combo boxes, so live automation can trigger
@@ -123,4 +125,5 @@ private:
     QLabel* status_label{};
     quint64 rom_program_id{};
     QVector<LibraryEntry> library_entries_;
+    QPixmap game_icon_;
 };

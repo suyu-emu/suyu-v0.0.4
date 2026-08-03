@@ -373,7 +373,7 @@ int main(int argc, char** argv) {
 
     Common::ConfigureNvidiaEnvironmentFlags();
 
-    // Auto-detect ROM alongside the executable when no -g flag is given
+    // Auto-detect ROM / exefs alongside the executable when no -g flag is given
     if (filepath.empty() && !static_cast<u32>(load_parameters.applet_id)) {
 #ifdef _WIN32
         wchar_t exe_path_w[MAX_PATH];
@@ -383,6 +383,18 @@ int main(int argc, char** argv) {
         const std::filesystem::path exe_dir =
             std::filesystem::canonical("/proc/self/exe").parent_path();
 #endif
+        // Prefer deconstructed exefs dir (Switch ROM viewer structure: exefs/main)
+        const std::filesystem::path exefs_main = exe_dir / "exefs" / "main";
+        if (std::filesystem::exists(exefs_main)) {
+#ifdef _WIN32
+            filepath = Common::UTF16ToUTF8(exefs_main.wstring());
+#else
+            filepath = exefs_main.string();
+#endif
+            LOG_INFO(Frontend, "Auto-detected exefs/main: {}", filepath);
+            goto rom_found;
+        }
+        // Fall back to packed ROM files (XCI/NSP/NCA)
         static constexpr std::array<std::string_view, 3> exts{".xci", ".nsp", ".nca"};
         for (const auto& entry : std::filesystem::directory_iterator(exe_dir)) {
             const auto ext = Common::ToLower(entry.path().extension().string());
@@ -398,7 +410,7 @@ int main(int argc, char** argv) {
                 }
             }
         }
-        LOG_CRITICAL(Frontend, "No ROM specified and none found next to exe");
+        LOG_CRITICAL(Frontend, "No ROM specified, no exefs/main found, and no XCI/NSP/NCA next to exe");
         return -1;
         rom_found:;
     }

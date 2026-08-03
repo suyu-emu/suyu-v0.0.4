@@ -6012,6 +6012,34 @@ void GMainWindow::OnExportGame() {
         const u64 selected_program_id = game_list->GetSelectedProgramId();
         if (!selected_path.isEmpty()) {
             dialog.SetRomPath(selected_path, selected_program_id);
+
+            // Pass the game icon so it can be embedded in the launcher exe
+            auto* model = game_list->GetModel();
+            if (model) {
+                constexpr int kRawIconRole = Qt::UserRole + 7; // RawIconRole from game_list_p.h
+                std::function<QPixmap(const QModelIndex&)> find_icon =
+                    [&](const QModelIndex& parent) -> QPixmap {
+                    const int rows = model->rowCount(parent);
+                    for (int row = 0; row < rows; ++row) {
+                        const QModelIndex idx = model->index(row, 0, parent);
+                        if (idx.data(Qt::UserRole + 4).toString() == selected_path) {
+                            const QVariant v = idx.data(kRawIconRole);
+                            if (v.canConvert<QPixmap>())
+                                return v.value<QPixmap>();
+                            return idx.data(Qt::DecorationRole).value<QPixmap>();
+                        }
+                        if (model->hasChildren(idx)) {
+                            QPixmap px = find_icon(idx);
+                            if (!px.isNull())
+                                return px;
+                        }
+                    }
+                    return {};
+                };
+                const QPixmap icon = find_icon(QModelIndex());
+                if (!icon.isNull())
+                    dialog.SetGameIcon(icon);
+            }
         }
     }
     dialog.exec();
@@ -6029,18 +6057,22 @@ void GMainWindow::OnLaunchRecompiledBuild(const QString& game_name,
         return;
     }
 
-    // One executable is produced per recompiled module (rtld, main, sdk,
-    // subsdk0). Which of them is the interesting one depends on the title, so
-    // ask rather than guessing when more than one has been built.
+    // Prefer the package launcher (suyu-cmd bundled as <GameName>.exe) if present.
+    // It's prepended so it's always first if it exists.
     QString exe = builds.front();
     if (builds.size() > 1) {
         QStringList labels;
         labels.reserve(builds.size());
         for (const QString& candidate : builds) {
-            // .../recompiled/<module>/build[/<config>]/recompiled.exe - the
-            // build directory has one level or two depending on the generator,
-            // so walk up to whatever sits directly under 'recompiled'.
-            QDir dir = QFileInfo(candidate).absoluteDir();
+            const QFileInfo cfi(candidate);
+            const QString fname = cfi.completeBaseName();
+            // Package launcher: exe name matches the game name (not "recompiled")
+            if (fname != QStringLiteral("recompiled")) {
+                labels.append(tr("[Full launcher] %1").arg(candidate));
+                continue;
+            }
+            // Legacy module exe: walk up to 'recompiled' directory for module name
+            QDir dir = cfi.absoluteDir();
             QString module = dir.dirName();
             while (dir.cdUp()) {
                 if (dir.dirName() == QStringLiteral("recompiled")) {
@@ -6048,7 +6080,7 @@ void GMainWindow::OnLaunchRecompiledBuild(const QString& game_name,
                 }
                 module = dir.dirName();
             }
-            labels.append(QStringLiteral("%1  -  %2").arg(module, candidate));
+            labels.append(QStringLiteral("[module: %1]  %2").arg(module, candidate));
         }
         bool ok = false;
         const QString chosen = QInputDialog::getItem(

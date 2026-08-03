@@ -235,9 +235,13 @@ void EmuWindow_SDL2::WaitEvent() {
     const u64 current_time = SDL_GetTicks();
     if (current_time > last_time + 2000) {
         const auto results = system.GetAndResetPerfStats();
+        std::string game_name;
+        [[maybe_unused]] auto _ = system.GetGameName(game_name);
         const auto title =
-            fmt::format("suyu {} | {}-{} | FPS: {:.0f} ({:.0f}%)", Common::g_build_fullname,
-                        Common::g_scm_branch, Common::g_scm_desc, results.average_game_fps,
+            fmt::format("{} | {} | FPS: {:.0f} ({:.0f}%)",
+                        game_name.empty() ? "suyu" : game_name,
+                        Common::g_build_fullname,
+                        results.average_game_fps,
                         results.emulation_speed * 100.0);
         SDL_SetWindowTitle(render_window, title.c_str());
         last_time = current_time;
