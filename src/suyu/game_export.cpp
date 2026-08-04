@@ -1604,12 +1604,18 @@ bool GameExportDialog::PackageNativeExport(const QString& rom_path, const QStrin
             QFile::remove(launcher_dst);
             QFile::copy(launcher_src, launcher_dst);
 
-            // Embed game icon into the launcher exe via Windows resource update API
+            // Embed game icon into the launcher exe via Windows resource update API.
+            // Scale to 256x256 (standard large exe icon size) and store as PNG — Windows
+            // Explorer uses this for the file icon in Vista+.
             if (!game_icon_.isNull()) {
 #ifdef _WIN32
+                // Scale icon to 256x256 for best Explorer display quality
+                const QPixmap icon256 = game_icon_.scaled(256, 256,
+                    Qt::KeepAspectRatioByExpanding, Qt::SmoothTransformation)
+                    .copy(0, 0, 256, 256);
                 QByteArray icon_png;
                 { QBuffer buf(&icon_png); buf.open(QIODevice::WriteOnly);
-                  game_icon_.save(&buf, "PNG"); }
+                  icon256.save(&buf, "PNG"); }
                 if (!icon_png.isEmpty()) {
 #pragma pack(push,1)
                     struct GrpEntry { BYTE w,h,cc,res; WORD pl,bpp; DWORD sz; WORD id; };
@@ -1617,20 +1623,21 @@ bool GameExportDialog::PackageNativeExport(const QString& rom_path, const QStrin
 #pragma pack(pop)
                     GrpDir grp{};
                     grp.type=1; grp.count=1;
-                    grp.e[0].w=(BYTE)std::min(game_icon_.width(),255);
-                    grp.e[0].h=(BYTE)std::min(game_icon_.height(),255);
+                    // w=h=0 signals 256x256 in ICO/GRPICONDIR convention
+                    grp.e[0].w=0; grp.e[0].h=0;
                     grp.e[0].pl=1; grp.e[0].bpp=32;
                     grp.e[0].sz=(DWORD)icon_png.size(); grp.e[0].id=1;
                     const std::wstring dstW = launcher_dst.toStdWString();
+                    // FALSE = keep existing resources (manifests, version info, etc.)
                     HANDLE h = BeginUpdateResourceW(dstW.c_str(), FALSE);
                     if (h) {
-                        UpdateResourceW(h,RT_ICON,MAKEINTRESOURCEW(1),
-                            MAKELANGID(LANG_NEUTRAL,SUBLANG_NEUTRAL),
-                            (LPVOID)icon_png.data(),(DWORD)icon_png.size());
-                        UpdateResourceW(h,RT_GROUP_ICON,MAKEINTRESOURCEW(1),
-                            MAKELANGID(LANG_NEUTRAL,SUBLANG_NEUTRAL),
-                            (LPVOID)&grp,sizeof(grp));
-                        EndUpdateResourceW(h,FALSE);
+                        UpdateResourceW(h, RT_ICON, MAKEINTRESOURCEW(1),
+                            MAKELANGID(LANG_NEUTRAL, SUBLANG_NEUTRAL),
+                            (LPVOID)icon_png.data(), (DWORD)icon_png.size());
+                        UpdateResourceW(h, RT_GROUP_ICON, MAKEINTRESOURCEW(1),
+                            MAKELANGID(LANG_NEUTRAL, SUBLANG_NEUTRAL),
+                            (LPVOID)&grp, (DWORD)(sizeof(WORD)*3 + sizeof(GrpEntry)));
+                        EndUpdateResourceW(h, FALSE);
                     }
                 }
 #endif

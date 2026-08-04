@@ -23,6 +23,7 @@
 #include "common/scope_exit.h"
 #include "common/settings.h"
 #include "common/string_util.h"
+#include "core/arm/recomp/arm_recomp.h"
 #include "core/core.h"
 #include "core/core_timing.h"
 #include "core/cpu_manager.h"
@@ -414,6 +415,41 @@ int main(int argc, char** argv) {
         return -1;
         rom_found:;
     }
+
+    // Auto-load native recompiled image if present next to the executable.
+    // recompiled_image.dll is built from aot_cache/recompiled/ by build_native_windows.cmd.
+    // When loaded, ArmRecomp runs the game's CPU code natively instead of via dynarmic JIT.
+#ifdef _WIN32
+    {
+        wchar_t _exe_w[MAX_PATH]{};
+        GetModuleFileNameW(nullptr, _exe_w, MAX_PATH);
+        const auto _recomp_dll = std::filesystem::path(_exe_w).parent_path() / L"recompiled_image.dll";
+        if (std::filesystem::exists(_recomp_dll)) {
+            HMODULE h = LoadLibraryW(_recomp_dll.wstring().c_str());
+            if (h) {
+                using LookupFn = Core::RecompBlockFn (*)(u64);
+                using ImageSetBase = void (*)(u64);
+                auto lookup = reinterpret_cast<LookupFn>(GetProcAddress(h, "recomp_image_lookup"));
+                auto set_base = reinterpret_cast<ImageSetBase>(GetProcAddress(h, "recomp_image_set_base"));
+                if (lookup) {
+                    Core::SetRecompLookup(lookup);
+                    LOG_INFO(Frontend, "Native recompiled image loaded: {} — using ArmRecomp CPU",
+                             Common::UTF16ToUTF8(_recomp_dll.wstring()));
+                }
+                if (set_base) {
+                    // RecompBaseFn takes (index, module_name, base); wrap the single-arg DLL export.
+                    static ImageSetBase s_set_base = set_base;
+                    Core::SetRecompBaseSetter([](size_t, const char*, u64 base) {
+                        s_set_base(base);
+                    });
+                }
+            } else {
+                LOG_WARNING(Frontend, "Found recompiled_image.dll but LoadLibrary failed (err={})",
+                            GetLastError());
+            }
+        }
+    }
+#endif
 
     LOG_INFO(Frontend, "suyu-cmd: Initializing system...");
     Core::System system{};
