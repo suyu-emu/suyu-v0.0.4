@@ -19,6 +19,47 @@ static constexpr Uint8 SDL_RELEASED = 0;
 #include "suyu_cmd/emu_window/emu_window_sdl2.h"
 #include "suyu_cmd/suyu_icon.h"
 
+#ifdef _WIN32
+#define WIN32_LEAN_AND_MEAN
+#define NOMINMAX
+#include <windows.h>
+#include <shellapi.h>
+#include <filesystem>
+#include <string>
+#include <vector>
+
+static void ShowDevMenu(Core::System& system) {
+    wchar_t exe_path[MAX_PATH]{};
+    GetModuleFileNameW(nullptr, exe_path, MAX_PATH);
+    const auto mods_dir = std::filesystem::path(exe_path).parent_path() / L"mods";
+
+    std::wstring mods_text = L"Mods folder: " + mods_dir.wstring() + L"\n\n";
+    if (std::filesystem::is_directory(mods_dir)) {
+        std::vector<std::wstring> mods;
+        for (auto& e : std::filesystem::directory_iterator(mods_dir))
+            mods.push_back(e.path().filename().wstring());
+        if (mods.empty()) {
+            mods_text += L"No mods found.\n";
+        } else {
+            mods_text += L"Active mods:\n";
+            for (auto& m : mods) mods_text += L"  + " + m + L"\n";
+        }
+    } else {
+        mods_text += L"No mods/ folder (place folders next to .exe to load)\n";
+    }
+
+    std::wstring msg = L"=== Dev Menu (F12) ===\n\n" + mods_text +
+        L"\nControls: edit %APPDATA%\\suyu\\config\\qt-config.ini\n\n"
+        L"[OK] = resume   [Cancel] = open config dir";
+
+    if (MessageBoxW(nullptr, msg.c_str(), L"suyu Dev Menu", MB_OKCANCEL | MB_ICONINFORMATION) == IDCANCEL) {
+        wchar_t expanded[MAX_PATH]{};
+        ExpandEnvironmentStringsW(L"%APPDATA%\\suyu\\config", expanded, MAX_PATH);
+        ShellExecuteW(nullptr, L"explore", expanded, nullptr, nullptr, SW_SHOW);
+    }
+}
+#endif
+
 EmuWindow_SDL2::EmuWindow_SDL2(InputCommon::InputSubsystem* input_subsystem_, Core::System& system_)
     : input_subsystem{input_subsystem_}, system{system_} {
     input_subsystem->Initialize();
@@ -92,6 +133,12 @@ void EmuWindow_SDL2::OnFingerUp() {
 }
 
 void EmuWindow_SDL2::OnKeyEvent(int key, u8 state) {
+#ifdef _WIN32
+    if (state == SDL_PRESSED && key == SDL_SCANCODE_F12) {
+        ShowDevMenu(system);
+        return;
+    }
+#endif
     if (state == SDL_PRESSED) {
         input_subsystem->GetKeyboard()->PressKey(static_cast<std::size_t>(key));
     } else if (state == SDL_RELEASED) {
