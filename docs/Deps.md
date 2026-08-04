@@ -66,6 +66,8 @@ Vulkan 1.3.274+ is also needed:
 
 * [VulkanUtilityLibraries](https://github.com/KhronosGroup/Vulkan-Utility-Libraries)
 * [VulkanHeaders](https://github.com/KhronosGroup/Vulkan-Headers)
+* [SPIRV-Tools](https://github.com/KhronosGroup/SPIRV-Tools)
+* [SPIRV-Headers](https://github.com/KhronosGroup/SPIRV-Headers)
 
 Certain other dependencies will be fetched by CPM regardless. System packages *can* be used for these libraries, but many are either not packaged by most distributions OR have issues when used by the system:
 
@@ -118,7 +120,8 @@ sudo emerge -a \
     app-arch/lz4 app-arch/zstd app-arch/unzip \
     dev-libs/libfmt dev-libs/libusb dev-libs/mcl dev-libs/sirit \
     dev-libs/unordered_dense dev-libs/boost dev-libs/openssl dev-libs/discord-rpc \
-    dev-util/vulkan-headers dev-util/vulkan-utility-libraries dev-util/glslang \
+    dev-util/spirv-tools dev-util/spirv-headers dev-util/vulkan-headers \
+    dev-util/vulkan-utility-libraries dev-util/glslang \
     media-gfx/renderdoc media-libs/libva media-libs/opus media-video/ffmpeg \
     media-libs/VulkanMemoryAllocator media-libs/libsdl3 media-libs/cubeb \
     net-libs/enet \
@@ -151,7 +154,7 @@ Required USE flags:
 <summary>Arch Linux</summary>
 
 ```sh
-sudo pacman -Syu --needed base-devel boost catch2 cmake enet ffmpeg fmt git glslang libzip lz4 ninja nlohmann-json openssl opus qt6-base qt6-multimedia qt6-charts sdl3 zlib zstd zip unzip vulkan-headers vulkan-utility-libraries libusb
+sudo pacman -Syu --needed base-devel boost catch2 cmake enet ffmpeg fmt git glslang libzip lz4 ninja nlohmann-json openssl opus qt6-base qt6-multimedia qt6-charts sdl3 zlib zstd zip unzip vulkan-headers vulkan-utility-libraries libusb spirv-tools spirv-headers
 ```
 
 * Building with QT Web Engine requires `qt6-webengine` as well.
@@ -164,7 +167,7 @@ sudo pacman -Syu --needed base-devel boost catch2 cmake enet ffmpeg fmt git glsl
 <summary>Ubuntu, Debian, Mint Linux</summary>
 
 ```sh
-sudo apt-get install autoconf cmake g++ gcc git glslang-tools libglu1-mesa-dev libhidapi-dev libpulse-dev libtool libudev-dev libxcb-icccm4 libxcb-image0 libxcb-keysyms1 libxcb-render-util0 libxcb-xinerama0 libxcb-xkb1 libxext-dev libxkbcommon-x11-0 mesa-common-dev nasm ninja-build qt6-base-private-dev catch2 libfmt-dev liblz4-dev nlohmann-json3-dev libzstd-dev libssl-dev libavfilter-dev libavcodec-dev libswscale-dev pkg-config zlib1g-dev libva-dev libvdpau-dev qt6-tools-dev qt6-charts-dev libvulkan-dev libusb-1.0-0-dev libxbyak-dev libboost-dev libboost-fiber-dev libboost-context-dev libsdl3-dev libopus-dev libasound2t64 vulkan-utility-libraries-dev
+sudo apt-get install autoconf cmake g++ gcc git glslang-tools libglu1-mesa-dev libhidapi-dev libpulse-dev libtool libudev-dev libxcb-icccm4 libxcb-image0 libxcb-keysyms1 libxcb-render-util0 libxcb-xinerama0 libxcb-xkb1 libxext-dev libxkbcommon-x11-0 mesa-common-dev nasm ninja-build qt6-base-private-dev catch2 libfmt-dev liblz4-dev nlohmann-json3-dev libzstd-dev libssl-dev libavfilter-dev libavcodec-dev libswscale-dev pkg-config zlib1g-dev libva-dev libvdpau-dev qt6-tools-dev qt6-charts-dev libvulkan-dev spirv-tools spirv-headers libusb-1.0-0-dev libxbyak-dev libboost-dev libboost-fiber-dev libboost-context-dev libsdl3-dev libopus-dev libasound2t64 vulkan-utility-libraries-dev
 ```
 
 * Ubuntu 26.04, Linux Mint 22.3, or Debian 13 or later is required.
@@ -211,7 +214,7 @@ First, enable the community repository; [see here](https://wiki.alpinelinux.org/
 # Enable the community repository
 setup-apkrepos -c
 # Install
-apk add g++ git cmake make mesa-dev qt6-qtbase-dev qt6-qtbase-private-dev libquazip1-qt6 ffmpeg-dev qt6-charts-dev libusb-dev libtool boost-dev sdl3-dev zstd-dev vulkan-utility-libraries openssl-dev nlohmann-json lz4-dev opus-dev jq patch
+apk add g++ git cmake make mesa-dev qt6-qtbase-dev qt6-qtbase-private-dev libquazip1-qt6 ffmpeg-dev qt6-charts-dev libusb-dev libtool boost-dev sdl3-dev zstd-dev vulkan-utility-libraries spirv-tools-dev openssl-dev nlohmann-json lz4-dev opus-dev jq patch
 ```
 
 </details>
@@ -219,7 +222,7 @@ apk add g++ git cmake make mesa-dev qt6-qtbase-dev qt6-qtbase-private-dev libqua
 <summary>Void Linux</summary>
 
 ```sh
-xbps-install -Su git make cmake clang pkg-config patch lz4 liblz4-devel boost-devel ffmpeg6-devel catch2 Vulkan-Utility-Libraries Vulkan-Headers glslang openssl-devel SDL3-devel quazip-qt6-devel qt6-base-devel qt6-qt5compat-devel qt6-charts-devel fmt-devel json-c++ libenet-devel libusb-devel
+xbps-install -Su git make cmake clang pkg-config patch SPIRV-Tools-devel SPIRV-Headers lz4 liblz4-devel boost-devel ffmpeg6-devel catch2 Vulkan-Utility-Libraries Vulkan-Headers glslang openssl-devel SDL3-devel quazip-qt6-devel qt6-base-devel qt6-qt5compat-devel qt6-charts-devel fmt-devel json-c++ libenet-devel libusb-devel
 ```
 
 Yes, `nlohmann-json` is just named `json-c++`. Why?
@@ -240,7 +243,7 @@ If you're going for a pure build (i.e no downloaded deps), use `-DYUZU_USE_CPM=O
 Install dependencies from **[Homebrew](https://brew.sh/)**
 
 ```sh
-brew install autoconf automake boost ffmpeg fmt glslang hidapi libtool libusb lz4 ninja nlohmann-json openssl pkg-config qt@6 sdl3 speexdsp zlib zstd cmake Catch2 molten-vk vulkan-loader
+brew install autoconf automake boost ffmpeg fmt glslang hidapi libtool libusb lz4 ninja nlohmann-json openssl pkg-config qt@6 sdl3 speexdsp zlib zstd cmake Catch2 molten-vk vulkan-loader spirv-tools
 ```
 
 If you are compiling on Intel Mac, or are using a Rosetta Homebrew installation, you must replace all references of `/opt/homebrew` with `/usr/local`.
@@ -257,9 +260,7 @@ brew install molten-vk
 <details>
 <summary>FreeBSD</summary>
 
-```sh
-pkg install devel/cmake sdl3 devel/boost-libs devel/catch2 devel/libfmt devel/nlohmann-json devel/ninja devel/nasm devel/autoconf devel/pkgconf devel/qt6-base devel/qt6-charts devel/simpleini net/enet multimedia/ffnvcodec-headers multimedia/ffmpeg audio/opus archivers/liblz4 lang/gcc12 graphics/glslang graphics/vulkan-utility-libraries www/cpp-httplib devel/unordered-dense vulkan-headers quazip-qt6
-```
+As root run: `pkg install devel/cmake sdl3 devel/boost-libs devel/catch2 devel/libfmt devel/nlohmann-json devel/ninja devel/nasm devel/autoconf devel/pkgconf devel/qt6-base devel/qt6-charts devel/simpleini net/enet multimedia/ffnvcodec-headers multimedia/ffmpeg audio/opus archivers/liblz4 lang/gcc12 graphics/glslang graphics/vulkan-utility-libraries graphics/spirv-tools www/cpp-httplib devel/unordered-dense vulkan-headers quazip-qt6`
 
 If using FreeBSD 12 or prior, use `devel/pkg-config` instead.
 
@@ -272,7 +273,7 @@ If using FreeBSD 12 or prior, use `devel/pkg-config` instead.
 For NetBSD +10.1:
 
 ```sh
-pkgin install git cmake boost fmtlib SDL3 catch2 libjwt ffmpeg7 libva nlohmann-json jq libopus qt6 cpp-httplib lz4 vulkan-headers nasm autoconf enet pkg-config libusb1 libcxx frozen
+pkgin install git cmake boost fmtlib SDL3 catch2 libjwt spirv-headers spirv-tools ffmpeg7 libva nlohmann-json jq libopus qt6 cpp-httplib lz4 vulkan-headers nasm autoconf enet pkg-config libusb1 libcxx frozen
 ```
 
 [Caveats](./Caveats.md#netbsd).
@@ -283,7 +284,7 @@ pkgin install git cmake boost fmtlib SDL3 catch2 libjwt ffmpeg7 libva nlohmann-j
 
 ```sh
 pkg_add -u
-pkg_add cmake nasm git boost unzip--iconv autoconf-2.72p0 bash ffmpeg glslang gmake qt6 jq fmt nlohmann-json enet boost vulkan-utility-libraries vulkan-headers catch2 sdl3 libusb1-1.0.29 quazip-qt6
+pkg_add cmake nasm git boost unzip--iconv autoconf-2.72p0 bash ffmpeg glslang gmake qt6 jq fmt nlohmann-json enet boost vulkan-utility-libraries vulkan-headers spirv-headers spirv-tools catch2 sdl3 libusb1-1.0.29 quazip-qt6
 ```
 
 [Caveats](./Caveats.md#openbsd).
@@ -293,7 +294,7 @@ pkg_add cmake nasm git boost unzip--iconv autoconf-2.72p0 bash ffmpeg glslang gm
 <summary>DragonFlyBSD</summary>
 
 ```sh
-pkg install gcc14 git cmake unzip nasm autoconf bash pkgconf ffmpeg glslang gmake jq nlohmann-json enet sdl3 vulkan-utility-libraries vulkan-headers catch2 libfmt openssl liblz4 boost-libs cpp-httplib qt6-base qt6-charts quazip-qt6 unordered-dense libva-vdpau-driver libva-utils libva-intel-driver
+pkg install gcc14 git cmake unzip nasm autoconf bash pkgconf ffmpeg glslang gmake jq nlohmann-json enet spirv-tools sdl3 vulkan-utility-libraries vulkan-headers catch2 libfmt openssl liblz4 boost-libs cpp-httplib qt6-base qt6-charts quazip-qt6 unordered-dense libva-vdpau-driver libva-utils libva-intel-driver
 ```
 
 [Caveats](./Caveats.md#dragonflybsd).
@@ -313,7 +314,7 @@ sudo pkg install git cmake qt6 boost glslang libzip library/lz4 libusb-1 nlohman
 <summary>OmniOS</summary>
 
 ```sh
-sudo pkgin install git cmake autoconf build-essential libusb-1 nasm gcc13 SDL3 libXfixes
+sudo pkgin install git cmake autoconf build-essential libusb-1 nasm gcc13
 ```
 
 [Caveats](./Caveats.md#omnios).
