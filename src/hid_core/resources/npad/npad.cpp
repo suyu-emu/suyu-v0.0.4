@@ -504,9 +504,12 @@ void NPad::OnUpdate(Kernel::KernelCore& kernel, const Core::Timing::CoreTiming& 
 
         for (std::size_t i = 0; i < controller_data[aruid_index].size(); ++i) {
             auto& controller = controller_data[aruid_index][i];
-            controller.shared_memory =
-                &data->shared_memory_format->npad.npad_entry[i].internal_state;
+            controller.shared_memory = &data->shared_memory_format->npad.npad_entry[i].internal_state;
             auto* npad = controller.shared_memory;
+            if (!npad || !controller.device) {
+                LOG_WARNING(Service_HID, "No device for {}", i);
+                continue;
+            }
 
             const auto& controller_type = controller.device->GetNpadStyleIndex();
 
