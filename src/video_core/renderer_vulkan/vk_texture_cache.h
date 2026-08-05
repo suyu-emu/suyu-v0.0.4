@@ -436,7 +436,6 @@ private:
     VkSampleCountFlagBits samples = VK_SAMPLE_COUNT_1_BIT;
     u32 buffer_size = 0;
 
-    bool uses_widened_astc_format = false;
     bool supports_depth_comparison = false;
 };
 

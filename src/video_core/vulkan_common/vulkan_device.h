@@ -72,13 +72,12 @@ VK_DEFINE_HANDLE(VmaAllocator)
     FEATURE(KHR, PipelineExecutableProperties, PIPELINE_EXECUTABLE_PROPERTIES,                     \
             pipeline_executable_properties)                                                        \
     FEATURE(KHR, WorkgroupMemoryExplicitLayout, WORKGROUP_MEMORY_EXPLICIT_LAYOUT,                  \
-            workgroup_memory_explicit_layout)                                                      \
-    FEATURE(EXT, TextureCompressionASTCHDR, TEXTURE_COMPRESSION_ASTC_HDR,                          \
-            texture_compression_astc_hdr)
+            workgroup_memory_explicit_layout)
 
 
 // Define miscellaneous extensions which may be used by the implementation here.
 #define FOR_EACH_VK_EXTENSION(EXTENSION)                                                           \
+    EXTENSION(EXT, ASTC_DECODE_MODE, astc_decode_mode)                                             \
     EXTENSION(EXT, CONDITIONAL_RENDERING, conditional_rendering)                                   \
     EXTENSION(EXT, CONSERVATIVE_RASTERIZATION, conservative_rasterization)                         \
     EXTENSION(EXT, DEPTH_RANGE_UNRESTRICTED, depth_range_unrestricted)                             \
@@ -369,8 +368,7 @@ FN_MAX_LIMIT_LIST
     }
 
     bool IsOptimalAstcSupported() const {
-        return features.features.textureCompressionASTC_LDR &&
-               features.texture_compression_astc_hdr.textureCompressionASTC_HDR;
+        return is_optimal_astc_supported;
     }
 
     /// Returns true if BCn is natively supported.
@@ -814,6 +812,10 @@ FN_MAX_LIMIT_LIST
 
     bool IsExtConditionalRendering() const {
         return extensions.conditional_rendering;
+    }
+
+    bool IsExtAstcDecodeModeSupported() const {
+        return extensions.astc_decode_mode;
     }
 
     bool HasTimelineSemaphore() const;
