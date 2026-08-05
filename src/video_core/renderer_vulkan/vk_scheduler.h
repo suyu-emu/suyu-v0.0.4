@@ -80,6 +80,9 @@ public:
     /// Update the rescaling state. Returns true if the state has to be updated.
     bool UpdateRescaling(bool is_rescaling);
 
+    /// Returns true when the descriptor buffer chunk has to be bound into the command buffer.
+    bool UpdateDescriptorBufferChunk(u32 descriptor_chunk);
+
     /// Invalidates current command buffer state except for render passes
     void InvalidateState();
 
@@ -255,6 +258,8 @@ private:
         bool is_rescaling = false;
         bool rescaling_defined = false;
         bool needs_state_enable_refresh = false;
+        u32 descriptor_buffer_chunk = 0;
+        bool descriptor_buffer_bound = false;
     };
 
     struct DeferredClear {

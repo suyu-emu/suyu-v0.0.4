@@ -247,6 +247,15 @@ bool Scheduler::UpdateRescaling(bool is_rescaling) {
     return true;
 }
 
+bool Scheduler::UpdateDescriptorBufferChunk(u32 descriptor_chunk) {
+    if (state.descriptor_buffer_bound && descriptor_chunk == state.descriptor_buffer_chunk) {
+        return false;
+    }
+    state.descriptor_buffer_bound = true;
+    state.descriptor_buffer_chunk = descriptor_chunk;
+    return true;
+}
+
 void Scheduler::WorkerThread(std::stop_token stop_token) {
     Common::SetCurrentThreadName("VulkanWorker");
 
@@ -369,6 +378,7 @@ void Scheduler::AllocateNewContext() {
 void Scheduler::InvalidateState() {
     state.graphics_pipeline = nullptr;
     state.rescaling_defined = false;
+    state.descriptor_buffer_bound = false;
     state_tracker.InvalidateCommandBufferState();
 }
 

@@ -203,7 +203,10 @@ RasterizerVulkan::RasterizerVulkan(Core::Frontend::EmuWindow& emu_window_, Tegra
     : gpu{gpu_}, device_memory{device_memory_}, device{device_},
       memory_allocator{memory_allocator_}, state_tracker{state_tracker_}, scheduler{scheduler_},
       staging_pool(device, memory_allocator, scheduler), descriptor_pool(device, scheduler),
-      guest_descriptor_queue(device), compute_pass_descriptor_queue(device),
+      guest_descriptor_queue(device, UpdateDescriptorQueue::GUEST_FRAME_PAYLOAD_SIZE,
+                             device.IsExtDescriptorBufferSupported()),
+      compute_pass_descriptor_queue(device, UpdateDescriptorQueue::COMPUTE_FRAME_PAYLOAD_SIZE),
+      descriptor_buffer_ring(device, memory_allocator),
       blit_image(device, scheduler, state_tracker, descriptor_pool), render_pass_cache(device),
       texture_cache_runtime{
           device,     scheduler,         memory_allocator, staging_pool,
@@ -216,7 +219,8 @@ RasterizerVulkan::RasterizerVulkan(Core::Frontend::EmuWindow& emu_window_, Tegra
                           staging_pool, compute_pass_descriptor_queue, descriptor_pool, texture_cache),
       query_cache(gpu, *this, device_memory, query_cache_runtime),
       pipeline_cache(device_memory, device, scheduler, descriptor_pool, guest_descriptor_queue,
-                     render_pass_cache, buffer_cache, texture_cache, gpu.ShaderNotify()),
+                     descriptor_buffer_ring, render_pass_cache, buffer_cache, texture_cache,
+                     gpu.ShaderNotify()),
       accelerate_dma(buffer_cache, texture_cache, scheduler),
       fence_manager(*this, gpu, texture_cache, buffer_cache, query_cache, device, scheduler),
       wfi_event(device.GetLogical().CreateEvent()) {
@@ -583,7 +587,10 @@ void RasterizerVulkan::DispatchCompute() {
         return;
     }
     std::scoped_lock lock{texture_cache.mutex, buffer_cache.mutex};
-    pipeline->Configure(*kepler_compute, *gpu_memory, scheduler, buffer_cache, texture_cache);
+    if (!pipeline->Configure(*kepler_compute, *gpu_memory, scheduler, buffer_cache,
+                             texture_cache)) {
+        return;
+    }
 
     const auto& qmd{kepler_compute->launch_description};
     auto indirect_address = kepler_compute->GetIndirectComputeAddress();
@@ -882,6 +889,7 @@ void RasterizerVulkan::TickFrame() {
     draw_counter = 0;
     guest_descriptor_queue.TickFrame();
     compute_pass_descriptor_queue.TickFrame();
+    descriptor_buffer_ring.TickFrame();
     fence_manager.TickFrame();
     staging_pool.TickFrame();
     {

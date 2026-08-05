@@ -13,7 +13,9 @@
 #include "common/common_types.h"
 #include "common/thread_worker.h"
 #include "shader_recompiler/shader_info.h"
+#include "video_core/renderer_vulkan/pipeline_helper.h"
 #include "video_core/renderer_vulkan/vk_buffer_cache.h"
+#include "video_core/renderer_vulkan/vk_descriptor_buffer.h"
 #include "video_core/renderer_vulkan/vk_descriptor_pool.h"
 #include "video_core/renderer_vulkan/vk_texture_cache.h"
 #include "video_core/renderer_vulkan/vk_update_descriptor.h"
@@ -34,6 +36,7 @@ public:
     explicit ComputePipeline(const Device& device, Scheduler& scheduler, vk::PipelineCache& pipeline_cache,
                              DescriptorPool& descriptor_pool,
                              GuestDescriptorQueue& guest_descriptor_queue,
+                             DescriptorBufferRing& descriptor_buffer_ring,
                              Common::ThreadWorker* thread_worker,
                              PipelineStatistics* pipeline_statistics,
                              VideoCore::ShaderNotify* shader_notify, const Shader::Info& info,
@@ -45,8 +48,9 @@ public:
     ComputePipeline& operator=(const ComputePipeline&) = delete;
     ComputePipeline(const ComputePipeline&) = delete;
 
-    void Configure(Tegra::Engines::KeplerCompute& kepler_compute, Tegra::MemoryManager& gpu_memory,
-                   Scheduler& scheduler, BufferCache& buffer_cache, TextureCache& texture_cache);
+    [[nodiscard]] bool Configure(Tegra::Engines::KeplerCompute& kepler_compute,
+                                 Tegra::MemoryManager& gpu_memory, Scheduler& scheduler,
+                                 BufferCache& buffer_cache, TextureCache& texture_cache);
 
     bool IsBound() const noexcept {
         return static_cast<bool>(pipeline);
@@ -56,6 +60,7 @@ private:
     const Device& device;
     vk::PipelineCache& pipeline_cache;
     GuestDescriptorQueue& guest_descriptor_queue;
+    DescriptorBufferRing& descriptor_buffer_ring;
     Shader::Info info;
     u64 shader_hash{};
     u32 num_descriptor_entries{};
@@ -65,6 +70,8 @@ private:
     vk::ShaderModule spv_module;
     vk::DescriptorSetLayout descriptor_set_layout;
     bool uses_push_descriptor{false};
+    bool uses_descriptor_buffer{false};
+    DescriptorBufferLayout descriptor_buffer_layout;
     DescriptorAllocator descriptor_allocator;
     vk::PipelineLayout pipeline_layout;
     vk::DescriptorUpdateTemplate descriptor_update_template;

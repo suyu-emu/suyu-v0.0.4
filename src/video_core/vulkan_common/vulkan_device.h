@@ -36,6 +36,7 @@ VK_DEFINE_HANDLE(VmaAllocator)
     FEATURE(EXT, DescriptorIndexing, DESCRIPTOR_INDEXING, descriptor_indexing)                     \
     FEATURE(EXT, HostQueryReset, HOST_QUERY_RESET, host_query_reset)                               \
     FEATURE(KHR, 8BitStorage, 8BIT_STORAGE, bit8_storage)                                          \
+    FEATURE(KHR, BufferDeviceAddress, BUFFER_DEVICE_ADDRESS, buffer_device_address)                \
     FEATURE(KHR, TimelineSemaphore, TIMELINE_SEMAPHORE, timeline_semaphore)
 
 #define FOR_EACH_VK_FEATURE_1_3(FEATURE)                                                           \
@@ -55,6 +56,7 @@ VK_DEFINE_HANDLE(VmaAllocator)
     FEATURE(EXT, CustomBorderColor, CUSTOM_BORDER_COLOR, custom_border_color)                      \
     FEATURE(EXT, DepthBiasControl, DEPTH_BIAS_CONTROL, depth_bias_control)                         \
     FEATURE(EXT, DepthClipControl, DEPTH_CLIP_CONTROL, depth_clip_control)                         \
+    FEATURE(EXT, DescriptorBuffer, DESCRIPTOR_BUFFER, descriptor_buffer)                           \
     FEATURE(EXT, ExtendedDynamicState, EXTENDED_DYNAMIC_STATE, extended_dynamic_state)             \
     FEATURE(EXT, ExtendedDynamicState2, EXTENDED_DYNAMIC_STATE_2, extended_dynamic_state2)         \
     FEATURE(EXT, ExtendedDynamicState3, EXTENDED_DYNAMIC_STATE_3, extended_dynamic_state3)         \
@@ -175,6 +177,8 @@ VK_DEFINE_HANDLE(VmaAllocator)
     FEATURE_NAME(depth_bias_control, depthBiasControl)                                             \
     FEATURE_NAME(depth_bias_control, leastRepresentableValueForceUnormRepresentation)              \
     FEATURE_NAME(depth_bias_control, depthBiasExact)                                               \
+    FEATURE_NAME(descriptor_indexing, descriptorBindingPartiallyBound)                             \
+    FEATURE_NAME(descriptor_indexing, shaderSampledImageArrayNonUniformIndexing)                   \
     FEATURE_NAME(extended_dynamic_state, extendedDynamicState)                                     \
     FEATURE_NAME(format_a4b4g4r4, formatA4B4G4R4)                                                  \
     FEATURE_NAME(robust_image_access, robustImageAccess)                                           \
@@ -383,7 +387,7 @@ FN_MAX_LIMIT_LIST
 
     /// Returns true if descriptor aliasing is natively supported.
     bool IsDescriptorAliasingSupported() const {
-        return GetDriverID() != VK_DRIVER_ID_QUALCOMM_PROPRIETARY;
+        return !has_broken_descriptor_aliasing;
     }
 
     bool IsSampledImageArrayNonUniformIndexingSupported() const {
@@ -464,6 +468,26 @@ FN_MAX_LIMIT_LIST
     /// Returns the maximum number of push descriptors.
     u32 MaxPushDescriptors() const {
         return properties.push_descriptor.maxPushDescriptors;
+    }
+
+    /// Returns true if robust buffer access is enabled on the device.
+    bool IsRobustBufferAccessEnabled() const {
+        return features.features.robustBufferAccess == VK_TRUE;
+    }
+
+    /// Returns true if the device supports descriptor buffers.
+    bool IsExtDescriptorBufferSupported() const {
+        return extensions.descriptor_buffer;
+    }
+
+    /// Returns the descriptor buffer properties of the device.
+    const VkPhysicalDeviceDescriptorBufferPropertiesEXT& DescriptorBufferProperties() const {
+        return properties.descriptor_buffer;
+    }
+
+    /// Returns true if the device supports buffer device address.
+    bool IsBufferDeviceAddressSupported() const {
+        return extensions.buffer_device_address;
     }
 
     /// Returns true if formatless image load is supported.
@@ -818,6 +842,11 @@ FN_MAX_LIMIT_LIST
         return extensions.astc_decode_mode;
     }
 
+    /// Returns true if descriptor bindings is partially bound.
+    bool IsDescriptorBindingPartiallyBoundSupported() const {
+        return features.descriptor_indexing.descriptorBindingPartiallyBound;
+    }
+
     bool HasTimelineSemaphore() const;
 
     /// Returns true if the device supports VK_KHR_synchronization2.
@@ -1109,6 +1138,7 @@ private:
         VkPhysicalDeviceSubgroupProperties subgroup_properties{};
         VkPhysicalDeviceFloatControlsProperties float_controls{};
         VkPhysicalDevicePushDescriptorPropertiesKHR push_descriptor{};
+        VkPhysicalDeviceDescriptorBufferPropertiesEXT descriptor_buffer{};
         VkPhysicalDeviceSubgroupSizeControlProperties subgroup_size_control{};
         VkPhysicalDeviceTransformFeedbackPropertiesEXT transform_feedback{};
         VkPhysicalDeviceMaintenance5PropertiesKHR maintenance5{};
@@ -1133,6 +1163,7 @@ private:
     bool is_non_gpu{};                         ///< Is SoftwareRasterizer, FPGA, non-GPU device.
     bool has_broken_compute{};                 ///< Compute shaders can cause crashes
     bool has_broken_cube_compatibility{};      ///< Has broken cube compatibility bit
+    bool has_broken_descriptor_aliasing{};     ///< Miscompiles descriptors aliased on one binding
     bool has_broken_parallel_compiling{};      ///< Has broken parallel shader compiling.
     bool has_renderdoc{};                      ///< Has RenderDoc attached
     bool has_nsight_graphics{};                ///< Has Nsight Graphics attached
