@@ -4353,58 +4353,58 @@ To invert the axes, first move your joystick vertically, and then horizontally.<
         <translation>[대기중]</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/configure_input_player.cpp" line="1576"/>
+        <location filename="../../src/yuzu/configuration/configure_input_player.cpp" line="1578"/>
         <source>New Profile</source>
         <translation>새 프로필</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/configure_input_player.cpp" line="1576"/>
+        <location filename="../../src/yuzu/configuration/configure_input_player.cpp" line="1578"/>
         <source>Enter a profile name:</source>
         <translation>프로필 이름을 입력하세요:</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/configure_input_player.cpp" line="1584"/>
-        <location filename="../../src/yuzu/configuration/configure_input_player.cpp" line="1592"/>
+        <location filename="../../src/yuzu/configuration/configure_input_player.cpp" line="1586"/>
+        <location filename="../../src/yuzu/configuration/configure_input_player.cpp" line="1594"/>
         <source>Create Input Profile</source>
         <translation>입력 프로필 생성</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/configure_input_player.cpp" line="1585"/>
+        <location filename="../../src/yuzu/configuration/configure_input_player.cpp" line="1587"/>
         <source>The given profile name is not valid!</source>
         <translation>해당 프로필 이름은 사용할 수 없습니다!</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/configure_input_player.cpp" line="1593"/>
+        <location filename="../../src/yuzu/configuration/configure_input_player.cpp" line="1595"/>
         <source>Failed to create the input profile &quot;%1&quot;</source>
         <translation>&quot;%1&quot; 입력 프로필 생성 실패</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/configure_input_player.cpp" line="1613"/>
+        <location filename="../../src/yuzu/configuration/configure_input_player.cpp" line="1615"/>
         <source>Delete Input Profile</source>
         <translation>입력 프로필 삭제</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/configure_input_player.cpp" line="1614"/>
+        <location filename="../../src/yuzu/configuration/configure_input_player.cpp" line="1616"/>
         <source>Failed to delete the input profile &quot;%1&quot;</source>
         <translation>&quot;%1&quot; 입력 프로필 삭제 실패</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/configure_input_player.cpp" line="1636"/>
+        <location filename="../../src/yuzu/configuration/configure_input_player.cpp" line="1638"/>
         <source>Load Input Profile</source>
         <translation>입력 프로필 불러오기</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/configure_input_player.cpp" line="1637"/>
+        <location filename="../../src/yuzu/configuration/configure_input_player.cpp" line="1639"/>
         <source>Failed to load the input profile &quot;%1&quot;</source>
         <translation>&quot;%1&quot; 입력 프로필 불러오기 실패</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/configure_input_player.cpp" line="1662"/>
+        <location filename="../../src/yuzu/configuration/configure_input_player.cpp" line="1664"/>
         <source>Save Input Profile</source>
         <translation>입력 프로필 저장</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/configure_input_player.cpp" line="1663"/>
+        <location filename="../../src/yuzu/configuration/configure_input_player.cpp" line="1665"/>
         <source>Failed to save the input profile &quot;%1&quot;</source>
         <translation>&quot;%1&quot; 입력 프로필 저장 실패</translation>
     </message>
@@ -6017,50 +6017,50 @@ Please go to Configure -&gt; System -&gt; Network and make a selection.</source>
 <context>
     <name>GRenderWindow</name>
     <message>
-        <location filename="../../src/yuzu/bootmanager.cpp" line="845"/>
-        <location filename="../../src/yuzu/bootmanager.cpp" line="862"/>
+        <location filename="../../src/yuzu/bootmanager.cpp" line="850"/>
+        <location filename="../../src/yuzu/bootmanager.cpp" line="867"/>
         <source>OpenGL not available!</source>
         <translation>OpenGL을 사용할 수 없습니다!</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/bootmanager.cpp" line="846"/>
+        <location filename="../../src/yuzu/bootmanager.cpp" line="851"/>
         <source>OpenGL shared contexts are not supported.</source>
         <translation>OpenGL 공유 컨텍스트는 지원되지 않습니다.</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/bootmanager.cpp" line="863"/>
+        <location filename="../../src/yuzu/bootmanager.cpp" line="868"/>
         <source>Eden has not been compiled with OpenGL support.</source>
         <translation>Eden은 OpenGL 지원 기능을 포함하여 컴파일되지 않았습니다.</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/bootmanager.cpp" line="887"/>
-        <location filename="../../src/yuzu/bootmanager.cpp" line="905"/>
-        <location filename="../../src/yuzu/bootmanager.cpp" line="915"/>
+        <location filename="../../src/yuzu/bootmanager.cpp" line="892"/>
+        <location filename="../../src/yuzu/bootmanager.cpp" line="910"/>
+        <location filename="../../src/yuzu/bootmanager.cpp" line="920"/>
         <source>Error while initializing OpenGL!</source>
         <translation>OpenGL을 초기화하는 동안 오류가 발생했습니다!</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/bootmanager.cpp" line="888"/>
+        <location filename="../../src/yuzu/bootmanager.cpp" line="893"/>
         <source>Your GPU may not support OpenGL, or you do not have the latest graphics driver.</source>
         <translation>사용하시는 GPU가 OpenGL을 지원하지 않거나, 최신 그래픽 드라이버가 설치되어 있지 않습니다.</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/bootmanager.cpp" line="897"/>
+        <location filename="../../src/yuzu/bootmanager.cpp" line="902"/>
         <source>Error while initializing OpenGL 4.6!</source>
         <translation>OpenGL 4.6 초기화 중 오류 발생!</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/bootmanager.cpp" line="898"/>
+        <location filename="../../src/yuzu/bootmanager.cpp" line="903"/>
         <source>Your GPU may not support OpenGL 4.6, or you do not have the latest graphics driver.&lt;br&gt;&lt;br&gt;GL Renderer:&lt;br&gt;%1</source>
         <translation>사용 중인 GPU가 OpenGL 4.6을 지원하지 않거나 최신 그래픽 드라이버가 설치되어 있지 않습니다.&lt;br&gt;&lt;br&gt;GL 렌더러:&lt;br&gt;%1</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/bootmanager.cpp" line="906"/>
+        <location filename="../../src/yuzu/bootmanager.cpp" line="911"/>
         <source>Your GPU may not support one or more required OpenGL extensions. Please ensure you have the latest graphics driver.&lt;br&gt;&lt;br&gt;GL Renderer:&lt;br&gt;%1&lt;br&gt;&lt;br&gt;Unsupported extensions:&lt;br&gt;%2</source>
         <translation>사용 중인 GPU가 하나 이상의 필수 OpenGL 확장 기능을 지원하지 않을 수 있습니다. 최신 그래픽 드라이버가 설치되어 있는지 확인해 주세요.&lt;br&gt;&lt;br&gt;GL 렌더러:&lt;br&gt;%1&lt;br&gt;&lt;br&gt;지원되지 않는 확장 기능:&lt;br&gt;%2</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/bootmanager.cpp" line="916"/>
+        <location filename="../../src/yuzu/bootmanager.cpp" line="921"/>
         <source>This build doesn&apos;t have OpenGL support.</source>
         <translation>이 빌드는 OpenGL을 지원하지 않습니다.</translation>
     </message>
@@ -8688,8 +8688,8 @@ p, li { white-space: pre-wrap; }
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_touch_from_button.cpp" line="35"/>
-        <location filename="../../src/yuzu/configuration/configure_ringcon.cpp" line="395"/>
-        <location filename="../../src/yuzu/configuration/configure_ringcon.cpp" line="461"/>
+        <location filename="../../src/yuzu/configuration/configure_ringcon.cpp" line="396"/>
+        <location filename="../../src/yuzu/configuration/configure_ringcon.cpp" line="462"/>
         <location filename="../../src/yuzu/configuration/configure_input_player.cpp" line="183"/>
         <location filename="../../src/yuzu/configuration/configure_input_player.cpp" line="251"/>
         <source>[not set]</source>
@@ -8702,10 +8702,10 @@ p, li { white-space: pre-wrap; }
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_touch_from_button.cpp" line="54"/>
-        <location filename="../../src/yuzu/configuration/configure_ringcon.cpp" line="484"/>
-        <location filename="../../src/yuzu/configuration/configure_ringcon.cpp" line="488"/>
-        <location filename="../../src/yuzu/configuration/configure_ringcon.cpp" line="492"/>
-        <location filename="../../src/yuzu/configuration/configure_ringcon.cpp" line="496"/>
+        <location filename="../../src/yuzu/configuration/configure_ringcon.cpp" line="485"/>
+        <location filename="../../src/yuzu/configuration/configure_ringcon.cpp" line="489"/>
+        <location filename="../../src/yuzu/configuration/configure_ringcon.cpp" line="493"/>
+        <location filename="../../src/yuzu/configuration/configure_ringcon.cpp" line="497"/>
         <location filename="../../src/yuzu/configuration/configure_input_player.cpp" line="274"/>
         <location filename="../../src/yuzu/configuration/configure_input_player.cpp" line="278"/>
         <location filename="../../src/yuzu/configuration/configure_input_player.cpp" line="282"/>
@@ -8720,9 +8720,9 @@ p, li { white-space: pre-wrap; }
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_touch_from_button.cpp" line="66"/>
-        <location filename="../../src/yuzu/configuration/configure_ringcon.cpp" line="455"/>
-        <location filename="../../src/yuzu/configuration/configure_ringcon.cpp" line="469"/>
-        <location filename="../../src/yuzu/configuration/configure_ringcon.cpp" line="499"/>
+        <location filename="../../src/yuzu/configuration/configure_ringcon.cpp" line="456"/>
+        <location filename="../../src/yuzu/configuration/configure_ringcon.cpp" line="470"/>
+        <location filename="../../src/yuzu/configuration/configure_ringcon.cpp" line="500"/>
         <location filename="../../src/yuzu/configuration/configure_input_player.cpp" line="245"/>
         <location filename="../../src/yuzu/configuration/configure_input_player.cpp" line="259"/>
         <location filename="../../src/yuzu/configuration/configure_input_player.cpp" line="289"/>
@@ -8884,50 +8884,50 @@ p, li { white-space: pre-wrap; }
         <translation>[설정안됨]</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/configure_ringcon.cpp" line="405"/>
+        <location filename="../../src/yuzu/configuration/configure_ringcon.cpp" line="406"/>
         <source>%1%2</source>
         <translation>%1%2</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/configure_ringcon.cpp" line="409"/>
+        <location filename="../../src/yuzu/configuration/configure_ringcon.cpp" line="410"/>
         <location filename="../../src/yuzu/configuration/configure_input_player.cpp" line="199"/>
         <source>[invalid]</source>
         <translation>[유효하지않음]</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/configure_ringcon.cpp" line="419"/>
-        <location filename="../../src/yuzu/configuration/configure_ringcon.cpp" line="443"/>
+        <location filename="../../src/yuzu/configuration/configure_ringcon.cpp" line="420"/>
+        <location filename="../../src/yuzu/configuration/configure_ringcon.cpp" line="444"/>
         <source>%1%2Hat %3</source>
         <translation>%1%2방향키 %3</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/configure_ringcon.cpp" line="423"/>
-        <location filename="../../src/yuzu/configuration/configure_ringcon.cpp" line="446"/>
-        <location filename="../../src/yuzu/configuration/configure_ringcon.cpp" line="449"/>
+        <location filename="../../src/yuzu/configuration/configure_ringcon.cpp" line="424"/>
+        <location filename="../../src/yuzu/configuration/configure_ringcon.cpp" line="447"/>
+        <location filename="../../src/yuzu/configuration/configure_ringcon.cpp" line="450"/>
         <location filename="../../src/yuzu/configuration/configure_input_player.cpp" line="239"/>
         <source>%1%2Axis %3</source>
         <translation>%1%2축 %3</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/configure_ringcon.cpp" line="429"/>
+        <location filename="../../src/yuzu/configuration/configure_ringcon.cpp" line="430"/>
         <location filename="../../src/yuzu/configuration/configure_input_player.cpp" line="219"/>
         <source>%1%2Axis %3,%4,%5</source>
         <translation>%1%2축 %3,%4,%5</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/configure_ringcon.cpp" line="433"/>
+        <location filename="../../src/yuzu/configuration/configure_ringcon.cpp" line="434"/>
         <location filename="../../src/yuzu/configuration/configure_input_player.cpp" line="223"/>
         <source>%1%2Motion %3</source>
         <translation>%1%2모션 %3</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/configure_ringcon.cpp" line="437"/>
-        <location filename="../../src/yuzu/configuration/configure_ringcon.cpp" line="452"/>
+        <location filename="../../src/yuzu/configuration/configure_ringcon.cpp" line="438"/>
+        <location filename="../../src/yuzu/configuration/configure_ringcon.cpp" line="453"/>
         <source>%1%2Button %3</source>
         <translation>%1%2버튼 %3</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/configure_ringcon.cpp" line="479"/>
+        <location filename="../../src/yuzu/configuration/configure_ringcon.cpp" line="480"/>
         <location filename="../../src/yuzu/configuration/configure_input_player.cpp" line="269"/>
         <source>[unused]</source>
         <translation>[미사용]</translation>

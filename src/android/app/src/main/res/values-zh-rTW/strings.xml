@@ -53,7 +53,7 @@
     <string name="stats_overlay_options">疊加層</string>
     <string name="enable_stats_overlay_">啟用效能統計疊加層</string>
     <string name="stats_overlay_options_description">設定疊加層中顯示的資訊</string>
-    <string name="show_fps">顯示FPS</string>
+    <string name="show_fps">顯示影格率</string>
     <string name="show_fps_description">顯示當前影格率</string>
     <string name="show_frametime">顯示影格時間</string>
     <string name="show_app_ram_usage">顯示應用程式的記憶體用量</string>
@@ -300,9 +300,9 @@
     <string name="app_settings_description">自訂Eden的主題與介面</string>
     <string name="no_file_manager">找不到檔案管理員</string>
     <string name="notification_no_directory_link">無法開啟 Eden 目錄</string>
-    <string name="notification_no_directory_link_description">請使用檔案管理員的側邊面板手動定位到使用者資料夾。</string>
+    <string name="notification_no_directory_link_description">請使用檔案管理員的側邊面板手動定位到使用者資料夾</string>
     <string name="manage_save_data">管理儲存資料</string>
-    <string name="manage_save_data_description">導入/導出遊戲的儲存資料</string>
+    <string name="manage_save_data_description">導入/導出遊戲的儲存資料\n\n壓縮檔中首個子資料夾名稱必須為遊戲 ID</string>
     <string name="import_save_warning">導入儲存資料</string>
     <string name="import_save_warning_description">這將會以提供的檔案覆寫現有的該遊戲儲存資料，您確定要繼續嗎？</string>
     <string name="save_files_importing">正在導入儲存資料…</string>
