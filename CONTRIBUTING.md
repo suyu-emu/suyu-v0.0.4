@@ -21,7 +21,7 @@ Eden is free, open-source, copyleft software, licensed under the terms of the [G
 ### Policies
 
 - No LLM or AI usage, *period*, for patches, pull requests, issues, comments, debugging, brainstorming, etc.
-  - For details on why, see the [detailed AI policy](docs/AI.md).
+  - For details on why, see the [detailed AI policy](docs/policies/AI.md).
 - New code must follow the same general style as the surrounding codebase. Exceptions may be granted in certain cases.
 - Maintainers reserve the right to change your patches and pull requests at will. We will try to avoid this.
   - You should respect all decisions made by the [code owners](docs/CODEOWNERS) in your particular subsystem. If you feel they are overstepping or are incorrect, don't be afraid to stand your ground!
