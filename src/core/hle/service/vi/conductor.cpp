@@ -4,7 +4,11 @@
 // SPDX-FileCopyrightText: Copyright 2024 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
+#include <algorithm>
+
+#include "common/adpf.h"
 #include "common/settings.h"
+#include "common/thread.h"
 #include "core/core.h"
 #include "core/core_timing.h"
 #include "core/hle/service/vi/conductor.h"
@@ -13,6 +17,8 @@
 #include "core/hle/service/vi/vsync_manager.h"
 
 constexpr auto FrameNs = std::chrono::nanoseconds{1000000000 / 60};
+
+constexpr s64 UNLOCKED_TARGET_DIVISOR = 4;
 
 namespace Service::VI {
 
@@ -68,6 +74,9 @@ void Conductor::UnlinkVsyncEvent(u64 display_id, Event* event) {
 }
 
 void Conductor::ProcessVsync() {
+    Common::PollThreadPolicies();
+    Common::ADPF::SetTargetWorkDuration(std::chrono::nanoseconds{this->GetFramePeriodNs()});
+
     for (auto& [display_id, manager] : m_vsync_managers) {
         m_container.ComposeOnDisplay(&m_swap_interval, &m_compose_speed_scale, display_id);
         manager.SignalVsync(m_system.Kernel());
@@ -76,6 +85,8 @@ void Conductor::ProcessVsync() {
 
 void Conductor::VsyncThread(std::stop_token token) {
     Common::SetCurrentThreadName("VSyncThread");
+    Common::SetCurrentThreadPriority(Common::ThreadPriority::VeryHigh);
+    Common::SetCurrentThreadToPerformanceCores();
 
     while (!token.stop_requested()) {
         m_signal.Wait();
@@ -112,6 +123,27 @@ s64 Conductor::GetNextTicks() const {
 
     const f32 effective_fps = 60.f / static_cast<f32>(m_swap_interval);
     return static_cast<s64>(speed_scale * (1000000000.f / effective_fps));
+}
+
+s64 Conductor::GetFramePeriodNs() const {
+    const auto& settings = Settings::values;
+    f32 speed_scale = 1.f;
+    bool unlocked = false;
+    if (settings.use_multi_core.GetValue()) {
+        if (settings.use_speed_limit.GetValue()) {
+            speed_scale = 100.f / Settings::SpeedLimit();
+        } else {
+            unlocked = true;
+        }
+    }
+    speed_scale /= m_compose_speed_scale;
+
+    const f32 effective_fps = 60.f / static_cast<f32>(m_swap_interval);
+    s64 period = static_cast<s64>(speed_scale * (1000000000.f / effective_fps));
+    if (unlocked) {
+        period /= UNLOCKED_TARGET_DIVISOR;
+    }
+    return std::clamp<s64>(period, 1'000'000, 100'000'000);
 }
 
 } // namespace Service::VI

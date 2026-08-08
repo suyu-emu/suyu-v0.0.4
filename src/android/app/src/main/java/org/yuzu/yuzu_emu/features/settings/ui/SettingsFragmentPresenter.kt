@@ -250,8 +250,9 @@ class SettingsFragmentPresenter(
             add(BooleanSetting.USE_CUSTOM_RTC.key)
             add(LongSetting.CUSTOM_RTC.key)
 
-            add(HeaderSetting(R.string.cpu))
+            add(HeaderSetting(R.string.clocks))
             add(IntSetting.FAST_CPU_TIME.key)
+            add(IntSetting.FAST_GPU_TIME.key)
             add(BooleanSetting.CORE_SYNC_CORE_SPEED.key)
 
             add(IntSetting.MEMORY_LAYOUT.key)
@@ -298,7 +299,6 @@ class SettingsFragmentPresenter(
 
             add(HeaderSetting(R.string.hacks))
 
-            add(IntSetting.FAST_GPU_TIME.key)
             add(BooleanSetting.SKIP_CPU_INNER_INVALIDATION.key)
             add(BooleanSetting.FIX_BLOOM_EFFECTS.key)
             add(BooleanSetting.EMULATE_BGR565.key)

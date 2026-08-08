@@ -34,7 +34,7 @@
     </integer-array>
 
     <string-array name="clockNames">
-        <item>@string/off</item>
+        <item>@string/clock_normal</item>
         <item>@string/clock_boost</item>
         <item>@string/clock_fast</item>
     </string-array>
@@ -547,7 +547,7 @@
     </integer-array>
 
     <string-array name="gpuEntries">
-        <item>@string/off</item>
+        <item>@string/fast_gpu_normal</item>
         <item>@string/fast_gpu_medium</item>
         <item>@string/fast_gpu_high</item>
     </string-array>

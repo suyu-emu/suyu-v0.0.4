@@ -121,6 +121,8 @@ add_library(
     swap.h
     thread.cpp
     thread.h
+    adpf.cpp
+    adpf.h
     thread_queue_list.h
     thread_worker.h
     threadsafe_queue.h

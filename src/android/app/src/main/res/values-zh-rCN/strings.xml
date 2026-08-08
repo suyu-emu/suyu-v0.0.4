@@ -948,7 +948,6 @@
     <string name="clock_fast">快速 (2000MHz)</string>
 
     <!-- GPU overclock factors -->
-    <string name="off">关闭</string>
     <string name="fast_gpu_medium">中 (256)</string>
     <string name="fast_gpu_high">高 (512)</string>
 

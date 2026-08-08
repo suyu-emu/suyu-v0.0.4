@@ -44,6 +44,7 @@ private:
     void ProcessVsync();
     void VsyncThread(std::stop_token token);
     s64 GetNextTicks() const;
+    s64 GetFramePeriodNs() const;
 
 private:
     Core::System& m_system;

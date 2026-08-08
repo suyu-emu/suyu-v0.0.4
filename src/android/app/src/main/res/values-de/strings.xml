@@ -884,7 +884,6 @@ Wirklich fortfahren?</string>
     <string name="clock_fast">Schnell (2000MHz)</string>
 
     <!-- GPU overclock factors -->
-    <string name="off">Aus</string>
     <string name="fast_gpu_medium">Mittel (256)</string>
     <string name="fast_gpu_high">Hoch (512)</string>
 

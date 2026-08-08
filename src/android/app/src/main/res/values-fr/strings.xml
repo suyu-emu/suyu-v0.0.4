@@ -897,7 +897,6 @@
     <string name="clock_fast">Rapide (2000MHz)</string>
 
     <!-- GPU overclock factors -->
-    <string name="off">Désactivé</string>
     <string name="fast_gpu_medium">Moyen (256)</string>
     <string name="fast_gpu_high">Élevé (512)</string>
 

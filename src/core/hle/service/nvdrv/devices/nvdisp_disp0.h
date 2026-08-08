@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2018 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -36,6 +39,8 @@ public:
 
     /// Performs a screen flip, compositing each buffer.
     void Composite(std::span<const Nvnflinger::HwcLayer> sorted_layers);
+
+    void WaitForComposite();
 
     Kernel::KEvent* QueryEvent(u32 event_id) override;
 

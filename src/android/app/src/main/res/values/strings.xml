@@ -450,8 +450,8 @@
     <string name="set_custom_rtc">Set custom RTC</string>
 
     <!-- CPU -->
-    <string name="fast_cpu_time">CPU Overclock</string>
-    <string name="fast_cpu_time_description">Forces the emulated CPU to run at a higher clock, reducing certain FPS limiters. Use Boost (1700MHz) to run at the Switch\'s highest native clock, or Fast (2000MHz) to run at 2x clock.</string>
+    <string name="fast_cpu_time">CPU Clocks</string>
+    <string name="fast_cpu_time_description">Raises the clock the emulated CPU reports, which removes some FPS limiters. Weaker CPUs may see reduced performance, and certain games may behave improperly.</string>
     <string name="custom_cpu_ticks">Custom CPU Ticks</string>
     <string name="custom_cpu_ticks_description">Set a custom value of CPU ticks. Higher values can increase performance, but may also cause the game to freeze. A range of 77–21000 is recommended.</string>
     <string name="cpu_ticks">Ticks</string>
@@ -512,8 +512,8 @@
 
     <string name="hacks">Hacks</string>
 
-    <string name="fast_gpu_time">Fast GPU Time</string>
-    <string name="fast_gpu_time_description">Forces most games to run at their highest native resolution. Use 256 for maximal performance and 512 for maximal graphics fidelity.</string>
+    <string name="fast_gpu_time">GPU Clocks</string>
+    <string name="fast_gpu_time_description">Makes the game believe GPU work finishes faster than it does, so it stops lowering resolution and render distance to fit the Switch\'s clocks.</string>
     <string name="skip_cpu_inner_invalidation">Skip CPU Inner Invalidation</string>
     <string name="skip_cpu_inner_invalidation_description">Skips certain CPU-side cache invalidations during memory updates, reducing CPU usage and improving it\'s performance. This may cause glitches or crashes on some games.</string>
     <string name="fix_bloom_effects">Fix Bloom Effects</string>
@@ -560,6 +560,7 @@
 
     <!-- Debug settings strings -->
     <string name="cpu">CPU</string>
+    <string name="clocks">Clocks</string>
     <string name="use_auto_stub">Use Auto Stub</string>
     <string name="use_auto_stub_description">Automatically stub missing services and functions. This may improve compatibility but can cause crashes and stability issues.</string>
 
@@ -968,14 +969,15 @@
     <string name="memory_6gb">6GB (Unsafe)</string>
     <string name="memory_8gb">8GB (Unsafe)</string>
 
-    <!--CPU clock speeds-->
-    <string name="clock_boost">Boost (1700MHz)</string>
-    <string name="clock_fast">Fast (2000MHz)</string>
+    <!-- CPU clock levels -->
+    <string name="clock_normal">Normal</string>
+    <string name="clock_boost">Boost</string>
+    <string name="clock_fast">Overclock</string>
 
-    <!-- GPU overclock factors -->
-    <string name="off">Off</string>
-    <string name="fast_gpu_medium">Medium (256)</string>
-    <string name="fast_gpu_high">High (512)</string>
+    <!-- GPU clock levels -->
+    <string name="fast_gpu_normal">Normal</string>
+    <string name="fast_gpu_medium">Boost</string>
+    <string name="fast_gpu_high">Overclock</string>
 
     <!-- GPU swizzle texture size -->
     <string name="gpu_texturesizeswizzle_verysmall">Very Small (16 MB)</string>

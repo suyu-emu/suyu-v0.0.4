@@ -218,6 +218,8 @@ object NativeLibrary {
 
     external fun logSettings()
 
+    external fun refreshThreadPolicies()
+
     external fun getDebugKnobAt(index: Int): Boolean
 
     /**

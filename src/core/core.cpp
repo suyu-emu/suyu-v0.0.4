@@ -10,6 +10,7 @@
 #include "audio_core/audio_core.h"
 #include "common/fs/fs.h"
 #include "common/logging.h"
+#include "common/adpf.h"
 #include "common/settings.h"
 #include "common/settings_enums.h"
 #include "common/string_util.h"
@@ -385,6 +386,7 @@ struct System::Impl {
 
     void ShutdownMainProcess() {
         SetShuttingDown(true);
+        Common::ADPF::Shutdown();
 
         // Reset per-game flags
         Settings::values.use_squashed_iterated_blend = false;

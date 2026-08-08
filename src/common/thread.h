@@ -99,8 +99,20 @@ enum class ThreadPriority : u32 {
     Critical = 4,
 };
 
+enum class ThreadPlacement : u32 {
+    Default = 0,
+    Background = 1,
+    Efficiency = 2,
+};
+
 void SetCurrentThreadPriority(ThreadPriority new_priority);
 void SetCurrentThreadName(const char* name);
-void PinCurrentThreadToPerformanceCore(size_t core_id);
+void SetCurrentThreadToPerformanceCores();
+void SetCurrentThreadToEfficiencyCores();
+void SetCurrentThreadToBackgroundWork();
+void SetCurrentThreadToAllCores();
+
+void RefreshThreadPolicies();
+void PollThreadPolicies();
 
 } // namespace Common

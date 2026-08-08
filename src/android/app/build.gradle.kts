@@ -188,6 +188,7 @@ android {
         create("mainline") {
             dimension = "version"
             isDefault = true
+            minSdk = 33
 
             manifestPlaceholders += mapOf("appNameBase" to "Eden")
             resValue("string", "app_name_suffixed", "Eden")
@@ -199,6 +200,7 @@ android {
 
         create("genshinSpoof") {
             dimension = "version"
+            minSdk = 35
             manifestPlaceholders += mapOf("appNameBase" to "Eden Optimized")
             resValue("string", "app_name_suffixed", "Eden Optimized")
             applicationId = "com.miHoYo.Yuanshen"
@@ -216,6 +218,7 @@ android {
 
         create("legacy") {
             dimension = "version"
+            minSdk = 29
             manifestPlaceholders += mapOf("appNameBase" to "Eden Legacy")
             resValue("string", "app_name_suffixed", "Eden Legacy")
             applicationId = "dev.legacy.eden_emulator"

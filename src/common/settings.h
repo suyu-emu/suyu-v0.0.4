@@ -260,10 +260,10 @@ struct Values {
                                                     Category::Cpu};
     SwitchableSetting<CpuAccuracy, true> cpu_accuracy{linkage, CpuAccuracy::Auto,
                                                       "cpu_accuracy", Category::Cpu};
-    SwitchableSetting<CpuClock> fast_cpu_time{linkage,
-                                              CpuClock::Off,
+    SwitchableSetting<CpuClock> cpu_clock{linkage,
+                                              CpuClock::Normal,
                                               "fast_cpu_time",
-                                              Category::Cpu,
+                                              Category::System,
                                               Specialization::Default,
                                               true,
                                               true};
@@ -540,13 +540,13 @@ struct Values {
 #endif
 
     // Renderer Hacks //
-    SwitchableSetting<GpuOverclock> fast_gpu_time{linkage,
-                                                  GpuOverclock::Medium,
-                                                  "fast_gpu_time",
-                                                  Category::RendererHacks,
-                                                  Specialization::Default,
-                                                        true,
-                                                        true};
+    SwitchableSetting<GpuClock> gpu_clock{linkage,
+                                          GpuClock::Boost,
+                                          "fast_gpu_time",
+                                          Category::System,
+                                          Specialization::Default,
+                                          true,
+                                          true};
 
     SwitchableSetting<bool> skip_cpu_inner_invalidation{linkage,
                                                         false,

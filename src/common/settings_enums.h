@@ -140,7 +140,7 @@ ENUM(DmaAccuracy, Default, Unsafe, Safe);
 ENUM(GpuFenceBehavior, Default, Immediate, Balanced, Accurate, Strict);
 ENUM(CpuBackend, Dynarmic, Nce);
 ENUM(CpuAccuracy, Auto, Accurate, Unsafe, Paranoid, Debugging);
-ENUM(CpuClock, Off, Boost, Fast)
+ENUM(CpuClock, Normal, Boost, Overclock)
 ENUM(MemoryLayout, Memory_4Gb, Memory_6Gb, Memory_8Gb, Memory_10Gb, Memory_12Gb);
 ENUM(ConfirmStop, Ask_Always, Ask_Based_On_Game, Ask_Never);
 ENUM(FullscreenMode, Borderless, Exclusive);
@@ -152,7 +152,7 @@ ENUM(AspectRatio, R16_9, R4_3, R21_9, R16_10, Stretch);
 ENUM(ConsoleMode, Handheld, Docked);
 ENUM(AppletMode, HLE, LLE);
 ENUM(SpirvOptimizeMode, Never, OnLoad, Always);
-ENUM(GpuOverclock, Normal, Medium, High)
+ENUM(GpuClock, Normal, Boost, Overclock)
 ENUM(GpuUnswizzleSize, VerySmall, Small, Normal, Large, VeryLarge)
 ENUM(GpuUnswizzle, VeryLow, Low, Normal, Medium, High)
 ENUM(GpuUnswizzleChunk, VeryLow, Low, Normal, Medium, High)

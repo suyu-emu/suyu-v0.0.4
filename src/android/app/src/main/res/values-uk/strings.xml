@@ -943,7 +943,6 @@
     <string name="clock_fast">Швидко (2000 МГц)</string>
 
     <!-- GPU overclock factors -->
-    <string name="off">Вимкнено</string>
     <string name="fast_gpu_medium">Середньо (256)</string>
     <string name="fast_gpu_high">Високо (512)</string>
 

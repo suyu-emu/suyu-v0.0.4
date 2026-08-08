@@ -594,7 +594,7 @@ abstract class SettingsItem(
                     IntSetting.ANDROID_PIPELINE_WORKERS,
                     titleId = R.string.pipeline_worker_cores,
                     descriptionId = R.string.pipeline_worker_cores_description,
-                    min = 4,
+                    min = 2,
                     max = 8,
                     units = "cores"
                 )
