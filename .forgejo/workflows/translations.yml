@@ -1,9 +1,9 @@
 name: tx-pull
 
 on:
-  #  tuesday, saturday at 2pm
+  #  monday at 4pm
   schedule:
-    - cron: '0 14 * * 2,6'
+    - cron: '0 16 * * 1'
   workflow_dispatch:
 
 jobs:
