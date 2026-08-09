@@ -28,7 +28,7 @@ Result CloseHandle(Core::System& system, Handle handle) {
 
 /// Clears the signaled state of an event or process.
 Result ResetSignal(Core::System& system, Handle handle) {
-    LOG_DEBUG(Kernel_SVC, "called handle {:#08x}", handle);
+    LOG_TRACE(Kernel_SVC, "called handle {:#08x}", handle);
 
     // Get the current handle table.
     const auto& handle_table = GetCurrentProcess(system.Kernel()).GetHandleTable();
