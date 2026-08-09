@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 // SPDX-FileCopyrightText: Copyright 2024 yuzu Emulator
@@ -84,7 +84,7 @@ private:
     RestrictionSettings restriction_settings{};
     std::array<char, 8> pin_code{};
     Capability capability{};
-    // TODO: this is RAW as fuck
+    // TODO: this is raw
     PlayTimerSettings raw_play_timer_settings{};
 
     KernelHelpers::ServiceContext service_context;

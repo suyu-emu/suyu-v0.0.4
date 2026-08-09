@@ -1,7 +1,8 @@
 // SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-// Qt on macOS doesn't define VMA shit
+// Static Qt on macOS doesn't use Vulkan
+// Other platforms do, and thus have conflicting VulkanMemoryAllocator symbols
 #if defined(QT_STATICPLUGIN) && !defined(__APPLE__)
 #undef VMA_IMPLEMENTATION
 #endif

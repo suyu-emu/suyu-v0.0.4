@@ -441,7 +441,7 @@ void MacroInterpreterImpl::Reset() {
     pc = 0;
     delayed_pc = {};
     method_address.raw = 0;
-    // Vector must hold its last indices otherwise wonky shit will happen
+    // Vector must hold its last indices otherwise chaos will ensue
     // The next parameter index starts at 1, because $r1 already has the value of the first
     // parameter.
     next_parameter_index = 1;

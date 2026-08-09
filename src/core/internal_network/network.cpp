@@ -531,7 +531,8 @@ int TranslateTypeToNative(Type type) {
     NETWORK_PROTOCOL_TRANSLATE_ELEM(MPLS) \
     NETWORK_PROTOCOL_TRANSLATE_ELEM(PFSYNC)
 #elif defined(__linux__)
-// Other platforms get fucked
+// Other platforms may not support some niche protocols.
+// This is usually not an issue
 #define NETWORK_PROTOCOL_TRANSLATE_LIST \
     NETWORK_PROTOCOL_TRANSLATE_ELEM(IP) \
     /*NETWORK_PROTOCOL_TRANSLATE_ELEM(HOPOPTS)*/ \

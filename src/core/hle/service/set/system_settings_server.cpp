@@ -1020,7 +1020,7 @@ Result ISystemSettingsServer::GetBatteryLot(Out<BatteryLot> out_battery_lot) {
         c.lot_number[1] = 'H';
         c.lot_number[2] = 'A';
         c.lot_number[3] = 'C';
-        // TODO: I have no fucking idea what the letters mean
+        // TODO: what do the letters mean?
         c.lot_number[4] = 'H';
         c.lot_number[5] = 'Z';
         c.lot_number[6] = 'Z';

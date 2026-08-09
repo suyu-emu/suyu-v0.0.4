@@ -40,7 +40,6 @@ public:
     }
 
     struct Regs {
-        // No fucking idea
         INSERT_PADDING_BYTES_NOINIT(0x48);
     } regs{};
 private:

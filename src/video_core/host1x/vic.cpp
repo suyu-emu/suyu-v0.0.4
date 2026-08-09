@@ -963,7 +963,7 @@ void Vic::WriteABGR(const OutputSurfaceConfig& output_surface_config, VideoPixel
                     auto pixel1213 = _mm_load_si128((__m128i*)&inp[src + x + 12]);
                     auto pixel1415 = _mm_load_si128((__m128i*)&inp[src + x + 14]);
 
-                    // Right-shift the channels by 16 to un-do the left shit on read and bring the range
+                    // Right-shift the channels by 16 to un-do the left shift on read and bring the range
                     // back to 8-bit.
                     pixel01 = _mm_srli_epi16(pixel01, 2);
                     pixel23 = _mm_srli_epi16(pixel23, 2);

@@ -59,7 +59,7 @@ std::vector<std::string> GetExtensions() {
     std::vector<std::string> extensions;
     for (GLint index = 0; index < num_extensions; ++index) {
         auto const* p = reinterpret_cast<const char*>(glGetStringi(GL_EXTENSIONS, GLuint(index)));
-        if (p != nullptr) // Fuck you? - sincerely, buggy mesa drivers
+        if (p != nullptr)
             extensions.push_back(std::string{p});
     }
     return extensions;

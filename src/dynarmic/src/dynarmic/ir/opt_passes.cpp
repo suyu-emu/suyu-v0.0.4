@@ -787,7 +787,7 @@ static void FoldCountLeadingZeros(IR::Inst& inst, bool is_32_bit) {
 /// Folds division operations based on the following:
 ///
 /// 1. x / 0 -> 0 (NOTE: This is an ARM-specific behavior defined in the architecture reference manual)
-/// 2a. 0x8000_0000 / 0xFFFF_FFFF -> 0x8000_0000 (NOTE: More ARM bullshit)
+/// 2a. 0x8000_0000 / 0xFFFF_FFFF -> 0x8000_0000 (NOTE: More ARM errata)
 /// 2b. 0x8000_0000_0000_0000 / 0xFFFF_FFFF_FFFF_FFFF -> 0x8000_0000_0000_0000
 /// 3. imm_x / imm_y -> result
 /// 4. x / 1 -> x

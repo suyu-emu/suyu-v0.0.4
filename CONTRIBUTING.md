@@ -22,9 +22,13 @@ Eden is free, open-source, copyleft software, licensed under the terms of the [G
 
 - No LLM or AI usage, *period*, for patches, pull requests, issues, comments, debugging, brainstorming, etc.
   - For details on why, see the [detailed AI policy](docs/policies/AI.md).
+- Usage of any form of profanity or otherwise unsavory language is generally discouraged.
+  - This is primarily because it rarely helps to actually understand what's going on.
+  - Remember that your comments should be focused and actually address what's happening. With very few exceptions, expletives are actively detrimental at best.
 - New code must follow the same general style as the surrounding codebase. Exceptions may be granted in certain cases.
 - Maintainers reserve the right to change your patches and pull requests at will. We will try to avoid this.
-  - You should respect all decisions made by the [code owners](docs/CODEOWNERS) in your particular subsystem. If you feel they are overstepping or are incorrect, don't be afraid to stand your ground!
+  - You should generally respect all decisions made by the [code owners](docs/CODEOWNERS) in your particular subsystem.
+  - However, if you feel they are overstepping or are incorrect, don't be afraid to stand your ground! Maintainers are not always correct.
 - While we do *not* adhere to the terms of a formal code of conduct, you will generally be expected to respect other developers, contributors, and community members.
 - You **must** have basic knowledge of [Git](https://git-scm.com/learn). Knowing how to manage your branches and follow proper fork policies is a necessity.
 
