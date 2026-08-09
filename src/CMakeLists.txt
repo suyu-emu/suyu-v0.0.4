@@ -155,12 +155,24 @@ else()
             $<$<COMPILE_LANGUAGE:CXX>:-fno-rtti>)
     endif()
 
+    if (ENABLE_WERROR)
+        add_compile_options(
+            $<$<COMPILE_LANGUAGE:C,CXX>:-Werror=all>
+            $<$<COMPILE_LANGUAGE:C,CXX>:-Werror=extra>
+            $<$<COMPILE_LANGUAGE:C,CXX>:-Werror=missing-declarations>
+            $<$<COMPILE_LANGUAGE:C,CXX>:-Werror=shadow>
+            $<$<COMPILE_LANGUAGE:C,CXX>:-Werror=unused>)
+    else()
+        add_compile_options(
+            $<$<COMPILE_LANGUAGE:C,CXX>:-Wall>
+            $<$<COMPILE_LANGUAGE:C,CXX>:-Wextra>
+            $<$<COMPILE_LANGUAGE:C,CXX>:-Wmissing-declarations>
+            $<$<COMPILE_LANGUAGE:C,CXX>:-Wshadow>
+            $<$<COMPILE_LANGUAGE:C,CXX>:-Wunused>
+            # Some compilers could particularly misbehave :)
+            $<$<COMPILE_LANGUAGE:C,CXX>:-Wno-error-all>)
+    endif()
     add_compile_options(
-        $<$<COMPILE_LANGUAGE:C,CXX>:-Werror=all>
-        $<$<COMPILE_LANGUAGE:C,CXX>:-Werror=extra>
-        $<$<COMPILE_LANGUAGE:C,CXX>:-Werror=missing-declarations>
-        $<$<COMPILE_LANGUAGE:C,CXX>:-Werror=shadow>
-        $<$<COMPILE_LANGUAGE:C,CXX>:-Werror=unused>
         $<$<COMPILE_LANGUAGE:C,CXX>:-Wno-attributes>
         $<$<COMPILE_LANGUAGE:C,CXX>:-Wno-invalid-offsetof>
         $<$<COMPILE_LANGUAGE:C,CXX>:-Wno-unused-parameter>
@@ -169,9 +181,9 @@ else()
     if (CXX_CLANG OR CXX_ICC OR CXX_APPLE) # Clang, AppleClang, or Intel C++
         if (NOT MSVC)
             add_compile_options(
-                $<$<COMPILE_LANGUAGE:C,CXX>:-Werror=shadow-uncaptured-local>
-                $<$<COMPILE_LANGUAGE:C,CXX>:-Werror=implicit-fallthrough>
-                $<$<COMPILE_LANGUAGE:C,CXX>:-Werror=type-limits>)
+                $<$<COMPILE_LANGUAGE:C,CXX>:-Wshadow-uncaptured-local>
+                $<$<COMPILE_LANGUAGE:C,CXX>:-Wimplicit-fallthrough>
+                $<$<COMPILE_LANGUAGE:C,CXX>:-Wtype-limits>)
         endif()
         add_compile_options(
             $<$<COMPILE_LANGUAGE:C,CXX>:-Wno-braced-scalar-init>
