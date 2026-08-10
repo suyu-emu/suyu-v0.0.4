@@ -25,7 +25,7 @@ endif()
 # Dynarmic project options
 option(DYNARMIC_ENABLE_CPU_FEATURE_DETECTION "Turning this off causes dynarmic to assume the host CPU doesn't support anything later than SSE3" ON)
 
-if (PLATFORM_OPENBSD OR PLATFORM_DRAGONFLY OR PLATFORM_NETBSD)
+if (OPENBSD OR DRAGONFLY OR NETBSD)
     set(REQUIRE_WX ON)
 else()
     set(REQUIRE_WX OFF)

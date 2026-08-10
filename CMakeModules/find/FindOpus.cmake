@@ -13,7 +13,7 @@ find_package_handle_standard_args(Opus
     VERSION_VAR OPUS_VERSION
 )
 
-if (PLATFORM_MSYS)
+if (MSYS2)
     FixMsysPath(PkgConfig::OPUS)
 endif()
 

@@ -14,7 +14,7 @@ find_package_handle_standard_args(libusb
     VERSION_VAR LIBUSB_VERSION
 )
 
-if (PLATFORM_MSYS)
+if (MSYS2)
     FixMsysPath(PkgConfig::LIBUSB)
 endif()
 

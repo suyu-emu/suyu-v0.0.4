@@ -1173,7 +1173,7 @@ add_library(core STATIC
 
 if (ENABLE_WIFI_SCAN)
     target_sources(core PRIVATE internal_network/wifi_scanner.cpp)
-    if (PLATFORM_LINUX)
+    if (LINUX)
         target_link_libraries(core PRIVATE iw)
     endif()
 else()

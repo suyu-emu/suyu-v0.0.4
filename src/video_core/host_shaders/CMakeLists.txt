@@ -88,7 +88,7 @@ set(SHADER_FILES
     ${CMAKE_CURRENT_SOURCE_DIR}/sgsr1_shader_mobile_edge_direction.frag
 )
 
-if (PLATFORM_HAIKU)
+if (HAIKUOS)
     # glslangValidator WILL crash, glslang will not
     set(GLSLANGVALIDATOR "glslang")
 else()
