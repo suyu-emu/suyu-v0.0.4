@@ -18,6 +18,7 @@
 #include "common/logging/backend.h"
 #include "common/logging/log.h"
 #include "common/microprofile.h"
+#include "common/fs/path_util.h"
 #include "common/nvidia_flags.h"
 #include "common/scm_rev.h"
 #include "common/scope_exit.h"
@@ -76,6 +77,25 @@ __declspec(dllexport) int AmdPowerXpressRequestHighPerformance = 1;
 #ifdef __unix__
 #include "common/linux/gamemode.h"
 #endif
+
+// Statically linked recompiled CPU modules.
+//
+// A per-game build of this executable (see SUYU_CMD_RECOMP_DIR in
+// src/suyu_cmd/CMakeLists.txt) compiles in a generated recomp_registration.c
+// that lists the game's modules in NSO load order. That makes the exported
+// game a single self-contained binary - there is nothing to LoadLibrary and no
+// recompiled_*.dll to ship beside it. The layout below must match the struct
+// the generator emits.
+extern "C" {
+struct SuyuRecompStaticModule {
+    const char* name;
+    void (*(*lookup)(u64))(void*);
+    void (*set_base)(u64);
+};
+#ifdef SUYU_CMD_STATIC_RECOMP
+const SuyuRecompStaticModule* suyu_recomp_static_modules(unsigned* count);
+#endif
+}
 
 static void PrintHelp(const char* argv0) {
     std::cout << "Usage: " << argv0
@@ -198,6 +218,10 @@ static void OnStatusMessageReceived(const Network::StatusMessageEntry& msg) {
         std::cout << std::endl << "* " << message << std::endl << std::endl;
 }
 
+/// True once native recompiled CPU modules are registered — the running
+/// process is a standalone game export, not the suyu dev frontend.
+bool g_native_export_mode = false;
+
 /// Application entry point
 int main(int argc, char** argv) {
 #ifdef _WIN32
@@ -208,6 +232,60 @@ int main(int argc, char** argv) {
 #endif
 
     try {
+
+    // ── Portable user data for standalone game exports ──────────────────────
+    // An exported game is a self-contained folder the user can move or delete
+    // as a unit, so its config/saves/NAND/logs/screenshots live in <exe>/user
+    // rather than %APPDATA%\suyu. KeysDir must be explicitly pinned at
+    // %APPDATA%\suyu\keys (not left to derive on its own): the presence of a
+    // sibling "user" folder next to the exe makes the FS layer's own
+    // portable-mode auto-detection kick in first and silently rederive
+    // KeysDir under <exe>/user/keys instead, so prod.keys/title.keys are
+    // never bundled with a distributed export.
+    // Must run before Log::Initialize(), which opens a file under LogDir.
+#ifdef SUYU_CMD_STATIC_RECOMP
+    {
+        namespace FS = Common::FS;
+#ifdef _WIN32
+        wchar_t exe_w[MAX_PATH]{};
+        GetModuleFileNameW(nullptr, exe_w, MAX_PATH);
+        const std::filesystem::path user_root =
+            std::filesystem::path(exe_w).parent_path() / L"user";
+#else
+        const std::filesystem::path user_root =
+            std::filesystem::path(argv[0]).parent_path() / "user";
+#endif
+        std::filesystem::create_directories(user_root);
+        // SetEdenPath (path_util.cpp) fails with "is not a directory" if the
+        // path doesn't exist yet - most of these get created lazily by
+        // whatever subsystem first writes into them, but LoadDir/TASDir are
+        // read from (mod scan, TAS script lookup) before anything writes to
+        // them, so create every subdir up front instead of relying on that.
+        for (const char* sub : {"config", "cache", "cache/shader", "log", "nand", "sdmc", "dump",
+                                 "load", "screenshots", "play_time", "crash_dumps", "amiibo", "tas",
+                                 "icons", "themes"}) {
+            std::filesystem::create_directories(user_root / sub);
+        }
+        FS::SetEdenPath(FS::EdenPath::EdenDir, user_root);
+        FS::SetEdenPath(FS::EdenPath::ConfigDir, user_root / "config");
+        FS::SetEdenPath(FS::EdenPath::CacheDir, user_root / "cache");
+        FS::SetEdenPath(FS::EdenPath::ShaderDir, user_root / "cache" / "shader");
+        FS::SetEdenPath(FS::EdenPath::LogDir, user_root / "log");
+        FS::SetEdenPath(FS::EdenPath::NANDDir, user_root / "nand");
+        FS::SetEdenPath(FS::EdenPath::SaveDir, user_root / "nand");
+        FS::SetEdenPath(FS::EdenPath::SDMCDir, user_root / "sdmc");
+        FS::SetEdenPath(FS::EdenPath::DumpDir, user_root / "dump");
+        FS::SetEdenPath(FS::EdenPath::LoadDir, user_root / "load");
+        FS::SetEdenPath(FS::EdenPath::ScreenshotsDir, user_root / "screenshots");
+        FS::SetEdenPath(FS::EdenPath::PlayTimeDir, user_root / "play_time");
+        FS::SetEdenPath(FS::EdenPath::CrashDumpsDir, user_root / "crash_dumps");
+        FS::SetEdenPath(FS::EdenPath::AmiiboDir, user_root / "amiibo");
+        FS::SetEdenPath(FS::EdenPath::TASDir, user_root / "tas");
+        FS::SetEdenPath(FS::EdenPath::IconsDir, user_root / "icons");
+        FS::SetEdenPath(FS::EdenPath::ThemesDir, user_root / "themes");
+        FS::SetEdenPath(FS::EdenPath::KeysDir, FS::GetAppDataRoamingDirectory() / "suyu" / "keys");
+    }
+#endif
 
     Common::Log::Initialize();
     Common::Log::SetColorConsoleBackendEnabled(true);
@@ -416,40 +494,116 @@ int main(int argc, char** argv) {
         rom_found:;
     }
 
-    // Auto-load native recompiled image if present next to the executable.
-    // recompiled_image.dll is built from aot_cache/recompiled/ by build_native_windows.cmd.
-    // When loaded, ArmRecomp runs the game's CPU code natively instead of via dynarmic JIT.
-#ifdef _WIN32
+    // Native recompiled CPU modules, in NSO load order: rtld(0), main(1),
+    // subsdk0-N(2..N+1), sdk(last). Whichever way they arrive, registering any
+    // of them makes ArmRecomp run the game's CPU natively instead of dynarmic.
+    struct RecompModule {
+        Core::RecompBlockFn (*lookup)(u64){};
+        void (*set_base)(u64){};
+    };
+    static std::vector<RecompModule> s_recomp_modules;
+
+    // Preferred path: modules compiled straight into this executable. Nothing
+    // to find on disk, nothing to load, and no version skew between the exe and
+    // its modules.
+#ifdef SUYU_CMD_STATIC_RECOMP
     {
+        unsigned count = 0;
+        const SuyuRecompStaticModule* mods = suyu_recomp_static_modules(&count);
+        for (unsigned i = 0; i < count; ++i) {
+            s_recomp_modules.push_back({mods[i].lookup, mods[i].set_base});
+            LOG_INFO(Frontend, "Static recompiled module [{}] {} — ArmRecomp active", i,
+                     mods[i].name ? mods[i].name : "?");
+        }
+    }
+#endif
+
+    // Compatibility path for exports that ship recompiled_*.dll beside the exe:
+    // recompiled_rtld.dll, recompiled_image.dll (main), recompiled_subsdk0.dll,
+    // recompiled_sdk.dll. Skipped entirely when modules are already linked in.
+#ifdef _WIN32
+    if (s_recomp_modules.empty()) {
         wchar_t _exe_w[MAX_PATH]{};
         GetModuleFileNameW(nullptr, _exe_w, MAX_PATH);
-        const auto _recomp_dll = std::filesystem::path(_exe_w).parent_path() / L"recompiled_image.dll";
-        if (std::filesystem::exists(_recomp_dll)) {
-            HMODULE h = LoadLibraryW(_recomp_dll.wstring().c_str());
-            if (h) {
-                using LookupFn = Core::RecompBlockFn (*)(u64);
-                using ImageSetBase = void (*)(u64);
-                auto lookup = reinterpret_cast<LookupFn>(GetProcAddress(h, "recomp_image_lookup"));
-                auto set_base = reinterpret_cast<ImageSetBase>(GetProcAddress(h, "recomp_image_set_base"));
-                if (lookup) {
-                    Core::SetRecompLookup(lookup);
-                    LOG_INFO(Frontend, "Native recompiled image loaded: {} — using ArmRecomp CPU",
-                             Common::UTF16ToUTF8(_recomp_dll.wstring()));
-                }
-                if (set_base) {
-                    // RecompBaseFn takes (index, module_name, base); wrap the single-arg DLL export.
-                    static ImageSetBase s_set_base = set_base;
-                    Core::SetRecompBaseSetter([](size_t, const char*, u64 base) {
-                        s_set_base(base);
-                    });
-                }
-            } else {
-                LOG_WARNING(Frontend, "Found recompiled_image.dll but LoadLibrary failed (err={})",
-                            GetLastError());
+        const auto _exe_dir = std::filesystem::path(_exe_w).parent_path();
+
+        // Load in standard NSO load order: rtld, main (recompiled_image), subsdk0..9, sdk
+        std::vector<std::wstring> dll_order = {
+            L"recompiled_rtld.dll",
+            L"recompiled_image.dll",  // main
+            L"recompiled_subsdk0.dll", L"recompiled_subsdk1.dll", L"recompiled_subsdk2.dll",
+            L"recompiled_subsdk3.dll", L"recompiled_subsdk4.dll", L"recompiled_subsdk5.dll",
+            L"recompiled_subsdk6.dll", L"recompiled_subsdk7.dll", L"recompiled_subsdk8.dll",
+            L"recompiled_subsdk9.dll",
+            L"recompiled_sdk.dll",
+        };
+
+        for (const auto& dll_name : dll_order) {
+            const auto p = _exe_dir / dll_name;
+            if (!std::filesystem::exists(p)) continue;
+            HMODULE h = LoadLibraryW(p.wstring().c_str());
+            if (!h) {
+                LOG_WARNING(Frontend, "Found {} but LoadLibrary failed (err={})",
+                            Common::UTF16ToUTF8(dll_name), GetLastError());
+                continue;
+            }
+            using LookupFn = Core::RecompBlockFn (*)(u64);
+            using SetBaseFn = void (*)(u64);
+            auto lkp = reinterpret_cast<LookupFn>(GetProcAddress(h, "recomp_image_lookup"));
+            auto sbf = reinterpret_cast<SetBaseFn>(GetProcAddress(h, "recomp_image_set_base"));
+            if (lkp) {
+                s_recomp_modules.push_back({lkp, sbf});
+                LOG_INFO(Frontend, "Native recompiled module [{}] loaded from {} — ArmRecomp active",
+                         s_recomp_modules.size() - 1, Common::UTF16ToUTF8(dll_name));
             }
         }
     }
 #endif
+
+    if (!s_recomp_modules.empty()) {
+        // Combined lookup: try each module's lookup until one returns non-null.
+        Core::SetRecompLookup([](u64 pc) -> Core::RecompBlockFn {
+            for (const auto& m : s_recomp_modules) {
+                if (auto fn = m.lookup(pc)) return fn;
+            }
+            return nullptr;
+        });
+        // Route base to the module at the same index in load order.
+        // rtld=index0, main=index1, subsdk0=index2, ..., sdk=last.
+        Core::SetRecompBaseSetter([](size_t index, const char*, u64 base) {
+            if (index < s_recomp_modules.size() && s_recomp_modules[index].set_base) {
+                s_recomp_modules[index].set_base(base);
+            }
+        });
+        // A window running native recompiled code is a standalone game export,
+        // not the suyu dev frontend — the window chrome (title/icon) should
+        // read as the game, not the emulator.
+        g_native_export_mode = true;
+    }
+
+    // Mods/patches: a standalone export is a self-contained folder, so a "mods"
+    // directory beside the executable is where users will drop things. Point
+    // the existing load directory at it and the normal PatchManager path
+    // (LayeredFS, IPS/pchtxt patches, cheats) picks it up unchanged - same
+    // <title_id>/<mod name>/ layout the Qt frontend uses.
+    {
+#ifdef _WIN32
+        wchar_t exe_w[MAX_PATH]{};
+        GetModuleFileNameW(nullptr, exe_w, MAX_PATH);
+        const auto exe_dir = std::filesystem::path(exe_w).parent_path();
+#else
+        const auto exe_dir = std::filesystem::path(argv[0]).parent_path();
+#endif
+        const auto local_mods = exe_dir / "mods";
+        std::error_code ec;
+        std::filesystem::create_directories(local_mods, ec);
+        if (std::filesystem::is_directory(local_mods)) {
+            Common::FS::SetEdenPath(Common::FS::EdenPath::LoadDir, local_mods);
+            LOG_INFO(Frontend, "Using local mod directory: {}", local_mods.string());
+        }
+        LOG_INFO(Frontend, "Keys directory (never bundled): {}",
+                 Common::FS::GetEdenPathString(Common::FS::EdenPath::KeysDir));
+    }
 
     LOG_INFO(Frontend, "suyu-cmd: Initializing system...");
     Core::System system{};

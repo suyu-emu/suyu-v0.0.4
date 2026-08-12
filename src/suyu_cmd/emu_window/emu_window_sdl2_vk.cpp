@@ -5,6 +5,13 @@
 #include <memory>
 #include <string>
 
+#ifdef SUYU_CMD_STATIC_RECOMP
+#include <filesystem>
+#ifdef _WIN32
+#include <windows.h>
+#endif
+#endif
+
 #include <fmt/format.h>
 
 #include "common/logging/log.h"
@@ -17,8 +24,20 @@
 EmuWindow_SDL2_VK::EmuWindow_SDL2_VK(InputCommon::InputSubsystem* input_subsystem_,
                                      Core::System& system_, bool fullscreen)
     : EmuWindow_SDL2{input_subsystem_, system_} {
+#ifdef SUYU_CMD_STATIC_RECOMP
+    // Standalone exports are named after the game already (game_export.cpp
+    // renames the exe at packaging time), so use that instead of the
+    // generic "suyu ..." title that would otherwise flash for a moment
+    // before the game's own title gets set later in the boot sequence.
+    const std::string window_title = [] {
+        wchar_t exe_w[MAX_PATH]{};
+        GetModuleFileNameW(nullptr, exe_w, MAX_PATH);
+        return std::filesystem::path(exe_w).stem().string();
+    }();
+#else
     const std::string window_title = fmt::format("suyu {} | {}-{} (Vulkan)", Common::g_build_name,
                                                  Common::g_scm_branch, Common::g_scm_desc);
+#endif
     render_window =
         SDL_CreateWindow(window_title.c_str(),
                          Layout::ScreenUndocked::Width, Layout::ScreenUndocked::Height,

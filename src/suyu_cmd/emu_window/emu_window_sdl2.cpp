@@ -6,6 +6,7 @@
 static constexpr Uint8 SDL_PRESSED = 1;
 static constexpr Uint8 SDL_RELEASED = 0;
 
+#include "common/fs/path_util.h"
 #include "common/logging/log.h"
 #include "common/scm_rev.h"
 #include "common/settings.h"
@@ -24,40 +25,223 @@ static constexpr Uint8 SDL_RELEASED = 0;
 #define NOMINMAX
 #include <windows.h>
 #include <shellapi.h>
+#include <cstdio>
 #include <filesystem>
+#include <iterator>
+#include <system_error>
 #include <string>
 #include <vector>
 
-static void ShowDevMenu(Core::System& system) {
+// ── F12 debug panel ─────────────────────────────────────────────────────────
+// A real interactive window (not a message box): live status text refreshed on
+// a timer, a list of the mod folders currently visible to the patch manager,
+// and buttons that open the folders this build actually uses. Deliberately
+// carries no emulator branding — an exported game shows the game's own name.
+namespace {
+
+constexpr int kIdStatus = 1001;
+constexpr int kIdMods = 1002;
+constexpr int kIdOpenUser = 1003;
+constexpr int kIdOpenMods = 1004;
+constexpr int kIdOpenKeys = 1005;
+constexpr int kIdClose = 1006;
+constexpr UINT_PTR kTimer = 1;
+
+std::filesystem::path DevExeDir() {
     wchar_t exe_path[MAX_PATH]{};
     GetModuleFileNameW(nullptr, exe_path, MAX_PATH);
-    const auto mods_dir = std::filesystem::path(exe_path).parent_path() / L"mods";
+    return std::filesystem::path(exe_path).parent_path();
+}
 
-    std::wstring mods_text = L"Mods folder: " + mods_dir.wstring() + L"\n\n";
-    if (std::filesystem::is_directory(mods_dir)) {
-        std::vector<std::wstring> mods;
-        for (auto& e : std::filesystem::directory_iterator(mods_dir))
-            mods.push_back(e.path().filename().wstring());
-        if (mods.empty()) {
-            mods_text += L"No mods found.\n";
-        } else {
-            mods_text += L"Active mods:\n";
-            for (auto& m : mods) mods_text += L"  + " + m + L"\n";
+std::wstring DevKeysDir() {
+    return Common::FS::GetEdenPath(Common::FS::EdenPath::KeysDir).wstring();
+}
+
+void DevOpen(const std::filesystem::path& p) {
+    std::error_code ec;
+    std::filesystem::create_directories(p, ec);
+    ShellExecuteW(nullptr, L"explore", p.wstring().c_str(), nullptr, nullptr, SW_SHOW);
+}
+
+struct DevPanelState {
+    Core::System* system{};
+    HWND status{};
+    HWND mods{};
+};
+
+std::wstring DevStatusText(Core::System& system) {
+    std::string game_name;
+    [[maybe_unused]] auto _ = system.GetGameName(game_name);
+    const auto perf = system.GetAndResetPerfStats();
+    wchar_t buf[2048];
+    const auto exe_dir = DevExeDir();
+    swprintf(buf, std::size(buf),
+             L"Title:        %hs\r\n"
+             L"Title ID:     %016llX\r\n"
+             L"FPS:          %.1f   Speed: %.0f%%   Frame: %.2f ms\r\n"
+             L"CPU backend:  %hs\r\n"
+             L"\r\n"
+             L"User data:    %s\r\n"
+             L"Mods:         %s\r\n"
+             L"Keys:         %s\r\n",
+             game_name.empty() ? "(not loaded)" : game_name.c_str(),
+             static_cast<unsigned long long>(system.GetApplicationProcessProgramID()),
+             perf.average_game_fps, perf.emulation_speed * 100.0, perf.frametime * 1000.0,
+             g_native_export_mode ? "ArmRecomp (static recompiled modules)" : "dynarmic JIT",
+             (exe_dir / L"user").wstring().c_str(), (exe_dir / L"mods").wstring().c_str(),
+             DevKeysDir().c_str());
+    return buf;
+}
+
+void DevRefreshMods(HWND list) {
+    SendMessageW(list, LB_RESETCONTENT, 0, 0);
+    const auto mods_dir = DevExeDir() / L"mods";
+    bool any = false;
+    std::error_code ec;
+    if (std::filesystem::is_directory(mods_dir, ec)) {
+        for (const auto& tid : std::filesystem::directory_iterator(mods_dir, ec)) {
+            if (!tid.is_directory()) {
+                continue;
+            }
+            for (const auto& mod : std::filesystem::directory_iterator(tid.path(), ec)) {
+                const std::wstring entry =
+                    tid.path().filename().wstring() + L"  /  " + mod.path().filename().wstring();
+                SendMessageW(list, LB_ADDSTRING, 0,
+                             reinterpret_cast<LPARAM>(entry.c_str()));
+                any = true;
+            }
         }
-    } else {
-        mods_text += L"No mods/ folder (place folders next to .exe to load)\n";
     }
-
-    std::wstring msg = L"=== Dev Menu (F12) ===\n\n" + mods_text +
-        L"\nControls: edit %APPDATA%\\suyu\\config\\qt-config.ini\n\n"
-        L"[OK] = resume   [Cancel] = open config dir";
-
-    if (MessageBoxW(nullptr, msg.c_str(), L"suyu Dev Menu", MB_OKCANCEL | MB_ICONINFORMATION) == IDCANCEL) {
-        wchar_t expanded[MAX_PATH]{};
-        ExpandEnvironmentStringsW(L"%APPDATA%\\suyu\\config", expanded, MAX_PATH);
-        ShellExecuteW(nullptr, L"explore", expanded, nullptr, nullptr, SW_SHOW);
+    if (!any) {
+        SendMessageW(list, LB_ADDSTRING, 0,
+                     reinterpret_cast<LPARAM>(L"(none - drop <title id>/<mod name>/ into mods/)"));
     }
 }
+
+LRESULT CALLBACK DevPanelProc(HWND hwnd, UINT msg, WPARAM wp, LPARAM lp) {
+    auto* st = reinterpret_cast<DevPanelState*>(GetWindowLongPtrW(hwnd, GWLP_USERDATA));
+    switch (msg) {
+    case WM_TIMER:
+        if (st != nullptr && st->system != nullptr) {
+            SetWindowTextW(st->status, DevStatusText(*st->system).c_str());
+        }
+        return 0;
+    case WM_COMMAND:
+        switch (LOWORD(wp)) {
+        case kIdOpenUser:
+            DevOpen(DevExeDir() / L"user");
+            return 0;
+        case kIdOpenMods:
+            DevOpen(DevExeDir() / L"mods");
+            return 0;
+        case kIdOpenKeys:
+            DevOpen(DevKeysDir());
+            return 0;
+        case kIdClose:
+            DestroyWindow(hwnd);
+            return 0;
+        case kIdMods:
+            if (HIWORD(wp) == LBN_DBLCLK && st != nullptr) {
+                DevRefreshMods(st->mods);
+            }
+            return 0;
+        default:
+            break;
+        }
+        return 0;
+    case WM_CLOSE:
+        DestroyWindow(hwnd);
+        return 0;
+    case WM_DESTROY:
+        KillTimer(hwnd, kTimer);
+        PostQuitMessage(0);
+        return 0;
+    default:
+        break;
+    }
+    return DefWindowProcW(hwnd, msg, wp, lp);
+}
+
+void ShowDevMenu(Core::System& system) {
+    static bool registered = false;
+    static const wchar_t* kClass = L"SuyuGameDebugPanel";
+    if (!registered) {
+        WNDCLASSEXW wc{};
+        wc.cbSize = sizeof(wc);
+        wc.lpfnWndProc = DevPanelProc;
+        wc.hInstance = GetModuleHandleW(nullptr);
+        wc.hCursor = LoadCursorW(nullptr, IDC_ARROW);
+        wc.hbrBackground = reinterpret_cast<HBRUSH>(COLOR_BTNFACE + 1);
+        wc.lpszClassName = kClass;
+        wc.hIcon = static_cast<HICON>(LoadImageW(GetModuleHandleW(nullptr), MAKEINTRESOURCEW(1),
+                                                 IMAGE_ICON, 0, 0, LR_DEFAULTSIZE));
+        RegisterClassExW(&wc);
+        registered = true;
+    }
+
+    std::string game_name;
+    [[maybe_unused]] auto _ = system.GetGameName(game_name);
+    const std::wstring title =
+        (game_name.empty() ? std::wstring(L"Game") : std::wstring(game_name.begin(), game_name.end())) +
+        L" - Debug Panel (F12)";
+
+    const HWND hwnd = CreateWindowExW(0, kClass, title.c_str(),
+                                      WS_OVERLAPPED | WS_CAPTION | WS_SYSMENU, CW_USEDEFAULT,
+                                      CW_USEDEFAULT, 720, 480, nullptr, nullptr,
+                                      GetModuleHandleW(nullptr), nullptr);
+    if (hwnd == nullptr) {
+        return;
+    }
+
+    const HINSTANCE inst = GetModuleHandleW(nullptr);
+    DevPanelState state{};
+    state.system = &system;
+    state.status = CreateWindowExW(WS_EX_CLIENTEDGE, L"EDIT", L"",
+                                   WS_CHILD | WS_VISIBLE | ES_MULTILINE | ES_READONLY |
+                                       ES_AUTOVSCROLL | WS_VSCROLL,
+                                   10, 10, 690, 190, hwnd,
+                                   reinterpret_cast<HMENU>(kIdStatus), inst, nullptr);
+    CreateWindowExW(0, L"STATIC", L"Mods discovered under mods/ (double-click to rescan):",
+                    WS_CHILD | WS_VISIBLE, 12, 208, 500, 18, hwnd, nullptr, inst, nullptr);
+    state.mods = CreateWindowExW(WS_EX_CLIENTEDGE, L"LISTBOX", nullptr,
+                                 WS_CHILD | WS_VISIBLE | WS_VSCROLL | LBS_NOTIFY, 10, 228, 690,
+                                 150, hwnd, reinterpret_cast<HMENU>(kIdMods), inst, nullptr);
+    const auto button = [&](const wchar_t* text, int x, int id) {
+        CreateWindowExW(0, L"BUTTON", text, WS_CHILD | WS_VISIBLE | BS_PUSHBUTTON, x, 390, 160, 28,
+                        hwnd, reinterpret_cast<HMENU>(static_cast<INT_PTR>(id)), inst, nullptr);
+    };
+    button(L"Open user data folder", 10, kIdOpenUser);
+    button(L"Open mods folder", 180, kIdOpenMods);
+    button(L"Open keys folder", 350, kIdOpenKeys);
+    button(L"Resume", 540, kIdClose);
+
+    const HFONT font = reinterpret_cast<HFONT>(GetStockObject(DEFAULT_GUI_FONT));
+    EnumChildWindows(
+        hwnd,
+        [](HWND child, LPARAM f) -> BOOL {
+            SendMessageW(child, WM_SETFONT, static_cast<WPARAM>(f), TRUE);
+            return TRUE;
+        },
+        reinterpret_cast<LPARAM>(font));
+
+    SetWindowLongPtrW(hwnd, GWLP_USERDATA, reinterpret_cast<LONG_PTR>(&state));
+    SetWindowTextW(state.status, DevStatusText(system).c_str());
+    DevRefreshMods(state.mods);
+    SetTimer(hwnd, kTimer, 500, nullptr);
+    ShowWindow(hwnd, SW_SHOW);
+
+    // Modal to the game: emulation stays paused-ish while the panel is up, and
+    // the panel gets its own pump so the live status keeps refreshing.
+    MSG m;
+    while (GetMessageW(&m, nullptr, 0, 0) > 0) {
+        if (!IsDialogMessageW(hwnd, &m)) {
+            TranslateMessage(&m);
+            DispatchMessageW(&m);
+        }
+    }
+}
+
+} // namespace
 #endif
 
 EmuWindow_SDL2::EmuWindow_SDL2(InputCommon::InputSubsystem* input_subsystem_, Core::System& system_)
@@ -284,19 +468,75 @@ void EmuWindow_SDL2::WaitEvent() {
         const auto results = system.GetAndResetPerfStats();
         std::string game_name;
         [[maybe_unused]] auto _ = system.GetGameName(game_name);
-        const auto title =
-            fmt::format("{} | {} | FPS: {:.0f} ({:.0f}%)",
-                        game_name.empty() ? "suyu" : game_name,
-                        Common::g_build_fullname,
-                        results.average_game_fps,
-                        results.emulation_speed * 100.0);
-        SDL_SetWindowTitle(render_window, title.c_str());
+        if (g_native_export_mode) {
+            // Standalone game export: plain game title, no emulator branding.
+            if (!game_name.empty()) {
+                SDL_SetWindowTitle(render_window, game_name.c_str());
+            }
+        } else {
+            const auto title =
+                fmt::format("{} | {} | FPS: {:.0f} ({:.0f}%)", game_name.empty() ? "suyu" : game_name,
+                            Common::g_build_fullname, results.average_game_fps,
+                            results.emulation_speed * 100.0);
+            SDL_SetWindowTitle(render_window, title.c_str());
+        }
         last_time = current_time;
     }
 }
 
 // Credits to Samantas5855 and others for this function.
 void EmuWindow_SDL2::SetWindowIcon() {
+#ifdef _WIN32
+    // Native game exports embed the ROM's own icon into the exe's PE resources
+    // (RT_GROUP_ICON id 1, see suyu/game_export.cpp) — use that instead of the
+    // suyu logo so the window reads as the game, not the emulator.
+    if (g_native_export_mode) {
+        const HICON hicon = static_cast<HICON>(
+            LoadImageW(GetModuleHandleW(nullptr), MAKEINTRESOURCEW(1), IMAGE_ICON, 256, 256,
+                       LR_DEFAULTCOLOR));
+        if (hicon != nullptr) {
+            ICONINFO info{};
+            if (GetIconInfo(hicon, &info)) {
+                BITMAP bmp{};
+                GetObjectW(info.hbmColor, sizeof(bmp), &bmp);
+                const int w = bmp.bmWidth;
+                const int h = bmp.bmHeight;
+                std::vector<std::uint8_t> pixels(static_cast<std::size_t>(w) * h * 4);
+                BITMAPINFO bi{};
+                bi.bmiHeader.biSize = sizeof(BITMAPINFOHEADER);
+                bi.bmiHeader.biWidth = w;
+                bi.bmiHeader.biHeight = -h; // top-down
+                bi.bmiHeader.biPlanes = 1;
+                bi.bmiHeader.biBitCount = 32;
+                bi.bmiHeader.biCompression = BI_RGB;
+                const HDC hdc = GetDC(nullptr);
+                if (GetDIBits(hdc, info.hbmColor, 0, h, pixels.data(), &bi, DIB_RGB_COLORS)) {
+                    // BGRA -> RGBA
+                    for (std::size_t i = 0; i + 3 < pixels.size(); i += 4) {
+                        std::swap(pixels[i], pixels[i + 2]);
+                    }
+                    SDL_Surface* const icon_surface = SDL_CreateSurfaceFrom(
+                        w, h, SDL_PIXELFORMAT_RGBA32, pixels.data(), w * 4);
+                    if (icon_surface != nullptr) {
+                        SDL_SetWindowIcon(render_window, icon_surface);
+                        SDL_DestroySurface(icon_surface);
+                        ReleaseDC(nullptr, hdc);
+                        DeleteObject(info.hbmColor);
+                        DeleteObject(info.hbmMask);
+                        DestroyIcon(hicon);
+                        return;
+                    }
+                }
+                ReleaseDC(nullptr, hdc);
+                DeleteObject(info.hbmColor);
+                DeleteObject(info.hbmMask);
+            }
+            DestroyIcon(hicon);
+        }
+        LOG_WARNING(Frontend, "Native export: failed to load game icon from exe resources, "
+                               "falling back to suyu icon.");
+    }
+#endif
     SDL_IOStream* const suyu_icon_stream = SDL_IOFromConstMem((void*)suyu_icon, suyu_icon_size);
     if (suyu_icon_stream == nullptr) {
         LOG_WARNING(Frontend, "Failed to create suyu icon stream.");

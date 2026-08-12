@@ -1,5 +1,0 @@
-"Path","LineNumber","Line"
-"C:\Users\charl\Documents\SuyuEclipse\.tmp_ryujinx_ref\src\Ryujinx.Common\Utilities\XCIFileTrimmer.cs","448","                    // Attempt without key area"
-"C:\Users\charl\Documents\SuyuEclipse\.tmp_ryujinx_ref\src\Ryujinx.Common\Utilities\XCIFileTrimmer.cs","453","                        // Attempt with key area"
-"C:\Users\charl\Documents\SuyuEclipse\.tmp_ryujinx_ref\src\Ryujinx.Common\Utilities\XCIFileTrimmer.cs","495","                    Log?.Write(LogType.Warn, $""Incorrect header found, file mat contain a key area..."");"
-"C:\Users\charl\Documents\SuyuEclipse\.tmp_ryujinx_ref\src\Ryujinx.HLE\HOS\Services\Nfc\AmiiboDecryption\AmiiboMasterKey.cs","18","                throw new ArgumentException(""Master key data must be 80 bytes."");"

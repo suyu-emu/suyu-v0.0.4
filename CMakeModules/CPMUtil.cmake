@@ -1051,13 +1051,23 @@ function(AddCIPackage)
         set(sha512sum_file
             "${CMAKE_CURRENT_BINARY_DIR}/.cpmutil_${ARTIFACT}_sha512sum")
 
-        file(DOWNLOAD "${sha512sum_url}" "${sha512sum_file}"
-            STATUS sha512sum_status)
-        list(GET sha512sum_status 0 sha512sum_error)
+        # Flaky TLS handshakes against the release CDN are common on some
+        # networks; retry a few times before giving up rather than failing
+        # the whole configure on the first hiccup.
+        set(sha512sum_error 1)
+        foreach(sha512sum_attempt RANGE 1 5)
+            file(DOWNLOAD "${sha512sum_url}" "${sha512sum_file}"
+                STATUS sha512sum_status)
+            list(GET sha512sum_status 0 sha512sum_error)
+            if(NOT sha512sum_error)
+                break()
+            endif()
+            execute_process(COMMAND ${CMAKE_COMMAND} -E sleep 2)
+        endforeach()
 
         if(sha512sum_error)
             message(FATAL_ERROR "[CPMUtil] Failed to download sha512sum "
-                "for ${ARTIFACT_NAME} from ${sha512sum_url}")
+                "for ${ARTIFACT_NAME} from ${sha512sum_url} after 5 attempts")
         endif()
 
         file(READ "${sha512sum_file}" sha512sum_hash)

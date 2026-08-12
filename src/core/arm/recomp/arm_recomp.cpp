@@ -5,6 +5,8 @@
 #include <atomic>
 #include <cstring>
 #include <string>
+#include <unordered_map>
+#include <vector>
 
 #include "common/logging/log.h"
 #include "core/arm/recomp/arm_recomp.h"
@@ -142,16 +144,20 @@ struct ArmRecomp::Impl {
         return base;
     }
 
-    // Pre-apply R_AARCH64_RELATIVE relocations for a module by walking its
-    // dynamic section (found via MOD0). Under dynarmic, rtld runs its own
-    // self-relocation loop correctly; under ArmRecomp the recompiled loop exits
-    // early, leaving most relocations un-applied and corrupting data reads.
-    void ApplyRelaRelocations(u64 mod_base) {
+    struct DynInfo {
+        u64 mod_base = 0;
+        u64 rela_va = 0, rela_sz = 0, rela_ent = 24, rela_sz_va = 0;
+        u64 jmprel_va = 0, jmprel_sz = 0, jmprel_ent = 24, jmprel_sz_va = 0;
+        u64 symtab_va = 0, strtab_va = 0;
+    };
+
+    // Locate a module's MOD0 header and parse its .dynamic section. Returns
+    // false if this module has no MOD0 (nothing to relocate).
+    bool ParseDynamic(u64 mod_base, DynInfo& out) {
         auto& mem = system.ApplicationMemory();
         // MOD0 magic "MOD0" = 0x30444F4D. It sits at the start of rodata
         // (typically mod+0x2000 for rtld), but the actual location is pointed
-        // to by a 4-byte offset at mod+4 (per NSO ABI). Try both locations.
-        // Scan the first few KB for the MOD0 signature.
+        // to by a 4-byte offset at mod+4 (per NSO ABI). Scan the first few KB.
         u64 mod0_va = 0;
         for (u64 off = 0; off < 0x4000; off += 4) {
             if (mem.Read32(mod_base + off) == 0x30444F4Du) {
@@ -159,40 +165,213 @@ struct ArmRecomp::Impl {
                 break;
             }
         }
-        if (!mod0_va) return;
+        if (!mod0_va) return false;
 
         // MOD0 layout: magic(4), dyn_offset(4), bss_start(4), bss_end(4)
         // dyn_offset is relative to the MOD0 header itself.
         const u32 dyn_rel_off = mem.Read32(mod0_va + 4);
         const u64 dyn_va = mod0_va + dyn_rel_off;
 
-        // Parse the dynamic section (64-bit tag-value pairs).
-        constexpr u32 DT_NULL = 0, DT_RELA = 7, DT_RELASZ = 8, DT_RELAENT = 9;
-        u64 rela_va = 0, rela_sz = 0, rela_ent = 24;
+        constexpr u32 DT_NULL = 0, DT_PLTRELSZ = 2, DT_STRTAB = 5, DT_SYMTAB = 6, DT_RELA = 7,
+                       DT_RELASZ = 8, DT_RELAENT = 9, DT_PLTREL = 20, DT_JMPREL = 23,
+                       DT_REL_TAG = 17;
+        out.mod_base = mod_base;
+        u64 pltrel_kind = DT_RELA; // default per AArch64 ABI (RELA, not REL)
         for (u64 p = dyn_va; ; p += 16) {
             const u64 tag = mem.Read64(p);
             const u64 val = mem.Read64(p + 8);
             if (tag == DT_NULL) break;
-            if (tag == DT_RELA)   rela_va  = mod_base + val;
-            if (tag == DT_RELASZ) rela_sz  = val;
-            if (tag == DT_RELAENT) rela_ent = val;
+            if (tag == DT_RELA)     out.rela_va    = mod_base + val;
+            if (tag == DT_RELASZ)   { out.rela_sz = val; out.rela_sz_va = p + 8; }
+            if (tag == DT_RELAENT)  out.rela_ent   = val;
+            if (tag == DT_JMPREL)   out.jmprel_va  = mod_base + val;
+            if (tag == DT_PLTRELSZ) { out.jmprel_sz = val; out.jmprel_sz_va = p + 8; }
+            if (tag == DT_PLTREL)   pltrel_kind    = val;
+            if (tag == DT_SYMTAB)   out.symtab_va  = mod_base + val;
+            if (tag == DT_STRTAB)   out.strtab_va  = mod_base + val;
             if (p - dyn_va > 0x1000) break; // safety
         }
-        if (!rela_va || !rela_sz) return;
+        // DT_PLTREL says whether JMPREL uses 16-byte REL entries (no addend)
+        // instead of 24-byte RELA - vanishingly rare on AArch64, but assuming
+        // RELA unconditionally would silently misalign every read if a
+        // module did use it. Checked after the loop since DT_PLTREL can
+        // appear either before or after the entries it describes.
+        out.jmprel_ent = (pltrel_kind == DT_REL_TAG) ? 16 : 24;
+        return true;
+    }
 
-        // Apply each R_AARCH64_RELATIVE entry (type 0x403).
-        constexpr u32 R_AARCH64_RELATIVE = 0x403;
-        u32 applied = 0;
-        for (u64 p = rela_va; p < rela_va + rela_sz; p += rela_ent) {
+    // Read a symbol's name (from .dynstr) and value for GLOB_DAT/JUMP_SLOT
+    // resolution. Elf64_Sym: st_name(4) st_info(1) st_other(1) st_shndx(2)
+    // st_value(8) st_size(8) = 24 bytes.
+    struct SymInfo {
+        std::string name;
+        u64 value = 0;
+        bool defined = false;
+    };
+    SymInfo ReadSymbol(const DynInfo& d, u32 index) {
+        auto& mem = system.ApplicationMemory();
+        SymInfo s;
+        if (!d.symtab_va) return s;
+        const u64 sym_va = d.symtab_va + static_cast<u64>(index) * 24;
+        const u32 name_off = mem.Read32(sym_va);
+        // st_shndx is a 2-byte field at offset 6 (st_name(4) st_info(1)
+        // st_other(1) st_shndx(2) st_value(8) st_size(8)) - reading 4 bytes
+        // here previously spilled into st_value's low bytes, corrupting the
+        // defined/undefined check for essentially every symbol whose value
+        // had nonzero low 16 bits.
+        const u16 shndx = mem.Read16(sym_va + 6);
+        s.value = mem.Read64(sym_va + 8);
+        s.defined = shndx != 0; // SHN_UNDEF == 0
+        if (d.strtab_va) {
+            std::string name;
+            for (u64 i = 0; i < 512; ++i) {
+                const u8 c = static_cast<u8>(mem.Read8(d.strtab_va + name_off + i));
+                if (!c) break;
+                name.push_back(static_cast<char>(c));
+            }
+            s.name = std::move(name);
+        }
+        return s;
+    }
+
+    // Every module's exported (defined) symbols, keyed by name, so
+    // GLOB_DAT/JUMP_SLOT relocations that reference another module's symbol
+    // (e.g. main calling into sdk, or rtld exporting to everything) can be
+    // resolved. Built once, across every module, before any relocation
+    // actually writes anything - a relocation processed before its target
+    // module's exports are indexed would silently resolve to nothing.
+    void IndexExports(const DynInfo& d, std::unordered_map<std::string, u64>& out) {
+        if (!d.symtab_va || !d.strtab_va) return;
+        // No count is stored in .dynamic for a plain DT_SYMTAB (that's normally
+        // DT_HASH/DT_GNU_HASH territory), but .dynsym and .dynstr are laid out
+        // back to back in every Switch module observed so far, so the gap
+        // between them is a reliable entry count - far more so than guessing
+        // from name-offset values, which was cutting exports short before
+        // rtld's own required symbols were reached (18 unresolved externals
+        // for rtld itself were enough to trigger its self-abort).
+        u32 max_index = 8192;
+        if (d.strtab_va > d.symtab_va) {
+            const u64 span = d.strtab_va - d.symtab_va;
+            max_index = std::min<u64>(span / 24, 65536);
+        }
+        for (u32 i = 1; i < max_index; ++i) { // index 0 is always the null symbol
+            const auto sym = ReadSymbol(d, i);
+            if (sym.defined && !sym.name.empty()) {
+                out.emplace(sym.name, d.mod_base + sym.value);
+            }
+        }
+    }
+
+    void ApplyRelocTable(const DynInfo& d, u64 table_va, u64 table_sz, u64 entry_sz,
+                          const std::unordered_map<std::string, u64>& exports, u32& applied,
+                          u32& unresolved) {
+        auto& mem = system.ApplicationMemory();
+        constexpr u32 R_AARCH64_RELATIVE = 0x403, R_AARCH64_GLOB_DAT = 0x401,
+                       R_AARCH64_JUMP_SLOT = 0x402;
+        for (u64 p = table_va; p < table_va + table_sz; p += entry_sz) {
             const u64 r_offset = mem.Read64(p);
             const u64 r_info   = mem.Read64(p + 8);
             const u64 r_addend = mem.Read64(p + 16);
-            if ((r_info & 0xFFFFFFFF) == R_AARCH64_RELATIVE) {
-                mem.Write64(mod_base + r_offset, mod_base + r_addend);
+            const u32 r_type = static_cast<u32>(r_info & 0xFFFFFFFF);
+            const u32 r_sym  = static_cast<u32>(r_info >> 32);
+            if (r_type == R_AARCH64_RELATIVE) {
+                mem.Write64(d.mod_base + r_offset, d.mod_base + r_addend);
                 ++applied;
+            } else if (r_type == R_AARCH64_GLOB_DAT || r_type == R_AARCH64_JUMP_SLOT) {
+                const auto sym = ReadSymbol(d, r_sym);
+                // Linker-synthesized section-boundary symbols (__got_start,
+                // __rela_dyn_end, __tbss_align_abs, __EX_start, etc.) describe
+                // the CURRENT module's own layout - they're self-referential,
+                // not imports - but the minimal Switch toolchain often leaves
+                // them marked SHN_UNDEF anyway despite carrying a correct
+                // st_value. A nonzero value on an otherwise-"undefined"
+                // symbol is a strong signal it's one of these, not a genuine
+                // external import (those are left at value 0 with nothing to
+                // point to), so trust it ahead of both the defined check and
+                // cross-module export lookup.
+                u64 synthetic = 0;
+                bool is_synthetic = true;
+                // These describe THIS module's own relocation sections - the
+                // linker leaves them SHN_UNDEF/value-0 in the dynamic symbol
+                // table expecting the loader to patch them in directly from
+                // its own knowledge of where it placed .rela.dyn/.rela.plt,
+                // rather than resolving them like a normal import. We already
+                // parsed those bounds for our own use.
+                if (sym.name == "__rela_dyn_start" || sym.name == "__rel_dyn_start") {
+                    synthetic = d.rela_va;
+                } else if (sym.name == "__rela_dyn_end" || sym.name == "__rel_dyn_end") {
+                    synthetic = d.rela_va + d.rela_sz;
+                } else if (sym.name == "__rela_plt_start" || sym.name == "__rel_plt_start") {
+                    synthetic = d.jmprel_va;
+                } else if (sym.name == "__rela_plt_end" || sym.name == "__rel_plt_end") {
+                    synthetic = d.jmprel_va + d.jmprel_sz;
+                } else {
+                    is_synthetic = false;
+                }
+                if (is_synthetic && synthetic) {
+                    mem.Write64(d.mod_base + r_offset, synthetic);
+                    ++applied;
+                } else if (sym.defined || sym.value != 0) {
+                    mem.Write64(d.mod_base + r_offset, d.mod_base + sym.value);
+                    ++applied;
+                } else if (auto it = exports.find(sym.name); it != exports.end()) {
+                    mem.Write64(d.mod_base + r_offset, it->second);
+                    ++applied;
+                } else {
+                    ++unresolved;
+                    if (unresolved <= 30) {
+                        LOG_ERROR(Core_ARM, "recomp: unresolved GOT/PLT symbol '{}' for module base={:#x}",
+                                  sym.name.empty() ? "<no name>" : sym.name, d.mod_base);
+                    }
+                }
             }
         }
-        LOG_INFO(Core_ARM, "recomp: pre-applied {} RELA relocations for module base={:#x}", applied, mod_base);
+    }
+
+    // Pre-apply relocations for every loaded module. Under dynarmic, rtld
+    // runs its own self-relocation loop correctly; under ArmRecomp the
+    // recompiled loop exits early, leaving most relocations un-applied and
+    // corrupting both data reads (R_AARCH64_RELATIVE, e.g. vtables, GOT
+    // pointers to local data) and indirect calls through the GOT/PLT
+    // (R_AARCH64_GLOB_DAT / R_AARCH64_JUMP_SLOT - unresolved, these are the
+    // null/garbage function pointers that were previously observed crashing
+    // rtld's module bootstrap). All module bases are already known by the
+    // time this runs (the loader maps every NSO up front), so cross-module
+    // symbol resolution just needs every module's exports indexed first.
+    void ApplyAllRelocations(const std::map<u64, std::string>& all_modules) {
+        auto& mem = system.ApplicationMemory();
+        std::vector<DynInfo> dyns;
+        std::unordered_map<std::string, u64> exports;
+        for (const auto& [module_base, name] : all_modules) {
+            DynInfo d;
+            if (ParseDynamic(module_base, d)) {
+                IndexExports(d, exports);
+                dyns.push_back(d);
+            }
+        }
+        for (const auto& d : dyns) {
+            u32 applied = 0, unresolved = 0;
+            if (d.rela_va && d.rela_sz) {
+                ApplyRelocTable(d, d.rela_va, d.rela_sz, d.rela_ent, exports, applied, unresolved);
+            }
+            if (d.jmprel_va && d.jmprel_sz) {
+                ApplyRelocTable(d, d.jmprel_va, d.jmprel_sz, d.jmprel_ent, exports, applied,
+                                 unresolved);
+            }
+            // Zero DT_RELASZ/DT_PLTRELSZ so rtld's own self-relocator sees
+            // nothing left to do and skips both tables - it runs its own
+            // GLOB_DAT/JUMP_SLOT resolution loop with a load-bias consistency
+            // check that assumes it's relocating fresh, unresolved entries;
+            // finding them already resolved by us trips that check and it
+            // calls svcBreak, which is what was hanging every recompiled
+            // game at boot despite relocations succeeding.
+            if (d.rela_sz_va) mem.Write64(d.rela_sz_va, 0);
+            if (d.jmprel_sz_va) mem.Write64(d.jmprel_sz_va, 0);
+            LOG_INFO(Core_ARM,
+                     "recomp: pre-applied {} relocations ({} unresolved external symbols) for "
+                     "module base={:#x}",
+                     applied, unresolved, d.mod_base);
+        }
     }
 
     System& system;
@@ -240,19 +419,7 @@ HaltReason ArmRecomp::RunThread(Kernel::KThread* thread) {
 
     if (!impl->rela_applied) {
         impl->rela_applied = true;
-        // Snapshot 0x273c BEFORE our RELA pass to pinpoint corruption source.
-        auto dump273c = [&](const char* tag) {
-            if (impl->modules.empty()) return;
-            const u64 mbase = impl->modules.begin()->first;
-            std::string dump;
-            for (u64 i = 0; i < 0x60; i += 4)
-                dump += fmt::format("{:08x} ", Impl::HostLoad(impl.get(), mbase + 0x273c + i, 4));
-            LOG_INFO(Core_ARM, "recomp {} mod+0x273c (base {:#x}): {}", tag, mbase, dump);
-        };
-        dump273c("BEFORE-RELA");
-        for (const auto& [module_base, name] : impl->modules)
-            impl->ApplyRelaRelocations(module_base);
-        dump273c("AFTER-RELA");
+        impl->ApplyAllRelocations(impl->modules);
     }
 
     impl->interrupted.store(false, std::memory_order_relaxed);
@@ -332,6 +499,14 @@ HaltReason ArmRecomp::RunThread(Kernel::KThread* thread) {
         block(&impl->ctx);
 
         if (impl->ctx.pending_svc != kNoPendingSvc) {
+            // Log every SVC call from rtld (first few hundred only to avoid spam)
+            static std::atomic<int> svc_count{0};
+            int cnt = svc_count.fetch_add(1, std::memory_order_relaxed);
+            if (cnt < 200) {
+                LOG_ERROR(Core_ARM, "recomp SVC {} at pc={:#x} x0={:#x} x1={:#x} x2={:#x} x3={:#x}",
+                          impl->ctx.pending_svc, impl->ctx.pc,
+                          impl->ctx.x[0], impl->ctx.x[1], impl->ctx.x[2], impl->ctx.x[3]);
+            }
             return HaltReason::SupervisorCall;
         }
     }

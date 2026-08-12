@@ -13,7 +13,7 @@ function(create_resource file output filename)
 endfunction()
 
 if (SUYU_CMD OR YUZU_CMD)
-    add_executable(suyu-cmd
+    set(SUYU_CMD_SOURCES
         emu_window/emu_window_sdl2.cpp
         emu_window/emu_window_sdl2.h
         emu_window/emu_window_sdl2_gl.cpp
@@ -29,53 +29,101 @@ if (SUYU_CMD OR YUZU_CMD)
         suyu.rc
     )
 
-    if (APPLE)
-        target_sources(suyu-cmd PRIVATE
-            emu_window/emu_window_sdl2_mtl.cpp
-            emu_window/emu_window_sdl2_mtl.h
-        )
-    endif()
+    add_executable(suyu-cmd ${SUYU_CMD_SOURCES})
+    set(SUYU_CMD_TARGETS suyu-cmd)
 
-    target_link_libraries(suyu-cmd PRIVATE common core input_common frontend_common)
-    target_link_libraries(suyu-cmd PRIVATE glad)
-    if (MSVC)
-        target_link_libraries(suyu-cmd PRIVATE getopt)
+    # ---------------------------------------------------------------------
+    # Per-game statically recompiled variant.
+    #
+    # SUYU_CMD_RECOMP_DIR points at one export's exefs/ directory, which holds
+    # a generated recomp_registration.c plus one subdirectory per NSO module
+    # with a generated CMakeLists.txt. Each of those contributes a static
+    # library (recomp_static_<module>) whose C symbols have been renamed per
+    # module, so they can all live in one binary. The result is a single
+    # self-contained executable: no recompiled_*.dll to ship beside it.
+    #
+    # This is an *additional* target - plain suyu-cmd stays game-agnostic.
+    # ---------------------------------------------------------------------
+    if (SUYU_CMD_RECOMP_DIR AND EXISTS "${SUYU_CMD_RECOMP_DIR}/recomp_registration.c")
+        enable_language(C)
+        # Tells the generated module projects to emit only the static library,
+        # skipping their portable standalone exe (whose target name would
+        # collide between modules) and their loadable shared image.
+        set(RECOMP_STATIC_ONLY ON)
+        set(_recomp_libs "")
+        file(GLOB _recomp_children RELATIVE "${SUYU_CMD_RECOMP_DIR}"
+             "${SUYU_CMD_RECOMP_DIR}/*")
+        foreach(_m ${_recomp_children})
+            if (EXISTS "${SUYU_CMD_RECOMP_DIR}/${_m}/CMakeLists.txt" AND
+                EXISTS "${SUYU_CMD_RECOMP_DIR}/${_m}/recomp_export.c")
+                add_subdirectory("${SUYU_CMD_RECOMP_DIR}/${_m}"
+                                 "${CMAKE_CURRENT_BINARY_DIR}/recomp/${_m}")
+                list(APPEND _recomp_libs "recomp_static_${_m}")
+            endif()
+        endforeach()
+        if (_recomp_libs)
+            add_executable(suyu-cmd-static ${SUYU_CMD_SOURCES}
+                           "${SUYU_CMD_RECOMP_DIR}/recomp_registration.c")
+            target_compile_definitions(suyu-cmd-static PRIVATE SUYU_CMD_STATIC_RECOMP=1)
+            target_link_libraries(suyu-cmd-static PRIVATE ${_recomp_libs})
+            list(APPEND SUYU_CMD_TARGETS suyu-cmd-static)
+        else()
+            message(WARNING "SUYU_CMD_RECOMP_DIR set but no recompiled modules found in it")
+        endif()
     endif()
-    target_link_libraries(suyu-cmd PRIVATE ${PLATFORM_LIBRARIES} Threads::Threads)
 
     create_resource("../../dist/suyu.bmp" "suyu_cmd/suyu_icon.h" "suyu_icon")
-    target_include_directories(suyu-cmd PRIVATE ${RESOURCES_DIR})
 
-    target_link_libraries(suyu-cmd PRIVATE SDL3::SDL3 Vulkan::Headers VulkanMemoryAllocator)
-    # FFmpeg headers are not transitively exposed by core; add them explicitly
-    target_include_directories(suyu-cmd PRIVATE ${FFmpeg_INCLUDE_DIR})
-
-    if(UNIX)
+    foreach(_t ${SUYU_CMD_TARGETS})
         if (APPLE)
-            target_link_libraries(suyu-cmd PRIVATE metal-cpp)  # Metal support for macOS
-        else()
-            install(TARGETS suyu-cmd)
+            target_sources(${_t} PRIVATE
+                emu_window/emu_window_sdl2_mtl.cpp
+                emu_window/emu_window_sdl2_mtl.h
+            )
         endif()
-    endif()
 
-    if(WIN32)
-        # compile as a win32 gui application instead of a console application
-        if(MSVC)
-            set_target_properties(suyu-cmd PROPERTIES LINK_FLAGS_RELEASE "/SUBSYSTEM:WINDOWS /ENTRY:mainCRTStartup")
-        elseif(MINGW)
-            set_target_properties(suyu-cmd PROPERTIES LINK_FLAGS_RELEASE "-Wl,--subsystem,windows")
+        target_link_libraries(${_t} PRIVATE common core input_common frontend_common)
+        target_link_libraries(${_t} PRIVATE glad)
+        if (MSVC)
+            target_link_libraries(${_t} PRIVATE getopt)
         endif()
-        target_link_libraries(suyu-cmd PRIVATE ${PLATFORM_LIBRARIES} Threads::Threads)  # Fixed typo: yuzu-cmd -> suyu-cmd
-    endif()
+        target_link_libraries(${_t} PRIVATE ${PLATFORM_LIBRARIES} Threads::Threads)
 
-    if (MSVC AND SUYU_USE_BUNDLED_SDL3)
-        include(CopySuyuSDLDeps)
-        copy_suyu_SDL_deps(suyu-cmd)
-    endif()
+        target_include_directories(${_t} PRIVATE ${RESOURCES_DIR})
 
-    if (SUYU_USE_PRECOMPILED_HEADERS)
-        target_precompile_headers(suyu-cmd PRIVATE precompiled_headers.h)
-    endif()
+        target_link_libraries(${_t} PRIVATE SDL3::SDL3 Vulkan::Headers VulkanMemoryAllocator)
+        # FFmpeg headers are not transitively exposed by core; add them explicitly
+        target_include_directories(${_t} PRIVATE ${FFmpeg_INCLUDE_DIR})
 
-    create_target_directory_groups(suyu-cmd)
+        if(UNIX)
+            if (APPLE)
+                target_link_libraries(${_t} PRIVATE metal-cpp)  # Metal support for macOS
+            endif()
+        endif()
+
+        if(WIN32)
+            # compile as a win32 gui application instead of a console application
+            if(MSVC)
+                set_target_properties(${_t} PROPERTIES LINK_FLAGS_RELEASE "/SUBSYSTEM:WINDOWS /ENTRY:mainCRTStartup")
+            elseif(MINGW)
+                set_target_properties(${_t} PROPERTIES LINK_FLAGS_RELEASE "-Wl,--subsystem,windows")
+            endif()
+            target_link_libraries(${_t} PRIVATE ${PLATFORM_LIBRARIES} Threads::Threads)  # Fixed typo: yuzu-cmd -> suyu-cmd
+        endif()
+
+        if (MSVC AND SUYU_USE_BUNDLED_SDL3)
+            include(CopySuyuSDLDeps)
+            copy_suyu_SDL_deps(${_t})
+        endif()
+
+        if (SUYU_USE_PRECOMPILED_HEADERS)
+            target_precompile_headers(${_t} PRIVATE precompiled_headers.h)
+        endif()
+
+        create_target_directory_groups(${_t})
+    endforeach()
+
+    if(UNIX AND NOT APPLE)
+        install(TARGETS suyu-cmd)
+    endif()
 endif()

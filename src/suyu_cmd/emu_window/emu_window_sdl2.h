@@ -14,6 +14,11 @@ namespace Core {
 class System;
 }
 
+/// Defined in suyu.cpp. True once native recompiled CPU modules are
+/// registered — the running process is a standalone game export, so window
+/// chrome (title/icon) should read as the game, not the suyu dev frontend.
+extern bool g_native_export_mode;
+
 namespace InputCommon {
 class InputSubsystem;
 enum class MouseButton;

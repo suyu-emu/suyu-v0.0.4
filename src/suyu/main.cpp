@@ -5981,6 +5981,7 @@ void GMainWindow::OnExportGame() {
             constexpr int kTitleRole = Qt::UserRole + 3;
             constexpr int kPathRole = Qt::UserRole + 4;
             constexpr int kProgramIdRole = Qt::UserRole + 2;
+            constexpr int kRawIconRole = Qt::UserRole + 7; // RawIconRole from game_list_p.h
 
             std::function<void(const QModelIndex&)> collect = [&](const QModelIndex& parent) {
                 const int rows = model->rowCount(parent);
@@ -5993,8 +5994,12 @@ void GMainWindow::OnExportGame() {
                         const QString title = idx.data(kTitleRole).toString().trimmed().isEmpty()
                                                   ? idx.data(Qt::DisplayRole).toString()
                                                   : idx.data(kTitleRole).toString();
+                        const QVariant icon_v = idx.data(kRawIconRole);
+                        const QPixmap icon = icon_v.canConvert<QPixmap>()
+                                                  ? icon_v.value<QPixmap>()
+                                                  : idx.data(Qt::DecorationRole).value<QPixmap>();
                         library_entries.push_back(
-                            {title, game_path, idx.data(kProgramIdRole).toULongLong()});
+                            {title, game_path, idx.data(kProgramIdRole).toULongLong(), icon});
                     }
                     if (model->hasChildren(idx)) {
                         collect(idx);

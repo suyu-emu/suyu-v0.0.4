@@ -86,7 +86,8 @@ inline bool DirectBranchTarget(u32 i, u64 pc, u64& out) {
 }
 
 inline std::vector<Block> DiscoverBlocks(const u8* text, size_t n_bytes, u64 base,
-                                         u64 entry_pc = 0) {
+                                         u64 entry_pc = 0,
+                                         const std::vector<u64>* extra_roots = nullptr) {
     const u32 n = (u32)(n_bytes / 4);
     if (n == 0) return {};
     std::vector<bool> start(n, false);
@@ -97,6 +98,19 @@ inline std::vector<Block> DiscoverBlocks(const u8* text, size_t n_bytes, u64 bas
     // address falls in the middle of some other block and lookup fails.
     if (entry_pc > base && (entry_pc - base) / 4 < n) {
         start[(u32)((entry_pc - base) / 4)] = true;
+    }
+    // Exported dynsym addresses (functions like nn::init::Start, only ever
+    // reached indirectly via another module's resolved GOT/PLT entry, never
+    // by a direct branch inside this module's own .text). Without seeding
+    // these as roots too, a function preceded by alignment padding rather
+    // than a terminator falls mid-block and the runtime dispatcher can never
+    // resolve a call landing exactly on its real entry address.
+    if (extra_roots) {
+        for (u64 addr : *extra_roots) {
+            if (addr >= base && (addr - base) / 4 < n) {
+                start[(u32)((addr - base) / 4)] = true;
+            }
+        }
     }
     const u32* p = reinterpret_cast<const u32*>(text);
     for (u32 i = 0; i < n; ++i) {
@@ -1554,9 +1568,13 @@ inline RecompileStats EmitProject(const std::string& mod, const u8* text, size_t
                                   u64 entry_pc = 0,
                                   // Human-readable game name, shown by the generated executable so
                                   // it identifies itself rather than printing raw addresses.
-                                  const std::string& display_title = {}) {
+                                  const std::string& display_title = {},
+                                  // Addresses of this module's exported dynsym symbols, so
+                                  // block discovery seeds a root at each even when nothing in
+                                  // this module's own .text branches there directly.
+                                  const std::vector<u64>* extra_roots = nullptr) {
     RecompileStats stats;
-    auto blocks = DiscoverBlocks(text, n_bytes, base, entry_pc);
+    auto blocks = DiscoverBlocks(text, n_bytes, base, entry_pc, extra_roots);
     const u32* p = reinterpret_cast<const u32*>(text);
     stats.blocks = blocks.size();
     stats.instructions = n_bytes / 4;
@@ -1722,17 +1740,70 @@ inline RecompileStats EmitProject(const std::string& mod, const u8* text, size_t
     std::ostringstream cm;
     // The generated units live in src/ and include "recomp_runtime.h" from the
     // module root, so the root has to be on the include path.
-    cm << "cmake_minimum_required(VERSION 3.13)\nproject(suyu_recompiled C)\nset(CMAKE_C_STANDARD 11)\n"
-       << "include_directories(${CMAKE_CURRENT_SOURCE_DIR})\n\n"
+    cm << "cmake_minimum_required(VERSION 3.13)\n"
+       << "# When this directory is pulled into a bigger build (suyu-cmd linking the\n"
+       << "# modules statically) it must not start a project of its own - it just\n"
+       << "# contributes targets. Standalone it is still a complete project.\n"
+       << "if(CMAKE_SOURCE_DIR STREQUAL CMAKE_CURRENT_SOURCE_DIR)\n"
+       << "  project(suyu_recompiled C)\n"
+       << "else()\n"
+       << "  enable_language(C)\n"
+       << "endif()\n"
+       << "set(CMAKE_C_STANDARD 11)\n"
+       << "include_directories(${CMAKE_CURRENT_SOURCE_DIR})\n"
+       << "# A host project (suyu) may apply C++ flags to every language; this\n"
+       << "# directory is plain C, and MSVC rejects /std:c11 together with\n"
+       << "# /std:c++20 outright.\n"
+       << "get_directory_property(_recomp_opts COMPILE_OPTIONS)\n"
+       << "if(_recomp_opts)\n"
+       << "  list(FILTER _recomp_opts EXCLUDE REGEX \"std:c\\\\+\\\\+|std=c\\\\+\\\\+|EHsc|permissive\")\n"
+       << "  set_directory_properties(PROPERTIES COMPILE_OPTIONS \"${_recomp_opts}\")\n"
+       << "endif()\n\n"
+       << "# RECOMP_STATIC_ONLY: build just the static library this module\n"
+       << "# contributes to a host executable, skipping the portable standalone exe\n"
+       << "# and the loadable shared image.\n"
+       << "if(NOT RECOMP_STATIC_ONLY)\n"
        << "# Optional: SDL2 window for display output.\n"
        << "# Install SDL2 (e.g. vcpkg install sdl2) to enable the game window.\n"
-       << "find_package(SDL2 QUIET)\n\n"
+       << "find_package(SDL2 QUIET)\n"
+       << "endif()\n\n"
        << "# Generated translation units, all under src/.\nset(RECOMP_SOURCES\n"
        << "    src/recompiled_" << mod << ".c";
     for (size_t u = 0; u < unit_count; ++u) {
         cm << "\n    src/recompiled_" << mod << "_" << u << ".c";
     }
     cm << ")\n\n"
+       << "# Generated block bodies are huge flat switch/if chains translated\n"
+       << "# straight from machine code - there's no loop nesting or hot path for\n"
+       << "# -O2 to meaningfully improve, just a lot of blocks for it to chew\n"
+       << "# through. Compiling them at -O1 cuts single-TU compile time sharply\n"
+       << "# on large modules with no measurable runtime cost.\n"
+       << "if(MSVC)\n"
+       // /MP is what actually decides wall-clock time here. The Visual Studio
+       // generator compiles the files of a single project strictly in
+       // sequence, so a module with 100+ generated translation units serialises
+       // onto one core no matter what --parallel is passed to `cmake --build`.
+       // /MP fans them out across every core. Ninja parallelises on its own and
+       // warns about /MP, so gate it on the generator, not just on MSVC.
+       // The warning suppressions are the noisy ones the translation
+       // unavoidably produces (constant conditionals, provably-taken
+       // divide/shift paths); silencing them keeps cl.exe from spending real
+       // time formatting hundreds of thousands of diagnostics.
+       // /we4189 (from the top-level target's inherited warning-as-error
+       // set) turns "unused local" into a hard build failure; the codegen
+       // legitimately computes and drops _r on some flag-only paths, so
+       // downgrade it back to a warning for generated sources specifically.
+       << "  set(_recomp_msvc_opts \"/O1\" \"/wd4127\" \"/wd4723\" \"/wd4102\" \"/wd4101\" "
+          "\"/wd4189\")\n"
+       << "  if(NOT CMAKE_GENERATOR MATCHES \"Ninja\")\n"
+       << "    list(APPEND _recomp_msvc_opts \"/MP\")\n"
+       << "  endif()\n"
+       << "  set_source_files_properties(${RECOMP_SOURCES} PROPERTIES COMPILE_OPTIONS "
+          "\"${_recomp_msvc_opts}\")\n"
+       << "else()\n"
+       << "  set_source_files_properties(${RECOMP_SOURCES} PROPERTIES COMPILE_OPTIONS \"-O1\")\n"
+       << "endif()\n\n"
+       << "if(NOT RECOMP_STATIC_ONLY)\n"
        << "add_executable(recompiled main.c recomp_runtime.c ${RECOMP_SOURCES})\n"
        << "if(SDL2_FOUND)\n"
        << "  target_compile_definitions(recompiled PRIVATE HAVE_SDL2)\n"
@@ -1742,7 +1813,8 @@ inline RecompileStats EmitProject(const std::string& mod, const u8* text, size_t
        << "else()\n"
        << "  message(STATUS \"SDL2 not found — running headless (no window)\")\n"
        << "endif()\n"
-       << "# Portable C11: Windows->.exe, Linux/FreeBSD/OpenBSD->ELF, macOS->Mach-O\n\n";
+       << "# Portable C11: Windows->.exe, Linux/FreeBSD/OpenBSD->ELF, macOS->Mach-O\n"
+       << "endif()\n\n";
 
     // A second target builds the same code as a shared library exporting the
     // block lookup. That is what suyu loads to run this image on
@@ -1755,11 +1827,44 @@ inline RecompileStats EmitProject(const std::string& mod, const u8* text, size_t
     // recompiled_rtld.dll / recompiled_image.dll (main) / recompiled_sdk.dll /
     // recompiled_subsdkN.dll next to the exe, in NSO load order.
     const std::string dll_target = (mod == "main") ? "recompiled_image" : ("recompiled_" + mod);
-    cm << "add_library(" << dll_target << " SHARED recomp_export.c recomp_runtime.c "
+    cm << "if(NOT RECOMP_STATIC_ONLY)\n"
+       << "add_library(" << dll_target << " SHARED recomp_export.c recomp_runtime.c "
           "${RECOMP_SOURCES})\n"
        << "set_target_properties(" << dll_target << " PROPERTIES C_VISIBILITY_PRESET hidden "
           "OUTPUT_NAME \"" << dll_target << "\")\n"
-       << "target_compile_definitions(" << dll_target << " PRIVATE SUYU_HOSTED_RECOMP=1)\n";
+       << "target_compile_definitions(" << dll_target
+       << " PRIVATE SUYU_HOSTED_RECOMP=1 RECOMP_SHARED_MODULE=1)\n"
+       << "endif()\n\n";
+
+    // Static-library variant. Several of these get linked into ONE host
+    // executable (the per-game suyu-cmd build), so every symbol a module owns
+    // has to be unique. The generated C is written once and renamed at compile
+    // time through -D, which keeps the sources identical between the shared and
+    // the static shape.
+    //
+    // recomp_runtime.c is deliberately NOT part of this target: its contents
+    // (recomp_svc, the load/store helpers, recomp_cond, ...) are generic and
+    // must exist exactly once in the final link. It is built separately, once,
+    // as recomp_runtime_shared.
+    const std::string static_target = "recomp_static_" + mod;
+    cm << "if(NOT TARGET recomp_runtime_shared)\n"
+       << "  add_library(recomp_runtime_shared STATIC recomp_runtime.c)\n"
+       << "  target_compile_definitions(recomp_runtime_shared PRIVATE SUYU_HOSTED_RECOMP=1 "
+          "RECOMP_STATIC_HOST=1)\n"
+       << "  target_include_directories(recomp_runtime_shared PUBLIC "
+          "${CMAKE_CURRENT_SOURCE_DIR})\n"
+       << "endif()\n"
+       << "add_library(" << static_target << " STATIC recomp_export.c ${RECOMP_SOURCES})\n"
+       << "target_include_directories(" << static_target
+       << " PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})\n"
+       << "target_link_libraries(" << static_target << " PUBLIC recomp_runtime_shared)\n"
+       << "target_compile_definitions(" << static_target
+       << " PRIVATE SUYU_HOSTED_RECOMP=1 RECOMP_STATIC_MODULE=1"
+       << " g_module_base=g_module_base_" << mod
+       << " recomp_lookup=recomp_lookup_" << mod
+       << " recomp_image_lookup=recomp_image_lookup_" << mod
+       << " recomp_image_set_base=recomp_image_set_base_" << mod
+       << " recomp_image_entry=recomp_image_entry_" << mod << ")\n";
 
     std::ostringstream ex;
     ex << "/* auto-generated by suyu static recompiler - DO NOT EDIT */\n"
@@ -1767,7 +1872,15 @@ inline RecompileStats EmitProject(const std::string& mod, const u8* text, size_t
           "/* The one symbol suyu resolves out of a recompiled image. Named\n"
           "   distinctly from the internal recomp_lookup so the export is\n"
           "   unambiguous, and so the internal one can stay hidden. */\n"
-          "#ifdef _WIN32\n"
+          "#ifdef RECOMP_STATIC_MODULE\n"
+          "/* Linked straight into the host executable: static-library symbols are\n"
+          "   visible to the linker on their own, and the names are already made\n"
+          "   unique per module by the -D renames the build applies. */\n"
+          "#define RECOMP_API\n"
+          "/* The shared runtime is compiled once for the whole link and therefore\n"
+          "   cannot own this - each module needs its own load base. */\n"
+          "uint64_t g_module_base = 0;\n"
+          "#elif defined(_WIN32)\n"
           "#define RECOMP_API __declspec(dllexport)\n"
           "#else\n"
           "#define RECOMP_API __attribute__((visibility(\"default\")))\n"
@@ -1966,7 +2079,13 @@ void recomp_store16(GuestContext* c,uint64_t a,uint64_t v){memstore(c,a,2,v);}
 void recomp_store32(GuestContext* c,uint64_t a,uint64_t v){memstore(c,a,4,v);}
 void recomp_store64(GuestContext* c,uint64_t a,uint64_t v){memstore(c,a,8,v);}
 
+#ifndef RECOMP_STATIC_HOST
+/* Owned by the runtime in the single-module shapes (standalone exe, loadable
+   shared image). When several modules are linked statically into one host this
+   file is compiled once for all of them, so each module defines its own
+   (renamed) copy in recomp_export.c instead. */
 uint64_t g_module_base = 0;
+#endif
 
 uint64_t recomp_umulh(uint64_t a,uint64_t b){
   /* Portable 64x64->high64: split into 32-bit halves. Avoids depending on
@@ -2197,6 +2316,11 @@ void recomp_unhandled(GuestContext* c,uint32_t insn,uint64_t pc){
   c->x[0]=0; /* Don't halt — stub and continue so the game can keep running */
 }
 
+#ifndef RECOMP_STATIC_HOST
+/* Drives a single module's own dispatch table. Meaningless when the runtime is
+   shared between several statically linked modules - the host dispatches
+   across them instead - so it is compiled out there, where recomp_lookup has
+   been renamed per module and would not resolve. */
 void recomp_run(GuestContext* c){
   uint64_t g=0;
   while(!c->halted){
@@ -2214,6 +2338,7 @@ void recomp_run(GuestContext* c){
     }
   }
 }
+#endif /* !RECOMP_STATIC_HOST */
 )RT";
 }
 

@@ -8,6 +8,7 @@
 #include <QComboBox>
 #include <QLabel>
 #include <QLineEdit>
+#include <QPixmap>
 #include <QProgressBar>
 #include <QPushButton>
 #include <QString>
@@ -36,6 +37,7 @@ public:
         QString title;
         QString path;
         quint64 program_id{};
+        QPixmap icon;
     };
 
     explicit GameExportDialog(QWidget* parent = nullptr);
