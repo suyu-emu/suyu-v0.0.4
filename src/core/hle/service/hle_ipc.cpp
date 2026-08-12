@@ -216,10 +216,16 @@ void HLERequestContext::ParseCommandBuffer(u32_le* src_cmdbuf, bool incoming) {
             return;
         }
 
-        if (incoming) {
-            ASSERT(data_payload_header->magic == Common::MakeMagic('S', 'F', 'C', 'I'));
-        } else {
-            ASSERT(data_payload_header->magic == Common::MakeMagic('S', 'F', 'C', 'O'));
+        const u32 expected_magic = incoming ? Common::MakeMagic('S', 'F', 'C', 'I')
+                                             : Common::MakeMagic('S', 'F', 'C', 'O');
+        if (data_payload_header->magic != expected_magic) {
+            LOG_ERROR(IPC,
+                      "Malformed {}IPC payload header: magic={:#010x} expected={:#010x}; "
+                      "cmd_type={} cmd={} desc={}",
+                      incoming ? "in" : "out", data_payload_header->magic, expected_magic,
+                      static_cast<u32>(command_header->type.Value()), command,
+                      Description());
+            ASSERT_MSG(false, "Malformed IPC payload header");
         }
     }
 
