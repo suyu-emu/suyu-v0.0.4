@@ -5,6 +5,10 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 
 #include <SDL3/SDL.h>
+#include <SDL3/SDL_timer.h>
+#ifdef __EMSCRIPTEN__
+#include <emscripten.h>
+#endif
 
 #include "common/logging.h"
 #include "common/scm_rev.h"
@@ -26,9 +30,17 @@ EmuWindow_SDL3::EmuWindow_SDL3(InputCommon::InputSubsystem* input_subsystem_, Co
         LOG_CRITICAL(Frontend, "Failed to initialize SDL3: {}, Exiting...", SDL_GetError());
         exit(1);
     }
+    titlebar_timer = SDL_AddTimer(2000, [](void *userdata, SDL_TimerID, Uint32) -> Uint32 {
+        auto* this_ = (EmuWindow_SDL3*)userdata;
+        auto const results = this_->system.GetAndResetPerfStats();
+        auto const title = fmt::format("{} | {}-{} | FPS: {:.0f} ({:.0f}%)", Common::g_build_fullname, Common::g_scm_branch, Common::g_scm_desc, results.average_game_fps, results.emulation_speed * 100.0f);
+        SDL_SetWindowTitle(this_->render_window, title.c_str());
+        return 2000;
+    }, this);
 }
 
 EmuWindow_SDL3::~EmuWindow_SDL3() {
+    SDL_RemoveTimer(titlebar_timer);
     system.HIDCore().UnloadInputDevices();
     input_subsystem->Shutdown();
     SDL_Quit();
@@ -132,8 +144,7 @@ void EmuWindow_SDL3::Fullscreen() {
     switch (Settings::values.fullscreen_mode.GetValue()) {
     case Settings::FullscreenMode::Exclusive:
         // Set window size to render size before entering fullscreen in exclusive mode.
-        if (const SDL_DisplayMode* display_mode_ptr =
-                SDL_GetDesktopDisplayMode(SDL_GetDisplayForWindow(render_window))) {
+        if (const SDL_DisplayMode* display_mode_ptr = SDL_GetDesktopDisplayMode(SDL_GetDisplayForWindow(render_window))) {
             display_mode = *display_mode_ptr;
             SDL_SetWindowSize(render_window, display_mode.w, display_mode.h);
             SDL_SetWindowFullscreenMode(render_window, &display_mode);
@@ -165,92 +176,60 @@ void EmuWindow_SDL3::Fullscreen() {
     }
 }
 
-void EmuWindow_SDL3::WaitEvent() {
-    // Called on main thread
-    SDL_Event event;
-
-    if (!SDL_WaitEvent(&event)) {
-        const char* error = SDL_GetError();
-        if (!error || strcmp(error, "") == 0) {
-            // https://github.com/libsdl-org/SDL/issues/5780
-            // Sometimes SDL will return without actually having hit an error condition;
-            // just ignore it in this case.
-            return;
-        }
-
-        LOG_CRITICAL(Frontend, "SDL_WaitEvent failed: {}", error);
-        exit(1);
-    }
-
+void EmuWindow_SDL3::OnEvent(SDL_Event& event) {
+    // Notice how we skip the "update title" aspect on most events
+    // this is because some WMs do NOT like changing titles while resizing
+    // so let's just... not do that, thanks :)
+    // Afterall we don't really expect the user to pay attention to the titlebar
+    // while they're moving a lot of shit around...
     switch (event.type) {
     case SDL_EVENT_WINDOW_RESIZED:
     case SDL_EVENT_WINDOW_PIXEL_SIZE_CHANGED:
     case SDL_EVENT_WINDOW_MAXIMIZED:
     case SDL_EVENT_WINDOW_RESTORED:
-        OnResize();
-        break;
+        return OnResize();
     case SDL_EVENT_WINDOW_MINIMIZED:
         is_shown = false;
-        OnResize();
-        break;
+        return OnResize();
     case SDL_EVENT_WINDOW_EXPOSED:
         is_shown = true;
-        OnResize();
-        break;
+        return OnResize();
     case SDL_EVENT_WINDOW_CLOSE_REQUESTED:
         is_open = false;
-        break;
+        return;
     case SDL_EVENT_KEY_DOWN:
     case SDL_EVENT_KEY_UP:
-        OnKeyEvent(static_cast<int>(event.key.scancode), event.key.down ? 1 : 0);
-        break;
+        return OnKeyEvent(int(event.key.scancode), event.key.down ? 1 : 0);
     case SDL_EVENT_MOUSE_MOTION:
         // ignore if it came from touch
         if (event.button.which != SDL_TOUCH_MOUSEID)
             OnMouseMotion(event.motion.x, event.motion.y);
-        break;
+        return;
     case SDL_EVENT_MOUSE_BUTTON_DOWN:
     case SDL_EVENT_MOUSE_BUTTON_UP:
         // ignore if it came from touch
-        if (event.button.which != SDL_TOUCH_MOUSEID) {
-            OnMouseButton(event.button.button, event.button.down ? 1 : 0,
-                          static_cast<s32>(event.button.x), static_cast<s32>(event.button.y));
-        }
-        break;
+        if (event.button.which != SDL_TOUCH_MOUSEID)
+            OnMouseButton(event.button.button, event.button.down ? 1 : 0, s32(event.button.x), s32(event.button.y));
+        return;
     case SDL_EVENT_FINGER_DOWN:
-        OnFingerDown(event.tfinger.x, event.tfinger.y,
-                     static_cast<std::size_t>(event.tfinger.touchID));
-        break;
+        return OnFingerDown(event.tfinger.x, event.tfinger.y, std::size_t(event.tfinger.touchID));
     case SDL_EVENT_FINGER_MOTION:
-        OnFingerMotion(event.tfinger.x, event.tfinger.y,
-                       static_cast<std::size_t>(event.tfinger.touchID));
-        break;
+        return OnFingerMotion(event.tfinger.x, event.tfinger.y, std::size_t(event.tfinger.touchID));
     case SDL_EVENT_FINGER_UP:
-        OnFingerUp();
-        break;
+        return OnFingerUp();
     case SDL_EVENT_QUIT:
         is_open = false;
-        break;
+        return;
     default:
         break;
-    }
-
-    const u32 current_time = SDL_GetTicks();
-    if (current_time > last_time + 2000) {
-        const auto results = system.GetAndResetPerfStats();
-        const auto title = fmt::format("{} | {}-{} | FPS: {:.0f} ({:.0f}%)",
-                                       Common::g_build_fullname,
-                                       Common::g_scm_branch,
-                                       Common::g_scm_desc,
-                                       results.average_game_fps,
-                                       results.emulation_speed * 100.0);
-        SDL_SetWindowTitle(render_window, title.c_str());
-        last_time = current_time;
     }
 }
 
 // Credits to Samantas5855 and others for this function.
 void EmuWindow_SDL3::SetWindowIcon() {
+#if defined(__EMSCRIPTEN__) || defined(__wasi__)
+    // Icons do not work yet
+#else
     SDL_IOStream* const yuzu_icon_stream = SDL_IOFromConstMem((void*)yuzu_icon, yuzu_icon_size);
     if (yuzu_icon_stream == nullptr) {
         LOG_WARNING(Frontend, "Failed to create Eden icon stream.");
@@ -264,6 +243,7 @@ void EmuWindow_SDL3::SetWindowIcon() {
     // The icon is attached to the window pointer
     SDL_SetWindowIcon(render_window, window_icon);
     SDL_DestroySurface(window_icon);
+#endif
 }
 
 void EmuWindow_SDL3::OnMinimalClientAreaChangeRequest(std::pair<u32, u32> minimal_size) {
