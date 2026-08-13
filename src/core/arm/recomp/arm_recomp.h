@@ -3,13 +3,19 @@
 
 #pragma once
 
+#include <cstddef>
 #include <memory>
 
 #include "core/arm/arm_interface.h"
 
+namespace Kernel {
+class KProcess;
+}
+
 namespace Core {
 
 class System;
+class DynarmicExclusiveMonitor;
 
 /**
  * Signature of a recompiled block produced by suyu::recomp::EmitProject.
@@ -78,7 +84,15 @@ RecompLookupFn GetRecompLookup();
  */
 class ArmRecomp final : public ArmInterface {
 public:
-    explicit ArmRecomp(System& system, bool uses_wall_clock, RecompLookupFn lookup);
+    /// `process`, `exclusive_monitor` and `core_index` are only used to build a
+    /// dynarmic JIT lazily, the first time a PC is reached that the static pass
+    /// never covered (an indirect call into code no heuristic found). Without
+    /// that fallback such a gap is terminal: the thread is suspended for a
+    /// debugger that is not attached and the game hangs on a black screen with
+    /// no forward progress.
+    explicit ArmRecomp(System& system, bool uses_wall_clock, RecompLookupFn lookup,
+                       Kernel::KProcess* process, DynarmicExclusiveMonitor* exclusive_monitor,
+                       std::size_t core_index);
     ~ArmRecomp() override;
 
     HaltReason RunThread(Kernel::KThread* thread) override;
@@ -105,6 +119,14 @@ public:
     void RewindBreakpointInstruction() override;
 
 private:
+    /// Builds the JIT fallback if needed and marks this thread as running on
+    /// it. Returns false when no JIT can be built (no process/monitor).
+    bool EnterFallback();
+    /// Runs the JIT fallback for one scheduling slice, syncing guest state in
+    /// and back out, and returns to recompiled execution once the PC is covered
+    /// again.
+    HaltReason RunFallback(Kernel::KThread* thread);
+
     struct Impl;
     std::unique_ptr<Impl> impl;
 };

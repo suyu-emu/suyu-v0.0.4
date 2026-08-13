@@ -14,6 +14,10 @@
 #include <QString>
 #include <QVector>
 
+namespace Core {
+class System;
+}
+
 /**
  * Dialog for exporting a game as a native-export artifact bundle using
  * ahead-of-time (AOT) static recompilation.
@@ -40,7 +44,7 @@ public:
         QPixmap icon;
     };
 
-    explicit GameExportDialog(QWidget* parent = nullptr);
+    explicit GameExportDialog(Core::System& system_, QWidget* parent = nullptr);
     ~GameExportDialog() override = default;
 
     /// Set the game ROM path and optional title-id for portable data bundling.
@@ -53,7 +57,10 @@ public:
     /// the dialog's file pickers/combo boxes, so live automation can trigger
     /// and observe the AOT pipeline (including its known hang past ~15%)
     /// directly.
-    void TriggerExportForTesting(const QString& rom_path, const QString& output_dir);
+    /// @param format_index optional output-format combo index to select first
+    ///        (0 = Source, 1 = Build); negative leaves the current selection.
+    void TriggerExportForTesting(const QString& rom_path, const QString& output_dir,
+                                 int format_index = -1);
 
     /// Every standalone recompiled executable that has already been built for
     /// this game, one per recompiled module, newest-looking first. Empty when
@@ -91,8 +98,25 @@ private slots:
     void OnBrowseOutput();
     void OnExport();
 
+protected:
+    // An export pumps the event loop for as long as the compilers take (tens of
+    // minutes on a large title) with its whole state on the stack of OnExport().
+    // Closing the dialog in that window - Escape, the title-bar X, or anything
+    // else that reaches reject() - returns from the exec() that owns this
+    // object and destroys it while OnExport() is still running, which takes the
+    // process down with no crash log. Both entry points are refused while an
+    // export is in flight.
+    void closeEvent(QCloseEvent* event) override;
+    void reject() override;
+
 private:
     void SetupUi();
+
+    /// True from the moment OnExport() starts until it returns. Guards both
+    /// dialog teardown and re-entry into OnExport() itself: the automation RPC
+    /// can call TriggerExportForTesting() from the event loop that the export
+    /// is pumping, and two exports writing the same cache directory corrupt it.
+    bool export_in_progress{false};
 
     /// AOT export: scan ARM code and serialize translated compiler artifacts.
     /// Returns path to the generated cache directory, or empty string on failure.
@@ -127,5 +151,6 @@ private:
     QLabel* status_label{};
     quint64 rom_program_id{};
     QVector<LibraryEntry> library_entries_;
+    Core::System& system_;
     QPixmap game_icon_;
 };

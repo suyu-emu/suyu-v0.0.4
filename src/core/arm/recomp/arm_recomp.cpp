@@ -3,6 +3,7 @@
 
 #include <algorithm>
 #include <atomic>
+#include <cstdlib>
 #include <cstring>
 #include <string>
 #include <unordered_map>
@@ -13,6 +14,7 @@
 #include "core/core.h"
 #include "core/hle/kernel/k_thread.h"
 #include "core/arm/debug.h"
+#include "core/arm/dynarmic/arm_dynarmic_64.h"
 #include "core/memory.h"
 
 namespace Core {
@@ -386,12 +388,78 @@ struct ArmRecomp::Impl {
     static constexpr size_t kTrail = 32;
     u64 trail[kTrail]{};
     size_t trail_pos{0};
+
+    // Interpreter fallback for PCs the static pass never covered. Built on the
+    // first miss rather than up front: most runs never need it, and a JIT per
+    // core costs a code cache each.
+    Kernel::KProcess* owner_process{};
+    DynarmicExclusiveMonitor* exclusive_monitor{};
+    std::size_t core_index{};
+    bool uses_wall_clock{};
+    std::unique_ptr<ArmDynarmic64> fallback{};
+    bool in_fallback{false};
+    bool fallback_unavailable{false};
 };
 
-ArmRecomp::ArmRecomp(System& system, bool uses_wall_clock, RecompLookupFn lookup)
-    : ArmInterface{uses_wall_clock}, impl{std::make_unique<Impl>(system, lookup)} {}
+ArmRecomp::ArmRecomp(System& system, bool uses_wall_clock, RecompLookupFn lookup,
+                     Kernel::KProcess* process, DynarmicExclusiveMonitor* exclusive_monitor,
+                     std::size_t core_index)
+    : ArmInterface{uses_wall_clock}, impl{std::make_unique<Impl>(system, lookup)} {
+    impl->owner_process = process;
+    impl->exclusive_monitor = exclusive_monitor;
+    impl->core_index = core_index;
+    impl->uses_wall_clock = uses_wall_clock;
+}
 
 ArmRecomp::~ArmRecomp() = default;
+
+bool ArmRecomp::EnterFallback() {
+    if (impl->fallback_unavailable) {
+        return false;
+    }
+    if (!impl->fallback) {
+        if (!impl->owner_process || !impl->exclusive_monitor) {
+            impl->fallback_unavailable = true;
+            return false;
+        }
+        impl->fallback = std::make_unique<ArmDynarmic64>(impl->system, impl->uses_wall_clock,
+                                                         impl->owner_process, *impl->exclusive_monitor,
+                                                         impl->core_index);
+        LOG_WARNING(Core_ARM, "recomp: created JIT fallback for uncovered code");
+    }
+    impl->in_fallback = true;
+    return true;
+}
+
+HaltReason ArmRecomp::RunFallback(Kernel::KThread* thread) {
+    // The recompiled context is the single source of truth; the JIT is loaded
+    // from it on the way in and drained back on the way out, so every accessor
+    // on this interface (SVC arguments, thread context save/restore) keeps
+    // working unchanged no matter which engine actually ran.
+    impl->ctx.pending_svc = kNoPendingSvc;
+    impl->ctx.halted = 0;
+    impl->interrupted.store(false, std::memory_order_relaxed);
+
+    Kernel::Svc::ThreadContext tctx{};
+    this->GetContext(tctx);
+    impl->fallback->SetContext(tctx);
+    impl->fallback->SetTpidrroEl0(impl->tpidrro_el0);
+
+    const HaltReason hr = impl->fallback->RunThread(thread);
+
+    impl->fallback->GetContext(tctx);
+    this->SetContext(tctx);
+    if (True(hr & HaltReason::SupervisorCall)) {
+        impl->ctx.pending_svc = impl->fallback->GetSvcNumber();
+    }
+
+    // Return to recompiled execution as soon as the PC is covered again, so a
+    // single uncovered function costs only the time spent inside it.
+    if (impl->lookup && impl->lookup(impl->ctx.pc)) {
+        impl->in_fallback = false;
+    }
+    return hr;
+}
 
 HaltReason ArmRecomp::RunThread(Kernel::KThread* thread) {
     // Logged once so it is obvious from a log whether the backend was ever
@@ -420,6 +488,12 @@ HaltReason ArmRecomp::RunThread(Kernel::KThread* thread) {
     if (!impl->rela_applied) {
         impl->rela_applied = true;
         impl->ApplyAllRelocations(impl->modules);
+    }
+
+    // A previous miss handed this thread to the JIT; keep running there until
+    // the PC lands back inside recompiled code.
+    if (impl->in_fallback) {
+        return RunFallback(thread);
     }
 
     impl->interrupted.store(false, std::memory_order_relaxed);
@@ -464,7 +538,23 @@ HaltReason ArmRecomp::RunThread(Kernel::KThread* thread) {
         }
 
         RecompBlockFn block = impl->lookup(impl->ctx.pc);
-        if (!block) {
+        // Test hook: forces every lookup past the Nth to miss, so the JIT
+        // fallback below can be exercised on a title that would otherwise never
+        // hit a gap. Unset in normal runs.
+        {
+            static const char* const force_miss = std::getenv("SUYU_RECOMP_FORCE_MISS_AFTER");
+            static std::atomic<int> blocks_run{0};
+            if (force_miss && blocks_run.fetch_add(1, std::memory_order_relaxed) >=
+                                  std::atoi(force_miss)) {
+                block = nullptr;
+            }
+        }
+        // A miss is now recoverable, so it can happen many times per second;
+        // the full diagnostic dump is kept for the first few only, where it is
+        // still useful for finding which indirect call went uncovered.
+        static std::atomic<int> miss_count{0};
+        const int miss_index = block ? 0 : miss_count.fetch_add(1, std::memory_order_relaxed);
+        if (!block && miss_index < 8) {
             std::string trail;
             const size_t count = std::min<size_t>(impl->trail_pos, Impl::kTrail);
             for (size_t i = 0; i < count; ++i) {
@@ -488,12 +578,27 @@ HaltReason ArmRecomp::RunThread(Kernel::KThread* thread) {
             }
         }
         if (!block) {
-            // No recompiled block covers this address. This is a genuine gap
-            // (indirect branch into code the static pass never reached), not
-            // something to paper over - report it rather than silently
-            // executing the wrong thing.
-            LOG_ERROR(Core_ARM, "No recompiled block at PC {:#x}", impl->ctx.pc);
-            return HaltReason::PrefetchAbort;
+            // No recompiled block covers this address: an indirect branch into
+            // code the static pass never reached. The guest's own instructions
+            // are still mapped in guest memory, so hand the thread to a JIT and
+            // keep going instead of returning PrefetchAbort - that halt reason
+            // makes the kernel suspend the thread for a debugger that is not
+            // attached, which is a permanent, silent black-screen hang.
+            if (miss_index < 64) {
+                LOG_ERROR(Core_ARM, "No recompiled block at PC {:#x}; falling back to JIT",
+                          impl->ctx.pc);
+            } else {
+                LOG_DEBUG(Core_ARM, "No recompiled block at PC {:#x}; falling back to JIT",
+                          impl->ctx.pc);
+            }
+            if (!EnterFallback()) {
+                LOG_CRITICAL(Core_ARM,
+                             "recomp: no JIT fallback available at PC {:#x}; thread cannot "
+                             "continue",
+                             impl->ctx.pc);
+                return HaltReason::PrefetchAbort;
+            }
+            return RunFallback(thread);
         }
 
         block(&impl->ctx);
@@ -609,6 +714,11 @@ u32 ArmRecomp::GetSvcNumber() const {
 
 void ArmRecomp::SignalInterrupt(Kernel::KThread* thread) {
     impl->interrupted.store(true, std::memory_order_relaxed);
+    // While the JIT is running this thread it is the one that has to be woken;
+    // the flag above is only read by the recompiled dispatch loop.
+    if (impl->fallback) {
+        impl->fallback->SignalInterrupt(thread);
+    }
 }
 
 const Kernel::DebugWatchpoint* ArmRecomp::HaltedWatchpoint() const {

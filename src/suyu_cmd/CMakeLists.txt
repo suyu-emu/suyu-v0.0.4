@@ -51,8 +51,27 @@ if (SUYU_CMD OR YUZU_CMD)
         # collide between modules) and their loadable shared image.
         set(RECOMP_STATIC_ONLY ON)
         set(_recomp_libs "")
+        # file(GLOB) treats [ ] * ? in the WHOLE path as glob syntax, not just
+        # the trailing "/*" - a title whose exported folder name carries its
+        # title ID in brackets (e.g. "Pokemon Sword[0100ABF008968000][US][v0]",
+        # produced whenever a ROM has no NACP title to name the folder from)
+        # silently matches nothing, so every module looks missing even though
+        # recomp_export.c/CMakeLists.txt are sitting right there on disk.
+        # Escaping each special character to its bracket-literal form before
+        # globbing keeps this working for any export path, not just ones that
+        # happen to avoid those characters.
+        # Order matters: each replacement's own output must not be re-mangled
+        # by a later replacement, so "[" goes through a placeholder that
+        # contains no bracket characters until every other substitution has
+        # already run.
+        set(_recomp_dir_escaped "${SUYU_CMD_RECOMP_DIR}")
+        string(REPLACE "[" "@LBRACKET@" _recomp_dir_escaped "${_recomp_dir_escaped}")
+        string(REPLACE "]" "[]]" _recomp_dir_escaped "${_recomp_dir_escaped}")
+        string(REPLACE "*" "[*]" _recomp_dir_escaped "${_recomp_dir_escaped}")
+        string(REPLACE "?" "[?]" _recomp_dir_escaped "${_recomp_dir_escaped}")
+        string(REPLACE "@LBRACKET@" "[[]" _recomp_dir_escaped "${_recomp_dir_escaped}")
         file(GLOB _recomp_children RELATIVE "${SUYU_CMD_RECOMP_DIR}"
-             "${SUYU_CMD_RECOMP_DIR}/*")
+             "${_recomp_dir_escaped}/*")
         foreach(_m ${_recomp_children})
             if (EXISTS "${SUYU_CMD_RECOMP_DIR}/${_m}/CMakeLists.txt" AND
                 EXISTS "${SUYU_CMD_RECOMP_DIR}/${_m}/recomp_export.c")

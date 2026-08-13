@@ -18,6 +18,8 @@
 #include <QImage>
 #include <QListWidget>
 #include <QMessageBox>
+#include <QCloseEvent>
+#include <QEventLoop>
 #include <QProcess>
 #include <QRegularExpression>
 #include <QSettings>
@@ -54,6 +56,7 @@
 #include "core/file_sys/submission_package.h"
 #include "core/file_sys/vfs/vfs.h"
 #include "core/file_sys/vfs/vfs_real.h"
+#include "core/loader/loader.h"
 #include "core/loader/nso.h"
 #include "core/recompiler/arm64_to_c.h"
 
@@ -265,7 +268,8 @@ static bool CopyPortableSupportData(quint64 program_id, const QString& package_r
 // Dialog setup
 // ---------------------------------------------------------------------------
 
-GameExportDialog::GameExportDialog(QWidget* parent) : QDialog(parent) {
+GameExportDialog::GameExportDialog(Core::System& system, QWidget* parent)
+    : QDialog(parent), system_(system) {
     setWindowTitle(tr("Export Game — AOT Static Recompilation"));
     setMinimumSize(540, 420);
     SetupUi();
@@ -442,7 +446,12 @@ void GameExportDialog::SetRomPath(const QString& path, quint64 program_id) {
     }
 }
 
-void GameExportDialog::TriggerExportForTesting(const QString& rom_path, const QString& output_dir) {
+void GameExportDialog::TriggerExportForTesting(const QString& rom_path, const QString& output_dir,
+                                               int format_index) {
+    if (format_index >= 0 && output_format_combo &&
+        format_index < output_format_combo->count()) {
+        output_format_combo->setCurrentIndex(format_index);
+    }
     SetRomPath(rom_path);
     output_path_edit->setText(output_dir);
     OnExport();
@@ -1105,7 +1114,7 @@ static bool SerializeTranslatedBlocks(const NsoAnalysisResult& mod, const QStrin
     size_t blocks_processed = 0;
     for (const auto& block : mod.blocks) {
         if (++blocks_processed % 250 == 0) {
-            QApplication::processEvents();
+            QApplication::processEvents(QEventLoop::ExcludeUserInputEvents);
         }
         const QString stem = QStringLiteral("%1_%2")
                                  .arg(mod.name)
@@ -1230,7 +1239,14 @@ static int RunProcessDrained(QProcess& proc, const QString& program, const QStri
             }
         }
         drain();
-        QApplication::processEvents();
+        // ExcludeUserInputEvents is load-bearing, not tidiness. This pump runs
+        // for the whole of a multi-minute child build with the caller's state
+        // on the stack; delivering user input here lets a stray click or an
+        // Escape keypress close the dialog (destroying the object this code is
+        // running inside) or press a button that re-enters the export. Timers,
+        // socket notifiers and repaints still run, so the window stays alive
+        // and responsive to the OS.
+        QApplication::processEvents(QEventLoop::ExcludeUserInputEvents);
     }
     // The child may have exited with data still sitting in the pipe.
     proc.waitForFinished(5000);
@@ -1525,7 +1541,7 @@ QString GameExportDialog::RunAotPrecompile(const QString& exefs_dir,
         }
         if (!cmake.isEmpty()) {
             status_label->setText(tr("Compiling %1 (this takes a while)...").arg(mod.name));
-            QApplication::processEvents();
+            QApplication::processEvents(QEventLoop::ExcludeUserInputEvents);
 
             const QString build_dir = mod_dir + QDir::separator() + QStringLiteral("build");
             QString configure_log;
@@ -1739,7 +1755,7 @@ QString GameExportDialog::RunAotPrecompile(const QString& exefs_dir,
                         "static executable");
         } else {
             status_label->setText(tr("Linking the single-file executable..."));
-            QApplication::processEvents();
+            QApplication::processEvents(QEventLoop::ExcludeUserInputEvents);
 
             QString conf_log;
             QString link_log;
@@ -1946,7 +1962,7 @@ QString GameExportDialog::RunAotPrecompile(const QString& exefs_dir,
             size_t map_blocks_written = 0;
             for (const auto& block : mod.blocks) {
                 if (++map_blocks_written % 1000 == 0) {
-                    QApplication::processEvents();
+                    QApplication::processEvents(QEventLoop::ExcludeUserInputEvents);
                 }
                 map_file.write(reinterpret_cast<const char*>(&block.vaddr), 4);
                 map_file.write(reinterpret_cast<const char*>(&block.size), 4);
@@ -2071,6 +2087,22 @@ bool GameExportDialog::PackageNativeExport(const QString& rom_path, const QStrin
         const QString pkg_dir = output_dir + QDir::separator() + game_name;
         if (!QDir().mkpath(pkg_dir)) {
             return false;
+        }
+
+        // A prior export into this same folder may have been "Build" format
+        // and left a compiled launcher exe + its DLLs sitting in pkg_dir. If
+        // this run is "Source" (or otherwise not producing a compiled
+        // launcher), that stale exe is never touched by anything below - it
+        // just sits there looking like part of the new export. Strip it so a
+        // format switch on the same output folder doesn't leave orphaned
+        // binaries next to freshly generated C source.
+        if (!WantsCompiledOutput()) {
+            QFile::remove(pkg_dir + QDir::separator() + game_name + QStringLiteral(".exe"));
+            for (const char* dll : {"avcodec-61.dll", "avformat-61.dll", "avutil-59.dll",
+                                     "dxcompiler.dll", "dxil.dll", "libcrypto.dll", "libssl.dll",
+                                     "swresample-5.dll", "swscale-8.dll"}) {
+                QFile::remove(pkg_dir + QDir::separator() + QString::fromLatin1(dll));
+            }
         }
 
         // ── Extract exefs (NSO executables) → <pkg>/exefs/ ──────────────────────
@@ -2466,7 +2498,96 @@ QStringList GameExportDialog::FindRecompiledExecutables(const QString& game_name
 // Main export entry point
 // ---------------------------------------------------------------------------
 
+void GameExportDialog::closeEvent(QCloseEvent* event) {
+    if (export_in_progress) {
+        event->ignore();
+        return;
+    }
+    QDialog::closeEvent(event);
+}
+
+void GameExportDialog::reject() {
+    if (export_in_progress) {
+        return;
+    }
+    QDialog::reject();
+}
+
+namespace {
+// Holds `flag` for its lifetime and, on Windows, tells the OS the machine is
+// busy. A Build export runs for tens of minutes with no user input, so the
+// idle timer would otherwise be free to sleep the system out from under the
+// child compilers mid-build. ES_DISPLAY_REQUIRED is deliberately not set: the
+// screen may blank, only sleep is held off.
+class ExportRunGuard {
+public:
+    explicit ExportRunGuard(bool& flag) : flag_{flag} {
+        flag_ = true;
+#ifdef _WIN32
+        SetThreadExecutionState(ES_CONTINUOUS | ES_SYSTEM_REQUIRED | ES_AWAYMODE_REQUIRED);
+#endif
+    }
+    ~ExportRunGuard() {
+        flag_ = false;
+#ifdef _WIN32
+        SetThreadExecutionState(ES_CONTINUOUS);
+#endif
+    }
+    ExportRunGuard(const ExportRunGuard&) = delete;
+    ExportRunGuard& operator=(const ExportRunGuard&) = delete;
+
+private:
+    bool& flag_;
+};
+} // namespace
+
+/// Direct-from-ROM icon+title fallback for when the export ran without ever
+/// matching a scanned library entry - a freshly downloaded ROM the library
+/// hasn't indexed yet, or one outside the configured game directories
+/// entirely. Without this, such an export silently kept the default suyu
+/// icon and fell back to the filename for its title, since every other path
+/// to a name/icon (OnSelectFromLibrary, the library_entries_ match in
+/// OnExport) depends on the game already being in the scanned library.
+/// Mirrors GameLibraryWorker::GetGameIcon (src/suyu/game_library.cpp).
+static bool ReadIconAndTitleFromRom(Core::System& system, const QString& rom_path,
+                                    QPixmap& out_icon, QString& out_title) {
+    static const auto vfs = std::make_shared<FileSys::RealVfsFilesystem>();
+    auto file = vfs->OpenFile(rom_path.toStdString(), FileSys::OpenMode::Read);
+    if (!file) {
+        return false;
+    }
+    auto loader = Loader::GetLoader(system, file);
+    if (!loader) {
+        return false;
+    }
+    bool got_anything = false;
+    std::vector<u8> icon_data;
+    if (loader->ReadIcon(icon_data) == Loader::ResultStatus::Success && !icon_data.empty()) {
+        QPixmap pixmap;
+        if (pixmap.loadFromData(icon_data.data(), static_cast<uint>(icon_data.size())) &&
+            !pixmap.isNull()) {
+            out_icon = pixmap;
+            got_anything = true;
+        }
+    }
+    std::string title;
+    if (loader->ReadTitle(title) == Loader::ResultStatus::Success && !title.empty()) {
+        out_title = QString::fromStdString(title);
+        got_anything = true;
+    }
+    return got_anything;
+}
+
 void GameExportDialog::OnExport() {
+    // Re-entry would run two exports over one cache directory. See the comment
+    // on export_in_progress: processEvents() inside the export can deliver an
+    // automation RPC that calls straight back in here.
+    if (export_in_progress) {
+        LOG_WARNING(Frontend, "Export already in progress; ignoring re-entrant request");
+        return;
+    }
+    const ExportRunGuard run_guard{export_in_progress};
+
     const QString rom_path = rom_path_edit->text();
     const QString output_dir = output_path_edit->text();
 
@@ -2495,8 +2616,10 @@ void GameExportDialog::OnExport() {
     const QFileInfo rom_info(rom_path);
     // Prefer the NACP/library title; fall back to filename if not found.
     QString game_name = rom_info.completeBaseName();
+    bool matched_library_entry = false;
     for (const auto& entry : library_entries_) {
         if (QFileInfo(entry.path) == rom_info) {
+            matched_library_entry = true;
             if (!entry.title.trimmed().isEmpty()) {
                 game_name = entry.title.trimmed();
                 // Strip characters that are illegal in Windows filenames
@@ -2515,6 +2638,25 @@ void GameExportDialog::OnExport() {
             break;
         }
     }
+    // A ROM the library hasn't scanned yet (freshly downloaded, or outside
+    // the configured game directories) never matches library_entries_ at
+    // all, so the icon/title stayed at their defaults above. Read them
+    // straight from the ROM's own control data instead of depending on the
+    // library ever having indexed this file.
+    if (!matched_library_entry || game_icon_.isNull()) {
+        QPixmap rom_icon;
+        QString rom_title;
+        if (ReadIconAndTitleFromRom(system_, rom_path, rom_icon, rom_title)) {
+            if (!rom_icon.isNull() && game_icon_.isNull()) {
+                SetGameIcon(rom_icon);
+            }
+            if (!matched_library_entry && !rom_title.trimmed().isEmpty()) {
+                game_name = rom_title.trimmed();
+                static const QRegularExpression kIllegal(QStringLiteral("[\\\\/:*?\"<>|]"));
+                game_name.replace(kIllegal, QStringLiteral("_"));
+            }
+        }
+    }
 
     // Recorded before the run rather than after: even a half-finished export
     // leaves buildable output here, and this is how the library later finds it.
@@ -2524,11 +2666,11 @@ void GameExportDialog::OnExport() {
     progress_bar->setVisible(true);
     progress_bar->setValue(0);
     status_label->setText(tr("Preparing AOT export..."));
-    QApplication::processEvents();
+    QApplication::processEvents(QEventLoop::ExcludeUserInputEvents);
 
     if (backend == RecompileBackend::Ballistic) {
         status_label->setText(tr("Ballistic export is not wired yet; using Dynarmic export artifacts for this run."));
-        QApplication::processEvents();
+        QApplication::processEvents(QEventLoop::ExcludeUserInputEvents);
     }
 
     try {
@@ -2549,7 +2691,7 @@ void GameExportDialog::OnExport() {
     // Step 2: ExeFS extraction is handled inside RunAotPrecompile via VFS.
     // For extracted directories, we copy them to the work area here.
     status_label->setText(tr("Scanning for ExeFS content..."));
-    QApplication::processEvents();
+    QApplication::processEvents(QEventLoop::ExcludeUserInputEvents);
 
     QFileInfo rom_fi(rom_path);
     if (rom_fi.isDir()) {
@@ -2572,7 +2714,7 @@ void GameExportDialog::OnExport() {
                               .arg(backend == RecompileBackend::Ballistic
                                        ? QStringLiteral("Ballistic")
                                        : QStringLiteral("Dynarmic")));
-    QApplication::processEvents();
+    QApplication::processEvents(QEventLoop::ExcludeUserInputEvents);
 
     const QString cache_result = RunAotPrecompile(exefs_work, cache_work, backend, game_name);
     if (cache_result.isEmpty()) {
@@ -2586,7 +2728,7 @@ void GameExportDialog::OnExport() {
 
     // Step 4: Package native export artifacts
     status_label->setText(tr("Packaging native export artifacts..."));
-    QApplication::processEvents();
+    QApplication::processEvents(QEventLoop::ExcludeUserInputEvents);
 
     const bool pkg_ok = PackageNativeExport(rom_path, cache_work, output_dir, game_name, platform);
     if (!pkg_ok) {
@@ -2602,7 +2744,7 @@ void GameExportDialog::OnExport() {
     if ((include_save_data || include_shader_cache || include_custom_config) &&
         rom_program_id != 0) {
         status_label->setText(tr("Bundling portable data..."));
-        QApplication::processEvents();
+        QApplication::processEvents(QEventLoop::ExcludeUserInputEvents);
 
         // Determine the package root (platform-specific)
         QString pkg_root;

@@ -5502,7 +5502,11 @@ void GMainWindow::ApplyAppMode(AppMode mode) {
                                          {QStringLiteral("output_dir"),
                                           QJsonObject{{QStringLiteral("type"), QStringLiteral("string")},
                                                       {QStringLiteral("description"),
-                                                       QStringLiteral("aot_test_export only: absolute output directory. Defaults to aot_test_output.")}}}}},
+                                                       QStringLiteral("aot_test_export only: absolute output directory. Defaults to aot_test_output.")}}},
+                                         {QStringLiteral("format"),
+                                          QJsonObject{{QStringLiteral("type"), QStringLiteral("string")},
+                                                      {QStringLiteral("description"),
+                                                       QStringLiteral("aot_test_export only: 'source' or 'build'. Defaults to whatever the dialog's combo shows.")}}}}},
                             {QStringLiteral("required"), QJsonArray{QStringLiteral("action")}}},
                 [this](const QJsonObject& params) -> QJsonObject {
                     const QString action = params[QStringLiteral("action")].toString().trimmed().toLower();
@@ -5548,7 +5552,14 @@ void GMainWindow::ApplyAppMode(AppMode mode) {
                             output_dir = QStringLiteral("C:/Users/charl/Documents/SuyuEclipse/aot_test_output");
                         }
                         QDir().mkpath(output_dir);
-                        dialog->TriggerExportForTesting(rom_path, output_dir);
+                        // "source" (default) emits a source package; "build"
+                        // additionally links the single-file static launcher.
+                        const QString fmt =
+                            params[QStringLiteral("format")].toString().trimmed().toLower();
+                        const int format_index = fmt == QStringLiteral("build")   ? 1
+                                                 : fmt == QStringLiteral("source") ? 0
+                                                                                   : -1;
+                        dialog->TriggerExportForTesting(rom_path, output_dir, format_index);
                     } else if (action == QStringLiteral("nintendo_test_one_click")) {
                         // Test-only: directly invoke the One-Click Sign In
                         // handler on whatever NintendoAccountDialog is
@@ -5972,7 +5983,7 @@ void GMainWindow::OnAbout() {
 }
 
 void GMainWindow::OnExportGame() {
-    GameExportDialog dialog(this);
+    GameExportDialog dialog(*system, this);
 
     if (game_list) {
         QVector<GameExportDialog::LibraryEntry> library_entries;
