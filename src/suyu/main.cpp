@@ -5538,18 +5538,14 @@ void GMainWindow::ApplyAppMode(AppMode mode) {
                             return QJsonObject{{QStringLiteral("success"), false},
                                                {QStringLiteral("error"), QStringLiteral("No GameExportDialog is currently open")}};
                         }
-                        // The ROM and output directory default to the Smash
-                        // title this path was first built against, but can be
-                        // overridden so any library title can be driven
-                        // through the same pipeline from automation.
-                        QString rom_path = params[QStringLiteral("rom_path")].toString().trimmed();
-                        if (rom_path.isEmpty()) {
-                            rom_path = QStringLiteral(
-                                "C:/Program Files (x86)/Steam/steamapps/common/Super Smash Bros. Ultimate/Super Smash Bros. Ultimate.xci");
-                        }
-                        QString output_dir = params[QStringLiteral("output_dir")].toString().trimmed();
-                        if (output_dir.isEmpty()) {
-                            output_dir = QStringLiteral("C:/Users/charl/Documents/SuyuEclipse/aot_test_output");
+                        // rom_path/output_dir are caller-supplied - no default
+                        // title or machine-specific path baked in here, so
+                        // this stays usable from any checkout for any game.
+                        const QString rom_path = params[QStringLiteral("rom_path")].toString().trimmed();
+                        const QString output_dir = params[QStringLiteral("output_dir")].toString().trimmed();
+                        if (rom_path.isEmpty() || output_dir.isEmpty()) {
+                            return QJsonObject{{QStringLiteral("success"), false},
+                                               {QStringLiteral("error"), QStringLiteral("rom_path and output_dir are required")}};
                         }
                         QDir().mkpath(output_dir);
                         // "source" (default) emits a source package; "build"
