@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 #include "suyu/game_export.h"
+#include "suyu/steam_integration.h"
 
 #include <QApplication>
 #include <QBuffer>
@@ -340,6 +341,25 @@ void GameExportDialog::SetupUi() {
         tr("Full code scan (slower — pre-compiles more blocks for better cold-start)"), this);
     aot_full_scan_checkbox->setChecked(false);
     layout->addWidget(aot_full_scan_checkbox);
+
+    steam_shortcut_checkbox = new QCheckBox(tr("Add to Steam library when the export finishes"), this);
+    steam_shortcut_checkbox->setChecked(false);
+    steam_shortcut_checkbox->setToolTip(
+        tr("Creates a non-Steam shortcut for the exported game and pulls its store artwork "
+           "into Steam, so it shows up in the library with a proper grid image."));
+    layout->addWidget(steam_shortcut_checkbox);
+
+    steam_replace_rom_checkbox =
+        new QCheckBox(tr("...and replace an existing shortcut for the same game"), this);
+    steam_replace_rom_checkbox->setChecked(true);
+    steam_replace_rom_checkbox->setToolTip(
+        tr("A shortcut added earlier for this title - pointing at the ROM through the emulator - "
+           "is removed first, so the recompiled build takes its place instead of appearing "
+           "alongside it. Uncheck to keep both entries."));
+    layout->addWidget(steam_replace_rom_checkbox);
+    connect(steam_shortcut_checkbox, &QCheckBox::toggled, steam_replace_rom_checkbox,
+            &QWidget::setEnabled);
+    steam_replace_rom_checkbox->setEnabled(false);
 
     fallback_to_interpreter_checkbox = new QCheckBox(
         tr("Fall back to interpreter if a module fails to recompile"), this);
@@ -1332,6 +1352,40 @@ static int RunProcessDrained(QProcess& proc, const QString& program, const QStri
 // ---------------------------------------------------------------------------
 // AOT Pre-compilation — Real Implementation
 // ---------------------------------------------------------------------------
+
+// Optionally publish the finished build to Steam. A recompiled export is an
+// ordinary executable, so the shortcut needs no launch options and no emulator
+// behind it - which also means any shortcut the user already has for this title
+// (the ROM, launched through suyu) now points at the worse of the two.
+// Replacing it is the default, with a checkbox for anyone who wants both.
+void GameExportDialog::MaybeAddToSteam(const QString& game_name, const QString& exe_path) {
+    if (steam_shortcut_checkbox == nullptr || !steam_shortcut_checkbox->isChecked()) {
+        return;
+    }
+    SteamIntegration steam;
+    if (!steam.IsSteamInstalled()) {
+        if (status_label != nullptr) {
+            status_label->setText(tr("Steam not found - skipped library shortcut."));
+        }
+        return;
+    }
+    if (steam_replace_rom_checkbox != nullptr && steam_replace_rom_checkbox->isChecked()) {
+        steam.RemoveGameShortcut(game_name);
+    }
+    const bool added = steam.AddGameShortcut(game_name, exe_path, exe_path);
+    if (added) {
+        // Grid art is what makes the entry read as a real game rather than a
+        // generic shortcut; fetched by title from Steam's public endpoints.
+        const QString userdata = steam.GetSteamUserdataPath();
+        if (!userdata.isEmpty()) {
+            steam.FetchArtwork(game_name, userdata);
+        }
+    }
+    if (status_label != nullptr) {
+        status_label->setText(added ? tr("Added \"%1\" to the Steam library.").arg(game_name)
+                                    : tr("Could not add \"%1\" to Steam.").arg(game_name));
+    }
+}
 
 bool GameExportDialog::WantsCompiledOutput() const {
     return output_format_combo && output_format_combo->currentIndex() == 1;
@@ -2397,6 +2451,8 @@ bool GameExportDialog::PackageNativeExport(const QString& rom_path, const QStrin
             out << "Press F12 in-game for the debug panel (status, mods, folders).\n";
             readme.close();
         }
+
+        MaybeAddToSteam(game_name, launcher_dst);
 
         return true;
     }

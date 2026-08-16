@@ -182,7 +182,7 @@ void InstallFirmware(const QString& location, bool recursive) {
 
 QString UnzipFirmwareToTmp(const QString& location) {
     namespace fs = std::filesystem;
-    fs::path tmp{fs::temp_directory_path() / "eden" / "firmware"};
+    fs::path tmp{fs::temp_directory_path() / "suyu" / "firmware"};
     std::error_code ec;
     fs::remove_all(tmp, ec);
     if (!fs::create_directories(tmp, ec)) {
@@ -534,7 +534,7 @@ void InstallFirmwareZip() {
     if (!qCacheDir.isEmpty()) {
         QtCommon::Content::InstallFirmware(qCacheDir, true);
         std::error_code ec;
-        std::filesystem::remove_all(std::filesystem::temp_directory_path() / "eden" / "firmware",
+        std::filesystem::remove_all(std::filesystem::temp_directory_path() / "suyu" / "firmware",
                                     ec);
 
         if (ec) {

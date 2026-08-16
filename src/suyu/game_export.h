@@ -139,6 +139,8 @@ private:
     /// When checked and a module fails to recompile, emit a stub that falls back
     /// to the dynarmic interpreter for that module instead of aborting the export.
     QCheckBox* fallback_to_interpreter_checkbox{};
+    QCheckBox* steam_shortcut_checkbox{};
+    QCheckBox* steam_replace_rom_checkbox{};
     /// Export format: index 0 = source only, index 1 = build to a native binary.
     /// "Build" is a promise, not a hint - when it is selected the export runs
     /// cmake to completion and reports a hard error if a binary cannot be
@@ -146,6 +148,7 @@ private:
     QComboBox* output_format_combo{};
     /// True when output_format_combo selects the build-to-binary format.
     bool WantsCompiledOutput() const;
+    void MaybeAddToSteam(const QString& game_name, const QString& exe_path);
     QProgressBar* progress_bar{};
     QPushButton* export_button{};
     QLabel* status_label{};
