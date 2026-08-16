@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 // SPDX-FileCopyrightText: Copyright 2021 yuzu Emulator Project
@@ -23,6 +23,7 @@ enum class EdenPath {
     KeysDir,        // Where key files are stored.
     LoadDir,        // Where cheat/mod files are stored.
     LogDir,         // Where log files are stored.
+    LosslessDir,    // Where the user-supplied Lossless Scaling library is stored.
     NANDDir,        // Where the emulated NAND is stored.
     PlayTimeDir,    // Where play time data is stored.
     SaveDir,        // Where save data is stored.

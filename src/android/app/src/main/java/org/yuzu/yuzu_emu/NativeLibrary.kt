@@ -540,6 +540,40 @@ object NativeLibrary {
     external fun installKeys(path: String, ext: String): Int
 
     /**
+     * @return Whether this GPU can run the Lossless Scaling frame generation shaders,
+     *         which are built against the Vulkan memory model.
+     */
+    external fun supportsFrameGeneration(): Boolean
+
+    /**
+     * @return Path the user-supplied Lossless Scaling library is expected at.
+     */
+    external fun getLosslessDllPath(): String
+
+    /**
+     * Parses the installed Lossless Scaling library and checks that every shader the
+     * frame generation chain needs is present.
+     *
+     * @return The result code, matching the losslessDllResults array.
+     */
+    external fun validateLosslessDll(): Int
+
+    /**
+     * Translates the frame generation shaders out of the installed Lossless Scaling library
+     * and writes them to the SPIR-V cache. Slow, so call it off the main thread.
+     *
+     * @return The result code, matching the losslessDllResults array.
+     */
+    external fun prepareLosslessDll(): Int
+
+    /**
+     * Deletes the installed Lossless Scaling library.
+     *
+     * @return Whether the library is gone after the call.
+     */
+    external fun removeLosslessDll(): Boolean
+
+    /**
      * Checks the PatchManager for any addons that are available
      *
      * @param path Path to game file. Can be a [Uri].

@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 package org.yuzu.yuzu_emu.fragments
@@ -42,6 +42,7 @@ import org.yuzu.yuzu_emu.model.SetupPage
 import org.yuzu.yuzu_emu.model.PageState
 import org.yuzu.yuzu_emu.ui.main.MainActivity
 import org.yuzu.yuzu_emu.utils.DirectoryInitialization
+import org.yuzu.yuzu_emu.utils.LosslessScalingHelper
 import org.yuzu.yuzu_emu.utils.NativeConfig
 import org.yuzu.yuzu_emu.utils.ViewUtils
 import org.yuzu.yuzu_emu.utils.ViewUtils.setVisible
@@ -200,6 +201,24 @@ class SetupFragment : Fragment() {
                                 R.string.install_firmware_warning,
                                 R.string.install_firmware_warning_description,
                                 R.string.install_firmware_warning_help,
+                            )
+                        )
+                        add(
+                            PageButton(
+                                R.drawable.ic_duck,
+                                R.string.lossless_scaling,
+                                R.string.lossless_scaling_setup_description,
+                                {
+                                    pageButtonCallback = it
+                                    getLosslessDll.launch(arrayOf("*/*"))
+                                },
+                                {
+                                    if (LosslessScalingHelper.isInstalled()) {
+                                        ButtonState.BUTTON_ACTION_COMPLETE
+                                    } else {
+                                        ButtonState.BUTTON_ACTION_INCOMPLETE
+                                    }
+                                }
                             )
                         )
                         add(
@@ -444,6 +463,32 @@ class SetupFragment : Fragment() {
                     }
                 }
             }
+        }
+
+    val getLosslessDll =
+        registerForActivityResult(ActivityResultContracts.OpenDocument()) { result ->
+            if (result == null) {
+                return@registerForActivityResult
+            }
+
+            val resultStrings = resources.getStringArray(R.array.losslessDllResults)
+            ProgressDialogFragment.newInstance(
+                requireActivity(),
+                R.string.lossless_scaling_installing,
+                false
+            ) { _, _ ->
+                val installResult = LosslessScalingHelper.install(result)
+                if (installResult == LosslessScalingHelper.RESULT_OK) {
+                    getString(R.string.lossless_scaling_install_success)
+                } else {
+                    MessageDialogFragment.newInstance(
+                        titleId = R.string.lossless_scaling_install_failed,
+                        descriptionString = resultStrings[installResult]
+                    )
+                }
+            }.apply {
+                onDialogComplete = { checkForButtonState.invoke() }
+            }.show(parentFragmentManager, ProgressDialogFragment.TAG)
         }
 
     val getGamesDirectory =

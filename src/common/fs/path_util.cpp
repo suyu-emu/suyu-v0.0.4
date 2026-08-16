@@ -157,6 +157,7 @@ public:
         GenerateEdenPath(EdenPath::KeysDir, eden_path / KEYS_DIR);
         GenerateEdenPath(EdenPath::LoadDir, eden_path / LOAD_DIR);
         GenerateEdenPath(EdenPath::LogDir, eden_path / LOG_DIR);
+        GenerateEdenPath(EdenPath::LosslessDir, eden_path / LOSSLESS_DIR);
         GenerateEdenPath(EdenPath::NANDDir, eden_path / NAND_DIR);
         GenerateEdenPath(EdenPath::PlayTimeDir, eden_path / PLAY_TIME_DIR);
         GenerateEdenPath(EdenPath::SaveDir, eden_path / NAND_DIR);

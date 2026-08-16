@@ -124,9 +124,18 @@ float EmuWindow_Android::GetFrameTimeVerifiedHint() const {
     return QuantizeFrameRateHint(verified_rate);
 }
 
+float EmuWindow_Android::GetPresentedFrameMultiplier() {
+    if (!Settings::values.frame_gen.GetValue()) {
+        return 1.0f;
+    }
+    return static_cast<float>(std::clamp<u32>(Settings::values.frame_gen_multiplier.GetValue(), 2, 4));
+}
+
 float EmuWindow_Android::GetFrameRateHint() const {
-    const float observed_rate = std::clamp(m_smoothed_present_rate, 0.0f, 240.0f);
-    const float frame_time_verified_hint = GetFrameTimeVerifiedHint();
+    const float presented_multiplier = GetPresentedFrameMultiplier();
+    const float observed_rate =
+        std::clamp(m_smoothed_present_rate * presented_multiplier, 0.0f, 240.0f);
+    const float frame_time_verified_hint = GetFrameTimeVerifiedHint() * presented_multiplier;
 
     if (m_last_frame_rate_hint > 0.0f && observed_rate > 0.0f) {
         const float tolerance = std::max(m_last_frame_rate_hint * 0.12f, 4.0f);
@@ -150,9 +159,9 @@ float EmuWindow_Android::GetFrameRateHint() const {
         return frame_time_verified_hint;
     }
 
-    constexpr float NominalFrameRate = 60.0f;
+    const float nominal_rate = 60.0f * presented_multiplier;
     if (!Settings::values.use_speed_limit.GetValue()) {
-        return NominalFrameRate;
+        return QuantizeFrameRateHint(nominal_rate);
     }
 
     const u16 speed_limit = Settings::SpeedLimit();
@@ -161,7 +170,7 @@ float EmuWindow_Android::GetFrameRateHint() const {
     }
 
     const float speed_limited_rate =
-        NominalFrameRate * (static_cast<float>(std::min<u16>(speed_limit, 100)) / 100.0f);
+        nominal_rate * (static_cast<float>(std::min<u16>(speed_limit, 100)) / 100.0f);
     return QuantizeFrameRateHint(speed_limited_rate);
 }
 

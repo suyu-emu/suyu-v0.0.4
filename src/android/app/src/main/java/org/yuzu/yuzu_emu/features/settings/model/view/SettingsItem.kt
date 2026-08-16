@@ -21,6 +21,7 @@ import org.yuzu.yuzu_emu.features.settings.model.LongSetting
 import org.yuzu.yuzu_emu.features.settings.model.ShortSetting
 import org.yuzu.yuzu_emu.features.settings.model.StringSetting
 import org.yuzu.yuzu_emu.network.NetDataValidators
+import org.yuzu.yuzu_emu.utils.LosslessScalingHelper
 import org.yuzu.yuzu_emu.utils.NativeConfig
 
 /**
@@ -65,6 +66,19 @@ abstract class SettingsItem(
                 return NativeLibrary.isFirmwareAvailable()
             }
 
+            if (setting.key in frameGenKeys &&
+                !(LosslessScalingHelper.isInstalled() && LosslessScalingHelper.isSupportedByGpu())
+            ) {
+                return false
+            }
+
+            // A frame rate target moves the multiplier on its own
+            if (setting.key == IntSetting.RENDERER_FRAME_GEN_MULTIPLIER.key &&
+                frameGenTargetRate != 0
+            ) {
+                return false
+            }
+
             // Can't edit settings that aren't saveable in per-game config even if they are switchable
             if (NativeConfig.isPerGameConfigLoaded() && !setting.isSaveable) {
                 return false
@@ -88,7 +102,31 @@ abstract class SettingsItem(
     val clearable: Boolean
         get() = !setting.global && NativeConfig.isPerGameConfigLoaded()
 
+    private val frameGenTargetRate: Int
+        get() {
+            val key = IntSetting.RENDERER_FRAME_GEN_TARGET_RATE.key
+            val needsGlobal = if (NativeLibrary.isRunning() &&
+                !NativeConfig.isPerGameConfigLoaded()
+            ) {
+                !NativeConfig.usingGlobal(key)
+            } else {
+                NativeConfig.usingGlobal(key)
+            }
+            return IntSetting.RENDERER_FRAME_GEN_TARGET_RATE.getInt(needsGlobal)
+        }
+
     companion object {
+        private val frameGenKeys = setOf(
+            BooleanSetting.RENDERER_FRAME_GEN.key,
+            IntSetting.RENDERER_FRAME_GEN_MULTIPLIER.key,
+            IntSetting.RENDERER_FRAME_GEN_TARGET_RATE.key,
+            IntSetting.RENDERER_FRAME_GEN_QUEUE_TARGET.key,
+            BooleanSetting.RENDERER_FRAME_GEN_FLOW_SCALE_AUTO.key,
+            IntSetting.RENDERER_FRAME_GEN_FLOW_SCALE.key,
+            BooleanSetting.RENDERER_FRAME_GEN_FP16.key,
+            BooleanSetting.RENDERER_FRAME_GEN_DUMP_FLOW.key
+        )
+
         const val TYPE_HEADER = 0
         const val TYPE_SWITCH = 1
         const val TYPE_SINGLE_CHOICE = 2
@@ -605,6 +643,71 @@ abstract class SettingsItem(
                     titleId = R.string.renderer_anti_aliasing,
                     choicesId = R.array.rendererAntiAliasingNames,
                     valuesId = R.array.rendererAntiAliasingValues
+                )
+            )
+            put(
+                SwitchSetting(
+                    BooleanSetting.RENDERER_FRAME_GEN,
+                    titleId = R.string.frame_gen,
+                    descriptionId = R.string.frame_gen_description
+                )
+            )
+            put(
+                SingleChoiceSetting(
+                    IntSetting.RENDERER_FRAME_GEN_MULTIPLIER,
+                    titleId = R.string.frame_gen_multiplier,
+                    descriptionId = R.string.frame_gen_multiplier_description,
+                    choicesId = R.array.frameGenMultiplierNames,
+                    valuesId = R.array.frameGenMultiplierValues
+                )
+            )
+            put(
+                SingleChoiceSetting(
+                    IntSetting.RENDERER_FRAME_GEN_TARGET_RATE,
+                    titleId = R.string.frame_gen_target_rate,
+                    descriptionId = R.string.frame_gen_target_rate_description,
+                    choicesId = R.array.frameGenTargetRateNames,
+                    valuesId = R.array.frameGenTargetRateValues
+                )
+            )
+            put(
+                SingleChoiceSetting(
+                    IntSetting.RENDERER_FRAME_GEN_QUEUE_TARGET,
+                    titleId = R.string.frame_gen_queue_target,
+                    descriptionId = R.string.frame_gen_queue_target_description,
+                    choicesId = R.array.frameGenQueueTargetNames,
+                    valuesId = R.array.frameGenQueueTargetValues
+                )
+            )
+            put(
+                SwitchSetting(
+                    BooleanSetting.RENDERER_FRAME_GEN_FLOW_SCALE_AUTO,
+                    titleId = R.string.frame_gen_flow_scale_auto,
+                    descriptionId = R.string.frame_gen_flow_scale_auto_description
+                )
+            )
+            put(
+                SliderSetting(
+                    IntSetting.RENDERER_FRAME_GEN_FLOW_SCALE,
+                    titleId = R.string.frame_gen_flow_scale,
+                    descriptionId = R.string.frame_gen_flow_scale_description,
+                    min = 25,
+                    max = 100,
+                    units = "%"
+                )
+            )
+            put(
+                SwitchSetting(
+                    BooleanSetting.RENDERER_FRAME_GEN_FP16,
+                    titleId = R.string.frame_gen_fp16,
+                    descriptionId = R.string.frame_gen_fp16_description
+                )
+            )
+            put(
+                SwitchSetting(
+                    BooleanSetting.RENDERER_FRAME_GEN_DUMP_FLOW,
+                    titleId = R.string.frame_gen_dump_flow,
+                    descriptionId = R.string.frame_gen_dump_flow_description
                 )
             )
             put(

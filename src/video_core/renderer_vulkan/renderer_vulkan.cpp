@@ -49,6 +49,23 @@ constexpr VkExtent2D CaptureImageSize{
     .height = VideoCore::Capture::LinearHeight,
 };
 
+#ifdef HAS_LSFG
+[[nodiscard]] VkExtent2D GuestExtent(std::span<const Tegra::FramebufferConfig> framebuffers) {
+    if (framebuffers.empty()) {
+        return VkExtent2D{};
+    }
+
+    const auto& framebuffer = framebuffers.front();
+    if (framebuffer.crop_rect.IsEmpty()) {
+        return VkExtent2D{.width = framebuffer.width, .height = framebuffer.height};
+    }
+    return VkExtent2D{
+        .width = static_cast<u32>(framebuffer.crop_rect.GetWidth()),
+        .height = static_cast<u32>(framebuffer.crop_rect.GetHeight()),
+    };
+}
+#endif
+
 constexpr VkExtent3D CaptureImageExtent{
     .width = VideoCore::Capture::LinearWidth,
     .height = VideoCore::Capture::LinearHeight,
@@ -155,7 +172,11 @@ try
                   present_manager,
                   scheduler,
                   PresentFiltersForAppletCapture)
-    , rasterizer(render_window, gpu, device_memory, device, memory_allocator, state_tracker, scheduler) {
+    , rasterizer(render_window, gpu, device_memory, device, memory_allocator, state_tracker, scheduler)
+#ifdef HAS_LSFG
+    , frame_gen(memory_allocator, scheduler)
+#endif
+{
 
     if (Settings::values.renderer_force_max_clock.GetValue() && device.ShouldBoostClocks()) {
         turbo_mode.emplace(instance, dld);
@@ -191,9 +212,28 @@ void RendererVulkan::Composite(std::span<const Tegra::FramebufferConfig> framebu
     blit_swapchain.DrawToFrame(device, rasterizer, frame, framebuffers,
                                render_window.GetFramebufferLayout(), swapchain.GetImageCount(),
                                swapchain.GetImageViewFormat());
+
+#ifdef HAS_LSFG
+    void(frame_gen.WantedGenerations(present_manager.MaxExtraFrames()));
+
+    frame_gen.Process(device, frame, swapchain.GetImageFormat(), GuestExtent(framebuffers));
+
+    const size_t generated_frames = frame_gen.GeneratedFrameCount();
+    for (size_t generation = 0; generation < generated_frames; ++generation) {
+        Frame* generated = present_manager.GetRenderFrame();
+        blit_swapchain.PrepareFrame(device, generated, render_window.GetFramebufferLayout());
+        frame_gen.GenerateInto(device, generated, generation);
+        scheduler.Flush(*generated->render_ready);
+        present_manager.Present(generated);
+    }
+#endif
+
     scheduler.Flush(*frame->render_ready);
 
     present_manager.Present(frame);
+#ifdef HAS_LSFG
+    scheduler.DispatchWork();
+#endif
 
     gpu.RendererFrameEndNotify();
     rasterizer.TickFrame();

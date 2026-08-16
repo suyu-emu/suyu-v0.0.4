@@ -44,6 +44,7 @@ import org.yuzu.yuzu_emu.ui.main.MainActivity
 import org.yuzu.yuzu_emu.utils.FileUtil
 import org.yuzu.yuzu_emu.utils.GpuDriverHelper
 import org.yuzu.yuzu_emu.utils.Log
+import org.yuzu.yuzu_emu.utils.LosslessScalingHelper
 import org.yuzu.yuzu_emu.utils.ViewUtils.updateMargins
 
 class HomeSettingsFragment : Fragment() {
@@ -170,6 +171,24 @@ class HomeSettingsFragment : Fragment() {
                     )
                 )
             }
+            add(
+                HomeSetting(
+                    R.string.lossless_scaling,
+                    R.string.lossless_scaling_description,
+                    R.drawable.ic_duck,
+                    {
+                        val action = HomeNavigationDirections.actionGlobalSettingsSubscreenActivity(
+                            SettingsSubscreen.LOSSLESS_MANAGER,
+                            null
+                        )
+                        binding.root.findNavController().navigate(action)
+                    },
+                    { true },
+                    0,
+                    0,
+                    LosslessScalingHelper.statusText
+                )
+            )
             add(
                 HomeSetting(
                     R.string.multiplayer,
@@ -337,6 +356,7 @@ class HomeSettingsFragment : Fragment() {
     override fun onResume() {
         super.onResume()
         driverViewModel.updateDriverNameForGame(null)
+        LosslessScalingHelper.refreshStatus()
     }
 
     override fun onDestroyView() {

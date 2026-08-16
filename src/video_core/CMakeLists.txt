@@ -267,6 +267,38 @@ add_library(video_core STATIC
     video_core.h
 )
 
+if (ENABLE_LSFG)
+    target_sources(video_core PRIVATE
+        frame_gen/lossless_dll.cpp
+        frame_gen/lossless_dll.h
+        frame_gen/lsfg_translate.cpp
+        frame_gen/lsfg_translate.h
+        renderer_vulkan/present/frame_gen.cpp
+        renderer_vulkan/present/frame_gen.h
+        renderer_vulkan/present/frame_gen_pacer.cpp
+        renderer_vulkan/present/frame_gen_pacer.h
+        renderer_vulkan/present/lsfg_alpha.cpp
+        renderer_vulkan/present/lsfg_alpha.h
+        renderer_vulkan/present/lsfg_beta.cpp
+        renderer_vulkan/present/lsfg_beta.h
+        renderer_vulkan/present/lsfg_chain.cpp
+        renderer_vulkan/present/lsfg_chain.h
+        renderer_vulkan/present/lsfg_common.cpp
+        renderer_vulkan/present/lsfg_common.h
+        renderer_vulkan/present/lsfg_delta.cpp
+        renderer_vulkan/present/lsfg_delta.h
+        renderer_vulkan/present/lsfg_gamma.cpp
+        renderer_vulkan/present/lsfg_gamma.h
+        renderer_vulkan/present/lsfg_generate.cpp
+        renderer_vulkan/present/lsfg_generate.h
+        renderer_vulkan/present/lsfg_mipmaps.cpp
+        renderer_vulkan/present/lsfg_mipmaps.h
+        renderer_vulkan/present/lsfg_shaders.cpp
+        renderer_vulkan/present/lsfg_shaders.h
+    )
+    target_compile_definitions(video_core PUBLIC HAS_LSFG)
+endif()
+
 if (ENABLE_OPENGL)
     target_sources(video_core PRIVATE
         renderer_opengl/present/filters.cpp

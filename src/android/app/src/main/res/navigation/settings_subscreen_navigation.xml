@@ -48,6 +48,12 @@
     </fragment>
 
     <fragment
+        android:id="@+id/losslessManagerFragment"
+        android:name="org.yuzu.yuzu_emu.fragments.LosslessManagerFragment"
+        android:label="@string/lossless_scaling"
+        tools:layout="@layout/fragment_lossless_manager" />
+
+    <fragment
         android:id="@+id/appletLauncherFragment"
         android:name="org.yuzu.yuzu_emu.fragments.AppletLauncherFragment"
         android:label="AppletLauncherFragment">

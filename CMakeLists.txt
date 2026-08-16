@@ -81,6 +81,9 @@ cmake_dependent_option(YUZU_USE_BUNDLED_QT "Download bundled Qt binaries" "${MSV
 option(ENABLE_DEBUG_TOOLS "Enable debugging tools (maxwell disassembler, SPIRV translator, etc)" OFF)
 option(ENABLE_WERROR "Enable -Werror diagnostics" ON)
 
+# Lossless Scaling frame generation. Only Android.
+cmake_dependent_option(ENABLE_LSFG "Enable Lossless Scaling frame generation" ON "ANDROID" OFF)
+
 # non-linux bundled qt are static
 if (YUZU_USE_BUNDLED_QT AND (APPLE OR NOT UNIX))
     set(YUZU_STATIC_BUILD ON)
@@ -339,11 +342,12 @@ if (CXX_GCC OR CXX_CLANG)
         endif()
     elseif(ARCHITECTURE_arm64)
         # See https://gcc.gnu.org/onlinedocs/gcc/AArch64-Options.html
-        set(YUZU_BUILD_PRESET "custom" CACHE STRING "Build preset to use. One of: custom, generic, armv9, native")
+        set(YUZU_BUILD_PRESET "custom" CACHE STRING "Build preset to use. One of: custom, generic, optimized, armv9, native")
         set(mtune generic)
-
         if (${YUZU_BUILD_PRESET} STREQUAL "generic")
             set(march armv8-a)
+        elseif (${YUZU_BUILD_PRESET} STREQUAL "optimized")
+            set(march armv8.2-a+lse+rcpc)
         elseif (${YUZU_BUILD_PRESET} STREQUAL "armv9")
             set(march armv9-a)
         endif()

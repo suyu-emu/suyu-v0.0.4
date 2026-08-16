@@ -29,6 +29,7 @@ enum class SettingsSubscreen {
     DRIVER_MANAGER,
     DRIVER_FETCHER,
     FREEDRENO_SETTINGS,
+    LOSSLESS_MANAGER,
     APPLET_LAUNCHER,
     INSTALLABLE,
     GAME_FOLDERS,
@@ -126,6 +127,7 @@ class SettingsSubscreenActivity : AppCompatActivity() {
             SettingsSubscreen.DRIVER_MANAGER -> R.id.driverManagerFragment
             SettingsSubscreen.DRIVER_FETCHER -> R.id.driverFetcherFragment
             SettingsSubscreen.FREEDRENO_SETTINGS -> R.id.freedrenoSettingsFragment
+            SettingsSubscreen.LOSSLESS_MANAGER -> R.id.losslessManagerFragment
             SettingsSubscreen.APPLET_LAUNCHER -> R.id.appletLauncherFragment
             SettingsSubscreen.INSTALLABLE -> R.id.installableFragment
             SettingsSubscreen.GAME_FOLDERS -> R.id.gameFoldersFragment

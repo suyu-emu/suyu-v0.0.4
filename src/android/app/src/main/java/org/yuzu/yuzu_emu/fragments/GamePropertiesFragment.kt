@@ -369,6 +369,21 @@ class GamePropertiesFragment : Fragment() {
                     )
                 )
             }
+            add(
+                SubmenuProperty(
+                    R.string.frame_gen,
+                    R.string.frame_gen_per_game_description,
+                    R.drawable.ic_duck,
+                    action = {
+                        val action = HomeNavigationDirections.actionGlobalSettingsActivity(
+                            args.game,
+                            Settings.MenuTag.SECTION_FRAME_GEN
+                        )
+                        binding.root.findNavController().navigate(action)
+                    }
+                )
+            )
+
             if (GpuDriverHelper.isAdrenoGpu()) {
                 add(
                     SubmenuProperty(

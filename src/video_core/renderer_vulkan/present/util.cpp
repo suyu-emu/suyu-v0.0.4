@@ -320,15 +320,16 @@ vk::DescriptorPool CreateWrappedDescriptorPool(const Device& device, size_t max_
     });
 }
 
-vk::DescriptorSetLayout CreateWrappedDescriptorSetLayout(
-    const Device& device, std::initializer_list<VkDescriptorType> types) {
+vk::DescriptorSetLayout CreateWrappedDescriptorSetLayout(const Device& device,
+                                                         std::span<const VkDescriptorType> types,
+                                                         VkShaderStageFlags stages) {
     std::vector<VkDescriptorSetLayoutBinding> bindings(types.size());
     for (size_t i = 0; i < types.size(); i++) {
         bindings[i] = {
             .binding = static_cast<u32>(i),
-            .descriptorType = std::data(types)[i],
+            .descriptorType = types[i],
             .descriptorCount = 1,
-            .stageFlags = VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT,
+            .stageFlags = stages,
             .pImmutableSamplers = nullptr,
         };
     }
@@ -342,6 +343,13 @@ vk::DescriptorSetLayout CreateWrappedDescriptorSetLayout(
     });
 }
 
+vk::DescriptorSetLayout CreateWrappedDescriptorSetLayout(
+    const Device& device, std::initializer_list<VkDescriptorType> types,
+    VkShaderStageFlags stages) {
+    return CreateWrappedDescriptorSetLayout(
+        device, std::span<const VkDescriptorType>{std::data(types), types.size()}, stages);
+}
+
 vk::DescriptorSets CreateWrappedDescriptorSets(vk::DescriptorPool& pool,
                                                vk::Span<VkDescriptorSetLayout> layouts) {
     return pool.Allocate(VkDescriptorSetAllocateInfo{
@@ -350,6 +358,28 @@ vk::DescriptorSets CreateWrappedDescriptorSets(vk::DescriptorPool& pool,
         .descriptorPool = *pool,
         .descriptorSetCount = layouts.size(),
         .pSetLayouts = layouts.data(),
+    });
+}
+
+vk::Pipeline CreateWrappedComputePipeline(const Device& device, vk::PipelineLayout& layout,
+                                          VkShaderModule shader) {
+    return device.GetLogical().CreateComputePipeline(VkComputePipelineCreateInfo{
+        .sType = VK_STRUCTURE_TYPE_COMPUTE_PIPELINE_CREATE_INFO,
+        .pNext = nullptr,
+        .flags = 0,
+        .stage =
+            {
+                .sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO,
+                .pNext = nullptr,
+                .flags = 0,
+                .stage = VK_SHADER_STAGE_COMPUTE_BIT,
+                .module = shader,
+                .pName = "main",
+                .pSpecializationInfo = nullptr,
+            },
+        .layout = *layout,
+        .basePipelineHandle = VK_NULL_HANDLE,
+        .basePipelineIndex = 0,
     });
 }
 

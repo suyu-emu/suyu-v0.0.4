@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 // SPDX-FileCopyrightText: Copyright 2024 yuzu Emulator Project
@@ -38,7 +38,11 @@ vk::DescriptorPool CreateWrappedDescriptorPool(const Device& device, size_t max_
                                                std::initializer_list<VkDescriptorType> types = {
                                                    VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER});
 vk::DescriptorSetLayout CreateWrappedDescriptorSetLayout(
-    const Device& device, std::initializer_list<VkDescriptorType> types);
+    const Device& device, std::initializer_list<VkDescriptorType> types,
+    VkShaderStageFlags stages = VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT);
+vk::DescriptorSetLayout CreateWrappedDescriptorSetLayout(const Device& device,
+                                                         std::span<const VkDescriptorType> types,
+                                                         VkShaderStageFlags stages);
 vk::DescriptorSets CreateWrappedDescriptorSets(vk::DescriptorPool& pool,
                                                vk::Span<VkDescriptorSetLayout> layouts);
 vk::PipelineLayout CreateWrappedPipelineLayout(const Device& device,
@@ -46,6 +50,8 @@ vk::PipelineLayout CreateWrappedPipelineLayout(const Device& device,
 vk::Pipeline CreateWrappedPipeline(const Device& device, vk::RenderPass& renderpass,
                                    vk::PipelineLayout& layout,
                                    std::tuple<vk::ShaderModule&, vk::ShaderModule&> shaders);
+vk::Pipeline CreateWrappedComputePipeline(const Device& device, vk::PipelineLayout& layout,
+                                          VkShaderModule shader);
 vk::Pipeline CreateWrappedPremultipliedBlendingPipeline(
     const Device& device, vk::RenderPass& renderpass, vk::PipelineLayout& layout,
     std::tuple<vk::ShaderModule&, vk::ShaderModule&> shaders);

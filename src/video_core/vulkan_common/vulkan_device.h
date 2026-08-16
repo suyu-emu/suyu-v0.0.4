@@ -37,7 +37,8 @@ VK_DEFINE_HANDLE(VmaAllocator)
     FEATURE(EXT, HostQueryReset, HOST_QUERY_RESET, host_query_reset)                               \
     FEATURE(KHR, 8BitStorage, 8BIT_STORAGE, bit8_storage)                                          \
     FEATURE(KHR, BufferDeviceAddress, BUFFER_DEVICE_ADDRESS, buffer_device_address)                \
-    FEATURE(KHR, TimelineSemaphore, TIMELINE_SEMAPHORE, timeline_semaphore)
+    FEATURE(KHR, TimelineSemaphore, TIMELINE_SEMAPHORE, timeline_semaphore)                        \
+    FEATURE(KHR, VulkanMemoryModel, VULKAN_MEMORY_MODEL, vulkan_memory_model)
 
 #define FOR_EACH_VK_FEATURE_1_3(FEATURE)                                                           \
     FEATURE(EXT, ImageRobustness, IMAGE_ROBUSTNESS, robust_image_access)                           \
@@ -414,6 +415,11 @@ FN_MAX_LIMIT_LIST
     /// Returns true if the device supports float16 natively.
     bool IsFloat16Supported() const {
         return features.shader_float16_int8.shaderFloat16;
+    }
+
+    /// Returns true if the device can run shaders built against the Vulkan memory model.
+    bool IsVulkanMemoryModelSupported() const {
+        return features.vulkan_memory_model.vulkanMemoryModel;
     }
 
     /// Returns true if the device supports int8 natively.
