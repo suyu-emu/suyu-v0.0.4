@@ -192,8 +192,11 @@ Result FSP_SRV::SetCurrentProcess(ClientProcessId pid) {
 
     LOG_DEBUG(Service_FS, "called. current_process_id=0x{:016X}", current_process_id);
 
-    R_RETURN(
-        fsc.OpenProcess(&program_id, &save_data_controller, &romfs_controller, current_process_id));
+    const auto result = fsc.OpenProcess(&program_id, &save_data_controller, &romfs_controller,
+                                        current_process_id);
+    LOG_DEBUG(Service_FS, "OpenProcess pid={} result={:#x} romfs_controller_null={}",
+              current_process_id, result.raw, romfs_controller == nullptr);
+    R_RETURN(result);
 }
 
 Result FSP_SRV::OpenFileSystemWithPatch(OutInterface<IFileSystem> out_interface,

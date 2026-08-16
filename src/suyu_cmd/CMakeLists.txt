@@ -75,6 +75,22 @@ if (SUYU_CMD OR YUZU_CMD)
         foreach(_m ${_recomp_children})
             if (EXISTS "${SUYU_CMD_RECOMP_DIR}/${_m}/CMakeLists.txt" AND
                 EXISTS "${SUYU_CMD_RECOMP_DIR}/${_m}/recomp_export.c")
+                # Each generated module carries its own frozen copy of the
+                # GuestContext layout. A cache produced before TPIDRRO_EL0 was
+                # split out of TPIDR_EL0 still folds the two registers into one
+                # field, which silently breaks IPC (the guest emits its message
+                # header outside the TLS region the kernel parses it from).
+                # Refuse to build against such a cache instead of shipping a
+                # binary that black-screens.
+                if (EXISTS "${SUYU_CMD_RECOMP_DIR}/${_m}/recomp_runtime.h")
+                    file(READ "${SUYU_CMD_RECOMP_DIR}/${_m}/recomp_runtime.h" _rt_h)
+                    if (NOT _rt_h MATCHES "tpidrro_el0")
+                        message(FATAL_ERROR
+                            "Recompiled module '${_m}' in ${SUYU_CMD_RECOMP_DIR} predates the "
+                            "TPIDRRO_EL0/TPIDR_EL0 split and would mis-handle IPC. "
+                            "Re-export the game to regenerate its AOT cache.")
+                    endif()
+                endif()
                 add_subdirectory("${SUYU_CMD_RECOMP_DIR}/${_m}"
                                  "${CMAKE_CURRENT_BINARY_DIR}/recomp/${_m}")
                 list(APPEND _recomp_libs "recomp_static_${_m}")

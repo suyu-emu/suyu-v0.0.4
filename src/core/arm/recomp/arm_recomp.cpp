@@ -41,6 +41,12 @@ struct GuestContextView {
     u64 vreg[32][2];
     u64 tpidr_el0;
     const void* host_mem;
+    // TPIDRRO_EL0 - the kernel-published thread-local region, whose first
+    // 0x100 bytes are the IPC message buffer KServerSession reads a
+    // SendSyncRequest out of. Kept apart from tpidr_el0 (the guest's own
+    // thread pointer) because the two have different owners and different
+    // lifetimes; see the note on GuestContext in core/recompiler/arm64_to_c.h.
+    u64 tpidrro_el0;
 };
 
 // Matches RecompHostMem in the generated runtime. The recompiled code calls
@@ -64,10 +70,32 @@ static_assert(offsetof(GuestContextView, pending_svc) == 304);
 static_assert(offsetof(GuestContextView, vreg) == 312);
 static_assert(offsetof(GuestContextView, tpidr_el0) == 824);
 static_assert(offsetof(GuestContextView, host_mem) == 832);
+static_assert(offsetof(GuestContextView, tpidrro_el0) == 840);
 
 // The generated code signals an SVC by parking with this set. Kept in sync
 // with the emitted recomp_svc contract in core/recompiler/arm64_to_c.h.
 constexpr u64 kNoPendingSvc = ~0ULL;
+
+// Mirrors RECOMP_HALT_UNHANDLED in the generated runtime: a block that halts
+// with this parked its PC on an instruction the decoder cannot translate and
+// is asking for that address to be executed by the interpreter fallback.
+constexpr int kHaltUnhandled = 2;
+
+// An unresolved GOT/JUMP_SLOT relocation used to be left untouched, which
+// means a call through it branches to whatever the raw NSO file already had
+// sitting in that GOT slot - typically a small placeholder/addend value the
+// static linker left for a symbol it expected the *dynamic* linker to fill
+// in later (lazy-binding stub offset, or just zero-adjacent garbage), not a
+// real address. The guest's BLR then lands on that small value directly -
+// e.g. 0xe7ff0 - which is unmapped, and the JIT fallback that "No recompiled
+// block" hands off to can't execute there either, so the whole thread dies.
+// Every unresolved slot is patched to this fixed, recognizable sentinel
+// instead: the dispatch loop below special-cases it as an immediate "return
+// to caller" (PC = LR) rather than a real guest address, so a genuinely
+// call-but-never-actually-invoked unresolved import (the common case - most
+// entries in a large import table exist for code paths a given boot never
+// takes) fails soft instead of crashing the thread outright.
+constexpr u64 kUnresolvedImportTrap = 0xFFFF'FFFF'0000'0000ULL;
 } // namespace
 
 namespace {
@@ -151,7 +179,41 @@ struct ArmRecomp::Impl {
         u64 rela_va = 0, rela_sz = 0, rela_ent = 24, rela_sz_va = 0;
         u64 jmprel_va = 0, jmprel_sz = 0, jmprel_ent = 24, jmprel_sz_va = 0;
         u64 symtab_va = 0, strtab_va = 0;
+        // Address of a harmless "return 0" stub inside this module's own text,
+        // used as the target for every import that could not be resolved.
+        u64 trap_va = 0;
     };
+
+    // Find an existing `mov x0, #0; ret` (or failing that, a bare `ret`) in a
+    // module's text and hand back its address.
+    //
+    // Unresolved imports have to point somewhere, and the address has to be one
+    // BOTH execution engines can survive: the recompiled dispatcher can
+    // special-case a magic sentinel, but the dynarmic fallback cannot - it just
+    // tries to translate the address and dies with "cannot execute instruction
+    // at unmapped address". Reusing a real instruction pair the module already
+    // contains sidesteps that entirely: it is mapped, executable, and returns to
+    // the caller under any engine, with no per-engine handling and nothing
+    // written into guest memory. Most entries in a large import table exist for
+    // code paths a given boot never takes, so failing soft here is what keeps a
+    // partially-resolvable module bootable at all.
+    u64 FindReturnStub(u64 mod_base) {
+        auto& mem = system.ApplicationMemory();
+        constexpr u32 kMovX0Zero = 0xD2800000, kRet = 0xD65F03C0;
+        // Text sits at the front of every NSO; a module without a matching pair
+        // in its first megabyte does not have one worth scanning further for.
+        constexpr u64 kScanLimit = 0x100000;
+        u64 bare_ret = 0;
+        for (u64 off = 0; off < kScanLimit; off += 4) {
+            const u32 insn = mem.Read32(mod_base + off);
+            if (insn == kRet) {
+                if (!bare_ret) bare_ret = mod_base + off;
+            } else if (insn == kMovX0Zero && mem.Read32(mod_base + off + 4) == kRet) {
+                return mod_base + off;
+            }
+        }
+        return bare_ret;
+    }
 
     // Locate a module's MOD0 header and parse its .dynamic section. Returns
     // false if this module has no MOD0 (nothing to relocate).
@@ -268,8 +330,9 @@ struct ArmRecomp::Impl {
                           const std::unordered_map<std::string, u64>& exports, u32& applied,
                           u32& unresolved) {
         auto& mem = system.ApplicationMemory();
-        constexpr u32 R_AARCH64_RELATIVE = 0x403, R_AARCH64_GLOB_DAT = 0x401,
-                       R_AARCH64_JUMP_SLOT = 0x402;
+        constexpr u32 R_AARCH64_ABS64 = 0x101, R_AARCH64_RELATIVE = 0x403,
+                       R_AARCH64_GLOB_DAT = 0x401, R_AARCH64_JUMP_SLOT = 0x402,
+                       R_AARCH64_IRELATIVE = 0x408;
         for (u64 p = table_va; p < table_va + table_sz; p += entry_sz) {
             const u64 r_offset = mem.Read64(p);
             const u64 r_info   = mem.Read64(p + 8);
@@ -279,8 +342,37 @@ struct ArmRecomp::Impl {
             if (r_type == R_AARCH64_RELATIVE) {
                 mem.Write64(d.mod_base + r_offset, d.mod_base + r_addend);
                 ++applied;
-            } else if (r_type == R_AARCH64_GLOB_DAT || r_type == R_AARCH64_JUMP_SLOT) {
+            } else if (r_type == R_AARCH64_IRELATIVE) {
+                // IRELATIVE (ifunc): r_addend is a RESOLVER function's address,
+                // not the final target - the correct behaviour is to call it
+                // (no args, AAPCS64) and store whatever it returns. Actually
+                // invoking guest code from inside relocation application would
+                // need a full nested-call machinery this backend doesn't have,
+                // so - same as a genuinely-unresolved import - patch to the
+                // trap sentinel instead of leaving the GOT slot as raw
+                // pre-relocation file content. Previously this relocation type
+                // matched none of the branches below and was silently skipped
+                // entirely, which is exactly how a BLR through this slot ended
+                // up jumping to a small leftover file value (e.g. 0xe7ff0)
+                // instead of either a real function or a diagnosable trap.
+                LOG_ERROR(Core_ARM,
+                          "recomp: IRELATIVE relocation at module base={:#x} offset={:#x} not "
+                          "invoked (resolver call unsupported); trapped instead",
+                          d.mod_base, r_offset);
+                mem.Write64(d.mod_base + r_offset, d.trap_va ? d.trap_va : kUnresolvedImportTrap);
+            } else if (r_type == R_AARCH64_GLOB_DAT || r_type == R_AARCH64_JUMP_SLOT ||
+                       r_type == R_AARCH64_ABS64) {
                 const auto sym = ReadSymbol(d, r_sym);
+                // ABS64 is S + A, unlike GLOB_DAT/JUMP_SLOT which are plain S.
+                // It is by far the most common relocation in a C++ module's
+                // .data.rel.ro - every vtable slot, every typeinfo pointer, every
+                // static function-pointer table is one - and skipping it left
+                // those slots holding the raw module-relative symbol value the
+                // linker wrote. A virtual call through such a vtable branches to
+                // that small offset instead of base+offset, which is unmapped:
+                // that is the whole "cannot execute instruction at unmapped
+                // address 0xe7ff0" family of boot crashes.
+                const u64 addend = (r_type == R_AARCH64_ABS64) ? r_addend : 0;
                 // Linker-synthesized section-boundary symbols (__got_start,
                 // __rela_dyn_end, __tbss_align_abs, __EX_start, etc.) describe
                 // the CURRENT module's own layout - they're self-referential,
@@ -311,13 +403,19 @@ struct ArmRecomp::Impl {
                     is_synthetic = false;
                 }
                 if (is_synthetic && synthetic) {
-                    mem.Write64(d.mod_base + r_offset, synthetic);
+                    mem.Write64(d.mod_base + r_offset, synthetic + addend);
                     ++applied;
                 } else if (sym.defined || sym.value != 0) {
-                    mem.Write64(d.mod_base + r_offset, d.mod_base + sym.value);
+                    mem.Write64(d.mod_base + r_offset, d.mod_base + sym.value + addend);
                     ++applied;
                 } else if (auto it = exports.find(sym.name); it != exports.end()) {
-                    mem.Write64(d.mod_base + r_offset, it->second);
+                    mem.Write64(d.mod_base + r_offset, it->second + addend);
+                    ++applied;
+                } else if (r_type == R_AARCH64_ABS64 && r_sym == 0) {
+                    // STN_UNDEF ABS64: S is 0 by definition, so the result is
+                    // the addend alone - a plain absolute constant, not a
+                    // failed import. Never trap these.
+                    mem.Write64(d.mod_base + r_offset, addend);
                     ++applied;
                 } else {
                     ++unresolved;
@@ -325,6 +423,9 @@ struct ArmRecomp::Impl {
                         LOG_ERROR(Core_ARM, "recomp: unresolved GOT/PLT symbol '{}' for module base={:#x}",
                                   sym.name.empty() ? "<no name>" : sym.name, d.mod_base);
                     }
+                    // Patch to the trap sentinel rather than leaving the slot
+                    // as whatever the raw file had - see kUnresolvedImportTrap.
+                    mem.Write64(d.mod_base + r_offset, d.trap_va ? d.trap_va : kUnresolvedImportTrap);
                 }
             }
         }
@@ -347,6 +448,7 @@ struct ArmRecomp::Impl {
         for (const auto& [module_base, name] : all_modules) {
             DynInfo d;
             if (ParseDynamic(module_base, d)) {
+                d.trap_va = FindReturnStub(module_base);
                 IndexExports(d, exports);
                 dyns.push_back(d);
             }
@@ -380,7 +482,6 @@ struct ArmRecomp::Impl {
     RecompLookupFn lookup{};
     GuestContextView ctx{};
     RecompHostMem bridge{};
-    u64 tpidrro_el0{};
     std::atomic<bool> interrupted{false};
     Loader::AppLoader::Modules modules{};
     bool modules_read{false};
@@ -443,7 +544,7 @@ HaltReason ArmRecomp::RunFallback(Kernel::KThread* thread) {
     Kernel::Svc::ThreadContext tctx{};
     this->GetContext(tctx);
     impl->fallback->SetContext(tctx);
-    impl->fallback->SetTpidrroEl0(impl->tpidrro_el0);
+    impl->fallback->SetTpidrroEl0(impl->ctx.tpidrro_el0);
 
     const HaltReason hr = impl->fallback->RunThread(thread);
 
@@ -491,7 +592,15 @@ HaltReason ArmRecomp::RunThread(Kernel::KThread* thread) {
     }
 
     // A previous miss handed this thread to the JIT; keep running there until
-    // the PC lands back inside recompiled code.
+    // the PC lands back inside recompiled code. The trap sentinel has to be
+    // caught before that hand-off as well as inside the dispatch loop below -
+    // a thread already in the JIT that calls an unresolved import would
+    // otherwise be handed the sentinel address to execute, which is unmapped.
+    if (impl->ctx.pc == kUnresolvedImportTrap) {
+        impl->ctx.x[0] = 0;
+        impl->ctx.pc = impl->ctx.x[30];
+        impl->in_fallback = false;
+    }
     if (impl->in_fallback) {
         return RunFallback(thread);
     }
@@ -528,13 +637,22 @@ HaltReason ArmRecomp::RunThread(Kernel::KThread* thread) {
         // GOT read from a bad emitted branch.
         impl->trail[impl->trail_pos++ & (Impl::kTrail - 1)] = impl->ctx.pc;
 
-        // Log pre-dispatch state for the jump-table block to diagnose the GOT bug.
-        const u64 base = impl->modules.empty() ? 0 : impl->modules.begin()->first;
-        if (impl->ctx.pc - base == 0x34c && base != 0) {
-            LOG_ERROR(Core_ARM, "recomp jt dispatch: base={:#x} x0={:#x} x18={:#x} mem@x18={:#x} mem@x18+x0*4={:#x}",
-                      base, impl->ctx.x[0], impl->ctx.x[18],
-                      Impl::HostLoad(impl.get(), impl->ctx.x[18], 4),
-                      Impl::HostLoad(impl.get(), impl->ctx.x[18] + impl->ctx.x[0]*4, 4));
+        if (impl->ctx.pc == kUnresolvedImportTrap) {
+            // Landed here via a BLR through a GOT/JUMP_SLOT slot patched by
+            // ApplyRelocTable because no definition was found anywhere - most
+            // such imports exist for code paths this particular boot never
+            // takes, so treat the call as a no-op: return to the caller with
+            // a zeroed result register rather than crash the thread. x30 is
+            // the guest's own return address (BLR sets it before the branch),
+            // exactly as if this were a real function that did nothing.
+            static std::atomic<int> trap_count{0};
+            if (trap_count.fetch_add(1, std::memory_order_relaxed) < 16) {
+                LOG_ERROR(Core_ARM, "recomp: called through unresolved import (returning to caller {:#x})",
+                          impl->ctx.x[30]);
+            }
+            impl->ctx.x[0] = 0;
+            impl->ctx.pc = impl->ctx.x[30];
+            continue;
         }
 
         RecompBlockFn block = impl->lookup(impl->ctx.pc);
@@ -544,9 +662,18 @@ HaltReason ArmRecomp::RunThread(Kernel::KThread* thread) {
         {
             static const char* const force_miss = std::getenv("SUYU_RECOMP_FORCE_MISS_AFTER");
             static std::atomic<int> blocks_run{0};
-            if (force_miss && blocks_run.fetch_add(1, std::memory_order_relaxed) >=
-                                  std::atoi(force_miss)) {
-                block = nullptr;
+            if (force_miss) {
+                const int n = blocks_run.fetch_add(1, std::memory_order_relaxed);
+                const int limit = std::atoi(force_miss);
+                // Name the blocks either side of the cutoff. Bisecting on the
+                // cutoff tells you which index first breaks the run; this turns
+                // that index into the actual guest address to look at.
+                if (n >= limit - 4 && n <= limit + 4) {
+                    LOG_ERROR(Core_ARM, "recomp: block #{} pc={:#x}", n, impl->ctx.pc);
+                }
+                if (n >= limit) {
+                    block = nullptr;
+                }
             }
         }
         // A miss is now recoverable, so it can happen many times per second;
@@ -603,15 +730,32 @@ HaltReason ArmRecomp::RunThread(Kernel::KThread* thread) {
 
         block(&impl->ctx);
 
+        // The block stopped on an instruction the decoder has no translation
+        // for, having parked the PC on that instruction. Running it on the JIT
+        // instead keeps guest state exact: the alternative the generated code
+        // used to take - step over it and zero x0 - silently produced a
+        // plausible-looking null that only surfaced as a crash much later, in
+        // whatever code eventually dereferenced it.
+        if (impl->ctx.halted == kHaltUnhandled) {
+            impl->ctx.halted = 0;
+            static std::atomic<int> unhandled_count{0};
+            if (unhandled_count.fetch_add(1, std::memory_order_relaxed) < 16) {
+                LOG_WARNING(Core_ARM, "recomp: unimplemented opcode at {:#x}; running on JIT",
+                            impl->ctx.pc);
+            }
+            if (!EnterFallback()) {
+                LOG_CRITICAL(Core_ARM, "recomp: unimplemented opcode at {:#x} and no JIT fallback",
+                             impl->ctx.pc);
+                return HaltReason::PrefetchAbort;
+            }
+            return RunFallback(thread);
+        }
+
         if (impl->ctx.pending_svc != kNoPendingSvc) {
             // Log every SVC call from rtld (first few hundred only to avoid spam)
-            static std::atomic<int> svc_count{0};
-            int cnt = svc_count.fetch_add(1, std::memory_order_relaxed);
-            if (cnt < 200) {
-                LOG_ERROR(Core_ARM, "recomp SVC {} at pc={:#x} x0={:#x} x1={:#x} x2={:#x} x3={:#x}",
-                          impl->ctx.pending_svc, impl->ctx.pc,
-                          impl->ctx.x[0], impl->ctx.x[1], impl->ctx.x[2], impl->ctx.x[3]);
-            }
+            LOG_TRACE(Core_ARM, "recomp SVC {} at pc={:#x} x0={:#x} x1={:#x} x2={:#x} x3={:#x}",
+                      impl->ctx.pending_svc, impl->ctx.pc, impl->ctx.x[0], impl->ctx.x[1],
+                      impl->ctx.x[2], impl->ctx.x[3]);
             return HaltReason::SupervisorCall;
         }
     }
@@ -684,16 +828,20 @@ void ArmRecomp::SetContext(const Kernel::Svc::ThreadContext& ctx) {
         impl->ctx.vreg[i][0] = ctx.v[i][0];
         impl->ctx.vreg[i][1] = ctx.v[i][1];
     }
+    // Only the guest-owned thread pointer travels in ThreadContext. The
+    // read-only one is republished separately by PhysicalCore::LoadContext
+    // on every switch-in, so writing it from here would overwrite the
+    // kernel's TLS pointer with the guest's.
     impl->ctx.tpidr_el0 = ctx.tpidr;
-    impl->tpidrro_el0 = ctx.tpidr;
 }
 
 void ArmRecomp::SetTpidrroEl0(u64 value) {
-    impl->tpidrro_el0 = value;
-    // The emitted MRS/MSR handlers read the thread pointer out of the guest
-    // context, so setting only the local copy left every guest read of
-    // TPIDR_EL0 returning zero - which breaks thread-local storage.
-    impl->ctx.tpidr_el0 = value;
+    // The emitted MRS handler for TPIDRRO_EL0 reads this out of the guest
+    // context, so it has to land there and nowhere else: writing it into
+    // tpidr_el0 (as this used to) destroyed the guest's own thread pointer on
+    // every context switch and made the guest emit its IPC header outside the
+    // TLS region the kernel parses it from.
+    impl->ctx.tpidrro_el0 = value;
 }
 
 void ArmRecomp::GetSvcArguments(std::span<uint64_t, 8> args) const {

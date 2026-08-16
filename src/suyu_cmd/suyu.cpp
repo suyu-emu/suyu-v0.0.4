@@ -579,6 +579,20 @@ int main(int argc, char** argv) {
         // not the suyu dev frontend — the window chrome (title/icon) should
         // read as the game, not the emulator.
         g_native_export_mode = true;
+
+        // Decode video on the CPU unless the user has chosen otherwise.
+        // Handing the guest's VP9 streams to a hardware decoder (d3d11va on
+        // Windows) deadlocks partway through the first movie on at least Intel
+        // integrated graphics: the process stays alive and the log stops
+        // mid-line, which presents as a permanently black window right after
+        // boot. An export is something a player double-clicks with no
+        // settings UI in front of them, so it defaults to the path that always
+        // finishes over the one that is faster when it works.
+        if (Settings::values.nvdec_emulation.UsingGlobal() &&
+            Settings::values.nvdec_emulation.GetValue() == Settings::NvdecEmulation::Gpu) {
+            Settings::values.nvdec_emulation.SetValue(Settings::NvdecEmulation::Cpu);
+            LOG_INFO(Frontend, "Native export: using CPU video decoding");
+        }
     }
 
     // Mods/patches: a standalone export is a self-contained folder, so a "mods"
@@ -732,7 +746,12 @@ int main(int argc, char** argv) {
     system.GPU().Start();
     system.GetCpuManager().OnGpuReady();
 
-    if (Settings::values.use_disk_shader_cache.GetValue()) {
+    // A game export is launched over and over by a player, always for the same
+    // title, so the disk shader cache is the difference between a long black
+    // screen on every single run and one slow first run. Keep it for exports
+    // and keep the old blanket disable for the plain dev frontend, where the
+    // startup instability it works around was originally seen.
+    if (!g_native_export_mode && Settings::values.use_disk_shader_cache.GetValue()) {
         LOG_WARNING(Frontend,
                     "suyu-cmd: disabling disk shader cache for this run to avoid known startup instability");
         Settings::values.use_disk_shader_cache.SetValue(false);

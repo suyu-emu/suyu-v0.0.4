@@ -7,9 +7,13 @@
 // Icon
 //
 
-// Icon with lowest ID value placed first to ensure application icon
-// remains consistent on all systems.
-SUYU_ICON               ICON                    "../../dist/suyu.ico"
+// Numeric id 1, not a named resource. A PE resource directory lists named
+// entries before numeric ones, so a name here would always win the shell's
+// "first icon group" pick - which is why a game export whose own icon is
+// written as id 1 (see UpdateResourceW in suyu/game_export.cpp) still showed
+// the suyu logo in Explorer and the taskbar. Same id means the export
+// replaces this outright instead of sitting behind it.
+1                       ICON                    "../../dist/suyu.ico"
 
 
 /////////////////////////////////////////////////////////////////////////////

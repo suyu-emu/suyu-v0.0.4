@@ -170,8 +170,19 @@ inline bool DecodeBitMasks(u32 N, u32 imms, u32 immr, bool is64, u64& out) {
     if (s == levels) return false;   // reserved
     u64 welem = (s + 1 >= 64) ? ~0ULL : ((1ULL << (s + 1)) - 1);
     // Rotate right within the element, then replicate to the register width.
-    u64 elem = esize >= 64 ? welem
-                           : (((welem >> r) | (welem << (esize - r))) & ((1ULL << esize) - 1));
+    // The rotate applies at every element size, 64 included: skipping it there
+    // (to dodge the undefined `welem << 64` when r is 0) silently turned every
+    // 64-bit rotated mask into its unrotated form - so "and x8, x8, #~0xF",
+    // the standard align-down, decoded as `& 0x0FFFFFFFFFFFFFFF` and left the
+    // pointer unaligned instead. Guard r == 0 explicitly instead.
+    u64 elem;
+    if (r == 0) {
+        elem = welem;
+    } else if (esize >= 64) {
+        elem = (welem >> r) | (welem << (64 - r));
+    } else {
+        elem = ((welem >> r) | (welem << (esize - r))) & ((1ULL << esize) - 1);
+    }
     u64 result = 0;
     for (u32 i = 0; i < (is64 ? 64u : 32u); i += esize) result |= elem << i;
     if (!is64) result &= 0xFFFFFFFFULL;
@@ -220,7 +231,15 @@ inline bool Translate(u32 i, u64 pc, std::string& out) {
     // these to order against and nothing to synchronise - they are genuinely
     // no-ops here. Under Core::ArmRecomp, where real threads exist, these need
     // the host's own barriers instead; noted so the assumption stays visible.
-    if ((i & 0xFFFFF01F) == 0xD503301F) { put("/* barrier */"); return true; }
+    // Emitting nothing at all is only right for the standalone runtime, which
+    // drives one guest thread on one host thread and so has no second observer
+    // to order against. Under Core::ArmRecomp the guest really is
+    // multi-threaded, and a comment does not stop the host compiler reordering
+    // the recomp_load/recomp_store calls around it - so a publish pattern (fill
+    // an object, barrier, store the pointer) can be observed pointer-first by
+    // another thread, surfacing much later as a live vtable pointer reading
+    // back as zero.
+    if ((i & 0xFFFFF01F) == 0xD503301F) { put("recomp_barrier();"); return true; }
 
     if ((i & 0x1F800000) == 0x12800000) { // MOVZ/MOVN/MOVK
         u32 sf = i >> 31, opc = (i >> 29) & 3, hw = (i >> 21) & 3, imm16 = (i >> 5) & 0xFFFF, rd = i & 31;
@@ -262,25 +281,72 @@ inline bool Translate(u32 i, u64 pc, std::string& out) {
         return true;
     }
 
+    // Build a shifted-register operand. LSR/ASR/ROR all used to collapse to a
+    // plain ">>" on a uint64_t, which zero-fills - so ASR lost the sign (the
+    // "bic w0, w0, w0, asr #31" max(x,0) idiom produced ~0 instead of 0) and
+    // ROR dropped the wrapped-around bits entirely (breaking, among other
+    // things, software CRC32). The 32-bit forms also have to be narrowed
+    // before shifting, whatever the shift amount, because the register may
+    // still carry high garbage from an earlier 64-bit write.
+    auto shifted_operand = [](const std::string& v, u32 shift, u32 imm6, u32 sf) -> std::string {
+        char sb[256];
+        if (!sf) {
+            const std::string w = "((uint32_t)(" + v + "))";
+            switch (shift) {
+            case 0: snprintf(sb, sizeof sb, "((uint64_t)(uint32_t)(%s << %u))", w.c_str(), imm6); break;
+            case 1: snprintf(sb, sizeof sb, "((uint64_t)(%s >> %u))", w.c_str(), imm6); break;
+            case 2: snprintf(sb, sizeof sb, "((uint64_t)(uint32_t)((int32_t)%s >> %u))", w.c_str(), imm6); break;
+            default:
+                if (imm6 == 0) { snprintf(sb, sizeof sb, "((uint64_t)%s)", w.c_str()); }
+                else { snprintf(sb, sizeof sb, "((uint64_t)(uint32_t)((%s >> %u) | (%s << %u)))", w.c_str(), imm6, w.c_str(), 32 - imm6); }
+                break;
+            }
+        } else {
+            switch (shift) {
+            case 0: snprintf(sb, sizeof sb, "((%s) << %u)", v.c_str(), imm6); break;
+            case 1: snprintf(sb, sizeof sb, "((%s) >> %u)", v.c_str(), imm6); break;
+            case 2: snprintf(sb, sizeof sb, "((uint64_t)((int64_t)(%s) >> %u))", v.c_str(), imm6); break;
+            default:
+                if (imm6 == 0) { snprintf(sb, sizeof sb, "(%s)", v.c_str()); }
+                else { snprintf(sb, sizeof sb, "(((%s) >> %u) | ((%s) << %u))", v.c_str(), imm6, v.c_str(), 64 - imm6); }
+                break;
+            }
+        }
+        return sb;
+    };
+
     if ((i & 0x1F000000) == 0x0A000000) { // logical shifted register
         u32 sf = i >> 31, opc = (i >> 29) & 3, rm = (i >> 16) & 31, rn = (i >> 5) & 31, rd = i & 31;
         u32 shift = (i >> 22) & 3, imm6 = (i >> 10) & 0x3F, N = (i >> 21) & 1;
-        std::string rmv = Xz(rm);
-        if (imm6) { const char* o = shift == 0 ? "<<" : ">>"; char sb[96]; snprintf(sb, sizeof sb, "(%s %s %u)", rmv.c_str(), o, imm6); rmv = sb; }
+        std::string rmv = shifted_operand(Xz(rm), shift, imm6, sf);
         std::string a = Xz(rn);
         const char* lop = opc == 0 ? "&" : opc == 1 ? "|" : opc == 2 ? "^" : "&";
         std::string expr = N ? ("(" + a + " " + lop + " ~" + rmv + ")") : ("(" + a + " " + lop + " " + rmv + ")");
-        if (rd != 31) {
-            put("c->x[" + std::to_string(rd) + "] = " + expr + ";");
-            if (!sf) { snprintf(buf, sizeof buf, "c->x[%u]&=0xFFFFFFFFULL;", rd); put(buf); }
-        }
+        // opc==3 is ANDS/BICS: it sets the flags, and with rd==31 it is TST,
+        // whose only effect IS the flag update. Gating the whole instruction on
+        // rd != 31 discarded every TST, leaving the following b.cond to branch
+        // on whatever flags happened to be left over from an earlier compare.
+        std::string s = "{ uint64_t _r = " + expr + "; ";
+        if (!sf) s += "_r &= 0xFFFFFFFFULL; ";
+        if (rd != 31) s += "c->x[" + std::to_string(rd) + "] = _r; ";
+        if (opc == 3) s += "recomp_set_flags(c,0,_r,0,_r," + std::string(sf ? "1" : "0") + "); ";
+        s += "}";
+        put(s);
         return true;
     }
 
     if ((i & 0x1F200000) == 0x0B000000) { // ADD/SUB shifted register
         u32 sf = i >> 31, op = (i >> 30) & 1, S = (i >> 29) & 1, shift = (i >> 22) & 3, rm = (i >> 16) & 31, imm6 = (i >> 10) & 0x3F, rn = (i >> 5) & 31, rd = i & 31;
-        std::string rmv = Xz(rm);
-        if (imm6) { const char* o = shift == 0 ? "<<" : ">>"; char sb[96]; snprintf(sb, sizeof sb, "(%s %s %u)", rmv.c_str(), o, imm6); rmv = sb; }
+        // ROR is reserved for ADD/SUB shifted register - decoding it as a shift
+        // would silently invent an instruction the CPU does not have.
+        if (shift == 3) {
+            snprintf(buf, sizeof buf,
+                     "recomp_unhandled(c,0x%08xU,g_module_base+0x%llxULL); if(c->halted) return;", i,
+                     (unsigned long long)pc);
+            put(buf);
+            return true;
+        }
+        std::string rmv = shifted_operand(Xz(rm), shift, imm6, sf);
         std::string a = Xz(rn);
         snprintf(buf, sizeof buf, "{ uint64_t _a=%s,_b=%s,_r=%s; ", a.c_str(), rmv.c_str(), op ? "_a-_b" : "_a+_b");
         std::string s = buf; if (!sf) s += "_r&=0xFFFFFFFFULL; ";
@@ -337,7 +403,8 @@ inline bool Translate(u32 i, u64 pc, std::string& out) {
             }
         } else {
             // size==3 with opc>=2 is not a defined load/store here.
-            snprintf(buf, sizeof buf, "recomp_unhandled(c,0x%08xU,0x%llxULL);", i,
+            snprintf(buf, sizeof buf,
+                     "recomp_unhandled(c,0x%08xU,g_module_base+0x%llxULL); if(c->halted) return;", i,
                      (unsigned long long)pc);
             put(buf);
             return true;
@@ -359,7 +426,7 @@ inline bool Translate(u32 i, u64 pc, std::string& out) {
     if ((i & 0xFFFFFC1F) == 0xD63F0000) { u32 rn = (i >> 5) & 31; snprintf(buf, sizeof buf, "c->x[30]=g_module_base+0x%llxULL; c->pc=c->x[%u]; return; /* BLR */", (unsigned long long)next, rn); put(buf); return false; }
     if ((i & 0xFF000010) == 0x54000000) { s64 off = ((s32)((i >> 5) << 13) >> 13); u64 tt = pc + off * 4; u32 cond = i & 15; snprintf(buf, sizeof buf, "if (recomp_cond(c,%u)) { c->pc=g_module_base+0x%llxULL; } else { c->pc=g_module_base+0x%llxULL; } return;", cond, (unsigned long long)tt, (unsigned long long)next); put(buf); return false; }
     if ((i & 0x7E000000) == 0x34000000) { u32 sf = i >> 31; bool nz = (i >> 24) & 1; u32 rt = i & 31; s64 off = ((s32)(((i >> 5) & 0x7FFFF) << 13) >> 13); u64 tt = pc + off * 4; std::string v = sf ? Xz(rt) : Wz(rt); snprintf(buf, sizeof buf, "if ((%s)%s0) { c->pc=g_module_base+0x%llxULL; } else { c->pc=g_module_base+0x%llxULL; } return;", v.c_str(), nz ? "!=" : "==", (unsigned long long)tt, (unsigned long long)next); put(buf); return false; }
-    if ((i & 0x7E000000) == 0x36000000) { bool nz = (i >> 24) & 1; u32 b = ((i >> 31) << 5) | ((i >> 19) & 31); u32 rt = i & 31; s64 off = ((s32)(((i >> 5) & 0x3FFF) << 18) >> 18); u64 tt = pc + off * 4; snprintf(buf, sizeof buf, "if (((c->x[%u]>>%u)&1)%s0) { c->pc=g_module_base+0x%llxULL; } else { c->pc=g_module_base+0x%llxULL; } return;", rt, b, nz ? "!=" : "==", (unsigned long long)tt, (unsigned long long)next); put(buf); return false; }
+    if ((i & 0x7E000000) == 0x36000000) { bool nz = (i >> 24) & 1; u32 b = ((i >> 31) << 5) | ((i >> 19) & 31); u32 rt = i & 31; s64 off = ((s32)(((i >> 5) & 0x3FFF) << 18) >> 18); u64 tt = pc + off * 4; snprintf(buf, sizeof buf, "if (((%s>>%u)&1)%s0) { c->pc=g_module_base+0x%llxULL; } else { c->pc=g_module_base+0x%llxULL; } return;", Xz(rt).c_str(), b, nz ? "!=" : "==", (unsigned long long)tt, (unsigned long long)next); put(buf); return false; }
     if ((i & 0xFFE0001F) == 0xD4000001) { u32 imm = (i >> 5) & 0xFFFF; snprintf(buf, sizeof buf, "c->pc=g_module_base+0x%llxULL; c->pending_svc=%uULL; recomp_svc(c,%u); return;", (unsigned long long)next, imm, imm); put(buf); return false; }
 
     // STP/LDP - load/store pair. Every non-leaf AArch64 function opens and
@@ -383,10 +450,16 @@ inline bool Translate(u32 i, u64 pc, std::string& out) {
             const char* addr = (mode == 1) ? "_b" : "(_b+_o)";
             s += "int64_t _o=" + std::to_string((long long)off) + "; ";
             if (is_load) {
-                s += "c->x[" + std::to_string(rt) + "]=recomp_load" + std::to_string(sz * 8) +
-                     "(c," + addr + "); ";
-                s += "c->x[" + std::to_string(rt2) + "]=recomp_load" + std::to_string(sz * 8) +
-                     "(c," + addr + "+" + std::to_string(sz) + "); ";
+                // Rt/Rt2 == 31 is XZR here, so the loaded value is discarded -
+                // writing it would land on c->x[31], which is where SP lives.
+                if (rt != 31) {
+                    s += "c->x[" + std::to_string(rt) + "]=recomp_load" + std::to_string(sz * 8) +
+                         "(c," + addr + "); ";
+                }
+                if (rt2 != 31) {
+                    s += "c->x[" + std::to_string(rt2) + "]=recomp_load" + std::to_string(sz * 8) +
+                         "(c," + addr + "+" + std::to_string(sz) + "); ";
+                }
             } else {
                 s += "recomp_store" + std::to_string(sz * 8) + "(c," + addr + "," +
                      (rt == 31 ? std::string("(uint64_t)0") : ("c->x[" + std::to_string(rt) + "]")) + "); ";
@@ -416,7 +489,10 @@ inline bool Translate(u32 i, u64 pc, std::string& out) {
             char hb[32]; snprintf(hb, sizeof hb, "%llxULL", (unsigned long long)imm);
             s += hb; s += "; ";
             if (!sf) s += "_r &= 0xFFFFFFFFULL; ";
-            if (rd != 31) s += "c->x[" + std::to_string(rd) + "] = _r; ";
+            // Rd==31 is SP for AND/ORR/EOR immediate and only reads as XZR
+            // for ANDS (opc==3). Treating it as XZR everywhere silently
+            // dropped every "and sp, xN, #imm" stack realignment.
+            if (!(rd == 31 && opc == 3)) s += "c->x[" + std::to_string(rd) + "] = _r; ";
             if (opc == 3) s += "recomp_set_flags(c,0,_r,0,_r," + std::string(sf ? "1" : "0") + "); ";
             s += "}";
             put(s);
@@ -526,7 +602,9 @@ inline bool Translate(u32 i, u64 pc, std::string& out) {
     }
 
     // Conditional select: CSEL/CSINC/CSINV/CSNEG.
-    if ((i & 0x1FE00000) == 0x1A800000) {
+    // Bit 11 must be clear: with it set this encoding is not a conditional
+    // select at all, and decoding it as one silently invents an instruction.
+    if ((i & 0x1FE00800) == 0x1A800000) {
         const u32 sf = i >> 31, op = (i >> 30) & 1, o2 = (i >> 10) & 1;
         const u32 rm = (i >> 16) & 31, cond = (i >> 12) & 15, rn = (i >> 5) & 31, rd = i & 31;
         if (rd != 31) {
@@ -547,7 +625,9 @@ inline bool Translate(u32 i, u64 pc, std::string& out) {
     // Load/store with unscaled 9-bit signed offset (LDUR/STUR) and the
     // pre/post-indexed immediate forms.
     // Again bit 26 (V) must be clear - the SIMD/FP form is handled below.
-    if ((i & 0x3F000000) == 0x38000000 && ((i >> 24) & 1) == 0) {
+    // Bit 21 set with mode==0 is the ARMv8.1 LSE atomic group, not LDUR/STUR;
+    // decoding those here would read a garbage imm9 out of the register field.
+    if ((i & 0x3F000000) == 0x38000000 && ((i >> 24) & 1) == 0 && ((i >> 21) & 1) == 0) {
         const u32 size = i >> 30, opc = (i >> 22) & 3, mode = (i >> 10) & 3;
         const u32 rn = (i >> 5) & 31, rt = i & 31;
         s32 imm9 = (s32)((i >> 12) & 0x1FF);
@@ -555,17 +635,36 @@ inline bool Translate(u32 i, u64 pc, std::string& out) {
         // mode 0 = LDUR/STUR, 1 = post-index, 3 = pre-index
         if ((mode == 0 || mode == 1 || mode == 3) && size <= 3) {
             const u32 bits = 8u << size;
-            const bool is_load = (opc & 1) != 0;
             std::string s = "{ uint64_t _b=c->x[" + std::to_string(rn) + "]; int64_t _o=" +
                             std::to_string((long long)imm9) + "; ";
             const char* addr = (mode == 1) ? "_b" : "(_b+_o)";
-            if (is_load) {
+            // opc selects the operation, and testing only its low bit gets this
+            // wrong in both directions - the same mistake the unsigned-offset
+            // handler already documents, never applied here. opc==2 (LDURSW /
+            // LDURSB / LDURSH, sign-extending into a 64-bit destination) has
+            // bit 0 clear and so was emitted as a STORE, turning tens of
+            // thousands of ordinary signed loads into wild writes over live
+            // guest memory; opc==3 loaded but never sign-extended.
+            const char* signed_cast = size == 0   ? "(int8_t)"
+                                      : size == 1 ? "(int16_t)"
+                                                  : "(int32_t)";
+            if (opc == 0) {
+                s += "recomp_store" + std::to_string(bits) + "(c," + addr + "," + Xz(rt) + "); ";
+            } else if (opc == 1) {
                 if (rt != 31) {
                     s += "c->x[" + std::to_string(rt) + "]=recomp_load" + std::to_string(bits) +
                          "(c," + addr + "); ";
                 }
-            } else {
-                s += "recomp_store" + std::to_string(bits) + "(c," + addr + "," + Xz(rt) + "); ";
+            } else if (size == 3) {
+                // opc>=2 with size==3 is PRFUM, a prefetch hint. It has no
+                // architectural effect, so emitting nothing is exact - what it
+                // must never do is store.
+            } else if (rt != 31) {
+                s += "c->x[" + std::to_string(rt) + "]=(uint64_t)(int64_t)" + signed_cast +
+                     "recomp_load" + std::to_string(bits) + "(c," + addr + "); ";
+                // opc==3 sign-extends into a 32-bit destination, so the result
+                // is truncated back to W width after the extension.
+                if (opc == 3) s += "c->x[" + std::to_string(rt) + "]&=0xFFFFFFFFULL; ";
             }
             if (mode == 1 || mode == 3) s += "c->x[" + std::to_string(rn) + "]=_b+_o; ";
             s += "}";
@@ -574,34 +673,45 @@ inline bool Translate(u32 i, u64 pc, std::string& out) {
         }
     }
 
-    // Load/store exclusive and acquire/release. The generated runtime is
-    // single-threaded, so the exclusive monitor can never be broken by another
-    // agent: LDXR/STXR reduce to a plain load/store with STXR always reporting
-    // success, and the acquire/release ordering has nothing to order against.
-    // That is exact for a single thread; under suyu's ArmRecomp backend, where
-    // real threads exist, these need the kernel's monitor instead - noted so
-    // the assumption is visible rather than silent.
+    // Load/store exclusive and acquire/release.
+    //
+    // The non-exclusive acquire/release forms (LDAR/STLR, o2 set) are ordinary
+    // loads and stores as far as this backend is concerned - suyu's memory
+    // accessors are already atomic at these widths, and there is no weaker
+    // ordering here to fence against - so they are translated directly.
+    //
+    // The genuinely exclusive forms (LDXR/LDAXR/STXR/STLXR, o2 clear) are not.
+    // They used to become a plain load/store with STXR unconditionally
+    // reporting success, which is exact only when nothing else can touch the
+    // address. Under this backend real guest threads run concurrently, so an
+    // always-succeeds STXR makes every compare-and-swap non-atomic: two
+    // threads both "win" the same lock, the data it protects is then updated
+    // from both, and the next thread to wait on it spins forever. Hand these
+    // to the fallback engine, which owns the kernel's real exclusive monitor.
     if ((i & 0x3F000000) == 0x08000000) {
         const u32 size = i >> 30, o2 = (i >> 23) & 1, L = (i >> 22) & 1, o1 = (i >> 21) & 1;
-        const u32 rs = (i >> 16) & 31, rt2 = (i >> 10) & 31, rn = (i >> 5) & 31, rt = i & 31;
+        const u32 rt2 = (i >> 10) & 31, rn = (i >> 5) & 31, rt = i & 31;
         // Pair variants (o1 set) are left to the fallback; only the single
         // register forms are handled here.
         if (!o1 && rt2 == 31) {
+            if (!o2) {
+                snprintf(buf, sizeof buf,
+                         "recomp_unhandled(c,0x%08xU,g_module_base+0x%llxULL); if(c->halted) return;",
+                         i, (unsigned long long)pc);
+                put(buf);
+                return true;
+            }
             const u32 bits = 8u << size;
             const std::string addr = "c->x[" + std::to_string(rn) + "]";
             if (L) {
-                // LDXR / LDAXR / LDAR
+                // LDAR
                 if (rt != 31) {
                     put("c->x[" + std::to_string(rt) + "] = recomp_load" +
                         std::to_string(bits) + "(c," + addr + ");");
                 }
             } else {
+                // STLR - no status register.
                 put("recomp_store" + std::to_string(bits) + "(c," + addr + "," + Xz(rt) + ");");
-                // STXR/STLXR report the status of the store in Rs; 0 is success.
-                // STLR (o2 set) has no status register.
-                if (!o2 && rs != 31) {
-                    put("c->x[" + std::to_string(rs) + "] = 0;");
-                }
             }
             return true;
         }
@@ -758,7 +868,29 @@ inline bool Translate(u32 i, u64 pc, std::string& out) {
                                     : (opcode == 0 ? "int32_t" : "uint32_t");
                 std::string s = "{ " + std::string(ct) + " _a; memcpy(&_a,&c->vreg[" +
                                 std::to_string(rn) + "][0]," + std::to_string(fsz) + "); ";
-                s += "uint64_t _r = (uint64_t)(" + std::string(it) + ")_a; ";
+                // FCVTZS/FCVTZU saturate: NaN gives 0, and anything outside the
+                // destination's range clamps to that range's min or max. A bare
+                // C cast is undefined for exactly those inputs, and on x86 it
+                // compiles to cvttss2si, which answers "integer indefinite"
+                // (INT_MIN / LLONG_MIN) for NaN, +inf and -inf alike. Float-heavy
+                // game code converts out-of-range values constantly - clamped
+                // indices, hashes, fixed-point - so the wrong answer here is a
+                // steady drip of corruption rather than an immediate fault.
+                const bool is_signed = (opcode == 0);
+                const char* lo_bound = sf ? (is_signed ? "-9223372036854775808.0" : "0.0")
+                                          : (is_signed ? "-2147483648.0" : "0.0");
+                const char* hi_bound = sf ? (is_signed ? "9223372036854775807.0"
+                                                       : "18446744073709551615.0")
+                                          : (is_signed ? "2147483647.0" : "4294967295.0");
+                const char* sat_lo = sf ? (is_signed ? "0x8000000000000000ULL" : "0ULL")
+                                        : (is_signed ? "0xFFFFFFFF80000000ULL" : "0ULL");
+                const char* sat_hi = sf ? (is_signed ? "0x7FFFFFFFFFFFFFFFULL"
+                                                     : "0xFFFFFFFFFFFFFFFFULL")
+                                        : (is_signed ? "0x7FFFFFFFULL" : "0xFFFFFFFFULL");
+                s += "uint64_t _r; if (_a != _a) _r = 0ULL; ";
+                s += std::string("else if (!(_a > (") + ct + ")" + lo_bound + ")) _r = " + sat_lo + "; ";
+                s += std::string("else if (!(_a < (") + ct + ")" + hi_bound + ")) _r = " + sat_hi + "; ";
+                s += "else _r = (uint64_t)(" + std::string(it) + ")_a; ";
                 if (!sf) s += "_r &= 0xFFFFFFFFULL; ";
                 s += "c->x[" + std::to_string(rd) + "] = _r; }";
                 put(s);
@@ -864,14 +996,28 @@ inline bool Translate(u32 i, u64 pc, std::string& out) {
         const u32 sysreg = (i >> 5) & 0x7FFF;
         const u32 rt = i & 31;
         // TPIDR_EL0 (thread pointer) and TPIDRRO_EL0 are the ones that matter
-        // for ordinary code; both live in the context already.
+        // for ordinary code; both live in the context already. They are kept
+        // in *separate* fields deliberately: TPIDR_EL0 is the guest's own
+        // thread pointer, while TPIDRRO_EL0 is written by the kernel and holds
+        // the thread-local region whose first bytes are the IPC message
+        // buffer. Folding them together corrupts both.
         constexpr u32 kTpidrEl0 = 0x5E82;
         constexpr u32 kTpidrroEl0 = 0x5E83;
-        if (sysreg == kTpidrEl0 || sysreg == kTpidrroEl0) {
+        if (sysreg == kTpidrEl0) {
             if (is_read) {
                 if (rt != 31) put("c->x[" + std::to_string(rt) + "] = c->tpidr_el0;");
             } else {
                 put("c->tpidr_el0 = " + Xz(rt) + ";");
+            }
+            return true;
+        }
+        if (sysreg == kTpidrroEl0) {
+            if (is_read) {
+                if (rt != 31) put("c->x[" + std::to_string(rt) + "] = c->tpidrro_el0;");
+            } else {
+                // Read-only at EL0; a write traps on hardware. Swallow it
+                // rather than letting it destroy the kernel's TLS pointer.
+                put("(void)" + Xz(rt) + ";");
             }
             return true;
         }
@@ -1028,8 +1174,9 @@ inline bool Translate(u32 i, u64 pc, std::string& out) {
         const u32 rm = (i >> 16) & 31, opcode = (i >> 10) & 63;
         const u32 rn = (i >> 5) & 31, rd = i & 31;
         if (rd != 31) {
-            const std::string xn = "c->x[" + std::to_string(rn) + "]";
-            const std::string xm = "c->x[" + std::to_string(rm) + "]";
+            // Register 31 reads as XZR in this group, not SP.
+            const std::string xn = Xz(rn);
+            const std::string xm = Xz(rm);
             std::string s;
             switch (opcode) {
             case 2:  // UDIV - divide by 0 yields 0 per ARM spec
@@ -1127,7 +1274,8 @@ inline bool Translate(u32 i, u64 pc, std::string& out) {
     // the lane index is split across H and L - reading Rm as the usual five
     // bits would silently address the wrong register.
     {
-        const bool vec_idx = (i & 0x9F00F400) == 0x0F009000;
+        // Bit 29 (U) selects FMULX, a different operation - keep it out of FMUL.
+        const bool vec_idx = (i & 0xBF00F400) == 0x0F009000;
         const bool scl_idx = (i & 0xFF00F400) == 0x5F009000;
         if ((vec_idx || scl_idx) && ((i >> 23) & 1) == 1) {
             const u32 Q = (i >> 30) & 1;
@@ -1497,7 +1645,8 @@ inline bool Translate(u32 i, u64 pc, std::string& out) {
         const u32 rn = (i >> 5) & 31, rt = i & 31;
         const u32 option = (i >> 13) & 7, S = (i >> 12) & 1;
         const int scale = simd_scale(size, opc);
-        const std::string rm_str = "c->x[" + std::to_string((i >> 16) & 31) + "]";
+        // Index register 31 is XZR, not SP.
+        const std::string rm_str = Xz((i >> 16) & 31);
         std::string idx;
         switch (option) {
         case 2: idx = "(uint64_t)(uint32_t)" + rm_str; break;                      // UXTW
@@ -1554,7 +1703,13 @@ inline bool Translate(u32 i, u64 pc, std::string& out) {
     // address that block discovery never marked as a block start, so the
     // dispatcher could not resolve it and execution would stop dead at the
     // first unimplemented opcode instead of continuing past it.
-    snprintf(buf, sizeof buf, "recomp_unhandled(c,0x%08xU,0x%llxULL);", i, (unsigned long long)pc);
+    // Leaving the block the moment the handler halts is what makes the
+    // hand-off to the fallback engine correct: the remaining instructions in
+    // this block must not run twice, since the fallback resumes at this same
+    // PC and will execute them itself.
+    snprintf(buf, sizeof buf,
+             "recomp_unhandled(c,0x%08xU,g_module_base+0x%llxULL); if(c->halted) return;", i,
+             (unsigned long long)pc);
     put(buf); return true;
 }
 
@@ -2118,6 +2273,18 @@ typedef struct GuestContext {
        otherwise the recompiled code and the HLE kernel would be looking at two
        different memories. */
     const struct RecompHostMem* host_mem;
+    /* Read-only thread pointer (TPIDRRO_EL0). Distinct from tpidr_el0 above:
+       on Horizon the kernel publishes the calling thread's thread-local
+       region here, and that region's first 0x100 bytes are the IPC message
+       buffer the kernel reads a SendSyncRequest out of. tpidr_el0 in contrast
+       belongs to the guest, which points it at its own thread structure.
+       Aliasing the two makes the guest write its IPC header at its thread
+       struct instead of the TLS region - the kernel then parses an all-zero
+       buffer (magic 0 instead of 'SFCI') - and makes the kernel's per-switch
+       publish of the TLS address clobber the guest's thread pointer, which
+       turns every C++ thread-local access into a near-null read.
+       Appended after host_mem so every pinned offset above stays put. */
+    uint64_t tpidrro_el0;
     /* Save-data filesystem state */
     char save_dir[512];
     /* Heap break for SVC memory allocation */
@@ -2143,6 +2310,7 @@ typedef char recomp_layout_svc[offsetof(GuestContext, pending_svc) == 304 ? 1 : 
 typedef char recomp_layout_vreg[offsetof(GuestContext, vreg) == 312 ? 1 : -1];
 typedef char recomp_layout_tpidr[offsetof(GuestContext, tpidr_el0) == 824 ? 1 : -1];
 typedef char recomp_layout_host[offsetof(GuestContext, host_mem) == 832 ? 1 : -1];
+typedef char recomp_layout_tpidrro[offsetof(GuestContext, tpidrro_el0) == 840 ? 1 : -1];
 
 /* Where this module is actually loaded in the guest's address space.
    Every address the static pass bakes in - ADR/ADRP results, branch targets,
@@ -2166,6 +2334,11 @@ uint64_t recomp_load32(GuestContext*,uint64_t); uint64_t recomp_load64(GuestCont
 void recomp_store8(GuestContext*,uint64_t,uint64_t); void recomp_store16(GuestContext*,uint64_t,uint64_t);
 void recomp_store32(GuestContext*,uint64_t,uint64_t); void recomp_store64(GuestContext*,uint64_t,uint64_t);
 void recomp_svc(GuestContext*,unsigned); void recomp_unhandled(GuestContext*,uint32_t,uint64_t);
+void recomp_barrier(void);
+/* halted values. 1 is an ordinary stop; 2 asks the host to re-execute the
+   current PC on its interpreter fallback because the decoder had no
+   translation for the instruction there. */
+#define RECOMP_HALT_UNHANDLED 2
 /* Save-data API callable from recompiled code and runtime */
 int  recomp_save_init(GuestContext* c, const char* exe_path);
 int  recomp_save_write(GuestContext* c, const char* name, const void* data, uint64_t size);
@@ -2455,9 +2628,49 @@ void recomp_svc(GuestContext* c,unsigned imm){
 }
 #endif /* SUYU_HOSTED_RECOMP */
 
+/* An opcode the decoder does not implement. Stubbing it out (the old
+   behaviour: zero x0 and carry on) silently corrupts guest state - a
+   function whose body is one unimplemented SIMD instruction returns a
+   plausible-looking 0, and the caller then dereferences it. That is
+   indistinguishable from a real null and shows up much later as a crash
+   nowhere near the actual gap.
+
+   Instead, park the context at this exact PC and halt with a distinct code.
+   The host (ArmRecomp::RunThread) treats halted == RECOMP_HALT_UNHANDLED as
+   "run this address on the interpreter fallback instead", so the instruction
+   executes correctly and control returns to recompiled code as soon as the
+   PC is covered again. Correct by construction whatever the decoder does or
+   does not cover, and every remaining gap costs speed rather than
+   correctness.
+
+   Standalone builds have no fallback engine to hand off to, so they keep the
+   old step-over behaviour - degraded, but still the best available there. */
+/* DMB/DSB/ISB. Under the hosted backend the guest is genuinely multi-threaded,
+   so these must be real fences: without one the host compiler is free to sink a
+   pointer store past the field stores the barrier was there to publish. The
+   standalone runtime drives one guest thread on one host thread and has nothing
+   to order against, so it keeps the free no-op. */
+void recomp_barrier(void){
+#ifdef SUYU_HOSTED_RECOMP
+#if defined(__cplusplus)
+    atomic_thread_fence(memory_order_seq_cst);
+#elif defined(_MSC_VER)
+    MemoryBarrier();
+#else
+    __atomic_thread_fence(__ATOMIC_SEQ_CST);
+#endif
+#endif
+}
+
 void recomp_unhandled(GuestContext* c,uint32_t insn,uint64_t pc){
+#ifdef SUYU_HOSTED_RECOMP
+  (void)insn;
+  c->pc=pc;
+  c->halted=RECOMP_HALT_UNHANDLED;
+#else
   fprintf(stderr,"[recomp] unhandled insn 0x%08x at 0x%llx\n",insn,(unsigned long long)pc);
-  c->x[0]=0; /* Don't halt — stub and continue so the game can keep running */
+  (void)c; /* stepping over is bad enough; do not clobber a register too */
+#endif
 }
 
 #ifndef RECOMP_STATIC_HOST
