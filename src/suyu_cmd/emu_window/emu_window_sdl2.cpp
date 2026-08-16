@@ -18,6 +18,7 @@ static constexpr Uint8 SDL_RELEASED = 0;
 #include "input_common/drivers/touch_screen.h"
 #include "input_common/main.h"
 #include "common/param_package.h"
+#include "common/settings_input.h"
 #include "suyu_cmd/emu_window/emu_window_sdl2.h"
 #include "suyu_cmd/suyu_icon.h"
 
@@ -52,6 +53,9 @@ constexpr int kIdDevices = 1007;
 constexpr int kIdApplyPad = 1008;
 constexpr int kIdKeyboard = 1009;
 constexpr int kIdRescanPads = 1010;
+constexpr int kIdBindList = 1011;
+constexpr int kIdBindOne = 1012;
+constexpr int kIdClearOne = 1013;
 constexpr UINT_PTR kTimer = 1;
 
 std::filesystem::path DevExeDir() {
@@ -76,8 +80,95 @@ struct DevPanelState {
     HWND status{};
     HWND mods{};
     HWND devices{};
+    HWND binds{};
     std::vector<Common::ParamPackage> device_list;
 };
+
+// Per-button remapping. Auto-map covers the common case; this covers the rest -
+// pick the entry, press the input you want, done. Same "press what you want"
+// flow the emulator's own input dialog uses, driven off the input backend's
+// polling API rather than a second mapping implementation.
+void DevRefreshBinds(DevPanelState& st) {
+    const int sel = static_cast<int>(SendMessageW(st.binds, LB_GETCURSEL, 0, 0));
+    SendMessageW(st.binds, LB_RESETCONTENT, 0, 0);
+    const auto& player = Settings::values.players.GetValue()[0];
+    const auto add = [&](const char* label, const std::string& param) {
+        Common::ParamPackage pkg{param};
+        std::string shown = param.empty() ? "(unset)" : pkg.Get("display", param);
+        if (shown.size() > 60) {
+            shown.resize(60);
+        }
+        const std::string line = std::string(label) + "  =  " + shown;
+        const std::wstring wide(line.begin(), line.end());
+        SendMessageW(st.binds, LB_ADDSTRING, 0, reinterpret_cast<LPARAM>(wide.c_str()));
+    };
+    for (std::size_t i = 0; i < Settings::NativeButton::NumButtons; ++i) {
+        add(Settings::NativeButton::mapping[i], player.buttons[i]);
+    }
+    for (std::size_t i = 0; i < Settings::NativeAnalog::NumAnalogs; ++i) {
+        add(Settings::NativeAnalog::mapping[i], player.analogs[i]);
+    }
+    if (sel >= 0) {
+        SendMessageW(st.binds, LB_SETCURSEL, static_cast<WPARAM>(sel), 0);
+    }
+}
+
+void DevBindSelected(DevPanelState& st, bool clear) {
+    const int sel = static_cast<int>(SendMessageW(st.binds, LB_GETCURSEL, 0, 0));
+    constexpr int kButtonCount = static_cast<int>(Settings::NativeButton::NumButtons);
+    constexpr int kAnalogCount = static_cast<int>(Settings::NativeAnalog::NumAnalogs);
+    if (sel < 0 || sel >= kButtonCount + kAnalogCount || st.input == nullptr) {
+        return;
+    }
+    const bool is_analog = sel >= kButtonCount;
+    auto& player = Settings::values.players.GetValue()[0];
+
+    if (clear) {
+        if (is_analog) {
+            player.analogs[sel - kButtonCount].clear();
+        } else {
+            player.buttons[sel].clear();
+        }
+        DevRefreshBinds(st);
+        return;
+    }
+
+    st.input->BeginMapping(is_analog ? InputCommon::Polling::InputType::Stick
+                                     : InputCommon::Polling::InputType::Button);
+    // Poll rather than block: the panel owns the message loop, and a modal
+    // "press something" dialog with no way out is worse than a timeout.
+    Common::ParamPackage captured;
+    const DWORD deadline = GetTickCount() + 5000;
+    while (GetTickCount() < deadline) {
+        captured = st.input->GetNextInput();
+        if (captured.Has("engine")) {
+            break;
+        }
+        MSG m;
+        while (PeekMessageW(&m, nullptr, 0, 0, PM_REMOVE)) {
+            TranslateMessage(&m);
+            DispatchMessageW(&m);
+        }
+        Sleep(10);
+    }
+    st.input->StopMapping();
+
+    if (!captured.Has("engine")) {
+        MessageBoxW(nullptr, L"No input detected - nothing changed.", L"Controls",
+                    MB_OK | MB_ICONINFORMATION);
+        return;
+    }
+    if (is_analog) {
+        player.analogs[sel - kButtonCount] = captured.Serialize();
+    } else {
+        player.buttons[sel] = captured.Serialize();
+    }
+    player.connected = true;
+    if (st.system != nullptr) {
+        st.system->HIDCore().ReloadInputDevices();
+    }
+    DevRefreshBinds(st);
+}
 
 // Controller setup, done the way a player expects: pick the pad from a list and
 // press one button. The full per-button remapper belongs in the emulator's own
@@ -241,11 +332,28 @@ LRESULT CALLBACK DevPanelProc(HWND hwnd, UINT msg, WPARAM wp, LPARAM lp) {
         case kIdApplyPad:
             if (st != nullptr) {
                 DevApplyPadMapping(*st);
+                DevRefreshBinds(*st);
             }
             return 0;
         case kIdKeyboard:
             if (st != nullptr) {
                 DevApplyKeyboardMapping(*st);
+                DevRefreshBinds(*st);
+            }
+            return 0;
+        case kIdBindOne:
+            if (st != nullptr) {
+                DevBindSelected(*st, false);
+            }
+            return 0;
+        case kIdClearOne:
+            if (st != nullptr) {
+                DevBindSelected(*st, true);
+            }
+            return 0;
+        case kIdBindList:
+            if (HIWORD(wp) == LBN_DBLCLK && st != nullptr) {
+                DevBindSelected(*st, false);
             }
             return 0;
         case kIdMods:
@@ -295,7 +403,7 @@ void ShowDevMenu(Core::System& system, InputCommon::InputSubsystem* input) {
 
     const HWND hwnd = CreateWindowExW(0, kClass, title.c_str(),
                                       WS_OVERLAPPED | WS_CAPTION | WS_SYSMENU, CW_USEDEFAULT,
-                                      CW_USEDEFAULT, 720, 560, nullptr, nullptr,
+                                      CW_USEDEFAULT, 720, 780, nullptr, nullptr,
                                       GetModuleHandleW(nullptr), nullptr);
     if (hwnd == nullptr) {
         return;
@@ -327,8 +435,18 @@ void ShowDevMenu(Core::System& system, InputCommon::InputSubsystem* input) {
                     172, 26, hwnd, reinterpret_cast<HMENU>(kIdApplyPad), inst, nullptr);
     CreateWindowExW(0, L"BUTTON", L"Use keyboard", WS_CHILD | WS_VISIBLE | BS_PUSHBUTTON, 528, 376,
                     172, 26, hwnd, reinterpret_cast<HMENU>(kIdKeyboard), inst, nullptr);
+    CreateWindowExW(0, L"STATIC",
+                    L"Pick an entry and press Rebind (or double-click), then press the input you want:",
+                    WS_CHILD | WS_VISIBLE, 12, 410, 560, 18, hwnd, nullptr, inst, nullptr);
+    state.binds = CreateWindowExW(WS_EX_CLIENTEDGE, L"LISTBOX", nullptr,
+                                  WS_CHILD | WS_VISIBLE | WS_VSCROLL | LBS_NOTIFY, 10, 430, 510,
+                                  190, hwnd, reinterpret_cast<HMENU>(kIdBindList), inst, nullptr);
+    CreateWindowExW(0, L"BUTTON", L"Rebind", WS_CHILD | WS_VISIBLE | BS_PUSHBUTTON, 528, 430, 172,
+                    28, hwnd, reinterpret_cast<HMENU>(kIdBindOne), inst, nullptr);
+    CreateWindowExW(0, L"BUTTON", L"Clear", WS_CHILD | WS_VISIBLE | BS_PUSHBUTTON, 528, 464, 172,
+                    28, hwnd, reinterpret_cast<HMENU>(kIdClearOne), inst, nullptr);
     const auto button = [&](const wchar_t* text, int x, int id) {
-        CreateWindowExW(0, L"BUTTON", text, WS_CHILD | WS_VISIBLE | BS_PUSHBUTTON, x, 466, 160, 28,
+        CreateWindowExW(0, L"BUTTON", text, WS_CHILD | WS_VISIBLE | BS_PUSHBUTTON, x, 640, 160, 28,
                         hwnd, reinterpret_cast<HMENU>(static_cast<INT_PTR>(id)), inst, nullptr);
     };
     button(L"Open user data folder", 10, kIdOpenUser);
@@ -349,6 +467,7 @@ void ShowDevMenu(Core::System& system, InputCommon::InputSubsystem* input) {
     SetWindowTextW(state.status, DevStatusText(system).c_str());
     DevRefreshMods(state.mods);
     DevRefreshDevices(state);
+    DevRefreshBinds(state);
     SetTimer(hwnd, kTimer, 500, nullptr);
     ShowWindow(hwnd, SW_SHOW);
 
@@ -463,6 +582,14 @@ bool EmuWindow_SDL2::IsShown() const {
 void EmuWindow_SDL2::OnResize() {
     int width, height;
     SDL_GetWindowSizeInPixels(render_window, &width, &height);
+    // A minimized window reports 0x0. Feeding that through as a layout makes
+    // the renderer build a zero-extent swapchain, which the driver never
+    // presents from - the window comes back blank and the main loop stops
+    // answering. Keep the last good layout instead; the next real resize (or
+    // the restore) delivers correct dimensions.
+    if (width <= 0 || height <= 0) {
+        return;
+    }
     UpdateCurrentFramebufferLayout(width, height);
 }
 
@@ -534,6 +661,10 @@ void EmuWindow_SDL2::WaitEvent() {
     case SDL_EVENT_WINDOW_RESIZED:
     case SDL_EVENT_WINDOW_MAXIMIZED:
     case SDL_EVENT_WINDOW_RESTORED:
+        // Restoring only ever raised RESTORED, never EXPOSED, so is_shown was
+        // left false from the minimize and the renderer stayed parked - the
+        // window came back black and eventually stopped responding.
+        is_shown = true;
         OnResize();
         break;
     case SDL_EVENT_WINDOW_MINIMIZED:

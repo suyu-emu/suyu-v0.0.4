@@ -311,7 +311,7 @@ void ImportReleases(const std::vector<Common::Net::Release> &releases) {
         const u64 pickup_limit = published + 600000000;
         const u32 priority = rel.prerelease ? 1500 : 2500;
 
-        std::string author = "Eden";
+        std::string author = "suyu";
 
         auto payload = BuildMsgpack(title, FormatBody(body, title), title, published,
                                     pickup_limit, priority, {"en"}, author, {},
@@ -351,7 +351,7 @@ std::vector<u8> BuildMsgpack(std::string_view title, std::string_view body,
                              std::optional<u32> override_id) {
     MsgPack::Writer w;
 
-    const u32 news_id = override_id.value_or(HashToNewsId(title.empty() ? "eden" : title));
+    const u32 news_id = override_id.value_or(HashToNewsId(title.empty() ? "suyu" : title));
     const std::string news_id_str = fmt::format("{}", news_id);
 
     const auto img_small = GetNewsImage(news_id_str, false);
@@ -390,7 +390,7 @@ std::vector<u8> BuildMsgpack(std::string_view title, std::string_view body,
     w.WriteKey("display_type");
     w.WriteString("NORMAL");
     w.WriteKey("topic_id");
-    w.WriteString("eden");
+    w.WriteString("suyu");
 
     w.WriteKey("no_photography"); // still show image
     w.WriteUInt(0);
@@ -411,7 +411,7 @@ std::vector<u8> BuildMsgpack(std::string_view title, std::string_view body,
 
     // Topic name = who wrote it
     w.WriteKey("topic_name");
-    w.WriteString("Eden");
+    w.WriteString("suyu");
 
     w.WriteKey("list_image");
     w.WriteBinary(img_small);

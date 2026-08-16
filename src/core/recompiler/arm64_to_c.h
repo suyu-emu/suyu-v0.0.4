@@ -12,6 +12,7 @@
 
 #pragma once
 
+#include <array>
 #include <cstdint>
 #include <cstdio>
 #include <cstdlib>
@@ -101,6 +102,56 @@ inline bool DirectBranchTarget(u32 i, u64 pc, u64& out) {
     return false;
 }
 
+// Function addresses the code builds for itself with ADRP+ADD.
+//
+// A callback handed to the OS - a thread entry above all - is never branched to
+// from inside .text and never appears in a relocation either: the compiler just
+// materialises its address into a register (adrp xN, page; add xN, xN, #lo12)
+// and passes it to svcCreateThread. Without seeding those, every thread the
+// game starts begins at an address no block covers and drops straight to the
+// interpreter for its whole life, which is most of the "No recompiled block at
+// PC" traffic in a real run.
+//
+// Deliberately loose: any ADRP+ADD landing in .text becomes a root. A pair that
+// was really computing a data address only costs one extra block boundary.
+inline void CollectAdrpAddTargets(const u8* text, size_t n_bytes, u64 base,
+                                  std::vector<u64>& out) {
+    const u32 n = static_cast<u32>(n_bytes / 4);
+    const u32* p = reinterpret_cast<const u32*>(text);
+    // Last ADRP seen per destination register, as a page address; ~0 means the
+    // register no longer holds one.
+    std::array<u64, 32> page{};
+    page.fill(~0ULL);
+    for (u32 i = 0; i < n; ++i) {
+        const u32 insn = p[i];
+        if ((insn & 0x9F000000) == 0x90000000) { // ADRP
+            const u32 rd = insn & 31;
+            s64 immhi = static_cast<s32>((((insn >> 5) & 0x7FFFF) << 13)) >> 13;
+            const u32 immlo = (insn >> 29) & 3;
+            page[rd] = (base + static_cast<u64>(i) * 4 & ~0xFFFULL) +
+                       static_cast<u64>(((immhi << 2) | immlo) << 12);
+        } else if ((insn & 0xFFC00000) == 0x91000000) { // ADD (immediate, 64-bit, LSL #0)
+            const u32 rd = insn & 31, rn = (insn >> 5) & 31;
+            const u32 imm12 = (insn >> 10) & 0xFFF;
+            if (page[rn] != ~0ULL) {
+                const u64 target = page[rn] + imm12;
+                if (target >= base && (target - base) / 4 < n && (target & 3) == 0) {
+                    out.push_back(target);
+                }
+            }
+            if (rd != rn) {
+                page[rd] = ~0ULL;
+            }
+        } else {
+            // Any other write to a register invalidates the page it held. Only
+            // the common destination encodings are decoded here; missing one
+            // can add a stale root, never remove a real one.
+            const u32 rd = insn & 31;
+            page[rd] = ~0ULL;
+        }
+    }
+}
+
 inline std::vector<Block> DiscoverBlocks(const u8* text, size_t n_bytes, u64 base,
                                          u64 entry_pc = 0,
                                          const std::vector<u64>* extra_roots = nullptr) {
@@ -126,6 +177,13 @@ inline std::vector<Block> DiscoverBlocks(const u8* text, size_t n_bytes, u64 bas
             if (addr >= base && (addr - base) / 4 < n) {
                 start[(u32)((addr - base) / 4)] = true;
             }
+        }
+    }
+    {
+        std::vector<u64> computed;
+        CollectAdrpAddTargets(text, n_bytes, base, computed);
+        for (u64 addr : computed) {
+            start[(u32)((addr - base) / 4)] = true;
         }
     }
     const u32* p = reinterpret_cast<const u32*>(text);

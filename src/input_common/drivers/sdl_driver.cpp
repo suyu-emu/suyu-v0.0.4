@@ -643,7 +643,7 @@ void SDLDriver::CloseJoysticks() {
 SDLDriver::SDLDriver(std::string input_engine_) : InputEngine(std::move(input_engine_)) {
     // Set our application name. Currently passed to DBus by SDL and visible to the user through
     // their desktop environment.
-    SDL_SetHint(SDL_HINT_APP_NAME, "Eden");
+    SDL_SetHint(SDL_HINT_APP_NAME, "suyu");
 
     // Disable raw input. When enabled this setting causes SDL to die when a web applet opens
     SDL_SetHint(SDL_HINT_JOYSTICK_RAWINPUT, Settings::values.enable_raw_input ? "1" : "0");
