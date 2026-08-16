@@ -17,6 +17,7 @@ static constexpr Uint8 SDL_RELEASED = 0;
 #include "input_common/drivers/mouse.h"
 #include "input_common/drivers/touch_screen.h"
 #include "input_common/main.h"
+#include "common/param_package.h"
 #include "suyu_cmd/emu_window/emu_window_sdl2.h"
 #include "suyu_cmd/suyu_icon.h"
 
@@ -26,8 +27,10 @@ static constexpr Uint8 SDL_RELEASED = 0;
 #include <windows.h>
 #include <shellapi.h>
 #include <cstdio>
+#include <array>
 #include <filesystem>
 #include <iterator>
+#include <vector>
 #include <system_error>
 #include <string>
 #include <vector>
@@ -45,6 +48,10 @@ constexpr int kIdOpenUser = 1003;
 constexpr int kIdOpenMods = 1004;
 constexpr int kIdOpenKeys = 1005;
 constexpr int kIdClose = 1006;
+constexpr int kIdDevices = 1007;
+constexpr int kIdApplyPad = 1008;
+constexpr int kIdKeyboard = 1009;
+constexpr int kIdRescanPads = 1010;
 constexpr UINT_PTR kTimer = 1;
 
 std::filesystem::path DevExeDir() {
@@ -65,9 +72,95 @@ void DevOpen(const std::filesystem::path& p) {
 
 struct DevPanelState {
     Core::System* system{};
+    InputCommon::InputSubsystem* input{};
     HWND status{};
     HWND mods{};
+    HWND devices{};
+    std::vector<Common::ParamPackage> device_list;
 };
+
+// Controller setup, done the way a player expects: pick the pad from a list and
+// press one button. The full per-button remapper belongs in the emulator's own
+// UI - what a shipped game build needs is for a plugged-in pad to just work,
+// and a way back to keyboard when it does not.
+void DevRefreshDevices(DevPanelState& st) {
+    SendMessageW(st.devices, CB_RESETCONTENT, 0, 0);
+    st.device_list.clear();
+    if (st.input == nullptr) {
+        return;
+    }
+    for (const auto& device : st.input->GetInputDevices()) {
+        const std::string name = device.Get("display", device.Get("class", "Unknown"));
+        if (name == "Any" || name == "Keyboard/Mouse") {
+            continue;
+        }
+        st.device_list.push_back(device);
+        const std::wstring wide(name.begin(), name.end());
+        SendMessageW(st.devices, CB_ADDSTRING, 0, reinterpret_cast<LPARAM>(wide.c_str()));
+    }
+    if (st.device_list.empty()) {
+        SendMessageW(st.devices, CB_ADDSTRING, 0,
+                     reinterpret_cast<LPARAM>(L"(no controller detected - plug one in and rescan)"));
+    }
+    SendMessageW(st.devices, CB_SETCURSEL, 0, 0);
+}
+
+void DevApplyPadMapping(DevPanelState& st) {
+    const auto index = static_cast<std::size_t>(SendMessageW(st.devices, CB_GETCURSEL, 0, 0));
+    if (st.input == nullptr || index >= st.device_list.size()) {
+        MessageBoxW(nullptr, L"No controller selected.", L"Controls", MB_OK | MB_ICONINFORMATION);
+        return;
+    }
+    const auto& device = st.device_list[index];
+    // GetValue() hands back a reference to the live array, so the mappings are
+    // written straight into the setting.
+    auto& player = Settings::values.players.GetValue()[0];
+    for (const auto& [button, param] : st.input->GetButtonMappingForDevice(device)) {
+        player.buttons[button] = param.Serialize();
+    }
+    for (const auto& [analog, param] : st.input->GetAnalogMappingForDevice(device)) {
+        player.analogs[analog] = param.Serialize();
+    }
+    for (const auto& [motion, param] : st.input->GetMotionMappingForDevice(device)) {
+        player.motions[motion] = param.Serialize();
+    }
+    player.connected = true;
+    if (st.system != nullptr) {
+        st.system->HIDCore().ReloadInputDevices();
+    }
+    MessageBoxW(nullptr, L"Controller mapped to Player 1.", L"Controls",
+                MB_OK | MB_ICONINFORMATION);
+}
+
+void DevApplyKeyboardMapping(DevPanelState& st) {
+    // Same layout the emulator ships as its keyboard default.
+    static constexpr std::array<int, Settings::NativeButton::NumButtons> kButtons = {
+        SDL_SCANCODE_A, SDL_SCANCODE_S, SDL_SCANCODE_Z, SDL_SCANCODE_X,
+        SDL_SCANCODE_T, SDL_SCANCODE_G, SDL_SCANCODE_F, SDL_SCANCODE_H,
+        SDL_SCANCODE_Q, SDL_SCANCODE_W, SDL_SCANCODE_M, SDL_SCANCODE_N,
+        SDL_SCANCODE_1, SDL_SCANCODE_2, SDL_SCANCODE_B,
+    };
+    static constexpr std::array<std::array<int, 4>, Settings::NativeAnalog::NumAnalogs> kAnalogs{{
+        {SDL_SCANCODE_UP, SDL_SCANCODE_DOWN, SDL_SCANCODE_LEFT, SDL_SCANCODE_RIGHT},
+        {SDL_SCANCODE_I, SDL_SCANCODE_K, SDL_SCANCODE_J, SDL_SCANCODE_L},
+    }};
+    // GetValue() hands back a reference to the live array, so the mappings are
+    // written straight into the setting.
+    auto& player = Settings::values.players.GetValue()[0];
+    for (std::size_t i = 0; i < kButtons.size() && i < player.buttons.size(); ++i) {
+        player.buttons[i] = InputCommon::GenerateKeyboardParam(kButtons[i]);
+    }
+    for (std::size_t i = 0; i < kAnalogs.size() && i < player.analogs.size(); ++i) {
+        player.analogs[i] = InputCommon::GenerateAnalogParamFromKeys(
+            kAnalogs[i][0], kAnalogs[i][1], kAnalogs[i][2], kAnalogs[i][3], 0, 0.5f);
+    }
+    player.connected = true;
+    if (st.system != nullptr) {
+        st.system->HIDCore().ReloadInputDevices();
+    }
+    MessageBoxW(nullptr, L"Keyboard controls restored for Player 1.", L"Controls",
+                MB_OK | MB_ICONINFORMATION);
+}
 
 std::wstring DevStatusText(Core::System& system) {
     std::string game_name;
@@ -140,6 +233,21 @@ LRESULT CALLBACK DevPanelProc(HWND hwnd, UINT msg, WPARAM wp, LPARAM lp) {
         case kIdClose:
             DestroyWindow(hwnd);
             return 0;
+        case kIdRescanPads:
+            if (st != nullptr) {
+                DevRefreshDevices(*st);
+            }
+            return 0;
+        case kIdApplyPad:
+            if (st != nullptr) {
+                DevApplyPadMapping(*st);
+            }
+            return 0;
+        case kIdKeyboard:
+            if (st != nullptr) {
+                DevApplyKeyboardMapping(*st);
+            }
+            return 0;
         case kIdMods:
             if (HIWORD(wp) == LBN_DBLCLK && st != nullptr) {
                 DevRefreshMods(st->mods);
@@ -162,7 +270,7 @@ LRESULT CALLBACK DevPanelProc(HWND hwnd, UINT msg, WPARAM wp, LPARAM lp) {
     return DefWindowProcW(hwnd, msg, wp, lp);
 }
 
-void ShowDevMenu(Core::System& system) {
+void ShowDevMenu(Core::System& system, InputCommon::InputSubsystem* input) {
     static bool registered = false;
     static const wchar_t* kClass = L"SuyuGameDebugPanel";
     if (!registered) {
@@ -187,7 +295,7 @@ void ShowDevMenu(Core::System& system) {
 
     const HWND hwnd = CreateWindowExW(0, kClass, title.c_str(),
                                       WS_OVERLAPPED | WS_CAPTION | WS_SYSMENU, CW_USEDEFAULT,
-                                      CW_USEDEFAULT, 720, 480, nullptr, nullptr,
+                                      CW_USEDEFAULT, 720, 560, nullptr, nullptr,
                                       GetModuleHandleW(nullptr), nullptr);
     if (hwnd == nullptr) {
         return;
@@ -196,6 +304,7 @@ void ShowDevMenu(Core::System& system) {
     const HINSTANCE inst = GetModuleHandleW(nullptr);
     DevPanelState state{};
     state.system = &system;
+    state.input = input;
     state.status = CreateWindowExW(WS_EX_CLIENTEDGE, L"EDIT", L"",
                                    WS_CHILD | WS_VISIBLE | ES_MULTILINE | ES_READONLY |
                                        ES_AUTOVSCROLL | WS_VSCROLL,
@@ -205,9 +314,21 @@ void ShowDevMenu(Core::System& system) {
                     WS_CHILD | WS_VISIBLE, 12, 208, 500, 18, hwnd, nullptr, inst, nullptr);
     state.mods = CreateWindowExW(WS_EX_CLIENTEDGE, L"LISTBOX", nullptr,
                                  WS_CHILD | WS_VISIBLE | WS_VSCROLL | LBS_NOTIFY, 10, 228, 690,
-                                 150, hwnd, reinterpret_cast<HMENU>(kIdMods), inst, nullptr);
+                                 110, hwnd, reinterpret_cast<HMENU>(kIdMods), inst, nullptr);
+    CreateWindowExW(0, L"STATIC", L"Controls - Player 1:", WS_CHILD | WS_VISIBLE, 12, 348, 140, 18,
+                    hwnd, nullptr, inst, nullptr);
+    state.devices = CreateWindowExW(0, L"COMBOBOX", nullptr,
+                                    WS_CHILD | WS_VISIBLE | WS_VSCROLL | CBS_DROPDOWNLIST, 150, 344,
+                                    280, 200, hwnd, reinterpret_cast<HMENU>(kIdDevices), inst,
+                                    nullptr);
+    CreateWindowExW(0, L"BUTTON", L"Rescan", WS_CHILD | WS_VISIBLE | BS_PUSHBUTTON, 440, 344, 80,
+                    26, hwnd, reinterpret_cast<HMENU>(kIdRescanPads), inst, nullptr);
+    CreateWindowExW(0, L"BUTTON", L"Use controller", WS_CHILD | WS_VISIBLE | BS_PUSHBUTTON, 528, 344,
+                    172, 26, hwnd, reinterpret_cast<HMENU>(kIdApplyPad), inst, nullptr);
+    CreateWindowExW(0, L"BUTTON", L"Use keyboard", WS_CHILD | WS_VISIBLE | BS_PUSHBUTTON, 528, 376,
+                    172, 26, hwnd, reinterpret_cast<HMENU>(kIdKeyboard), inst, nullptr);
     const auto button = [&](const wchar_t* text, int x, int id) {
-        CreateWindowExW(0, L"BUTTON", text, WS_CHILD | WS_VISIBLE | BS_PUSHBUTTON, x, 390, 160, 28,
+        CreateWindowExW(0, L"BUTTON", text, WS_CHILD | WS_VISIBLE | BS_PUSHBUTTON, x, 466, 160, 28,
                         hwnd, reinterpret_cast<HMENU>(static_cast<INT_PTR>(id)), inst, nullptr);
     };
     button(L"Open user data folder", 10, kIdOpenUser);
@@ -227,6 +348,7 @@ void ShowDevMenu(Core::System& system) {
     SetWindowLongPtrW(hwnd, GWLP_USERDATA, reinterpret_cast<LONG_PTR>(&state));
     SetWindowTextW(state.status, DevStatusText(system).c_str());
     DevRefreshMods(state.mods);
+    DevRefreshDevices(state);
     SetTimer(hwnd, kTimer, 500, nullptr);
     ShowWindow(hwnd, SW_SHOW);
 
@@ -319,7 +441,7 @@ void EmuWindow_SDL2::OnFingerUp() {
 void EmuWindow_SDL2::OnKeyEvent(int key, u8 state) {
 #ifdef _WIN32
     if (state == SDL_PRESSED && key == SDL_SCANCODE_F12) {
-        ShowDevMenu(system);
+        ShowDevMenu(system, input_subsystem);
         return;
     }
 #endif

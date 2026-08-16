@@ -791,6 +791,79 @@ static std::vector<u64> ScanDataForCodePointers(const NsoAnalysisResult& mod) {
     return out;
 }
 
+/// Function-pointer roots recovered from the module's relocation tables.
+///
+/// ScanDataForCodePointers reads .rodata/.data as they sit in the file, which
+/// is *before* relocation: a vtable slot or static function-pointer table entry
+/// is written by the linker as a relocation, and the slot itself usually holds
+/// nothing (or a bare addend). The real target only exists in the RELA entry -
+/// R_AARCH64_RELATIVE carries it in the addend, ABS64 in symbol value + addend.
+/// So the addresses reached exclusively through those tables - virtual methods,
+/// service dispatch entries, and every function handed to the OS as a callback,
+/// thread entry points above all - are invisible to a raw data scan.
+///
+/// Missing them is what leaves a brand-new guest thread starting at an address
+/// no block covers, so every thread the game spawns drops straight to the
+/// interpreter. Seeding them here keeps that work in statically recompiled
+/// code. Over-inclusive on purpose: a value that merely looks like a text
+/// address only ever costs one extra block boundary, never a wrong block.
+static std::vector<u64> ScanRelocationsForCodePointers(const NsoAnalysisResult& mod) {
+    std::vector<u64> out;
+    if (mod.text_bytes.size() < 8) return out;
+
+    u32 mod0_off = 0;
+    std::memcpy(&mod0_off, mod.text_bytes.data() + 4, sizeof(mod0_off));
+    const u64 mod0_va = mod.text_vaddr + mod0_off;
+    if (ReadModuleU32(mod, mod0_va) != 0x30444F4Du) return out;
+
+    const u32 dyn_rel_off = ReadModuleU32(mod, mod0_va + 4);
+    const u64 dyn_va = mod0_va + dyn_rel_off;
+
+    constexpr u32 DT_NULL = 0, DT_PLTRELSZ = 2, DT_SYMTAB = 6, DT_RELA = 7, DT_RELASZ = 8,
+                   DT_JMPREL = 23;
+    u64 rela_va = 0, rela_sz = 0, jmprel_va = 0, jmprel_sz = 0, symtab_va = 0;
+    for (u64 p = dyn_va, guard = 0; guard < 0x1000; p += 16, guard += 16) {
+        const u64 tag = ReadModuleU64(mod, p);
+        const u64 val = ReadModuleU64(mod, p + 8);
+        if (tag == DT_NULL) break;
+        if (tag == DT_RELA) rela_va = val;
+        if (tag == DT_RELASZ) rela_sz = val;
+        if (tag == DT_JMPREL) jmprel_va = val;
+        if (tag == DT_PLTRELSZ) jmprel_sz = val;
+        if (tag == DT_SYMTAB) symtab_va = val;
+    }
+
+    const u64 text_lo = mod.text_vaddr;
+    const u64 text_hi = mod.text_vaddr + mod.text_bytes.size();
+    constexpr u32 R_AARCH64_ABS64 = 0x101, R_AARCH64_GLOB_DAT = 0x401,
+                   R_AARCH64_JUMP_SLOT = 0x402, R_AARCH64_RELATIVE = 0x403;
+    const auto scan_table = [&](u64 table_va, u64 table_sz) {
+        for (u64 p = table_va; p + 24 <= table_va + table_sz; p += 24) {
+            const u64 r_info = ReadModuleU64(mod, p + 8);
+            const u64 r_addend = ReadModuleU64(mod, p + 16);
+            const u32 r_type = static_cast<u32>(r_info & 0xFFFFFFFF);
+            const u32 r_sym = static_cast<u32>(r_info >> 32);
+            u64 target = 0;
+            if (r_type == R_AARCH64_RELATIVE) {
+                target = r_addend;
+            } else if ((r_type == R_AARCH64_ABS64 || r_type == R_AARCH64_GLOB_DAT ||
+                        r_type == R_AARCH64_JUMP_SLOT) &&
+                       symtab_va != 0 && r_sym != 0) {
+                target = ReadModuleU64(mod, symtab_va + static_cast<u64>(r_sym) * 24 + 8) +
+                         (r_type == R_AARCH64_ABS64 ? r_addend : 0);
+            } else {
+                continue;
+            }
+            if (target >= text_lo && target < text_hi && (target & 3) == 0) {
+                out.push_back(target);
+            }
+        }
+    };
+    if (rela_va && rela_sz) scan_table(rela_va, rela_sz);
+    if (jmprel_va && jmprel_sz) scan_table(jmprel_va, jmprel_sz);
+    return out;
+}
+
 static std::vector<u64> CollectExportedSymbolAddresses(const NsoAnalysisResult& mod) {
     std::vector<u64> out;
     if (mod.text_bytes.size() < 8) return out;
@@ -1479,6 +1552,11 @@ QString GameExportDialog::RunAotPrecompile(const QString& exefs_dir,
         {
             std::vector<u64> data_ptr_roots = ScanDataForCodePointers(mod);
             exported_roots.insert(exported_roots.end(), data_ptr_roots.begin(), data_ptr_roots.end());
+            std::vector<u64> reloc_roots = ScanRelocationsForCodePointers(mod);
+            exported_roots.insert(exported_roots.end(), reloc_roots.begin(), reloc_roots.end());
+            std::sort(exported_roots.begin(), exported_roots.end());
+            exported_roots.erase(std::unique(exported_roots.begin(), exported_roots.end()),
+                                 exported_roots.end());
         }
 
         suyu::recomp::RecompileStats stats{};

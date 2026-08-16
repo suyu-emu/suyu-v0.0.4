@@ -4,6 +4,7 @@
 // SPDX-FileCopyrightText: Copyright 2018 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
+#include <algorithm>
 #include <array>
 #include <cstring>
 #include <openssl/err.h>
@@ -94,6 +95,18 @@ Crypto::AESCipher<Key>::AESCipher(Key key, Mode mode) : ctx(std::make_unique<Cip
 
     ASSERT(ctx->encryption_context && ctx->decryption_context && ctx->cipher && "OpenSSL cipher context failed init!");
     // now init ciphers
+    // An all-zero key means the key file simply is not present. That is a
+    // normal state - a statically recompiled game export ships its content
+    // already decrypted and never needs one - and XTS rejects such a key
+    // outright, because its two halves must differ. Report it once at info
+    // level rather than asserting: the cipher is never actually used in that
+    // case, and an assert here reads as a failure in a run that is fine.
+    const bool key_present =
+        std::any_of(key.begin(), key.end(), [](u8 b) { return b != 0; });
+    if (!key_present) {
+        LOG_DEBUG(Crypto, "No key available for this cipher; leaving it uninitialized");
+        return;
+    }
     ASSERT(EVP_CipherInit_ex2(ctx->encryption_context, ctx->cipher, key.data(), NULL, 1, NULL));
     ASSERT(EVP_CipherInit_ex2(ctx->decryption_context, ctx->cipher, key.data(), NULL, 0, NULL));
 
