@@ -99,7 +99,7 @@
     <string name="use_sync_core">同步核心速度</string>
     <string name="use_sync_core_description">將核心速度與最大速度百分比同步，在不改變遊戲實際速度的情況下提高效能</string>
     <string name="cpuopt_unsafe_host_mmu">啟用主機 MMU 模擬</string>
-    <string name="cpuopt_unsafe_host_mmu_description">此最佳化可加速來賓程式的記憶體存取。啟用後，來賓記憶體讀取/寫入將直接在記憶體中執行並利用主機的 MMU。停用此功能將強制所有記憶體存取使用軟體 MMU 模擬。</string>
+    <string name="cpuopt_unsafe_host_mmu_description">此最佳化可加速客體程式的記憶體存取。啟用後，客體記憶體讀取/寫入將直接在記憶體中執行並利用主機的 MMU。停用此功能將強制所有記憶體存取使用軟體 MMU 模擬。</string>
     <string name="debug_knobs">偵錯開關</string>
     <string name="debug_knobs_description">僅限開發用途</string>
     <string name="debug_knobs_hint">0到65535</string>
@@ -192,7 +192,7 @@
     <string name="multiplayer_nickname_invalid">使用者名稱無效，請在系統→網路中檢查設定</string>
     <string name="multiplayer_token_error">必須為48個字元，且僅包含小寫字母a-z</string>
     <string name="multiplayer_port_error">埠號需為1-65535</string>
-    <string name="cancel">略過</string>
+    <string name="cancel">取消</string>
     <string name="ok">確定</string>
     <string name="refresh">重新整理</string>
     <string name="room_list">房間列表</string>
@@ -302,7 +302,7 @@
     <string name="notification_no_directory_link">無法開啟 Eden 目錄</string>
     <string name="notification_no_directory_link_description">請使用檔案管理員的側邊面板手動定位到使用者資料夾</string>
     <string name="manage_save_data">管理儲存資料</string>
-    <string name="manage_save_data_description">導入/導出遊戲的儲存資料\n\n壓縮檔中首個子資料夾名稱必須為遊戲 ID</string>
+    <string name="manage_save_data_description">導入/導出遊戲的儲存資料\n壓縮檔必須為.zip格式\n壓縮檔中首個子資料夾名稱必須為遊戲 ID</string>
     <string name="import_save_warning">導入儲存資料</string>
     <string name="import_save_warning_description">這將會以提供的檔案覆寫現有的該遊戲儲存資料，您確定要繼續嗎？</string>
     <string name="save_files_importing">正在導入儲存資料…</string>
@@ -434,8 +434,8 @@
     <string name="set_custom_rtc">設定自訂 RTC</string>
 
     <!-- CPU -->
-    <string name="fast_cpu_time">CPU 超頻</string>
-    <string name="fast_cpu_time_description">強制模擬 CPU 以更高的時脈運作，減少某些 FPS 限制。使用 加速 (1700MHz) 以 Switch 的最高原生時脈執行，或 高速 (2000MHz) 以雙倍時脈執行</string>
+    <string name="fast_cpu_time">CPU 時脈</string>
+    <string name="fast_cpu_time_description">提高模擬 CPU 回報的時脈，可以減少某些 FPS 限制。較弱的 CPU 可能會出現效能下降的情況，部分遊戲可能會出現異常</string>
     <string name="custom_cpu_ticks">自訂CPU時脈</string>
     <string name="custom_cpu_ticks_description">自訂CPU時脈。更高的值可能提高效能，但也可能導致遊戲卡死。建議範圍為77-21000。</string>
     <string name="cpu_ticks">時脈</string>
@@ -481,15 +481,57 @@
     <string name="use_disk_shader_cache_description">將產生的著色器快取儲存至硬碟以減少中斷</string>
     <string name="renderer_force_max_clock">強制使用最大時脈 (僅限Adreno)</string>
     <string name="renderer_force_max_clock_description">強制 GPU 以可能的最大時脈執行 (熱溫限制仍會被套用)</string>
+    <string name="renderer_asynchronous_gpu_emulation">GPU 非同步模擬</string>
+    <string name="renderer_asynchronous_gpu_emulation_description">此修改可透過使用 GPU 非同步模擬來提升性能，不過可能會導致圖形問題且會提高在進行時序相關操作時當機的機率</string>
+    <string name="renderer_async_presentation">非同步呈現</string>
+    <string name="renderer_async_presentation_description">此修改可以透過將渲染移至單獨的 CPU 執行緒來提升性能，但可能會導致圖形問題</string>
     <string name="renderer_reactive_flushing">使用重新啟用排清</string>
     <string name="renderer_reactive_flushing_description">犧牲效能，以改善部分遊戲的轉譯準確度。</string>
+    <string name="enable_buffer_history">啟用緩衝區歷史</string>
+    <string name="enable_buffer_history_description">允許存取先前的緩衝區狀態。此選項可能會改善部分遊戲的渲染品質與效能穩定性</string>
+    <string name="enable_gpu_buffer_readback">啟用 GPU 緩衝區讀回</string>
+    <string name="enable_gpu_buffer_readback_description">透過在上傳之前先將 GPU 修改過的緩衝區資料讀回來保存資料，部分遊戲需要啟用此功能才能正常渲染遊戲特效。如果硬體無法負荷可能會導致錯誤</string>
+    <string name="use_optimized_vertex_buffers">最佳化頂點緩衝區</string>
+    <string name="use_optimized_vertex_buffers_description">啟用最佳化的頂點緩衝區綁定。需要安裝 Mesa 26.0+ Turnip drivers/Qualcomm drivers。使用舊版 Turnip drivers 會導致當機 (25.3版和更低的版本)</string>
+
+    <string name="hacks">修改</string>
+
+    <string name="fast_gpu_time">GPU 時脈</string>
+    <string name="fast_gpu_time_description">讓遊戲誤以為 GPU 工作能更快完成，避免遊戲為了配合 Switch 的時脈而降低解析度與渲染距離</string>
     <string name="skip_cpu_inner_invalidation">跳過CPU內部失效處理</string>
-    <string name="skip_cpu_inner_invalidation_description">在記憶體更新期間跳過某些CPU端快取的失效處理，減少CPU使用率並提高其性能。可能會導致某些遊戲出現故障或崩潰。</string>
+    <string name="skip_cpu_inner_invalidation_description">在記憶體更新期間跳過某些CPU端快取的失效處理，減少CPU使用率並提高其性能。可能會導致某些遊戲出現故障或當機。</string>
+    <string name="fix_bloom_effects">修正光暈特效</string>
+    <string name="fix_bloom_effects_description">在 薩爾達傳說：織夢島 和 薩爾達傳說：智慧的再現 中 減少光暈模糊的問題並移除 橫衝直撞：狂飆樂園重製版 中的光暈效果 (Adreno A6XX - A7XX/ Turnip)。警告：可能會在其它遊戲中導致圖形異常</string>
+    <string name="emulate_bgr565">模擬 BGR565</string>
+    <string name="emulate_bgr565_description">修正遊戲中出現的顏色反轉、圖形異常或陰影異常</string>
+    <string name="rescale_hack">啟用舊版重新縮放處理</string>
+    <string name="rescale_hack_description">透過快速重新縮放處理來啟用遊戲重新縮放設定階段的舊版處理方式</string>
     <string name="renderer_asynchronous_shaders">使用非同步著色器</string>
-    <string name="renderer_asynchronous_shaders_description">非同步編譯著色器。這可能會減少卡頓，但也可能導致圖形錯誤。</string>
+    <string name="renderer_asynchronous_shaders_description">使用非同步編譯著色器。這可能會減少卡頓，但也可能導致圖形錯誤。</string>
+    <string name="gpu_unswizzle_settings">GPU Unswizzle 設定</string>
+    <string name="gpu_unswizzle_settings_description">設定基於 GPU 的 Unswizzling 參數或完全停用此功能。調整此設定以在性能與紋理載入品質中取得平衡</string>
+    <string name="gpu_unswizzle_enable">啟用 GPU Unswizzle</string>
+    <string name="gpu_unswizzle_disabled">停用</string>
+    <string name="gpu_unswizzle_texture_size">GPU Unswizzle 最大紋理尺寸</string>
+    <string name="gpu_unswizzle_texture_size_description">設定 GPU 紋理 Unswizzling 的最大值 （MB）。雖然 GPU 處理中型和大型紋理的速度較快，但 CPU 處理非常小的紋理可能更有效率。整此設定以在 GPU 加速與 CPU 負載之間取得平衡</string>
+    <string name="gpu_unswizzle_stream_size">GPU Unswizzle 流大小</string>
+    <string name="gpu_unswizzle_stream_size_description">設定每個影格處理大型紋理 Unswizzling 的資料上限。數值越高載入紋理的速度越快，但會增加畫面延遲；數值較低則能降低 GPU 負載，不過有可能導致至紋理載入不完全甚至突然出現</string>
+    <string name="gpu_unswizzle_chunk_size">GPU Unswizzle 塊大小</string>
+    <string name="gpu_unswizzle_chunk_size_description">設定 3D 紋理每批次處理的深度切片數量。增加此數值可提升規格較佳 GPU 的處理效率，但在較低規格的硬體上可能導致卡頓或驅動程式逾時</string>
+    <string name="gpu_unswizzle_default_button">預設</string>
+
+
+    <string name="extensions">擴充功能</string>
+
     <string name="dyna_state">擴展動態狀態</string>
-    <string name="disabled">已停用</string>
+    <string name="dyna_state_description">控制擴展動態狀態中可使用的功能數量。較高的數值可根據驅動程式支援的動態狀態減少管線編譯的次數。</string>
+    <string name="disabled">停用</string>
     <string name="vertex_input_dynamic_state">頂點輸入動態狀態</string>
+    <string name="vertex_input_dynamic_state_description">啟用此功能可提供更彈性的頂點輸入處理方式，並可能減少頂點/緩衝區的管線編譯時間</string>
+    <string name="sample_shading_fraction">取樣著色</string>
+    <string name="sample_shading_fraction_description">讓片段著色器在多重取樣片段中針對每個取樣執行，而不是每個片段只執行一次。可提升圖形品質但會降低部分效能</string>
+
+
     <string name="display">顯示</string>
 
     <string name="renderer_screen_layout">方向</string>
@@ -498,32 +540,55 @@
     <string name="picture_in_picture">子母畫面</string>
     <string name="picture_in_picture_description">位於背景時最小化視窗</string>
 
-    <string name="warning_resolution">解析度縮放到2倍或更高可能會導致問題，並可能顯著降低設備速度。</string>
+    <string name="warning_resolution">解析度縮放到2倍或更高可能會導致問題，並可能顯著降低設備速度</string>
 
     <!-- Debug settings strings -->
     <string name="cpu">CPU</string>
+    <string name="clocks">時脈</string>
     <string name="use_auto_stub">使用自動存根</string>
-    <string name="use_auto_stub_description">自動補上缺少的服務和功能。可提高相容性但可能導致崩潰和穩定性問題。</string>
+    <string name="use_auto_stub_description">自動補上缺少的服務和功能。可提高相容性但可能導致當機和穩定性問題。</string>
 
     <string name="gpu">GPU</string>
     <string name="renderer_api">API</string>
     <string name="renderer_debug">圖形偵錯</string>
-    <string name="renderer_debug_description">將圖形 API 設為慢速偵錯模式。</string>
+    <string name="renderer_debug_description">將圖形 API 設為慢速偵錯模式</string>
+    <string name="patch_old_qcom_drivers">BCn 區塊壓縮紋理修補</string>
+    <string name="patch_old_qcom_drivers_description">覆寫 Adreno GPU 的 BCn 紋理格式自動偵測。通常會根據 Android 版本自動偵測（會在API 28 以上自動啟用）</string>
     <string name="fastmem">Fastmem</string>
 
-    <string name="log">日誌記錄</string>
+    <string name="log">日誌</string>
     <string name="flush_by_line">按行寫入偵錯日誌</string>
-    <string name="flush_by_line_description">在每行寫入時重新整理偵錯日誌，讓程式在崩潰或當機時更容易偵錯。</string>
+    <string name="flush_by_line_description">在每行寫入時重新整理偵錯日誌，讓程式在當機或閃退時更容易偵錯。</string>
+
+    <!-- GPU Logging strings -->
+    <string name="gpu_logging_header">GPU 日誌</string>
+    <string name="gpu_log_level">記錄層級</string>
+    <string name="gpu_log_level_description">GPU 日誌的詳細層級 （越高日誌越詳細，不過會更容易過熱）</string>
+    <string name="gpu_log_vulkan_calls">記錄 Vulkan API 呼叫</string>
+    <string name="gpu_log_vulkan_calls_description">在環形緩衝區中記錄所有 Vulkan API 呼叫</string>
+    <string name="gpu_log_shader_dumps">傾印 SPIR-V 著色器</string>
+    <string name="gpu_log_shader_dumps_description">將重新編譯後的 SPIR-V 二進位檔案 (.spv) 儲存至 Eden 資料夾裡的 dump 資料夾中。可使用 spirv-dis/spirv-cross/spirv-val 進行檢查</string>
+    <string name="dump_guest_shaders">傾印客體（Maxwell）著色器</string>
+    <string name="dump_guest_shaders_description">將 Maxwell 客體著色器位元組碼檔案 (.ash) 儲存至 Eden 資料夾裡的 dump 資料夾中。可使用 nvdisasm 進行檢查</string>
+    <string name="dump_macros">傾印 Maxwell 巨集</string>
+    <string name="dump_macros_description">將 Maxwell 巨集程式檔案 (.macro) 儲存至 Eden 資料夾裡的 dump 資料夾中。可使用 envydis 進行檢查</string>
+    <string name="gpu_log_memory_tracking">追蹤 GPU 記憶體</string>
+    <string name="gpu_log_memory_tracking_description">監控 GPU 記憶體的分配和釋放</string>
+    <string name="gpu_log_driver_debug">驅動程式偵錯資料</string>
+    <string name="gpu_log_driver_debug_description">擷取驅動程式的特定偵錯資料（例如 Turnip breadcrumbs）</string>
+    <string name="gpu_log_ring_buffer_size">環形緩衝區大小</string>
+    <string name="gpu_log_ring_buffer_size_description">追蹤的近期 Vulkan 呼叫數量（預設為 512 ）</string>
+    <string name="gpu_log_ring_buffer_size_hint">64 至 4096 個項目</string>
 
     <string name="general">一般</string>
 
     <!-- Audio settings strings -->
     <string name="audio_output_engine">輸出引擎</string>
     <string name="audio_volume">音量</string>
-    <string name="audio_volume_description">指定音訊輸出音量。</string>
+    <string name="audio_volume_description">指定音訊輸出音量</string>
 
     <!-- Input strings -->
-    <string name="buttons">按键</string>
+    <string name="buttons">按鍵</string>
     <string name="button_plus">＋</string>
     <string name="button_minus">－</string>
     <string name="button_home">HOME</string>
@@ -592,19 +657,20 @@
     <string name="button_map_description">按下一個按鈕或肩部按鍵/移動搖桿</string>
     <string name="map_dpad_direction">將方向鍵配對到 %1$s</string>
     <string name="map_control">配對到 %1$s</string>
-    <string name="failed_to_load_profile">匯入設定檔失敗</string>
+    <string name="failed_to_load_profile">導入設定檔失敗</string>
     <string name="failed_to_save_profile">儲存設定檔失敗</string>
     <string name="reset_mapping">重設控制器配對</string>
     <string name="reset_mapping_description">您確定要將此控制器的所有配對重設為預設值？此動作無法復原</string>
 
     <!-- Miscellaneous -->
     <string name="slider_default">預設</string>
+    <string name="default_string">預設</string>
     <string name="loading">正在載入…</string>
     <string name="shutting_down">正在關閉…</string>
     <string name="reset_setting_confirmation">要將此設定重設回預設值嗎？</string>
     <string name="reset_to_default">重設為預設值</string>
     <string name="reset_to_default_description">重設所有進階設定</string>
-    <string name="reset_all_settings">重設所有設定？</string>
+    <string name="reset_all_settings">確定要重設所有設定嗎？</string>
     <string name="reset_all_settings_description">所有進階設定將被重設，此動作無法復原</string>
     <string name="settings_reset">設定已重設</string>
     <string name="close">關閉</string>
@@ -624,8 +690,8 @@
     <string name="import_success">已成功導入</string>
     <string name="export_success">已成功導出</string>
     <string name="start">開始</string>
-    <string name="global">全域</string>
-    <string name="custom">自定義</string>
+    <string name="global">全域設定</string>
+    <string name="custom">個別遊戲設定</string>
     <string name="import_complete">導入完成</string>
     <string name="use_global_setting">使用全域設定</string>
     <string name="operation_completed_successfully">操作已成功完成</string>
@@ -637,6 +703,7 @@
     <string name="select_gpu_driver_default">預設</string>
     <string name="select_gpu_driver_error">選擇的驅動程式無效</string>
     <string name="driver_already_installed">驅動程式已安裝</string>
+    <string name="installed_label">%1$s（已安裝）</string>
     <string name="system_gpu_driver">系統 GPU 驅動程式</string>
     <string name="installing_driver">正在安裝驅動程式…</string>
 
@@ -666,6 +733,9 @@
     <string name="preferences_system_description">底座模式、區域及語言</string>
     <string name="preferences_graphics">圖形</string>
     <string name="preferences_graphics_description">準確度層級、解析度及著色器快取</string>
+    <string name="quick_settings">快捷設定</string>
+    <string name="enable_quick_settings">啟用快捷設定</string>
+    <string name="enable_quick_settings_description">允許透過滑動和選單按鈕存取快捷設定選單</string>
     <string name="preferences_audio">音訊</string>
     <string name="preferences_audio_description">輸出引擎及音量</string>
     <string name="preferences_controls">控制</string>
@@ -673,12 +743,26 @@
     <string name="preferences_player">玩家 %d</string>
     <string name="preferences_debug">偵錯</string>
     <string name="preferences_debug_description">CPU/GPU 偵錯、圖形 API 及 fastmem</string>
+    <string name="preferences_custom_paths">自訂路徑</string>
+    <string name="preferences_custom_paths_description">自訂檔案的存放路徑</string>
+
+    <!-- Custom Paths settings -->
+    <string name="custom_save_directory">遊戲儲存資料路徑</string>
+    <string name="custom_save_directory_description">設定遊戲儲存資料的自訂路徑</string>
+    <string name="reset_to_nand">重設為預設值</string>
+    <string name="migrate_save_data">遷移儲存資料</string>
+    <string name="migrate_save_data_question">您要將現有的儲存資料移至新位置嗎？</string>
+    <string name="save_migration_complete">成功遷移儲存資料</string>
+    <string name="save_migration_failed">儲存資料遷移失敗</string>
+    <string name="save_directory_set">存檔目錄設定完成</string>
+    <string name="skip_migration">跳過</string>
+
     <!-- Game properties -->
     <string name="info">資訊</string>
     <string name="info_description">程式 ID、開發人員及版本資訊</string>
     <string name="per_game_settings">個別遊戲設定</string>
     <string name="per_game_settings_description">編輯此遊戲的特定設定</string>
-    <string name="launch_options">啟動組態</string>
+    <string name="launch_options">啟動設定</string>
     <string name="path">路徑</string>
     <string name="program_id">程式 ID</string>
     <string name="developer">開發商</string>
@@ -784,7 +868,7 @@
     <string name="driver_missing_title">需要GPU驅動程式</string>
     <string name="driver_missing_message">這個遊戲的設定需要 \"%s\"驅動程式，而它並沒有安裝在您的裝置上\n\n要下載並安裝此驅動程式嗎？</string>
     <string name="driver_download_cancelled">驅動程式下載已取消。沒有所需的驅動程式無法啟動遊戲。</string>
-    <string name="download">下載</string>
+    <string name="download">遷移</string>
 
     <!-- Emulation Menu -->
     <string name="emulation_exit">結束模擬</string>
@@ -827,11 +911,11 @@
     <string name="abort_button">中止</string>
     <string name="continue_button">繼續</string>
     <string name="system_archive_not_found">找不到系統存檔</string>
-    <string name="system_archive_not_found_message">缺少%s，請轉儲您的系統存檔\n繼續模擬可能會導致崩潰</string>
+    <string name="system_archive_not_found_message">缺少%s，請轉儲您的系統存檔\n繼續模擬可能會導致當機</string>
     <string name="system_archive_general">系統存檔</string>
     <string name="save_load_error">儲存/載入時發生錯誤</string>
     <string name="fatal_error">嚴重錯誤</string>
-    <string name="fatal_error_message">發生嚴重錯誤。請查看日誌以取得詳細資料\n繼續模擬可能會導致崩潰</string>
+    <string name="fatal_error_message">發生嚴重錯誤。請查看日誌以取得詳細資料\n繼續模擬可能會導致當機</string>
     <string name="device_memory_inadequate">裝置記憶體大小：%1$s\n推薦記憶體大小：%2$s</string>
     <string name="memory_formatted">%1$s%2$s</string>
     <string name="no_game_present">目前沒有可啟動的遊戲！</string>
@@ -849,10 +933,6 @@
     <string name="memory_4gb">4GB (推薦)</string>
     <string name="memory_6gb">6GB (不穩定)</string>
     <string name="memory_8gb">8GB (不穩定)</string>
-
-    <!--CPU clock speeds-->
-    <string name="clock_boost">加速 (1700MHz)</string>
-    <string name="clock_fast">快速 (2000MHz)</string>
 
     <!-- Temperature Units -->
     <string name="temperature_celsius">攝氏度</string>

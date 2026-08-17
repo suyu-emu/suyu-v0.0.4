@@ -432,9 +432,6 @@
     <string name="use_custom_rtc_description">Vous permet de définir une horloge en temps réel personnalisée distincte de l\'heure actuelle de votre système.</string>
     <string name="set_custom_rtc">Définir l\'horloge RTC personnalisée</string>
 
-    <!-- CPU -->
-    <string name="fast_cpu_time">Overclock du CPU</string>
-    <string name="fast_cpu_time_description">Force le CPU émulé à fonctionner à une fréquence plus élevée, en contournant certaines limitations de FPS. Utilisez Boost (1700 MHz) pour atteindre la fréquence native maximale de la Nintendo Switch, ou Fast (2000 MHz) pour doubler la fréquence. C’est un “hack”. Certains chipsets moins puissants peuvent voir leurs performances réduites et les jeux peuvent se comporter différemment.</string>
     <string name="custom_cpu_ticks">Ticks CPU personnalisés</string>
     <string name="custom_cpu_ticks_description">Définissez une valeur personnalisée de ticks CPU. Des valeurs plus élevées peuvent améliorer les performances, mais peuvent aussi provoquer des gels du jeu. Une plage de 77 à 21000 est recommandée.</string>
     <string name="cpu_ticks">Ticks</string>
@@ -482,7 +479,6 @@
     <string name="enable_buffer_history">Activer l\'historique du tampon</string>
     <string name="hacks">Contournements</string>
 
-    <string name="fast_gpu_time">Temps GPU rapide</string>
     <string name="skip_cpu_inner_invalidation">Ignorer l\'invalidation interne du CPU</string>
     <string name="skip_cpu_inner_invalidation_description">Ignore certaines invalidations de cache côté CPU lors des mises à jour mémoire, réduisant l\'utilisation du CPU et améliorant ses performances. Peut causer des bugs ou plantages sur certains jeux.</string>
     <string name="emulate_bgr565">Emuler BGR565</string>
@@ -891,14 +887,6 @@
     <string name="memory_4gb">4 Go (Recommandé)</string>
     <string name="memory_6gb">6 Go (Dangereux)</string>
     <string name="memory_8gb">8 Go (Dangereux)</string>
-
-    <!--CPU clock speeds-->
-    <string name="clock_boost">Boost (1700MHz)</string>
-    <string name="clock_fast">Rapide (2000MHz)</string>
-
-    <!-- GPU overclock factors -->
-    <string name="fast_gpu_medium">Moyen (256)</string>
-    <string name="fast_gpu_high">Élevé (512)</string>
 
     <!-- GPU swizzle texture size -->
     <string name="gpu_texturesizeswizzle_verysmall">Très petit (16 Mo)</string>

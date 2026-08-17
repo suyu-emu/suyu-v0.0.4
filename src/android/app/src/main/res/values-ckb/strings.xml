@@ -553,10 +553,6 @@
     <string name="memory_6gb">6GB (نائاسایش)</string>
     <string name="memory_8gb">8GB (نائاسایش)</string>
 
-    <!--CPU clock speeds-->
-    <string name="clock_boost">زۆرکردن (1700MHz)</string>
-    <string name="clock_fast">خێرا (2000MHz)</string>
-
     <!-- Temperature Units -->
     <string name="temperature_celsius">سیلیزی</string>
     <string name="temperature_fahrenheit">فارینهایت</string>

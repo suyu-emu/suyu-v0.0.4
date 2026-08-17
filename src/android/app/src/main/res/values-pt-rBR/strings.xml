@@ -409,8 +409,6 @@
     <string name="use_custom_rtc_description">Permite a você configurar um relógio em tempo real separado do relógio do seu dispositivo.</string>
     <string name="set_custom_rtc">Definir um relógio em tempo real personalizado</string>
 
-    <!-- CPU -->
-    <string name="fast_cpu_time">Overclock da CPU</string>
     <string name="custom_cpu_ticks">Ciclos da CPU Personalizados</string>
     <string name="custom_cpu_ticks_description">Defina um valor personalizado de ciclos da CPU. Valores mais altos podem aumentar o desempenho, mas também podem fazer o jogo travar. Recomenda-se usar valores entre 77 e 21000.</string>
     <string name="cpu_ticks">Ciclos</string>
@@ -820,10 +818,6 @@
     <string name="memory_4gb">4GB (Recomendado)</string>
     <string name="memory_6gb">6GB (Inseguro)</string>
     <string name="memory_8gb">8GB (Inseguro)</string>
-
-    <!--CPU clock speeds-->
-    <string name="clock_boost">Boost (1700MHz)</string>
-    <string name="clock_fast">Rápido (2000MHz)</string>
 
     <!-- Temperature Units -->
     <string name="temperature_celsius">Celsius</string>

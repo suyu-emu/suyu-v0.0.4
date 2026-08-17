@@ -434,8 +434,8 @@
     <string name="set_custom_rtc">设置自定义系统时间</string>
 
     <!-- CPU -->
-    <string name="fast_cpu_time">CPU 超频</string>
-    <string name="fast_cpu_time_description">强制模拟的 CPU 以更高的时钟频率运行，从而消除某些帧率限制。使用“升频”（1700MHz）以在 Switch 的最高原生时钟频率运行，或使用“快速”（2000MHz）以 2 倍时钟频率运行。</string>
+    <string name="fast_cpu_time">CPU 时钟频率</string>
+    <string name="fast_cpu_time_description">提高模拟 CPU 报告的时钟频率，从而消除部分帧率限制。性能较弱的 CPU 可能会出现可见性能下降，甚至会导致某些游戏运行异常。</string>
     <string name="custom_cpu_ticks">自定义 CPU 时钟周期</string>
     <string name="custom_cpu_ticks_description">设定自定义的 CPU 时钟周期值。更高的值可以提升性能，但也可能导致游戏冻结卡死。建议的赋值范围为77-21000。</string>
     <string name="cpu_ticks">时钟周期</string>
@@ -496,8 +496,8 @@
 
     <string name="hacks">Hacks</string>
 
-    <string name="fast_gpu_time">快速 GPU 时间</string>
-    <string name="fast_gpu_time_description">强制大多数游戏以其最高原生分辨率运行。设置为 256 可获得最佳性能，设置为 512 可获得最佳画面保真度。</string>
+    <string name="fast_gpu_time">GPU 时钟频率</string>
+    <string name="fast_gpu_time_description">通过让游戏误以为 GPU 的处理速度比实际更快，以避免游戏为了适应 Switch 的时钟频率而降低分辨率和渲染距离。</string>
     <string name="skip_cpu_inner_invalidation">跳过CPU内部无效化</string>
     <string name="skip_cpu_inner_invalidation_description">在更新内存时跳过某些 CPU 端的缓存失效操作，从而降低 CPU 占用率并提升性能。可能会在某些游戏中引发故障点或崩溃。</string>
     <string name="fix_bloom_effects">修复 Bloom 效果</string>
@@ -544,6 +544,7 @@
 
     <!-- Debug settings strings -->
     <string name="cpu">CPU</string>
+    <string name="clocks">时钟频率</string>
     <string name="use_auto_stub">使用自动占位处理</string>
     <string name="use_auto_stub_description">自动为缺失的服务和功能生成占位代码。这可能会提高兼容性，但也可能导致崩溃和稳定性问题</string>
 
@@ -943,13 +944,15 @@
     <string name="memory_6gb">6GB (不安全)</string>
     <string name="memory_8gb">8GB (不安全)</string>
 
-    <!--CPU clock speeds-->
-    <string name="clock_boost">加速 (1700MHz)</string>
-    <string name="clock_fast">快速 (2000MHz)</string>
+    <!-- CPU clock levels -->
+    <string name="clock_normal">正常</string>
+    <string name="clock_boost">升频</string>
+    <string name="clock_fast">超频</string>
 
-    <!-- GPU overclock factors -->
-    <string name="fast_gpu_medium">中 (256)</string>
-    <string name="fast_gpu_high">高 (512)</string>
+    <!-- GPU clock levels -->
+    <string name="fast_gpu_normal">正常</string>
+    <string name="fast_gpu_medium">升频</string>
+    <string name="fast_gpu_high">超频</string>
 
     <!-- GPU swizzle texture size -->
     <string name="gpu_texturesizeswizzle_verysmall">极小 (16 MB)</string>

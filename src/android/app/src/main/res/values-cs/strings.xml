@@ -417,9 +417,6 @@
     <string name="use_custom_rtc_description">Umožňuje nastavit vlastní hodiny reálného času nezávisle na systému.</string>
     <string name="set_custom_rtc">Nastavit vlastní RTC</string>
 
-    <!-- CPU -->
-    <string name="fast_cpu_time">Přetaktování CPU</string>
-    <string name="fast_cpu_time_description">Vynutí běh CPU na vyšší frekvenci, což může pomoci obejít některé omezovače FPS. Režim Boost (1700 MHz) odpovídá maximální taktu konzole Switch, režim Fast (2000 MHz) je dvojnásobek základního taktu konzole.</string>
     <string name="custom_cpu_ticks">Vlastní hodnota CPU cyků</string>
     <string name="custom_cpu_ticks_description">Nastavte vlastní hodnotu cyklů CPU. Vyšší hodnoty mohou zvýšit výkon, ale mohou také způsobit zamrznutí hry. Doporučený rozsah hodnot je 77–21000.</string>
     <string name="cpu_ticks">Cykly</string>
@@ -466,8 +463,6 @@
     <string name="enable_buffer_history_description">Umožňuje přístup k předchozím stavům bufferu. Tato volba může u některých her zvýšit kvalitu vykreslování a zlepšit stabilitu výkonu.</string>
     <string name="hacks">Hacky</string>
 
-    <string name="fast_gpu_time">Rychlé časování GPU</string>
-    <string name="fast_gpu_time_description">Nutí většinu her běžet v nejvyšším nativním rozlišení. Použijte hodnotu 256 pro maximální výkon a 512 pro nejlepší kvalitu.</string>
     <string name="skip_cpu_inner_invalidation">Přeskočit vnitřní invalidaci CPU</string>
     <string name="skip_cpu_inner_invalidation_description">Přeskočí určité invalidace mezipaměti procesoru při aktualizacích paměti, čímž snižuje vytížení CPU a zvyšuje jeho výkon. Může způsobit chyby nebo pády některých hrách.</string>
     <string name="renderer_asynchronous_shaders">Asynchronní kompilace shaderů</string>
@@ -693,10 +688,6 @@
     <string name="memory_4gb">4GB (Doporučeno)</string>
     <string name="memory_6gb">6GB (Nebezpečné)</string>
     <string name="memory_8gb">8GB (Nebezpečné)</string>
-
-    <!--CPU clock speeds-->
-    <string name="clock_boost">Boost (1700MHz)</string>
-    <string name="clock_fast">Rychlé (2000MHz)</string>
 
     <!-- Temperature Units -->
     <string name="temperature_celsius">Celsia</string>

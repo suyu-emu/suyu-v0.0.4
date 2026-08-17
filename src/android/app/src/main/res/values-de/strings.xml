@@ -429,9 +429,6 @@ Wird der Handheld-Modus verwendet, verringert es die Auflösung und erhöht die 
     <string name="use_custom_rtc_description">Ermöglicht Ihnen, eine benutzerdefinierte Echtzeituhr unabhängig von Ihrer aktuellen Systemzeit einzustellen.</string>
     <string name="set_custom_rtc">Legen Sie eine benutzerdefinierte Echtzeituhr fest</string>
 
-    <!-- CPU -->
-    <string name="fast_cpu_time">CPU-Übertaktung</string>
-    <string name="fast_cpu_time_description">Zwingt die emulierte CPU, mit höherer Taktrate zu laufen, wodurch bestimmte FPS-Begrenzungen reduziert werden. Verwende Boost (1700MHz), um mit der höchsten nativen Taktrate der Switch zu laufen, oder Fast (2000MHz), um mit der doppelten Taktrate zu laufen.</string>
     <string name="custom_cpu_ticks">Benutzerdefinierte CPU-Ticks</string>
     <string name="custom_cpu_ticks_description">Legen Sie einen benutzerdefinierten Wert für CPU-Ticks fest. Höhere Werte können die Leistung steigern, aber auch zum Einfrieren des Spiels führen. Ein Bereich von 77–21000 wird empfohlen.</string>
     <string name="cpu_ticks">Ticks</string>
@@ -476,8 +473,6 @@ Wird der Handheld-Modus verwendet, verringert es die Auflösung und erhöht die 
     <string name="renderer_reactive_flushing_description">Verbessert die Genauigkeit in einigen Spielen.</string>
     <string name="hacks">Hacks</string>
 
-    <string name="fast_gpu_time">Schnelle GPU-Zeit</string>
-    <string name="fast_gpu_time_description">Erzwingt bei den meisten Spielen die höchste native Auflösung. Verwende 256 für maximale Leistung und 512 für maximale Grafikqualität</string>
     <string name="skip_cpu_inner_invalidation">CPU-interne Invalidierung überspringen</string>
     <string name="skip_cpu_inner_invalidation_description">Überspringt bestimmte Cache-Invalidierungen auf CPU-Seite während Speicherupdates, reduziert die CPU-Auslastung und verbessert die Leistung. Kann in einigen Spielen zu Fehlern oder Abstürzen führen.</string>
     <string name="renderer_asynchronous_shaders">Asynchrone Shader</string>
@@ -878,14 +873,6 @@ Wirklich fortfahren?</string>
     <string name="memory_4gb">4 GB (Empfohlen)</string>
     <string name="memory_6gb">6 GB (Unsicher)</string>
     <string name="memory_8gb">8 GB (Unsicher)</string>
-
-    <!--CPU clock speeds-->
-    <string name="clock_boost">Boost (1700MHz)</string>
-    <string name="clock_fast">Schnell (2000MHz)</string>
-
-    <!-- GPU overclock factors -->
-    <string name="fast_gpu_medium">Mittel (256)</string>
-    <string name="fast_gpu_high">Hoch (512)</string>
 
     <!-- GPU swizzle texture size -->
     <string name="gpu_texturesizeswizzle_verysmall">Sehr klein (16 MB)</string>

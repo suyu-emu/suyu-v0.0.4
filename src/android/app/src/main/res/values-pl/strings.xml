@@ -417,9 +417,6 @@
     <string name="use_custom_rtc_description">Ta opcja pozwala na wybranie własnych ustawień czasu używanych w czasie emulacji, innych niż czas systemu Android.</string>
     <string name="set_custom_rtc">Ustaw niestandardowy czas RTC</string>
 
-    <!-- CPU -->
-    <string name="fast_cpu_time">Podkręcanie CPU</string>
-    <string name="fast_cpu_time_description">Wymusza działanie emulowanego CPU z wyższym taktowaniem, ograniczając niektóre blokady FPS. Użyj Boost (1700 MHz), aby działać z najwyższym natywnym taktowaniem Switcha, lub Fast (2000 MHz), aby działać z taktowaniem 2×.</string>
     <string name="custom_cpu_ticks">Niestandardowe takty CPU</string>
     <string name="custom_cpu_ticks_description">Ustaw niestandardową wartość taktów CPU. Wyższe wartości mogą zwiększyć wydajność, ale mogą też powodować zawieszanie się gry. Zalecany zakres to 77–21000.</string>
     <string name="cpu_ticks">Takty</string>
@@ -464,8 +461,6 @@
     <string name="renderer_reactive_flushing_description">Poprawia jakość renderowania w kilku grach, kosztem wydajności.</string>
     <string name="hacks">Hacki</string>
 
-    <string name="fast_gpu_time">Szybki czas GPU</string>
-    <string name="fast_gpu_time_description">Wymusza działanie większości gier w ich najwyższej natywnej rozdzielczości. Ustaw 256 dla maksymalnej wydajności, a 512 dla maksymalnej jakości grafiki.</string>
     <string name="skip_cpu_inner_invalidation">Pomiń wewnętrzne unieważnienie CPU</string>
     <string name="skip_cpu_inner_invalidation_description">Pomija niektóre unieważnienia pamięci podręcznej po stronie CPU podczas aktualizacji pamięci, zmniejszając użycie CPU i poprawiając jego wydajność. Może powodować błędy lub awarie w niektórych grach.</string>
     <string name="renderer_asynchronous_shaders">Wyłącz synchronizację shaderów</string>
@@ -865,14 +860,6 @@
     <string name="memory_4gb">4GB (Zalecane)</string>
     <string name="memory_6gb">6GB (Niebezpieczne)</string>
     <string name="memory_8gb">8GB (Niebezpieczne)</string>
-
-    <!--CPU clock speeds-->
-    <string name="clock_boost">Boost (1700MHz)</string>
-    <string name="clock_fast">Szybkie (2000MHz)</string>
-
-    <!-- GPU overclock factors -->
-    <string name="fast_gpu_medium">Średnie (256)</string>
-    <string name="fast_gpu_high">Wysokie (512)</string>
 
     <!-- Temperature Units -->
     <string name="temperature_celsius">Celsjusza</string>

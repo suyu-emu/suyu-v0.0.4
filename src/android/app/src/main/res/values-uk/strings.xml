@@ -439,9 +439,6 @@
     <string name="use_custom_rtc_description">Дозволяє встановити власний час (Real-time clock, або RTC), відмінний від системного.</string>
     <string name="set_custom_rtc">Встановити RTC</string>
 
-    <!-- CPU -->
-    <string name="fast_cpu_time">Розгін ЦП</string>
-    <string name="fast_cpu_time_description">Примушує емульований ЦП працювати з вищою тактовою частотою, послаблюючи деякі обмежувачі частоти кадрів. Використовуйте «Підвищення (1700 МГц)», щоб емулювати максимальну тактову частоту справжнього Switch, або «Швидко (2000 МГц)», щоб подвоїти частоту.</string>
     <string name="custom_cpu_ticks">Користувацькі такти CPU</string>
     <string name="custom_cpu_ticks_description">Встановіть користувацьке значення тактів CPU. Вищі значення можуть покращити продуктивність, але також можуть спричинити зависання гри. Рекомендується діапазон 77–21000.</string>
     <string name="cpu_ticks">Такти</string>
@@ -497,8 +494,6 @@
 
     <string name="hacks">Обхідні рішення</string>
 
-    <string name="fast_gpu_time">Швидкий час роботи ГП</string>
-    <string name="fast_gpu_time_description">Примушує більшість ігор працювати на їхній максимальній нативній роздільності. Використовуйте 256 для максимальної продуктивності та 512 для найкращої якості.</string>
     <string name="skip_cpu_inner_invalidation">Пропустити внутрішнє інвалідування CPU</string>
     <string name="skip_cpu_inner_invalidation_description">Пропускає деякі інвалідації кешу на стороні CPU під час оновлення пам\'яті, зменшуючи навантаження на процесор і покращуючи продуктивність. Може спричинити збої в деяких іграх.</string>
     <string name="fix_bloom_effects">Виправити ефекти світіння</string>
@@ -937,14 +932,6 @@
     <string name="memory_4gb">4 ГБ (Рекомендовано)</string>
     <string name="memory_6gb">6 ГБ (Небезпечно)</string>
     <string name="memory_8gb">8 ГБ (Небезпечно)</string>
-
-    <!--CPU clock speeds-->
-    <string name="clock_boost">Підвищення (1700 МГц)</string>
-    <string name="clock_fast">Швидко (2000 МГц)</string>
-
-    <!-- GPU overclock factors -->
-    <string name="fast_gpu_medium">Середньо (256)</string>
-    <string name="fast_gpu_high">Високо (512)</string>
 
     <!-- GPU swizzle texture size -->
     <string name="gpu_texturesizeswizzle_verysmall">Дуже малий (16 МБ)</string>

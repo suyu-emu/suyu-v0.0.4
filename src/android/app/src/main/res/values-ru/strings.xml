@@ -439,9 +439,6 @@
     <string name="use_custom_rtc_description">Позволяет установить пользовательские часы реального времени отдельно от текущего системного времени.</string>
     <string name="set_custom_rtc">Установить пользовательский RTC</string>
 
-    <!-- CPU -->
-    <string name="fast_cpu_time">Разгон ЦП</string>
-    <string name="fast_cpu_time_description">Принудительно повышает тактовую частоту эмулируемого ЦП, снижая влияние некоторых ограничителей FPS. Используйте Разгон (1700 МГц) для работы на максимальной штатной частоте Switch или Быстрая (2000 МГц) для удвоенной частоты.</string>
     <string name="custom_cpu_ticks">Пользовательские такты ЦП</string>
     <string name="custom_cpu_ticks_description">Установите пользовательское значение тактов ЦП. Более высокие значения могут увеличить производительность, но также могут вызвать зависание игры. Рекомендуется диапазон 77–21000.</string>
     <string name="cpu_ticks">Такты</string>
@@ -502,8 +499,6 @@
 
     <string name="hacks">Хаки</string>
 
-    <string name="fast_gpu_time">Быстрое время ГПУ</string>
-    <string name="fast_gpu_time_description">Принудительно запускает большинство игр в их максимальном нативном разрешении. Используйте значение 256 для максимальной производительности и 512 для максимального качества графики.</string>
     <string name="skip_cpu_inner_invalidation">Пропустить внутреннюю инвалидацию ЦП</string>
     <string name="skip_cpu_inner_invalidation_description">Пропускает некоторые инвалидации кэша на стороне ЦП при обновлениях памяти, уменьшая нагрузку на процессор и повышая производительность. Может вызывать сбои в некоторых играх.</string>
     <string name="fix_bloom_effects">Исправить эффекты размытия</string>
@@ -948,14 +943,6 @@
     <string name="memory_4gb">4 ГБ (Рекомендуется)</string>
     <string name="memory_6gb">6 ГБ (Небезопасно)</string>
     <string name="memory_8gb">8 ГБ (Небезопасно)</string>
-
-    <!--CPU clock speeds-->
-    <string name="clock_boost">Разгон (1700MHz)</string>
-    <string name="clock_fast">Быстрая (2000MHz)</string>
-
-    <!-- GPU overclock factors -->
-    <string name="fast_gpu_medium">Среднее (256)</string>
-    <string name="fast_gpu_high">Высокое (512)</string>
 
     <!-- GPU swizzle texture size -->
     <string name="gpu_texturesizeswizzle_verysmall">Очень малый (16 МБ)</string>
