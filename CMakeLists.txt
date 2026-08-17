@@ -172,8 +172,6 @@ if (CXX_CLANG_CL)
         $<$<COMPILE_LANGUAGE:C,CXX>:-Wno-c++98-compat-pedantic>
         $<$<COMPILE_LANGUAGE:C,CXX>:-Wno-c++98-compat>
         $<$<COMPILE_LANGUAGE:C,CXX>:-Wno-c99-compat>
-        $<$<COMPILE_LANGUAGE:C,CXX>:-Wno-c98-compat>
-        $<$<COMPILE_LANGUAGE:C,CXX>:-Wno-c99-extensions>
         $<$<COMPILE_LANGUAGE:C,CXX>:/EHsc>)
     # REQUIRED CPU features IN Windows-amd64
     if (ARCHITECTURE_x86_64)
