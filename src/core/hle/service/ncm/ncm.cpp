@@ -427,11 +427,26 @@ private:
     }
 };
 
+class NCM_V final : public ServiceFramework<NCM_V> {
+public:
+    explicit NCM_V(Core::System& system_)
+        : ServiceFramework{system_, "ncm:v"}
+    {
+        static const FunctionInfo functions[] = {
+            {0, nullptr, "GetSystemVersion"},
+        };
+        RegisterHandlers(functions);
+    }
+};
+
 void LoopProcess(Core::System& system) {
     auto server_manager = std::make_unique<ServerManager>(system);
 
     server_manager->RegisterNamedService("lr", std::make_shared<LR>(system));
     server_manager->RegisterNamedService("ncm", std::make_shared<NCM>(system));
+    if (1 /* not retail */) {
+        server_manager->RegisterNamedService("ncm:v", std::make_shared<NCM_V>(system));
+    }
     ServerManager::RunServer(std::move(server_manager));
 }
 

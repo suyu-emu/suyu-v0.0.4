@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 // SPDX-FileCopyrightText: Copyright 2018 yuzu Emulator Project
@@ -9,6 +9,7 @@
 #include "core/hle/service/ipc_helpers.h"
 #include "core/hle/service/server_manager.h"
 #include "core/hle/service/service.h"
+#include "frontend_common/firmware_manager.h"
 
 namespace Service::ES {
 
@@ -319,10 +320,98 @@ private:
     Core::Crypto::KeyManager& keys = Core::Crypto::KeyManager::Instance();
 };
 
+class NDRM_LU final : public ServiceFramework<NDRM_LU> {
+public:
+    explicit NDRM_LU(Core::System& system_)
+        : ServiceFramework{system_, "ndrm:lu"} {
+        // clang-format off
+        static const FunctionInfo functions[] = {
+            {1, nullptr, "Cmd1"},
+            {2, nullptr, "Cmd2"},
+            {3, nullptr, "Cmd3"},
+            {1000, nullptr, "Cmd1000"},
+            {8000, nullptr, "Cmd8000"},
+        };
+        // clang-format on
+        RegisterHandlers(functions);
+    }
+};
+
+class NDRM_LA final : public ServiceFramework<NDRM_LA> {
+public:
+    explicit NDRM_LA(Core::System& system_)
+        : ServiceFramework{system_, "ndrm:la"} {
+        // clang-format off
+        static const FunctionInfo functions[] = {
+            {1, nullptr, "Cmd1"},
+            {2, nullptr, "Cmd2"},
+            {3, nullptr, "Cmd3"},
+            {4, nullptr, "Cmd4"},
+            {5, nullptr, "Cmd5"},
+            {6, nullptr, "Cmd6"},
+            {7, nullptr, "Cmd7"},
+            {8, nullptr, "Cmd8"},
+            {9, nullptr, "Cmd9"},
+            {10, nullptr, "Cmd10"},
+            {11, nullptr, "Cmd11"},
+            {12, nullptr, "Cmd12"},
+            {13, nullptr, "Cmd13"},
+            {14, nullptr, "Cmd14"},
+            {15, nullptr, "Cmd15"},
+            {16, nullptr, "Cmd16"},
+            {17, nullptr, "Cmd17"},
+            {18, nullptr, "Cmd18"},
+            {19, nullptr, "Cmd19"},
+            {20, nullptr, "Cmd20"},
+            {21, nullptr, "Cmd21"},
+            {22, nullptr, "Cmd22"},
+            {23, nullptr, "Cmd23"},
+            {24, nullptr, "Cmd24"},
+            {25, nullptr, "Cmd25"},
+            {26, nullptr, "Cmd26"},
+            {27, nullptr, "Cmd27"},
+            {28, nullptr, "Cmd28"},
+            {29, nullptr, "Cmd29"},
+            {30, nullptr, "Cmd30"},
+            {31, nullptr, "Cmd31"},
+            {32, nullptr, "Cmd32"},
+            {33, nullptr, "Cmd33"},
+            {34, nullptr, "Cmd34"},
+            {35, nullptr, "Cmd35"},
+            {36, nullptr, "Cmd36"},
+            {37, nullptr, "Cmd37"},
+            {38, nullptr, "Cmd38"},
+            {39, nullptr, "Cmd39"},
+            {40, nullptr, "Cmd40"},
+            {42, nullptr, "Cmd42"},
+            {43, nullptr, "Cmd43"},
+            {44, nullptr, "Cmd44"},
+            {45, nullptr, "Cmd45"},
+            {46, nullptr, "Cmd46"},
+            {47, nullptr, "Cmd47"},
+            {48, nullptr, "Cmd48"},
+            {49, nullptr, "Cmd49"},
+            {50, nullptr, "Cmd50"},
+            {51, nullptr, "Cmd51"},
+            {8000, nullptr, "Cmd8000"},
+            {8001, nullptr, "Cmd8001"},
+            {8002, nullptr, "Cmd8002"},
+            {8003, nullptr, "Cmd8003"},
+        };
+        // clang-format on
+        RegisterHandlers(functions);
+    }
+};
+
 void LoopProcess(Core::System& system) {
     auto server_manager = std::make_unique<ServerManager>(system);
 
     server_manager->RegisterNamedService("es", std::make_shared<ETicket>(system));
+    // +13.0.0
+    if (FirmwareManager::GetFirmwareVersion(system).first.major >= 13) {
+        server_manager->RegisterNamedService("ndrm:lu", std::make_shared<NDRM_LU>(system));
+        server_manager->RegisterNamedService("ndrm:la", std::make_shared<NDRM_LA>(system));
+    }
     ServerManager::RunServer(std::move(server_manager));
 }
 

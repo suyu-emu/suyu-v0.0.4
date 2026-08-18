@@ -330,12 +330,12 @@ public:
     /// Helper function to test whether the output buffer at buffer_index can be written
     [[nodiscard]] bool CanWriteBuffer(std::size_t buffer_index = 0) const;
 
-    [[nodiscard]] Handle GetCopyHandle(std::size_t index) const {
-        return incoming_copy_handles.at(index);
+    [[nodiscard]] Handle GetCopyHandle(std::size_t index) const noexcept {
+        return index >= incoming_copy_handles.size() ? 0 : incoming_copy_handles[index];
     }
 
-    [[nodiscard]] Handle GetMoveHandle(std::size_t index) const {
-        return incoming_move_handles.at(index);
+    [[nodiscard]] Handle GetMoveHandle(std::size_t index) const noexcept {
+        return index >= incoming_move_handles.size() ? 0 : incoming_move_handles[index];
     }
 
     void AddMoveObject(Kernel::KAutoObject* object) {

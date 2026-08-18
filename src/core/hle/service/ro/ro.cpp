@@ -571,22 +571,26 @@ private:
 
 } // namespace
 
+
+class IDebugMonitorInterface final : public ServiceFramework<IDebugMonitorInterface> {
+public:
+    explicit IDebugMonitorInterface(Core::System& system_)
+        : ServiceFramework{system_, "ro:dmnt"}
+    {
+        static const FunctionInfo functions[] = {
+            { 0, nullptr, "GetProcessModuleInfo" },
+        };
+        RegisterHandlers(functions);
+    }
+};
+
 void LoopProcess(Core::System& system) {
     auto server_manager = std::make_unique<ServerManager>(system);
 
     auto ro = std::make_shared<RoContext>();
-
-    const auto RoInterfaceFactoryForUser = [&, ro] {
-        return std::make_shared<RoInterface>(system, "ldr:ro", ro, NrrKind::User);
-    };
-
-    const auto RoInterfaceFactoryForJitPlugin = [&, ro] {
-        return std::make_shared<RoInterface>(system, "ro:1", ro, NrrKind::JitPlugin);
-    };
-
-    server_manager->RegisterNamedService("ldr:ro", std::move(RoInterfaceFactoryForUser));
-    server_manager->RegisterNamedService("ro:1", std::move(RoInterfaceFactoryForJitPlugin));
-
+    server_manager->RegisterNamedService("ldr:ro", std::make_shared<RoInterface>(system, "ldr:ro", ro, NrrKind::User));
+    server_manager->RegisterNamedService("ro:1", std::make_shared<RoInterface>(system, "ro:1", ro, NrrKind::JitPlugin));
+    server_manager->RegisterNamedService("ro:dmnt", std::make_shared<IDebugMonitorInterface>(system));
     ServerManager::RunServer(std::move(server_manager));
 }
 

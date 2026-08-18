@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2018 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -23,6 +26,12 @@ private:
     void GetAddrInfoRequest(HLERequestContext& ctx);
     void GetAddrInfoRequestWithOptions(HLERequestContext& ctx);
     void ResolverSetOptionRequest(HLERequestContext& ctx);
+};
+
+class DNS_PRIV final : public ServiceFramework<DNS_PRIV> {
+public:
+    explicit DNS_PRIV(Core::System& system_);
+    ~DNS_PRIV() override;
 };
 
 } // namespace Service::Sockets

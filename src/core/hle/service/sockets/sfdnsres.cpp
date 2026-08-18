@@ -406,4 +406,21 @@ void SFDNSRES::ResolverSetOptionRequest(HLERequestContext& ctx) {
     rb.Push(ResultSuccess);
     rb.Push<s32>(0); // bsd errno
 }
+
+
+DNS_PRIV::DNS_PRIV(Core::System& system_)
+    : ServiceFramework{system_, "dns:priv"} {
+    // clang-format off
+    static const FunctionInfo functions[] = {
+        {0, nullptr, "Cmd0"},
+        {1, nullptr, "Cmd1"},
+        {2, nullptr, "Cmd2"},
+    };
+    // clang-format on
+    RegisterHandlers(functions);
+}
+
+DNS_PRIV::~DNS_PRIV() = default;
+
+
 } // namespace Service::Sockets

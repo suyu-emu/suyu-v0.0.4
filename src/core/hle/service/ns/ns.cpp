@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2018 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -12,32 +15,48 @@
 
 namespace Service::NS {
 
+class INotifyService final : public ServiceFramework<INotifyService> {
+public:
+    explicit INotifyService(Core::System& system_) : ServiceFramework{system_, "pdm:ntfy"} {
+        // clang-format off
+        static const FunctionInfo functions[] = {
+            { 0, nullptr, "NotifyAppletEvent" },
+            { 2, nullptr, "NotifyOperationModeChangeEvent" },
+            { 3, nullptr, "NotifyPowerStateChangeEvent" },
+            { 4, nullptr, "NotifyClearAllEvent" },
+            { 5, nullptr, "NotifyEventForDebug" },
+            { 6, nullptr, "SuspendUserAccountEventService" },
+            { 7, nullptr, "ResumeUserAccountEventService" },
+            { 8, nullptr, "NotifyLibraryAppletEvent" },
+            { 9, nullptr, "Cmd9" },
+            { 20, nullptr, "Cmd20" },
+            { 30, nullptr, "Cmd30" },
+            { 100, nullptr, "Cmd100" },
+            { 101, nullptr, "Cmd101" },
+        };
+        // clang-format on
+        RegisterHandlers(functions);
+    }
+};
+
 void LoopProcess(Core::System& system) {
     auto server_manager = std::make_unique<ServerManager>(system);
 
-    server_manager->RegisterNamedService(
-        "ns:am2", std::make_shared<IServiceGetterInterface>(system, "ns:am2"));
-    server_manager->RegisterNamedService(
-        "ns:ec", std::make_shared<IServiceGetterInterface>(system, "ns:ec"));
-    server_manager->RegisterNamedService(
-        "ns:rid", std::make_shared<IServiceGetterInterface>(system, "ns:rid"));
-    server_manager->RegisterNamedService(
-        "ns:rt", std::make_shared<IServiceGetterInterface>(system, "ns:rt"));
-    server_manager->RegisterNamedService(
-        "ns:web", std::make_shared<IServiceGetterInterface>(system, "ns:web"));
-    server_manager->RegisterNamedService(
-        "ns:ro", std::make_shared<IServiceGetterInterface>(system, "ns:ro"));
+    server_manager->RegisterNamedService("ns:am2", std::make_shared<IServiceGetterInterface>(system, "ns:am2"));
+    server_manager->RegisterNamedService("ns:ec", std::make_shared<IServiceGetterInterface>(system, "ns:ec"));
+    server_manager->RegisterNamedService("ns:rid", std::make_shared<IServiceGetterInterface>(system, "ns:rid"));
+    server_manager->RegisterNamedService("ns:rt", std::make_shared<IServiceGetterInterface>(system, "ns:rt"));
+    server_manager->RegisterNamedService("ns:web", std::make_shared<IServiceGetterInterface>(system, "ns:web"));
+    server_manager->RegisterNamedService("ns:ro", std::make_shared<IServiceGetterInterface>(system, "ns:ro"));
 
     server_manager->RegisterNamedService("ns:dev", std::make_shared<IDevelopInterface>(system));
     server_manager->RegisterNamedService("ns:su", std::make_shared<ISystemUpdateInterface>(system));
-    server_manager->RegisterNamedService("ns:vm",
-                                         std::make_shared<IVulnerabilityManagerInterface>(system));
+    server_manager->RegisterNamedService("ns:vm", std::make_shared<IVulnerabilityManagerInterface>(system));
+    server_manager->RegisterNamedService("pdm:ntfy", std::make_shared<INotifyService>(system));
     server_manager->RegisterNamedService("pdm:qry", std::make_shared<IQueryService>(system));
 
-    server_manager->RegisterNamedService("pl:s",
-                                         std::make_shared<IPlatformServiceManager>(system, "pl:s"));
-    server_manager->RegisterNamedService("pl:u",
-                                         std::make_shared<IPlatformServiceManager>(system, "pl:u"));
+    server_manager->RegisterNamedService("pl:s", std::make_shared<IPlatformServiceManager>(system, "pl:s"));
+    server_manager->RegisterNamedService("pl:u", std::make_shared<IPlatformServiceManager>(system, "pl:u"));
     ServerManager::RunServer(std::move(server_manager));
 }
 

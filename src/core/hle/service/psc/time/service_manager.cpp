@@ -159,6 +159,8 @@ Result ServiceManager::SetupTimeZoneServiceCore(const LocationName& name,
               name, rule_version, location_count, time_point,
               time_point.clock_source_id.RawString());
 
+    R_UNLESS(!rule_buffer.empty(), ResultUnknown); //TODO: ???
+
     if (m_time_zone.ParseBinary(name, rule_buffer) != ResultSuccess) {
         LOG_ERROR(Service_Time, "Failed to parse time zone binary!");
     }

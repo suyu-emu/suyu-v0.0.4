@@ -497,20 +497,79 @@ Module::Interface::Interface(std::shared_ptr<Module> module_, Core::System& syst
 
 Module::Interface::~Interface() = default;
 
+class IServiceForApplication final : public ServiceFramework<IServiceForApplication> {
+public:
+    explicit IServiceForApplication(Core::System& system_)
+        : ServiceFramework{system_, "nd:app"}
+    {
+        static const FunctionInfo functions[] = {
+            {0, nullptr, "GetReceivableNeighborInfoCountMax"},
+            {10, nullptr, "IsNeighborDetectionEnabled"},
+        };
+        RegisterHandlers(functions);
+    }
+};
+
+class IServiceForSystem final : public ServiceFramework<IServiceForSystem> {
+public:
+    explicit IServiceForSystem(Core::System& system_)
+        : ServiceFramework{system_, "nd:sys"}
+    {
+        static const FunctionInfo functions[] = {
+            {0, nullptr, "GetReceivableNeighborInfoCountMax"},
+            {10, nullptr, "IsNeighborDetectionEnabled"},
+            {200, nullptr, "SetSystemData"},
+            {201, nullptr, "ClearSystemData"},
+            {203, nullptr, "GetReceivableNeighborInfoCountForSystem"},
+            {204, nullptr, "ReceiveNeighborInfoForSystem"},
+            {205, nullptr, "SetSender"},
+            {206, nullptr, "GetSender"},
+            {207, nullptr, "CreateScannerForSystem"},
+            {208, nullptr, "CreateReceiveEventHolderForSystem"},
+            {223, nullptr, "EnableNeighborDetection"},
+            {224, nullptr, "DisableNeighborDetection"},
+            {226, nullptr, "EnablePowerSave"},
+            {227, nullptr, "DisablePowerSave"},
+            {228, nullptr, "IsPowerSaveEnabled"},
+            {232, nullptr, "ClearBlockedUsers"},
+            {233, nullptr, "GetBlockedUserCount"},
+            {234, nullptr, "BlockUserByLocalUserId"},
+            {235, nullptr, "BlockUserByNetworkUserId"},
+            {236, nullptr, "UnblockUserByLocalUserId"},
+            {237, nullptr, "UnblockUserByNetworkUserId"},
+            {240, nullptr, "DeleteApplication"},
+            {250, nullptr, "InitializeApplicationInfo"},
+            {260, nullptr, "CreateAccountSystemSaveDataAccessSuppressor"},
+            {300, nullptr, "AddReceivedNeighborInfoForSystemForDebug"},
+            {301, nullptr, "GetSendDataForDebug"},
+            {302, nullptr, "ClearReceiveCounterForDebug"},
+            {303, nullptr, "GetNextReceiveCounterForDebug"},
+            {304, nullptr, "ListBlockedUsersForDebug"},
+            {305, nullptr, "RefreshSendDataIdForDebug"},
+            {306, nullptr, "ReloadFwdbgSettingsForDebug"},
+            {307, nullptr, "EnableApplicationForDebug"},
+            {308, nullptr, "GetNextReceiveCountersForDebug"},
+            {309, nullptr, "ListApplicationInfoForDebug"},
+            {310, nullptr, "SetApplicationDataForDebug"},
+            {400, nullptr, "GetNetworkUserId"},
+            {401, nullptr, "DeleteNetworkUserId"},
+        };
+        RegisterHandlers(functions);
+    }
+};
+
 void LoopProcess(Core::System& system) {
     auto server_manager = std::make_unique<ServerManager>(system);
     auto module = std::make_shared<Module>();
 
-    server_manager->RegisterNamedService("friend:a",
-                                         std::make_shared<Friend>(module, system, "friend:a"));
-    server_manager->RegisterNamedService("friend:m",
-                                         std::make_shared<Friend>(module, system, "friend:m"));
-    server_manager->RegisterNamedService("friend:s",
-                                         std::make_shared<Friend>(module, system, "friend:s"));
-    server_manager->RegisterNamedService("friend:u",
-                                         std::make_shared<Friend>(module, system, "friend:u"));
-    server_manager->RegisterNamedService("friend:v",
-                                         std::make_shared<Friend>(module, system, "friend:v"));
+    server_manager->RegisterNamedService("nd:app", std::make_shared<IServiceForApplication>(system));
+    server_manager->RegisterNamedService("nd:sys", std::make_shared<IServiceForSystem>(system));
+
+    server_manager->RegisterNamedService("friend:a", std::make_shared<Friend>(module, system, "friend:a"));
+    server_manager->RegisterNamedService("friend:m", std::make_shared<Friend>(module, system, "friend:m"));
+    server_manager->RegisterNamedService("friend:s", std::make_shared<Friend>(module, system, "friend:s"));
+    server_manager->RegisterNamedService("friend:u", std::make_shared<Friend>(module, system, "friend:u"));
+    server_manager->RegisterNamedService("friend:v", std::make_shared<Friend>(module, system, "friend:v"));
 
     ServerManager::RunServer(std::move(server_manager));
 }

@@ -173,8 +173,26 @@ void BSD::Socket(HLERequestContext& ctx) {
 
     LOG_DEBUG(Service, "called. domain={} type={} protocol={}", domain, type, protocol);
 
-    const auto [fd, bsd_errno] = SocketImpl(static_cast<Domain>(domain), static_cast<Type>(type),
-                                            static_cast<Protocol>(protocol));
+    const auto [fd, bsd_errno] = SocketImpl(Domain(domain), Type(type), Protocol(protocol));
+
+    IPC::ResponseBuilder rb{ctx, 4};
+    rb.Push(ResultSuccess);
+    rb.Push<s32>(fd);
+    rb.PushEnum(bsd_errno);
+}
+
+void BSD::SocketExempt(HLERequestContext& ctx) {
+    IPC::RequestParser rp{ctx};
+    const u32 domain = rp.Pop<u32>();
+    const u32 type = rp.Pop<u32>();
+    const u32 protocol = rp.Pop<u32>();
+
+    LOG_DEBUG(Service, "called. domain={} type={} protocol={}", domain, type, protocol);
+
+    auto [fd, bsd_errno] = SocketImpl(Domain(domain), Type(type), Protocol(protocol));
+    if (bsd_errno == Errno::SUCCESS) {
+        bsd_errno = ShutdownImpl(fd, 0);
+    }
 
     IPC::ResponseBuilder rb{ctx, 4};
     rb.Push(ResultSuccess);
@@ -445,6 +463,7 @@ void BSD::Close(HLERequestContext& ctx) {
     BuildErrnoResponse(ctx, CloseImpl(fd));
 }
 
+/// @brief Only bsd:s is able to dup()
 void BSD::DuplicateSocket(HLERequestContext& ctx) {
     struct InputParameters {
         s32 fd;
@@ -463,6 +482,13 @@ void BSD::DuplicateSocket(HLERequestContext& ctx) {
 
     IPC::ResponseBuilder rb{ctx, 4};
     rb.Push(ResultSuccess);
+    if (is_user) {
+        rb.PushRaw(OutputParameters{
+            .ret = 0,
+            .bsd_errno = Errno::INVAL,
+        });
+        return;
+    }
 
     auto const res_v = DuplicateSocketImpl(input.fd);
     if (auto* res = std::get_if<s32>(&res_v)) {
@@ -496,11 +522,13 @@ void BSD::ExecuteWork(HLERequestContext& ctx, Work work) {
 }
 
 std::pair<s32, Errno> BSD::SocketImpl(Domain domain, Type type, Protocol protocol) {
-
-    if (type == Type::SEQPACKET) {
-        UNIMPLEMENTED_MSG("SOCK_SEQPACKET errno management");
-    } else if (type == Type::RAW && (domain != Domain::INET || protocol != Protocol::ICMP)) {
-        UNIMPLEMENTED_MSG("SOCK_RAW errno management");
+    // user bsd:u has restrictions on SOCK_SEQPACKET and SOCK_RAW
+    if (is_user && (type == Type::SEQPACKET || type == Type::RAW)) {
+        if (type == Type::RAW && domain == Domain::INET && protocol == Protocol::ICMP) {
+            // fine, can use on bsd:s and bsd:u
+        } else {
+            return {-1, Errno::INVAL};
+        }
     }
 
     [[maybe_unused]] const bool unk_flag = (static_cast<u32>(type) & 0x20000000) != 0;
@@ -1052,14 +1080,15 @@ void BSD::OnProxyPacketReceived(const Network::ProxyPacket& packet) {
     }
 }
 
-BSD::BSD(Core::System& system_, const char* name)
-    : ServiceFramework{system_, name} {
+BSD::BSD(Core::System& system_, const char* name, bool is_user_)
+    : ServiceFramework{system_, name}
+    , is_user{is_user_} {
     // clang-format off
     static const FunctionInfo functions[] = {
         {0, &BSD::RegisterClient, "RegisterClient"},
         {1, &BSD::StartMonitoring, "StartMonitoring"},
         {2, &BSD::Socket, "Socket"},
-        {3, nullptr, "SocketExempt"},
+        {3, &BSD::SocketExempt, "SocketExempt"},
         {4, nullptr, "Open"},
         {5, &BSD::Select, "Select"},
         {6, &BSD::Poll, "Poll"},
@@ -1125,7 +1154,8 @@ std::unique_lock<std::mutex> BSD::LockService() noexcept {
     return {};
 }
 
-BSDCFG::BSDCFG(Core::System& system_) : ServiceFramework{system_, "bsdcfg"} {
+BSDCFG::BSDCFG(Core::System& system_, const char *name)
+    : ServiceFramework{system_, name} {
     // clang-format off
     static const FunctionInfo functions[] = {
         {0, nullptr, "SetIfUp"},
@@ -1151,5 +1181,17 @@ BSDCFG::BSDCFG(Core::System& system_) : ServiceFramework{system_, "bsdcfg"} {
 }
 
 BSDCFG::~BSDCFG() = default;
+
+BSD_NU::BSD_NU(Core::System& system_)
+    : ServiceFramework{system_, "bsd:nu"} {
+    // clang-format off
+    static const FunctionInfo functions[] = {
+        {0, nullptr, "CreateUserService"},
+    };
+    // clang-format on
+    RegisterHandlers(functions);
+}
+
+BSD_NU::~BSD_NU() = default;
 
 } // namespace Service::Sockets

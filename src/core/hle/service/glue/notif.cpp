@@ -116,12 +116,10 @@ Result NotificationServiceImpl::Initialize(u64 aruid) {
     R_SUCCEED();
 }
 
-std::vector<AlarmSetting>::iterator NotificationServiceImpl::GetAlarmFromId(
-    AlarmSettingId alarm_setting_id) {
-    return std::find_if(alarms.begin(), alarms.end(),
-                        [alarm_setting_id](const AlarmSetting& alarm) {
-                            return alarm.alarm_setting_id == alarm_setting_id;
-                        });
+std::vector<AlarmSetting>::iterator NotificationServiceImpl::GetAlarmFromId(AlarmSettingId alarm_setting_id) {
+    return std::find_if(alarms.begin(), alarms.end(), [alarm_setting_id](const AlarmSetting& alarm) {
+        return alarm.alarm_setting_id == alarm_setting_id;
+    });
 }
 
 INotificationServicesForApplication::INotificationServicesForApplication(Core::System& system_)

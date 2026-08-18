@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 // SPDX-FileCopyrightText: Copyright 2018 yuzu Emulator Project
@@ -9,6 +9,7 @@
 #include "core/hle/service/pcie/pcie.h"
 #include "core/hle/service/server_manager.h"
 #include "core/hle/service/service.h"
+#include "frontend_common/firmware_manager.h"
 
 namespace Service::PCIe {
 
@@ -48,9 +49,9 @@ public:
     }
 };
 
-class PCIe final : public ServiceFramework<PCIe> {
+class PCIE final : public ServiceFramework<PCIE> {
 public:
-    explicit PCIe(Core::System& system_) : ServiceFramework{system_, "pcie"} {
+    explicit PCIE(Core::System& system_) : ServiceFramework{system_, "pcie"} {
         // clang-format off
         static const FunctionInfo functions[] = {
             {0, nullptr, "RegisterClassDriver"},
@@ -62,10 +63,27 @@ public:
     }
 };
 
+class PCIE_LOG final : public ServiceFramework<PCIE_LOG> {
+public:
+    explicit PCIE_LOG(Core::System& system_) : ServiceFramework{system_, "pcie:log"} {
+        // clang-format off
+        static const FunctionInfo functions[] = {
+            {0, nullptr, "GetLoggedState"},
+            {1, nullptr, "GetLoggedStateEvent"},
+        };
+        // clang-format on
+        RegisterHandlers(functions);
+    }
+};
+
 void LoopProcess(Core::System& system) {
     auto server_manager = std::make_unique<ServerManager>(system);
 
-    server_manager->RegisterNamedService("pcie", std::make_shared<PCIe>(system));
+    server_manager->RegisterNamedService("pcie", std::make_shared<PCIE>(system));
+    // +6.0.0
+    if (FirmwareManager::GetFirmwareVersion(system).first.major >= 6) {
+        server_manager->RegisterNamedService("pcie:log", std::make_shared<PCIE_LOG>(system));
+    }
     ServerManager::RunServer(std::move(server_manager));
 }
 

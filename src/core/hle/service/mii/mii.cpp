@@ -367,10 +367,8 @@ void LoopProcess(Core::System& system) {
     auto server_manager = std::make_unique<ServerManager>(system);
     std::shared_ptr<MiiManager> manager = std::make_shared<MiiManager>();
 
-    server_manager->RegisterNamedService(
-        "mii:e", std::make_shared<IStaticService>(system, "mii:e", manager, true));
-    server_manager->RegisterNamedService(
-        "mii:u", std::make_shared<IStaticService>(system, "mii:u", manager, false));
+    server_manager->RegisterNamedService("mii:e", std::make_shared<IStaticService>(system, "mii:e", manager, true));
+    server_manager->RegisterNamedService("mii:u", std::make_shared<IStaticService>(system, "mii:u", manager, false));
     server_manager->RegisterNamedService("miiimg", std::make_shared<IImageDatabaseService>(system));
     ServerManager::RunServer(std::move(server_manager));
 }

@@ -55,6 +55,30 @@ public:
     }
 };
 
+class PCV_ARB final : public ServiceFramework<PCV_ARB> {
+public:
+    explicit PCV_ARB(Core::System& system_) : ServiceFramework{system_, "pcv:arb"} {
+        // clang-format off
+        static const FunctionInfo functions[] = {
+            {0, nullptr, "ReleaseControl"},
+        };
+        // clang-format on
+        RegisterHandlers(functions);
+    }
+};
+
+class PCV_IMM final : public ServiceFramework<PCV_IMM> {
+public:
+    explicit PCV_IMM(Core::System& system_) : ServiceFramework{system_, "pcv:imm"} {
+        // clang-format off
+        static const FunctionInfo functions[] = {
+            {0, nullptr, "SetClockRate"},
+        };
+        // clang-format on
+        RegisterHandlers(functions);
+    }
+};
+
 class IClkrstSession final : public ServiceFramework<IClkrstSession> {
 public:
     explicit IClkrstSession(Core::System& system_, DeviceCode device_code_)
@@ -148,6 +172,8 @@ void LoopProcess(Core::System& system) {
     auto server_manager = std::make_unique<ServerManager>(system);
 
     server_manager->RegisterNamedService("pcv", std::make_shared<PCV>(system));
+    server_manager->RegisterNamedService("pcv:arb", std::make_shared<PCV_ARB>(system));
+    server_manager->RegisterNamedService("pcv:imm", std::make_shared<PCV_IMM>(system));
     server_manager->RegisterNamedService("clkrst", std::make_shared<CLKRST>(system, "clkrst"));
     server_manager->RegisterNamedService("clkrst:i", std::make_shared<CLKRST>(system, "clkrst:i"));
     server_manager->RegisterNamedService("clkrst:a", std::make_shared<CLKRST_A>(system));

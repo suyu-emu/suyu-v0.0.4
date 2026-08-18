@@ -357,10 +357,26 @@ private:
     }
 };
 
+class LM_GET final : public ServiceFramework<LM_GET> {
+public:
+    explicit LM_GET(Core::System& system_)
+        : ServiceFramework{system_, "lm:get"}
+    {
+        static const FunctionInfo functions[] = {
+            {0, nullptr, "StartLogging"},
+            {1, nullptr, "StopLogging"},
+            {2, nullptr, "GetLog"},
+            {100, nullptr, "CreateDevNotificationReceiver"},
+        };
+        RegisterHandlers(functions);
+    }
+};
+
 void LoopProcess(Core::System& system) {
     auto server_manager = std::make_unique<ServerManager>(system);
 
     server_manager->RegisterNamedService("lm", std::make_shared<LM>(system));
+    server_manager->RegisterNamedService("lm:get", std::make_shared<LM_GET>(system));
     ServerManager::RunServer(std::move(server_manager));
 }
 

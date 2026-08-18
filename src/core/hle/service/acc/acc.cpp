@@ -21,10 +21,6 @@
 #include "core/file_sys/control_metadata.h"
 #include "core/file_sys/patch_manager.h"
 #include "core/hle/service/acc/acc.h"
-#include "core/hle/service/acc/acc_aa.h"
-#include "core/hle/service/acc/acc_su.h"
-#include "core/hle/service/acc/acc_u0.h"
-#include "core/hle/service/acc/acc_u1.h"
 #include "core/hle/service/acc/async_context.h"
 #include "core/hle/service/acc/errors.h"
 #include "core/hle/service/acc/profile_manager.h"
@@ -1244,19 +1240,416 @@ Module::Interface::Interface(std::shared_ptr<Module> module_,
 
 Module::Interface::~Interface() = default;
 
+class ACC_AA final : public Module::Interface {
+public:
+    explicit ACC_AA(std::shared_ptr<Module> module_, std::shared_ptr<ProfileManager> profile_manager_, Core::System& system_)
+        : Interface(std::move(module_), std::move(profile_manager_), system_, "acc:aa") {
+        // clang-format off
+        static const FunctionInfo functions[] = {
+            {0, nullptr, "EnsureCacheAsync"},
+            {1, nullptr, "LoadCache"},
+            {2, nullptr, "GetDeviceAccountId"},
+            {50, nullptr, "RegisterNotificationTokenAsync"},   // 1.0.0 - 6.2.0
+            {51, nullptr, "UnregisterNotificationTokenAsync"}, // 1.0.0 - 6.2.0
+        };
+        // clang-format on
+        RegisterHandlers(functions);
+    }
+    ~ACC_AA() override = default;
+};
+
+class ACC_SU final : public Module::Interface {
+public:
+    explicit ACC_SU(std::shared_ptr<Module> module_, std::shared_ptr<ProfileManager> profile_manager_, Core::System& system_)
+        : Interface(std::move(module_), std::move(profile_manager_), system_, "acc:su") {
+        // clang-format off
+        static const FunctionInfo functions[] = {
+            {0, &ACC_SU::GetUserCount, "GetUserCount"},
+            {1, &ACC_SU::GetUserExistence, "GetUserExistence"},
+            {2, &ACC_SU::ListAllUsers, "ListAllUsers"},
+            {3, &ACC_SU::ListOpenUsers, "ListOpenUsers"},
+            {4, &ACC_SU::GetLastOpenedUser, "GetLastOpenedUser"},
+            {5, &ACC_SU::GetProfile, "GetProfile"},
+            {6, nullptr, "GetProfileDigest"},
+            {50, &ACC_SU::IsUserRegistrationRequestPermitted, "IsUserRegistrationRequestPermitted"},
+            {51, &ACC_SU::TrySelectUserWithoutInteractionDeprecated, "TrySelectUserWithoutInteractionDeprecated"},
+            {52, &ACC_SU::TrySelectUserWithoutInteraction, "TrySelectUserWithoutInteraction"}, // 19.0.0+
+            {60, &ACC_SU::ListOpenContextStoredUsers, "ListOpenContextStoredUsers"},
+            {99, nullptr, "DebugActivateOpenContextRetention"},
+            {100, nullptr, "GetUserRegistrationNotifier"},
+            {101, nullptr, "GetUserStateChangeNotifier"},
+            {102, &ACC_SU::GetBaasAccountManagerForSystemService, "GetBaasAccountManagerForSystemService"},
+            {103, nullptr, "GetBaasUserAvailabilityChangeNotifier"},
+            {104, nullptr, "GetProfileUpdateNotifier"},
+            {105, nullptr, "CheckNetworkServiceAvailabilityAsync"},
+            {106, nullptr, "GetProfileSyncNotifier"},
+            {110, &ACC_SU::StoreSaveDataThumbnailSystem, "StoreSaveDataThumbnail"},
+            {111, nullptr, "ClearSaveDataThumbnail"},
+            {112, nullptr, "LoadSaveDataThumbnail"},
+            {113, nullptr, "GetSaveDataThumbnailExistence"},
+            {120, nullptr, "ListOpenUsersInApplication"},
+            {130, nullptr, "ActivateOpenContextRetention"},
+            {140, &ACC_SU::ListQualifiedUsers, "ListQualifiedUsers"},
+            {150, nullptr, "AuthenticateApplicationAsync"},
+            {151, nullptr, "EnsureSignedDeviceIdentifierCacheForNintendoAccountAsync"},
+            {152, nullptr, "LoadSignedDeviceIdentifierCacheForNintendoAccount"},
+            {190, nullptr, "GetUserLastOpenedApplication"},
+            {191, nullptr, "ActivateOpenContextHolder"},
+            {200, &ACC_SU::BeginUserRegistration, "BeginUserRegistration"},
+            {201, &ACC_SU::CompleteUserRegistration, "CompleteUserRegistration"},
+            {202, nullptr, "CancelUserRegistration"},
+            {203, &ACC_SU::DeleteUser, "DeleteUser"},
+            {204, &ACC_SU::SetUserPosition, "SetUserPosition"},
+            {205, &ACC_SU::GetProfileEditor, "GetProfileEditor"},
+            {206, nullptr, "CompleteUserRegistrationForcibly"},
+            {210, nullptr, "CreateFloatingRegistrationRequest"},
+            {211, nullptr, "CreateProcedureToRegisterUserWithNintendoAccount"},
+            {212, nullptr, "ResumeProcedureToRegisterUserWithNintendoAccount"},
+            {230, nullptr, "AuthenticateServiceAsync"},
+            {250, &ACC_SU::GetBaasAccountAdministrator, "GetBaasAccountAdministrator"},
+            {290, nullptr, "ProxyProcedureForGuestLoginWithNintendoAccount"},
+            {291, nullptr, "ProxyProcedureForFloatingRegistrationWithNintendoAccount"},
+            {299, nullptr, "SuspendBackgroundDaemon"},
+            {400, nullptr, "SetPinCode"}, // 18.0.0+
+            {401, &ACC_SU::GetPinCodeLength, "GetPinCodeLength"}, // 18.0.0+
+            {402, nullptr, "GetPinCode"}, // 18.0.0+
+            {403, nullptr, "GetPinCodeParity"},
+            {404, nullptr, "VerifyPinCode"},
+            {405, nullptr, "IsPinCodeVerificationForbidden"},
+            {410, nullptr, "GetPinCodeErrorCount"}, // 18.0.0+
+            {411, nullptr, "ResetPinCodeErrorCount"}, // 18.0.0+
+            {412, nullptr, "IncrementPinCodeErrorCount"}, // 18.0.0+
+            {900, nullptr, "SetUserUnqualifiedForDebug"},
+            {901, nullptr, "UnsetUserUnqualifiedForDebug"},
+            {902, nullptr, "ListUsersUnqualifiedForDebug"},
+            {910, nullptr, "RefreshFirmwareSettingsForDebug"},
+            {997, nullptr, "DebugInvalidateTokenCacheForUser"},
+            {998, nullptr, "DebugSetUserStateClose"},
+            {999, nullptr, "DebugSetUserStateOpen"},
+        };
+        // clang-format on
+
+        RegisterHandlers(functions);
+    }
+    ~ACC_SU() override = default;
+};
+
+class ACC_U0 final : public Module::Interface {
+public:
+    ACC_U0(std::shared_ptr<Module> module_, std::shared_ptr<ProfileManager> profile_manager_, Core::System& system_)
+        : Interface(std::move(module_), std::move(profile_manager_), system_, "acc:u0") {
+        // clang-format off
+        static const FunctionInfo functions[] = {
+            {0, &ACC_U0::GetUserCount, "GetUserCount"},
+            {1, &ACC_U0::GetUserExistence, "GetUserExistence"},
+            {2, &ACC_U0::ListAllUsers, "ListAllUsers"},
+            {3, &ACC_U0::ListOpenUsers, "ListOpenUsers"},
+            {4, &ACC_U0::GetLastOpenedUser, "GetLastOpenedUser"},
+            {5, &ACC_U0::GetProfile, "GetProfile"},
+            {6, nullptr, "GetProfileDigest"}, // 3.0.0+
+            {50, &ACC_U0::IsUserRegistrationRequestPermitted, "IsUserRegistrationRequestPermitted"},
+            {51, &ACC_U0::TrySelectUserWithoutInteractionDeprecated, "TrySelectUserWithoutInteractionDeprecated"},
+            {52, &ACC_U0::TrySelectUserWithoutInteraction, "TrySelectUserWithoutInteraction"},
+            {60, &ACC_U0::ListOpenContextStoredUsers, "ListOpenContextStoredUsers"}, // 5.0.0 - 5.1.0
+            {99, nullptr, "DebugActivateOpenContextRetention"}, // 6.0.0+
+            {100, &ACC_U0::InitializeApplicationInfo, "InitializeApplicationInfo"},
+            {101, &ACC_U0::GetBaasAccountManagerForApplication, "GetBaasAccountManagerForApplication"},
+            {102, nullptr, "AuthenticateApplicationAsync"},
+            {103, nullptr, "CheckNetworkServiceAvailabilityAsync"}, // 4.0.0+
+            {110, &ACC_U0::StoreSaveDataThumbnailApplication, "StoreSaveDataThumbnail"},
+            {111, nullptr, "ClearSaveDataThumbnail"},
+            {120, nullptr, "CreateGuestLoginRequest"},
+            {130, nullptr, "LoadOpenContext"}, // 5.0.0+
+            {131, &ACC_U0::ListOpenContextStoredUsers, "ListOpenContextStoredUsers"}, // 6.0.0+
+            {140, &ACC_U0::InitializeApplicationInfoRestricted, "InitializeApplicationInfoRestricted"}, // 6.0.0+
+            {141, &ACC_U0::ListQualifiedUsers, "ListQualifiedUsers"}, // 6.0.0+
+            {150, &ACC_U0::IsUserAccountSwitchLocked, "IsUserAccountSwitchLocked"}, // 6.0.0+
+            {160, &ACC_U0::InitializeApplicationInfoV2, "InitializeApplicationInfoV2"},
+        };
+        // clang-format on
+
+        RegisterHandlers(functions);
+    }
+    ~ACC_U0() override = default;
+};
+
+class ACC_U1 final : public Module::Interface {
+public:
+    ACC_U1(std::shared_ptr<Module> module_, std::shared_ptr<ProfileManager> profile_manager_, Core::System& system_)
+        : Interface(std::move(module_), std::move(profile_manager_), system_, "acc:u1") {
+        // clang-format off
+        static const FunctionInfo functions[] = {
+            {0, &ACC_U1::GetUserCount, "GetUserCount"},
+            {1, &ACC_U1::GetUserExistence, "GetUserExistence"},
+            {2, &ACC_U1::ListAllUsers, "ListAllUsers"},
+            {3, &ACC_U1::ListOpenUsers, "ListOpenUsers"},
+            {4, &ACC_U1::GetLastOpenedUser, "GetLastOpenedUser"},
+            {5, &ACC_U1::GetProfile, "GetProfile"},
+            {6, nullptr, "GetProfileDigest"},
+            {50, &ACC_U1::IsUserRegistrationRequestPermitted, "IsUserRegistrationRequestPermitted"},
+            {51, &ACC_U1::TrySelectUserWithoutInteraction, "TrySelectUserWithoutInteraction"},
+            {60, &ACC_U1::ListOpenContextStoredUsers, "ListOpenContextStoredUsers"},
+            {99, nullptr, "DebugActivateOpenContextRetention"},
+            {100, nullptr, "GetUserRegistrationNotifier"},
+            {101, nullptr, "GetUserStateChangeNotifier"},
+            {102, &ACC_U1::GetBaasAccountManagerForSystemService, "GetBaasAccountManagerForSystemService"},
+            {103, nullptr, "GetBaasUserAvailabilityChangeNotifier"},
+            {104, nullptr, "GetProfileUpdateNotifier"},
+            {105, nullptr, "CheckNetworkServiceAvailabilityAsync"},
+            {106, nullptr, "GetProfileSyncNotifier"},
+            {110, &ACC_U1::StoreSaveDataThumbnailApplication, "StoreSaveDataThumbnail"},
+            {111, nullptr, "ClearSaveDataThumbnail"},
+            {112, nullptr, "LoadSaveDataThumbnail"},
+            {113, nullptr, "GetSaveDataThumbnailExistence"},
+            {120, nullptr, "ListOpenUsersInApplication"},
+            {130, nullptr, "ActivateOpenContextRetention"},
+            {140, &ACC_U1::ListQualifiedUsers, "ListQualifiedUsers"},
+            {150, nullptr, "AuthenticateApplicationAsync"},
+            {151, nullptr, "EnsureSignedDeviceIdentifierCacheForNintendoAccountAsync"},
+            {152, nullptr, "LoadSignedDeviceIdentifierCacheForNintendoAccount"},
+            {190, nullptr, "GetUserLastOpenedApplication"},
+            {191, nullptr, "ActivateOpenContextHolder"},
+            {401, &ACC_U1::GetPinCodeLength, "GetPinCodeLength"}, // 18.0.0+
+            {402, nullptr, "GetPinCode"}, // 18.0.0+
+            {997, nullptr, "DebugInvalidateTokenCacheForUser"},
+            {998, nullptr, "DebugSetUserStateClose"},
+            {999, nullptr, "DebugSetUserStateOpen"},
+        };
+        // clang-format on
+
+        RegisterHandlers(functions);
+    }
+    ~ACC_U1() override = default;
+};
+
+class DAUTH_0 final : public ServiceFramework<DAUTH_0> {
+public:
+    explicit DAUTH_0(Core::System& system_) : ServiceFramework{system_, "dauth:0"} {
+        // clang-format off
+        static const FunctionInfo functions[] = {
+            {0, nullptr, "EnsureAuthenticationTokenCacheAsync"},
+            {1, nullptr, "LoadAuthenticationTokenCache"},
+            {2, nullptr, "InvalidateAuthenticationTokenCache"},
+            {3, nullptr, "IsDeviceAuthenticationTokenCacheAvailable"},
+            {10, nullptr, "EnsureEdgeTokenCacheAsync"},
+            {11, nullptr, "LoadEdgeTokenCache"},
+            {12, nullptr, "InvalidateEdgeTokenCache"},
+            {13, nullptr, "IsEdgeTokenCacheAvailable"},
+            {20, nullptr, "EnsureApplicationAuthenticationCacheAsync"},
+            {21, nullptr, "LoadApplicationAuthenticationTokenCache"},
+            {22, nullptr, "LoadApplicationNetworkServiceClientConfigCache"},
+            {23, nullptr, "IsApplicationAuthenticationCacheAvailable"},
+            {24, nullptr, "InvalidateApplicationAuthenticationCache"},
+            {30, nullptr, "EnsureGameCardAuthenticationCacheAsync"},
+            {31, nullptr, "LoadGameCardAuthenticationTokenCache"},
+            {32, nullptr, "IsGameCardAuthenticationCacheAvailable"},
+            {33, nullptr, "InvalidateGameCardAuthenticationCache"},
+            {1000, nullptr, "GetInactiveElicenseUsedEvent"},
+            {9000, nullptr, "ImportVirtualClientCertificate"},
+            {9010, nullptr, "DeleteVirtualClientCertificate"},
+        };
+        // clang-format on
+        RegisterHandlers(functions);
+    }
+};
+
+class ACC_E final : public Module::Interface {
+public:
+    explicit ACC_E(std::shared_ptr<Module> module_, std::shared_ptr<ProfileManager> profile_manager_, Core::System& system_)
+        : Interface(std::move(module_), std::move(profile_manager_), system_, "acc:e") {
+        // clang-format off
+        static const FunctionInfo functions[] = {
+            { 0, nullptr, "GetUserCount"},
+            { 1, nullptr, "GetUserExistence"},
+            { 2, nullptr, "ListAllUsers"},
+            { 3, nullptr, "ListOpenUsers"},
+            { 4, nullptr, "GetLastOpenedUser"},
+            { 5, nullptr, "GetProfile"},
+            { 6, nullptr, "GetProfileDigest"},
+            { 50, nullptr, "IsUserRegistrationRequestPermitted"},
+            { 51, nullptr, "TrySelectUserWithoutInteractionDeprecated"},
+            { 52, nullptr, "TrySelectUserWithoutInteraction"},
+            { 99, nullptr, "DebugActivateOpenContextRetention"},
+            { 100, nullptr, "GetUserRegistrationNotifier"},
+            { 101, nullptr, "GetUserStateChangeNotifier"},
+            { 102, nullptr, "GetBaasAccountManagerForSystemService"},
+            { 103, nullptr, "GetBaasUserAvailabilityChangeNotifier"},
+            { 104, nullptr, "GetProfileUpdateNotifier"},
+            { 105, nullptr, "CheckNetworkServiceAvailabilityAsync"},
+            { 106, nullptr, "GetProfileSyncNotifier"},
+            { 110, nullptr, "StoreSaveDataThumbnail"},
+            { 111, nullptr, "ClearSaveDataThumbnail"},
+            { 112, nullptr, "LoadSaveDataThumbnail"},
+            { 113, nullptr, "GetSaveDataThumbnailExistence"},
+            { 120, nullptr, "ListOpenUsersInApplication"},
+            { 130, nullptr, "ActivateOpenContextRetention"},
+            { 140, nullptr, "ListQualifiedUsers"},
+            { 151, nullptr, "EnsureSignedDeviceIdentifierCacheForNintendoAccountAsync"},
+            { 152, nullptr, "LoadSignedDeviceIdentifierCacheForNintendoAccount"},
+            { 170, nullptr, "GetNasOp2MembershipStateChangeNotifier"},
+            { 191, nullptr, "UpdateNotificationReceiverInfo"},
+            { 200, nullptr, "BeginUserRegistration"},
+            { 201, nullptr, "CompleteUserRegistration"},
+            { 202, nullptr, "CancelUserRegistration"},
+            { 203, nullptr, "DeleteUser"},
+            { 204, nullptr, "SetUserPosition"},
+            { 205, nullptr, "GetProfileEditor"},
+            { 206, nullptr, "CompleteUserRegistrationForcibly"},
+            { 210, nullptr, "CreateFloatingRegistrationRequest"},
+            { 211, nullptr, "CreateProcedureToRegisterUserWithNintendoAccount"},
+            { 212, nullptr, "ResumeProcedureToRegisterUserWithNintendoAccount"},
+            { 213, nullptr, "CreateProcedureToCreateUserWithNintendoAccount"},
+            { 214, nullptr, "ResumeProcedureToCreateUserWithNintendoAccount"},
+            { 215, nullptr, "ResumeProcedureToCreateUserWithNintendoAccountAfterApplyResponse"},
+            { 230, nullptr, "AuthenticateServiceAsync"},
+            { 250, nullptr, "GetBaasAccountAdministrator"},
+            { 251, nullptr, "SynchronizeNetworkServiceAccountsSnapshotAsync"},
+            { 290, nullptr, "ProxyProcedureForGuestLoginWithNintendoAccount"},
+            { 291, nullptr, "ProxyProcedureForFloatingRegistrationWithNintendoAccount"},
+            { 292, nullptr, "ProxyProcedureForDeviceMigrationAuthenticatingOperatingUser"},
+            { 293, nullptr, "ProxyProcedureForDeviceMigrationDownload"},
+            { 299, nullptr, "SuspendBackgroundDaemon"},
+            { 350, nullptr, "CreateDeviceMigrationUserExportRequest"},
+            { 351, nullptr, "UploadNasCredential"},
+            { 352, nullptr, "CreateDeviceMigrationUserImportRequest"},
+            { 353, nullptr, "DeleteUserMigrationSaveData"},
+            { 400, nullptr, "SetPinCode"},
+            { 401, nullptr, "GetPinCodeLength"},
+            { 402, nullptr, "GetPinCode"},
+            { 403, nullptr, "GetPinCodeParity"},
+            { 404, nullptr, "VerifyPinCode"},
+            { 405, nullptr, "IsPinCodeVerificationForbidden"},
+            { 410, nullptr, "GetPinCodeErrorCount"},
+            { 411, nullptr, "ResetPinCodeErrorCount"},
+            { 412, nullptr, "IncrementPinCodeErrorCount"},
+            { 413, nullptr, "SetPinCodeErrorCount"},
+            { 420, nullptr, "SetStartPenaltyTime"},
+            { 421, nullptr, "GetStartPenaltyTime"},
+            { 900, nullptr, "SetUserUnqualifiedForDebug"},
+            { 901, nullptr, "UnsetUserUnqualifiedForDebug"},
+            { 902, nullptr, "ListUsersUnqualifiedForDebug"},
+            { 910, nullptr, "RefreshFirmwareSettingsForDebug"},
+            { 997, nullptr, "DebugInvalidateTokenCacheForUser"},
+            { 998, nullptr, "DebugSetUserStateClose"},
+            { 999, nullptr, "DebugSetUserStateOpen"},
+            { 1000, nullptr, "CreateIAccountEntityServiceForApplication"},
+            { 1100, nullptr, "CreateIUserStateManager"},
+            { 10050, nullptr, "IsUserRegistrationRequestPermittedForAccountPolicy"},
+            { 10105, nullptr, "CheckNetworkServiceAvailabilityAsyncForAccountPolicy"},
+        };
+        // clang-format on
+        RegisterHandlers(functions);
+    }
+};
+
+class ACC_E_U1 final : public Module::Interface {
+public:
+    explicit ACC_E_U1(std::shared_ptr<Module> module_, std::shared_ptr<ProfileManager> profile_manager_, Core::System& system_)
+        : Interface(std::move(module_), std::move(profile_manager_), system_, "acc:e:u1") {
+        // clang-format off
+        static const FunctionInfo functions[] = {
+            {0, nullptr, "GetUserCount"},
+            {1, nullptr, "GetUserExistence"},
+            {2, nullptr, "ListAllUsers"},
+            {3, nullptr, "ListOpenUsers"},
+            {4, nullptr, "GetLastOpenedUser"},
+            {5, nullptr, "GetProfile"},
+            {6, nullptr, "GetProfileDigest"},
+            {50, nullptr, "IsUserRegistrationRequestPermitted"},
+            {51, nullptr, "TrySelectUserWithoutInteractionDeprecated"},
+            {99, nullptr, "DebugActivateOpenContextRetention"},
+            {100, nullptr, "GetUserRegistrationNotifier"},
+            {101, nullptr, "GetUserStateChangeNotifier"},
+            {102, nullptr, "GetBaasAccountManagerForSystemService"},
+            {103, nullptr, "GetBaasUserAvailabilityChangeNotifier"},
+            {104, nullptr, "GetProfileUpdateNotifier"},
+            {105, nullptr, "CheckNetworkServiceAvailabilityAsync"},
+            {106, nullptr, "GetProfileSyncNotifier"},
+            {110, nullptr, "StoreSaveDataThumbnail"},
+            {111, nullptr, "ClearSaveDataThumbnail"},
+            {112, nullptr, "LoadSaveDataThumbnail"},
+            {113, nullptr, "GetSaveDataThumbnailExistence"},
+            {120, nullptr, "ListOpenUsersInApplication"},
+            {130, nullptr, "ActivateOpenContextRetention"},
+            {140, nullptr, "ListQualifiedUsers"},
+            {151, nullptr, "EnsureSignedDeviceIdentifierCacheForNintendoAccountAsync"},
+            {152, nullptr, "LoadSignedDeviceIdentifierCacheForNintendoAccount"},
+            {170, nullptr, "GetNasOp2MembershipStateChangeNotifier"},
+            {191, nullptr, "UpdateNotificationReceiverInfo"},
+            {997, nullptr, "DebugInvalidateTokenCacheForUser"},
+            {998, nullptr, "DebugSetUserStateClose"},
+            {999, nullptr, "DebugSetUserStateOpen"},
+        };
+        // clang-format on
+        RegisterHandlers(functions);
+    }
+};
+
+class ACC_E_U2 final : public Module::Interface {
+public:
+    explicit ACC_E_U2(std::shared_ptr<Module> module_, std::shared_ptr<ProfileManager> profile_manager_, Core::System& system_)
+        : Interface(std::move(module_), std::move(profile_manager_), system_, "acc:e:u2") {
+        // clang-format off
+        static const FunctionInfo functions[] = {
+            {0, nullptr, "GetUserCount"},
+            {1, nullptr, "GetUserExistence"},
+            {2, nullptr, "ListAllUsers"},
+            {3, nullptr, "ListOpenUsers"},
+            {4, nullptr, "GetLastOpenedUser"},
+            {5, nullptr, "GetProfile"},
+            {6, nullptr, "GetProfileDigest"},
+            {50, nullptr, "#IsUserRegistrationRequestPermitted"},
+            {51, nullptr, "TrySelectUserWithoutInteractionDeprecated"},
+            {52, nullptr, "TrySelectUserWithoutInteraction"},
+            {99, nullptr, "DebugActivateOpenContextRetention"},
+            {100, nullptr, "GetUserRegistrationNotifier"},
+            {101, nullptr, "GetUserStateChangeNotifier"},
+            {102, nullptr, "GetBaasAccountManagerForSystemService"},
+            {103, nullptr, "GetBaasUserAvailabilityChangeNotifier"},
+            {104, nullptr, "GetProfileUpdateNotifier"},
+            {105, nullptr, "CheckNetworkServiceAvailabilityAsync"},
+            {106, nullptr, "GetProfileSyncNotifier"},
+            {110, nullptr, "StoreSaveDataThumbnail"},
+            {111, nullptr, "ClearSaveDataThumbnail"},
+            {112, nullptr, "LoadSaveDataThumbnail"},
+            {113, nullptr, "GetSaveDataThumbnailExistence"},
+            {120, nullptr, "ListOpenUsersInApplication"},
+            {130, nullptr, "ActivateOpenContextRetention"},
+            {140, nullptr, "ListQualifiedUsers"},
+            {151, nullptr, "EnsureSignedDeviceIdentifierCacheForNintendoAccountAsync"},
+            {152, nullptr, "LoadSignedDeviceIdentifierCacheForNintendoAccount"},
+            {170, nullptr, "GetNasOp2MembershipStateChangeNotifier"},
+            {191, nullptr, "UpdateNotificationReceiverInfo"},
+            {205, nullptr, "GetProfileEditor"},
+            {401, nullptr, "GetPinCodeLength"},
+            {402, nullptr, "GetPinCode"},
+            {403, nullptr, "GetPinCodeParity"},
+            {404, nullptr, "VerifyPinCode"},
+            {405, nullptr, "IsPinCodeVerificationForbidden"},
+            {997, nullptr, "DebugInvalidateTokenCacheForUser"},
+            {998, nullptr, "DebugSetUserStateClose"},
+            {999, nullptr, "DebugSetUserStateOpen"},
+        };
+        // clang-format on
+        RegisterHandlers(functions);
+    }
+};
+
 void LoopProcess(Core::System& system) {
     auto module = std::make_shared<Module>();
     auto profile_manager = std::make_shared<ProfileManager>();
     auto server_manager = std::make_unique<ServerManager>(system);
 
-    server_manager->RegisterNamedService("acc:aa",
-                                         std::make_shared<ACC_AA>(module, profile_manager, system));
-    server_manager->RegisterNamedService("acc:su",
-                                         std::make_shared<ACC_SU>(module, profile_manager, system));
-    server_manager->RegisterNamedService("acc:u0",
-                                         std::make_shared<ACC_U0>(module, profile_manager, system));
-    server_manager->RegisterNamedService("acc:u1",
-                                         std::make_shared<ACC_U1>(module, profile_manager, system));
+    server_manager->RegisterNamedService("acc:aa", std::make_shared<ACC_AA>(module, profile_manager, system));
+    server_manager->RegisterNamedService("acc:su", std::make_shared<ACC_SU>(module, profile_manager, system));
+    server_manager->RegisterNamedService("acc:u0", std::make_shared<ACC_U0>(module, profile_manager, system));
+    server_manager->RegisterNamedService("acc:u1", std::make_shared<ACC_U1>(module, profile_manager, system));
+
+    server_manager->RegisterNamedService("acc:e", std::make_shared<ACC_E>(module, profile_manager, system));
+    server_manager->RegisterNamedService("acc:e:u1", std::make_shared<ACC_E_U1>(module, profile_manager, system));
+    server_manager->RegisterNamedService("acc:e:u2", std::make_shared<ACC_E_U2>(module, profile_manager, system));
+
+    server_manager->RegisterNamedService("dauth:0", std::make_shared<DAUTH_0>(system));
     ServerManager::RunServer(std::move(server_manager));
 }
 

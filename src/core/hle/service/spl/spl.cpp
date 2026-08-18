@@ -25,6 +25,8 @@ SPL::SPL(Core::System& system_, std::shared_ptr<Module> module_)
     RegisterHandlers(functions);
 }
 
+SPL::~SPL() = default;
+
 SPL_MIG::SPL_MIG(Core::System& system_, std::shared_ptr<Module> module_)
     : Interface(system_, std::move(module_), "spl:mig") {
     // clang-format off
@@ -50,6 +52,8 @@ SPL_MIG::SPL_MIG(Core::System& system_, std::shared_ptr<Module> module_)
 
     RegisterHandlers(functions);
 }
+
+SPL_MIG::~SPL_MIG() = default;
 
 SPL_FS::SPL_FS(Core::System& system_, std::shared_ptr<Module> module_)
     : Interface(system_, std::move(module_), "spl:fs") {
@@ -82,6 +86,8 @@ SPL_FS::SPL_FS(Core::System& system_, std::shared_ptr<Module> module_)
     RegisterHandlers(functions);
 }
 
+SPL_FS::~SPL_FS() = default;
+
 SPL_SSL::SPL_SSL(Core::System& system_, std::shared_ptr<Module> module_)
     : Interface(system_, std::move(module_), "spl:ssl") {
     // clang-format off
@@ -110,6 +116,8 @@ SPL_SSL::SPL_SSL(Core::System& system_, std::shared_ptr<Module> module_)
 
     RegisterHandlers(functions);
 }
+
+SPL_SSL::~SPL_SSL() = default;
 
 SPL_ES::SPL_ES(Core::System& system_, std::shared_ptr<Module> module_)
     : Interface(system_, std::move(module_), "spl:es") {
@@ -145,6 +153,8 @@ SPL_ES::SPL_ES(Core::System& system_, std::shared_ptr<Module> module_)
     RegisterHandlers(functions);
 }
 
+SPL_ES::~SPL_ES() = default;
+
 SPL_MANU::SPL_MANU(Core::System& system_, std::shared_ptr<Module> module_)
     : Interface(system_, std::move(module_), "spl:manu") {
     // clang-format off
@@ -172,16 +182,6 @@ SPL_MANU::SPL_MANU(Core::System& system_, std::shared_ptr<Module> module_)
 
     RegisterHandlers(functions);
 }
-
-SPL::~SPL() = default;
-
-SPL_MIG::~SPL_MIG() = default;
-
-SPL_FS::~SPL_FS() = default;
-
-SPL_SSL::~SPL_SSL() = default;
-
-SPL_ES::~SPL_ES() = default;
 
 SPL_MANU::~SPL_MANU() = default;
 

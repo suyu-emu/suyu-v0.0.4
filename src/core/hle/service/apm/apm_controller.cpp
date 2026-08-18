@@ -26,8 +26,7 @@ Controller::Controller(Core::Timing::CoreTiming& core_timing_)
 
 Controller::~Controller() = default;
 
-void Controller::SetPerformanceConfiguration(PerformanceMode mode,
-                                             PerformanceConfiguration config) {
+void Controller::SetPerformanceConfiguration(PerformanceMode mode, PerformanceConfiguration config) {
     static constexpr std::array<std::pair<PerformanceConfiguration, u32>, 16> config_to_speed{{
         {PerformanceConfiguration::Config1, 1020},
         {PerformanceConfiguration::Config2, 1020},
@@ -46,17 +45,14 @@ void Controller::SetPerformanceConfiguration(PerformanceMode mode,
         {PerformanceConfiguration::Config15, 1020},
         {PerformanceConfiguration::Config16, 1020},
     }};
-
-    const auto iter = std::find_if(config_to_speed.cbegin(), config_to_speed.cend(),
-                                   [config](const auto& entry) { return entry.first == config; });
-
-    if (iter == config_to_speed.cend()) {
+    if (auto const it = std::find_if(config_to_speed.cbegin(), config_to_speed.cend(), [config](const auto& e) {
+        return e.first == config;
+    }); it != config_to_speed.cend()) {
+        SetClockSpeed(it->second);
+        configs.insert_or_assign(mode, config);
+    } else {
         LOG_ERROR(Service_APM, "Invalid performance configuration value provided: {}", config);
-        return;
     }
-
-    SetClockSpeed(iter->second);
-    configs.insert_or_assign(mode, config);
 }
 
 void Controller::SetFromCpuBoostMode(CpuBoostMode mode) {
@@ -65,9 +61,11 @@ void Controller::SetFromCpuBoostMode(CpuBoostMode mode) {
         PerformanceConfiguration::Config13,
         PerformanceConfiguration::Config15,
     }};
-
-    SetPerformanceConfiguration(PerformanceMode::Boost,
-                                BOOST_MODE_TO_CONFIG_MAP.at(static_cast<u32>(mode)));
+    if (u32(mode) < BOOST_MODE_TO_CONFIG_MAP.size()) {
+        SetPerformanceConfiguration(PerformanceMode::Boost, BOOST_MODE_TO_CONFIG_MAP[u32(mode)]);
+    } else {
+        LOG_ERROR(Service_APM, "{} invalid mode", mode);
+    }
 }
 
 PerformanceMode Controller::GetCurrentPerformanceMode() const {
@@ -78,7 +76,6 @@ PerformanceConfiguration Controller::GetCurrentPerformanceConfiguration(Performa
     if (configs.find(mode) == configs.end()) {
         configs.insert_or_assign(mode, DEFAULT_PERFORMANCE_CONFIGURATION);
     }
-
     return configs[mode];
 }
 
