@@ -276,14 +276,14 @@ if (YUZU_TESTS)
     add_subdirectory(tests)
 endif()
 
-if (YUZU_CMD)
-    add_subdirectory(yuzu_cmd)
-    set_target_properties(yuzu-cmd PROPERTIES OUTPUT_NAME "eden-cli")
+if (SUYU_CMD)
+    add_subdirectory(suyu_cmd)
+    set_target_properties(suyu-cmd PROPERTIES OUTPUT_NAME "suyu-cli")
 endif()
 
 if (ENABLE_QT)
     add_subdirectory(qt_common)
-    add_subdirectory(yuzu)
+    add_subdirectory(suyu)
 endif()
 
 if (ENABLE_WEB_SERVICE)

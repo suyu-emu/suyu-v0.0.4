@@ -728,18 +728,15 @@ int main(int argc, char** argv) {
     }
 
     if (use_multiplayer) {
-        if (auto member = system.GetRoomNetwork().GetRoomMember().lock()) {
-            member->BindOnChatMessageReceived(OnMessageReceived);
-            member->BindOnStatusMessageReceived(OnStatusMessageReceived);
-            member->BindOnStateChanged(OnStateChanged);
-            member->BindOnError(OnNetworkError);
-            LOG_DEBUG(Network, "Start connection to {}:{} with nickname {}", address, port,
-                      nickname);
-            member->Join(nickname, address.c_str(), port, 0, Network::NoPreferredIP, password);
-        } else {
-            LOG_ERROR(Network, "Could not access RoomMember");
-            return 0;
-        }
+        // This Eden merge dropped Core::System::GetRoomNetwork() - the direct-
+        // connect room networking suyu-cmd's --multiplayer flag relies on no
+        // longer exists upstream. Fail the flag loudly instead of building
+        // against a member that isn't there; re-wiring direct-connect against
+        // whatever replaced it is a separate task, not something to guess at.
+        LOG_ERROR(Network,
+                  "suyu-cmd: --multiplayer is unavailable in this build (room networking was "
+                  "removed upstream)");
+        return 0;
     }
 
     // Core is loaded, start the GPU (makes the GPU contexts current to this thread)

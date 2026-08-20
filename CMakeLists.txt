@@ -51,7 +51,7 @@ if (YUZU_STATIC_ROOM)
 
     # disable e v e r y t h i n g
     set(ENABLE_QT OFF)
-    set(YUZU_CMD OFF)
+    set(SUYU_CMD OFF)
     set(ENABLE_CUBEB OFF)
     set(ENABLE_UPDATE_CHECKER OFF)
     set(USE_DISCORD_PRESENCE OFF)
@@ -261,7 +261,7 @@ option(NIGHTLY_BUILD "Use Nightly qualifiers in the update checker and build met
 cmake_dependent_option(YUZU_ROOM "Enable dedicated room functionality" ON "NOT ANDROID" OFF)
 cmake_dependent_option(YUZU_ROOM_STANDALONE "Enable standalone room executable" ON "YUZU_ROOM" OFF)
 
-cmake_dependent_option(YUZU_CMD "Compile the eden-cli executable" ON "NOT ANDROID" OFF)
+cmake_dependent_option(SUYU_CMD "Compile the suyu-cli executable" ON "NOT ANDROID" OFF)
 
 cmake_dependent_option(YUZU_CRASH_DUMPS "Compile crash dump (Minidump) support" OFF "WIN32 OR LINUX" OFF)
 
@@ -619,7 +619,7 @@ if (ENABLE_QT)
     ## Components ##
 
     # Best practice is to ask for all components at once, so they are from the same version
-    set(YUZU_QT_COMPONENTS Core Widgets Charts Concurrent Gui)
+    set(YUZU_QT_COMPONENTS Core Widgets Charts Concurrent Gui Network)
     if (LINUX OR FREEBSD)
         list(APPEND YUZU_QT_COMPONENTS DBus)
         # yes Qt, we get it
