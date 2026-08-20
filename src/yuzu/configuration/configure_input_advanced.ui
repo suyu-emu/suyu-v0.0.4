@@ -2757,6 +2757,22 @@
                        </property>
                      </widget>
                    </item>
+                   <item row="9" column="0">
+                     <widget class="QCheckBox" name="disable_wgi_xinput">
+                       <property name="toolTip">
+                         <string>Aimed to disable SDL GUIDE button hack: synthetic GUIDE(HOME) event when SELECT(MINUS) + START(PLUS) pressed. May impact Win related trigger/rumble/etc stuff</string>
+                       </property>
+                       <property name="minimumSize">
+                         <size>
+                           <width>0</width>
+                           <height>23</height>
+                         </size>
+                       </property>
+                       <property name="text">
+                         <string>Disable SDL WGI/XInput (Requires restart)</string>
+                       </property>
+                     </widget>
+                   </item>
                  </layout>
                </widget>
              </item>

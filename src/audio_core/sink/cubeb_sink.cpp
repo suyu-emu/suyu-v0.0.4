@@ -211,7 +211,7 @@ CubebSink::CubebSink(std::string_view target_device_name) {
     com_init_result = CoInitializeEx(nullptr, COINIT_MULTITHREADED);
 #endif
 
-    if (cubeb_init(&ctx, "suyu", nullptr) != CUBEB_OK) {
+    if (cubeb_init(&ctx, "Eden", nullptr) != CUBEB_OK) {
         LOG_CRITICAL(Audio_Sink, "cubeb_init failed");
         return;
     }

@@ -204,8 +204,6 @@ add_library(audio_core STATIC
     renderer/voice/voice_info.cpp
     renderer/voice/voice_info.h
     renderer/voice/voice_state.h
-    sink/libretro_sink.cpp
-    sink/libretro_sink.h
     sink/null_sink.h
     sink/sink.h
     sink/sink_details.cpp
@@ -224,7 +222,7 @@ if (MSVC)
     )
 else()
     target_compile_options(audio_core PRIVATE
-        $<$<COMPILE_LANGUAGE:C,CXX>:-Werror=conversion>
+        $<$<COMPILE_LANGUAGE:C,CXX>:-Wconversion>
         $<$<COMPILE_LANGUAGE:C,CXX>:-Wno-sign-conversion>)
 endif()
 

@@ -291,6 +291,22 @@
     <string name="gpu_driver_fetcher">أداة جلب برامج تشغيل وحدة المعالجة الرسومية</string>
     <string name="gpu_driver_manager">إدارة برامج تشغيل وحدة معالجة الرسومات</string>
     <string name="install_gpu_driver_description">تثبيت برامج تشغيل بديلة لأداء أو دقة أفضل</string>
+    <string name="frame_gen">توليد الإطار</string>
+    <string name="frame_gen_per_game_description">تكوين إعدادات إنشاء الإطارات لهذه اللعبة</string>
+    <string name="frame_gen_description">قم بإدراج الإطارات المُستكملة بين الإطارات المُعالجة باستخدام تقنية التحجيم بدون فقدان الجودة. يُفرض هذا الخيار عرض الإطارات وفقًا لترتيب FIFO عند تفعيله.</string>
+    <string name="frame_gen_multiplier">مضاعف الإطارات</string>
+    <string name="frame_gen_multiplier_description">عدد الإطارات المطلوب عرضها لكل إطار مُعالَج. تتطلب القيم الأعلى وقت معالجة رسوميات أكبر. طلب عدد إطارات يفوق قدرة الشاشة على عرضه سيؤدي إلى إبطاء المحاكاة.</string>
+    <string name="frame_gen_multiplier_2x">2x</string>
+    <string name="frame_gen_multiplier_3x">3x</string>
+    <string name="frame_gen_multiplier_4x">4x</string>
+    <string name="frame_gen_target_rate">معدل الإطارات المستهدف</string>
+    <string name="frame_gen_target_rate_off">استخدم مضاعفًا ثابتًا</string>
+    <string name="frame_gen_target_rate_60">60 إطارًا في الثانية</string>
+    <string name="frame_gen_target_rate_90">90 إطارًا في الثانية</string>
+    <string name="frame_gen_target_rate_120">120 إطارًا في الثانية</string>
+    <string name="frame_gen_target_rate_144">144 إطارًا في الثانية</string>
+    <string name="frame_gen_target_rate_165">165 إطارًا في الثانية</string>
+    <string name="frame_gen_queue_target">هدف قائمة انتظار الإطارات</string>
     <string name="advanced_settings">الإعدادات المتقدمة</string>
     <string name="settings_description">ضبط إعدادات المحاكي</string>
     <string name="search_recently_played">تم تشغيلها مؤخرًا</string>
@@ -444,8 +460,8 @@
     <string name="set_custom_rtc">تعيين ساعة مخصصة في الوقت الحقيقي</string>
 
     <!-- CPU -->
-    <string name="fast_cpu_time">رفع تردد المعالج</string>
-    <string name="fast_cpu_time_description">يجبر وحدة المعالجة المركزية المحاكاة على العمل بتردد أعلى، مما يقلل بعض محددات معدل الإطارات. استخدم وضع التعزيز (1700 ميجاهرتز) لتشغيلها عند أعلى تردد أصلي لجهاز Switch، أو وضع السرعة (2000 ميجاهرتز) لتشغيلها بتردد مضاعف.</string>
+    <string name="fast_cpu_time">ترددات وحدة المعالجة المركزية</string>
+    <string name="fast_cpu_time_description">يرفع هذا الإعداد تردد المعالج المُحاكى، مما يُزيل بعض مُحددات معدل الإطارات. قد تُلاحظ المعالجات الأضعف انخفاضًا في الأداء، وقد تعمل بعض الألعاب بشكل غير صحيح.</string>
     <string name="custom_cpu_ticks">تخصيص دورات المعالج</string>
     <string name="custom_cpu_ticks_description">قم بتعيين قيمة مخصصة لدورات المعالج. القيم الأعلى يمكن أن تزيد من الأداء، ولكنها قد تتسبب أيضًا في تجميد اللعبة. يوصى باستخدام نطاق 77-21000.</string>
     <string name="cpu_ticks">دورات</string>
@@ -473,7 +489,7 @@
     <string name="advanced">متقدم</string>
 
     <string name="renderer_accuracy">وضع وحدة معالجة الرسومات</string>
-    <string name="renderer_accuracy_description">يتحكم في وضع محاكاة وحدة معالجة الرسومات. تعمل معظم الألعاب بشكل جيد مع وضعي سريع أو متوازن، لكن الوضع الدقيق لا يزال مطلوبًا لبعض الألعاب. تميل الجسيمات إلى العرض بشكل صحيح فقط عند استخدام الوضع الدقيق.</string>
+    <string name="renderer_accuracy_description">يتحكم هذا الخيار في وضع محاكاة وحدة معالجة الرسومات. تعمل معظم الألعاب بشكل جيد مع الوضع السريع، لكن الوضع الدقيق لا يزال ضروريًا لبعضها. تميل الجسيمات إلى الظهور بشكل صحيح فقط مع الوضع الدقيق.</string>
     <string name="dma_accuracy">دقة DMA</string>
     <string name="dma_accuracy_description">يتحكم في دقة DMA. يمكن أن تؤدي الدقة الآمنة إلى حل المشكلات في بعض الألعاب، ولكنها قد تؤثر أيضًا على الأداء في بعض الحالات. إذا لم تكن متأكدًا، فاترك هذا الخيار على الإعداد الافتراضي.</string>
     <string name="gpu_fence_behavior">سلوك حاجز وحدة معالجة الرسومات</string>
@@ -506,8 +522,8 @@
 
     <string name="hacks">اختراقات</string>
 
-    <string name="fast_gpu_time">وقت معالجة الرسومات السريع</string>
-    <string name="fast_gpu_time_description">يُجبر هذا الخيار معظم الألعاب على العمل بأعلى دقة عرض أصلية. استخدم 256 للحصول على أقصى أداء و512 للحصول على أعلى جودة رسومات.</string>
+    <string name="fast_gpu_time">سرعات معالج الرسوميات</string>
+    <string name="fast_gpu_time_description">يجعل اللعبة تعتقد أن عمل وحدة معالجة الرسومات ينتهي بشكل أسرع مما هو عليه في الواقع، لذلك تتوقف عن خفض الدقة ومسافة العرض لتتناسب مع سرعات جهاز Switch.</string>
     <string name="skip_cpu_inner_invalidation">تخطي إبطال صلاحية وحدة المعالجة المركزية الداخلية</string>
     <string name="skip_cpu_inner_invalidation_description">يتخطى بعض عمليات إبطال ذاكرة التخزين المؤقتة من جانب وحدة المعالجة المركزية أثناء تحديثات الذاكرة، مما يقلل من استخدام وحدة المعالجة المركزية ويحسن أداءها. قد يتسبب ذلك في حدوث أعطال أو تعطل في بعض الألعاب.</string>
     <string name="fix_bloom_effects">إصلاح تأثيرات التوهج</string>
@@ -554,6 +570,7 @@
 
     <!-- Debug settings strings -->
     <string name="cpu">وحدة المعالج المركزية</string>
+    <string name="clocks">ترددات</string>
     <string name="use_auto_stub">استخدم الملحق التلقائي</string>
     <string name="use_auto_stub_description">استبدال الخدمات والوظائف المفقودة تلقائيًا. قد يؤدي ذلك إلى تحسين التوافق، ولكنه قد يتسبب في حدوث أعطال ومشكلات في الاستقرار.</string>
 
@@ -953,14 +970,15 @@
     <string name="memory_6gb">6 جيجابايت (غير آمن)</string>
     <string name="memory_8gb">8 جيجابايت (غير آمن)</string>
 
-    <!--CPU clock speeds-->
-    <string name="clock_boost">تعزيز (1700MHz)</string>
-    <string name="clock_fast">سريع (2000MHz)</string>
+    <!-- CPU clock levels -->
+    <string name="clock_normal">طبيعي</string>
+    <string name="clock_boost">طبيعي</string>
+    <string name="clock_fast">كسر السرعة</string>
 
-    <!-- GPU overclock factors -->
-    <string name="off">تعطيل</string>
-    <string name="fast_gpu_medium">متوسط (256)</string>
-    <string name="fast_gpu_high">مرتفع (512)</string>
+    <!-- GPU clock levels -->
+    <string name="fast_gpu_normal">طبيعي</string>
+    <string name="fast_gpu_medium">تعزيز</string>
+    <string name="fast_gpu_high">كسر السرعة</string>
 
     <!-- GPU swizzle texture size -->
     <string name="gpu_texturesizeswizzle_verysmall">صغير جدًا (16 ميغابايت)</string>
@@ -1000,7 +1018,6 @@
 
     <!-- Renderer Accuracy -->
     <string name="renderer_accuracy_low">سريع</string>
-    <string name="renderer_accuracy_medium">متوازن</string>
     <string name="renderer_accuracy_high">دقيق</string>
 
     <!-- DMA Accuracy -->

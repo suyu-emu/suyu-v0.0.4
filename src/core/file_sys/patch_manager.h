@@ -49,8 +49,6 @@ struct Patch {
     PatchSource source;
     std::string location;
     u32 numeric_version{0};
-    std::optional<std::string> file_path;
-    std::optional<std::string> root_path;
 };
 
 // A centralized class to manage patches to games.
@@ -106,6 +104,9 @@ public:
 
     // Version of GetControlMetadata that takes an arbitrary NCA
     [[nodiscard]] Metadata ParseControlNCA(const NCA& nca) const;
+
+    /// @brief Gets NACP metadata (accounting for any patches or updates)
+    [[nodiscard]] static PatchManager::Metadata GetMetadataFromBaseOrUpdate(Core::System& system, u64 application_id) noexcept;
 
 private:
     [[nodiscard]] std::vector<VirtualFile> CollectPatches(const std::vector<VirtualDir>& patch_dirs,

@@ -81,7 +81,7 @@ void nvmap::OnClose(DeviceFD fd) {
 }
 
 NvResult nvmap::IocCreate(IocCreateParams& params) {
-    LOG_DEBUG(Service_NVDRV, "called, size=0x{:08X}", params.size);
+    LOG_DEBUG(Service_NVDRV, "called, size={:#08x}", params.size);
 
     std::shared_ptr<NvCore::NvMap::Handle> handle_description{};
     auto result =
@@ -92,7 +92,7 @@ NvResult nvmap::IocCreate(IocCreateParams& params) {
     }
     handle_description->orig_size = params.size; // Orig size is the unaligned size
     params.handle = handle_description->id;
-    LOG_DEBUG(Service_NVDRV, "handle: {}, size: {:#X}", handle_description->id, params.size);
+    LOG_DEBUG(Service_NVDRV, "handle: {}, size: {:#x}", handle_description->id, params.size);
 
     return NvResult::Success;
 }

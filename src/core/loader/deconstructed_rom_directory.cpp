@@ -263,32 +263,8 @@ AppLoader_DeconstructedRomDirectory::LoadResult AppLoader_DeconstructedRomDirect
 
         next_load_addr = *tentative_next_load_addr;
         modules.insert_or_assign(load_addr, module);
-        LOG_DEBUG(Loader, "loaded module {} @ {:#X}", module, load_addr);
+        LOG_DEBUG(Loader, "loaded module {} @ {:#x}", module, load_addr);
     }
-
-    // AppLoader_NCA/NSP/NRO all register a RomFSFactory for their process here;
-    // this loader never did, so FileSystemController::OpenProcess() found no
-    // registration for a deconstructed-rom-directory process (every native
-    // static-recomp export, plus any real homebrew shipped this way) and left
-    // its output romfs_controller untouched - a null shared_ptr the FSP_SRV
-    // caller then called through unconditionally, segfaulting the instant a
-    // title's very first OpenDataStorageByCurrentProcess request came in.
-    // Registering unconditionally (matching NRO) fixes that regardless of
-    // whether romfs.bin is actually present: ReadRomFS below already returns
-    // ErrorNoRomFS cleanly when `romfs` is still null, so a title with no
-    // bundled RomFS gets a real (if empty) answer instead of a crash.
-    if (dir != nullptr) {
-        romfs = dir->GetFile("romfs.bin");
-        if (romfs == nullptr) {
-            romfs = dir->GetFile("romfs");
-        }
-    }
-    LOG_DEBUG(Loader, "registering romfs factory for pid={} title={:016X} romfs_present={}",
-              process.GetProcessId(), metadata.GetTitleID(), romfs != nullptr);
-    system.GetFileSystemController().RegisterProcess(
-        process.GetProcessId(), metadata.GetTitleID(),
-        std::make_unique<FileSys::RomFSFactory>(*this, system.GetContentProvider(),
-                                                system.GetFileSystemController()));
 
     is_loaded = true;
     return {ResultStatus::Success,

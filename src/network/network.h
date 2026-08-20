@@ -23,12 +23,4 @@ std::weak_ptr<RoomMember> GetRoomMember();
 /// Unregisters the network device, the room, and the room member and shut them down.
 void Shutdown();
 
-/// suyu compatibility wrapper — suyu's frontend passes RoomNetwork& to multiplayer dialogs
-struct RoomNetwork {
-    bool Init()     { return Network::Init(); }
-    void Shutdown() { return Network::Shutdown(); }
-    std::weak_ptr<Room>       GetRoom()       const { return Network::GetRoom(); }
-    std::weak_ptr<RoomMember> GetRoomMember() const { return Network::GetRoomMember(); }
-};
-
 } // namespace Network

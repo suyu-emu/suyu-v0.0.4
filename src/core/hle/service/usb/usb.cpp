@@ -11,6 +11,7 @@
 #include "core/hle/service/server_manager.h"
 #include "core/hle/service/service.h"
 #include "core/hle/service/usb/usb.h"
+#include "frontend_common/firmware_manager.h"
 
 namespace Service::USB {
 
@@ -221,6 +222,44 @@ public:
     }
 };
 
+class IPdManufactureManager final : public ServiceFramework<IPdManufactureManager> {
+public:
+    explicit IPdManufactureManager(Core::System& system_) : ServiceFramework{system_, "usb:pd:m"} {
+        // clang-format off
+        static const FunctionInfo functions[] = {
+            {0, nullptr, "OpenManufactureSession"},
+        };
+        // clang-format on
+        RegisterHandlers(functions);
+    }
+};
+
+class IQdbManager final : public ServiceFramework<IQdbManager> {
+public:
+    explicit IQdbManager(Core::System& system_) : ServiceFramework{system_, "usb:qdb"} {
+        // clang-format off
+        static const FunctionInfo functions[] = {
+            {0, nullptr, "ImportQuirkDevices"},
+            {1, nullptr, "HasQuirk"},
+        };
+        // clang-format on
+        RegisterHandlers(functions);
+    }
+};
+
+class IPmObserverService final : public ServiceFramework<IPmObserverService> {
+public:
+    explicit IPmObserverService(Core::System& system_) : ServiceFramework{system_, "usb:obsv"} {
+        // clang-format off
+        static const FunctionInfo functions[] = {
+            {0, nullptr, "GetTopologyChangeEvent"},
+            {1, nullptr, "GetFlattenedTopology"},
+        };
+        // clang-format on
+        RegisterHandlers(functions);
+    }
+};
+
 void LoopProcess(Core::System& system) {
     auto server_manager = std::make_unique<ServerManager>(system);
 
@@ -228,7 +267,16 @@ void LoopProcess(Core::System& system) {
     server_manager->RegisterNamedService("usb:hs", std::make_shared<IClientRootSession>(system));
     server_manager->RegisterNamedService("usb:pd", std::make_shared<IPdManager>(system));
     server_manager->RegisterNamedService("usb:pd:c", std::make_shared<IPdCradleManager>(system));
+    server_manager->RegisterNamedService("usb:pd:m", std::make_shared<IPdManufactureManager>(system));
     server_manager->RegisterNamedService("usb:pm", std::make_shared<IPmMainService>(system));
+    // +7.0.0
+    if (FirmwareManager::GetFirmwareVersion(system).first.major >= 7) {
+        server_manager->RegisterNamedService("usb:qdb", std::make_shared<IQdbManager>(system));
+    }
+    // +8.0.0
+    if (FirmwareManager::GetFirmwareVersion(system).first.major >= 8) {
+        server_manager->RegisterNamedService("usb:obsv", std::make_shared<IPmObserverService>(system));
+    }
     ServerManager::RunServer(std::move(server_manager));
 }
 

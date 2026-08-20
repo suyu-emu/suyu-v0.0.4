@@ -76,7 +76,7 @@ Result IAlbumAccessorService::GetAlbumFileList(
 }
 
 Result IAlbumAccessorService::DeleteAlbumFile(AlbumFileId file_id) {
-    LOG_INFO(Service_Capture, "called, application_id=0x{:0x}, storage={}, type={}",
+    LOG_INFO(Service_Capture, "called, application_id={:#0x}, storage={}, type={}",
              file_id.application_id, file_id.storage, file_id.type);
 
     const Result result = manager->DeleteAlbumFile(file_id);
@@ -120,7 +120,7 @@ Result IAlbumAccessorService::LoadAlbumScreenShotImageEx1(
     OutLargeData<LoadAlbumScreenShotImageOutput, BufferAttr_HipcMapAlias> out_image_output,
     OutArray<u8, BufferAttr_HipcMapAlias | BufferAttr_HipcMapTransferAllowsNonSecure> out_image,
     OutArray<u8, BufferAttr_HipcMapAlias> out_buffer) {
-    LOG_INFO(Service_Capture, "called, application_id=0x{:0x}, storage={}, type={}, flags={}",
+    LOG_INFO(Service_Capture, "called, application_id={:#0x}, storage={}, type={}, flags={}",
              file_id.application_id, file_id.storage, file_id.type, decoder_options.flags);
 
     const Result result =
@@ -133,7 +133,7 @@ Result IAlbumAccessorService::LoadAlbumScreenShotThumbnailImageEx1(
     OutLargeData<LoadAlbumScreenShotImageOutput, BufferAttr_HipcMapAlias> out_image_output,
     OutArray<u8, BufferAttr_HipcMapAlias | BufferAttr_HipcMapTransferAllowsNonSecure> out_image,
     OutArray<u8, BufferAttr_HipcMapAlias> out_buffer) {
-    LOG_INFO(Service_Capture, "called, application_id=0x{:0x}, storage={}, type={}, flags={}",
+    LOG_INFO(Service_Capture, "called, application_id={:#0x}, storage={}, type={}, flags={}",
              file_id.application_id, file_id.storage, file_id.type, decoder_options.flags);
 
     const Result result = manager->LoadAlbumScreenShotThumbnail(*out_image_output, out_image,

@@ -80,7 +80,11 @@ Result NPad::Activate(u64 aruid) {
     std::scoped_lock shared_lock{*applet_resource_holder.shared_mutex};
 
     auto* data = applet_resource_holder.applet_resource->GetAruidData(aruid);
-    const auto aruid_index = applet_resource_holder.applet_resource->GetIndexFromAruid(aruid);
+    auto aruid_index = applet_resource_holder.applet_resource->GetIndexFromAruid(aruid);
+    if (aruid_index >= AruidIndexMax) {
+        LOG_ERROR(Service_HID, "Invalid aruid:{:016X}", aruid);
+        aruid_index = 0;
+    }
 
     if (data == nullptr || !data->flag.is_assigned) {
         return ResultSuccess;
@@ -504,9 +508,12 @@ void NPad::OnUpdate(Kernel::KernelCore& kernel, const Core::Timing::CoreTiming& 
 
         for (std::size_t i = 0; i < controller_data[aruid_index].size(); ++i) {
             auto& controller = controller_data[aruid_index][i];
-            controller.shared_memory =
-                &data->shared_memory_format->npad.npad_entry[i].internal_state;
+            controller.shared_memory = &data->shared_memory_format->npad.npad_entry[i].internal_state;
             auto* npad = controller.shared_memory;
+            if (!npad || !controller.device) {
+                LOG_WARNING(Service_HID, "No device for {}", i);
+                continue;
+            }
 
             const auto& controller_type = controller.device->GetNpadStyleIndex();
 
@@ -1096,13 +1103,16 @@ Result NPad::RegisterAppletResourceUserId(u64 aruid) {
 
 void NPad::UnregisterAppletResourceUserId(u64 aruid) {
     // TODO: Remove this once abstract pad is emulated properly
-    const auto aruid_index = npad_resource.GetIndexFromAruid(aruid);
+    auto aruid_index = npad_resource.GetIndexFromAruid(aruid);
+    if (aruid_index >= AruidIndexMax) {
+        LOG_ERROR(Service_HID, "Invalid aruid:{:016X}", aruid);
+        aruid_index = 0;
+    }
     for (auto& controller : controller_data[aruid_index]) {
         controller.is_active = false;
         controller.is_connected = false;
         controller.shared_memory = nullptr;
     }
-
     npad_resource.UnregisterAppletResourceUserId(aruid);
 }
 

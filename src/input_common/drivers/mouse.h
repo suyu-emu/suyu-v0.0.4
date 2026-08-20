@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 // SPDX-FileCopyrightText: Copyright 2021 yuzu Emulator Project
@@ -93,6 +93,9 @@ public:
 
     void ReleaseAllButtons();
 
+    /// @brief Notifies we changed something about the mouse state and we must update
+    void NotifyChanged();
+
     std::vector<Common::ParamPackage> GetInputDevices() const override;
     AnalogMapping GetAnalogMappingForDevice(const Common::ParamPackage& params) override;
     Common::Input::ButtonNames GetUIName(const Common::ParamPackage& params) const override;
@@ -110,7 +113,6 @@ private:
     Common::Vec3<float> last_motion_change;
     Common::Vec2<int> wheel_position;
     bool button_pressed = false;
-    std::jthread update_thread;
 };
 
 } // namespace InputCommon

@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 // SPDX-FileCopyrightText: Copyright 2023 yuzu Emulator Project
@@ -13,7 +13,7 @@ namespace Kernel::Svc {
 
 /// Attempts to locks a mutex
 Result ArbitrateLock(Core::System& system, Handle thread_handle, u64 address, u32 tag) {
-    LOG_TRACE(Kernel_SVC, "called thread_handle=0x{:08X}, address={:#X}, tag=0x{:08X}",
+    LOG_TRACE(Kernel_SVC, "called thread_handle={:#08x}, address={:#x}, tag={:#08x}",
               thread_handle, address, tag);
 
     // Validate the input address.
@@ -25,7 +25,7 @@ Result ArbitrateLock(Core::System& system, Handle thread_handle, u64 address, u3
 
 /// Unlock a mutex
 Result ArbitrateUnlock(Core::System& system, u64 address) {
-    LOG_TRACE(Kernel_SVC, "called address={:#X}", address);
+    LOG_TRACE(Kernel_SVC, "called address={:#x}", address);
 
     // Validate the input address.
     R_UNLESS(!IsKernelAddress(address), ResultInvalidCurrentMemory);

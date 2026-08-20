@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 // SPDX-FileCopyrightText: Copyright 2021 yuzu Emulator Project
@@ -23,6 +23,7 @@ enum class EdenPath {
     KeysDir,        // Where key files are stored.
     LoadDir,        // Where cheat/mod files are stored.
     LogDir,         // Where log files are stored.
+    LosslessDir,    // Where the user-supplied Lossless Scaling library is stored.
     NANDDir,        // Where the emulated NAND is stored.
     PlayTimeDir,    // Where play time data is stored.
     SaveDir,        // Where save data is stored.
@@ -31,11 +32,6 @@ enum class EdenPath {
     ShaderDir,      // Where shaders are stored.
     TASDir,         // Where TAS scripts are stored.
     IconsDir,       // Where Icons for Windows shortcuts are stored.
-    ThemesDir,      // suyu-exclusive: Where UI themes are stored.
-
-    // suyu compatibility aliases (suyu called the root dir "SuyuDir"; Eden renamed it "EdenDir")
-    SuyuDir = EdenDir,
-    UserDir = EdenDir,
 };
 
 // migration/compat dirs
@@ -374,26 +370,5 @@ enum class DirectorySeparator {
         return name.substr(index + 1);
     return {};
 }
-
-// suyu → Eden path API compatibility shims
-// suyu's frontend uses GetSuyuPath(SuyuPath::XxxDir); Eden renamed to GetEdenPath(EdenPath::XxxDir).
-// These aliases let src/suyu compile without touching every call site.
-using SuyuPath = EdenPath;
-
-[[nodiscard]] inline const std::filesystem::path& GetSuyuPath(EdenPath p) {
-    return GetEdenPath(p);
-}
-[[nodiscard]] inline std::string GetSuyuPathString(EdenPath p) {
-    return GetEdenPathString(p);
-}
-inline void SetSuyuPath(EdenPath p, const std::filesystem::path& path) {
-    SetEdenPath(p, path);
-}
-#ifdef _WIN32
-template <typename Path>
-void SetSuyuPath(EdenPath p, const Path& path) {
-    SetEdenPath(p, path);
-}
-#endif
 
 } // namespace Common::FS

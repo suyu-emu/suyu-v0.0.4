@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2018 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -22,15 +25,17 @@ SPL::SPL(Core::System& system_, std::shared_ptr<Module> module_)
     RegisterHandlers(functions);
 }
 
+SPL::~SPL() = default;
+
 SPL_MIG::SPL_MIG(Core::System& system_, std::shared_ptr<Module> module_)
     : Interface(system_, std::move(module_), "spl:mig") {
     // clang-format off
     static const FunctionInfo functions[] = {
         {0, &SPL::GetConfig, "GetConfig"},
         {1, &SPL::ModularExponentiate, "ModularExponentiate"},
-        {2, nullptr, "GenerateAesKek"},
+        {2, &SPL::GenerateAesKek, "GenerateAesKek"},
         {3, nullptr, "LoadAesKey"},
-        {4, nullptr, "GenerateAesKey"},
+        {4, &SPL::GenerateAesKey, "GenerateAesKey"},
         {5, &SPL::SetConfig, "SetConfig"},
         {7, &SPL::GenerateRandomBytes, "GenerateRandomBytes"},
         {11, &SPL::IsDevelopment, "IsDevelopment"},
@@ -47,6 +52,8 @@ SPL_MIG::SPL_MIG(Core::System& system_, std::shared_ptr<Module> module_)
 
     RegisterHandlers(functions);
 }
+
+SPL_MIG::~SPL_MIG() = default;
 
 SPL_FS::SPL_FS(Core::System& system_, std::shared_ptr<Module> module_)
     : Interface(system_, std::move(module_), "spl:fs") {
@@ -79,6 +86,8 @@ SPL_FS::SPL_FS(Core::System& system_, std::shared_ptr<Module> module_)
     RegisterHandlers(functions);
 }
 
+SPL_FS::~SPL_FS() = default;
+
 SPL_SSL::SPL_SSL(Core::System& system_, std::shared_ptr<Module> module_)
     : Interface(system_, std::move(module_), "spl:ssl") {
     // clang-format off
@@ -107,6 +116,8 @@ SPL_SSL::SPL_SSL(Core::System& system_, std::shared_ptr<Module> module_)
 
     RegisterHandlers(functions);
 }
+
+SPL_SSL::~SPL_SSL() = default;
 
 SPL_ES::SPL_ES(Core::System& system_, std::shared_ptr<Module> module_)
     : Interface(system_, std::move(module_), "spl:es") {
@@ -142,6 +153,8 @@ SPL_ES::SPL_ES(Core::System& system_, std::shared_ptr<Module> module_)
     RegisterHandlers(functions);
 }
 
+SPL_ES::~SPL_ES() = default;
+
 SPL_MANU::SPL_MANU(Core::System& system_, std::shared_ptr<Module> module_)
     : Interface(system_, std::move(module_), "spl:manu") {
     // clang-format off
@@ -169,16 +182,6 @@ SPL_MANU::SPL_MANU(Core::System& system_, std::shared_ptr<Module> module_)
 
     RegisterHandlers(functions);
 }
-
-SPL::~SPL() = default;
-
-SPL_MIG::~SPL_MIG() = default;
-
-SPL_FS::~SPL_FS() = default;
-
-SPL_SSL::~SPL_SSL() = default;
-
-SPL_ES::~SPL_ES() = default;
 
 SPL_MANU::~SPL_MANU() = default;
 

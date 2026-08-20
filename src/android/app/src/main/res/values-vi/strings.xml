@@ -562,10 +562,6 @@
     <string name="memory_6gb">6GB (Không an toàn)</string>
     <string name="memory_8gb">8GB (Không an toàn)</string>
 
-    <!--CPU clock speeds-->
-    <string name="clock_boost">Boost (1700MHz)</string>
-    <string name="clock_fast">Nhanh (2000MHz)</string>
-
     <!-- Temperature Units -->
     <string name="temperature_celsius">Celsius</string>
     <string name="temperature_fahrenheit">Fahrenheit</string>

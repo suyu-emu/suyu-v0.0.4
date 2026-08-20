@@ -41,7 +41,6 @@ ButtonPoller::ButtonPoller(Core::System& system, WindowSystem& window_system) {
     Core::HID::ControllerUpdateCallback engine_callback{
         .on_change = [this, &window_system](Core::HID::ControllerTriggerType type) {
             if (type == Core::HID::ControllerTriggerType::Button) {
-                std::unique_lock lk{m_mutex};
                 OnButtonStateChanged(window_system);
             }
         },
@@ -52,29 +51,11 @@ ButtonPoller::ButtonPoller(Core::System& system, WindowSystem& window_system) {
     m_handheld_key = m_handheld->SetCallback(engine_callback);
     m_player1 = system.HIDCore().GetEmulatedController(Core::HID::NpadIdType::Player1);
     m_player1_key = m_player1->SetCallback(engine_callback);
-
-    m_thread = std::jthread([this, &window_system](std::stop_token stop_token) {
-        Common::SetCurrentThreadName("ButtonPoller");
-        while (!stop_token.stop_requested()) {
-            using namespace std::chrono_literals;
-            std::unique_lock lk{m_mutex};
-            m_cv.wait_for(lk, 50ms);
-            if (stop_token.stop_requested())
-                break;
-            OnButtonStateChanged(window_system);
-            std::this_thread::sleep_for(5ms);
-        }
-    });
 }
 
 ButtonPoller::~ButtonPoller() {
     m_handheld->DeleteCallback(m_handheld_key);
     m_player1->DeleteCallback(m_player1_key);
-    m_cv.notify_all();
-    if (m_thread.joinable()) {
-        m_thread.request_stop();
-        m_thread.join();
-    }
 }
 
 void ButtonPoller::OnButtonStateChanged(WindowSystem& window_system) {

@@ -9,10 +9,11 @@
 #include <tuple>
 #include <utility>
 
+#include <SDL3/SDL.h>
+#include <SDL3/SDL_timer.h>
+
 #include "core/frontend/emu_window.h"
 #include "core/frontend/graphics_context.h"
-
-struct SDL_Window;
 
 namespace Core {
 class System;
@@ -35,7 +36,7 @@ public:
     bool IsShown() const override;
 
     /// Wait for the next event on the main thread.
-    void WaitEvent();
+    void OnEvent(SDL_Event& event);
 
     // Sets the window icon from yuzu.bmp
     void SetWindowIcon();
@@ -80,6 +81,9 @@ protected:
     /// Called when a configuration change affects the minimal size of the window
     void OnMinimalClientAreaChangeRequest(std::pair<u32, u32> minimal_size) override;
 
+    /// Periodic changer of titlebar (independent of event loop)
+    SDL_TimerID titlebar_timer;
+
     /// Is the window still open?
     bool is_open = true;
 
@@ -88,9 +92,6 @@ protected:
 
     /// Internal SDL3 render window
     SDL_Window* render_window{};
-
-    /// Keeps track of how often to update the title bar during gameplay
-    u32 last_time = 0;
 
     /// Input subsystem to use with this window.
     InputCommon::InputSubsystem* input_subsystem;

@@ -49,6 +49,23 @@ constexpr VkExtent2D CaptureImageSize{
     .height = VideoCore::Capture::LinearHeight,
 };
 
+#ifdef HAS_LSFG
+[[nodiscard]] VkExtent2D GuestExtent(std::span<const Tegra::FramebufferConfig> framebuffers) {
+    if (framebuffers.empty()) {
+        return VkExtent2D{};
+    }
+
+    const auto& framebuffer = framebuffers.front();
+    if (framebuffer.crop_rect.IsEmpty()) {
+        return VkExtent2D{.width = framebuffer.width, .height = framebuffer.height};
+    }
+    return VkExtent2D{
+        .width = static_cast<u32>(framebuffer.crop_rect.GetWidth()),
+        .height = static_cast<u32>(framebuffer.crop_rect.GetHeight()),
+    };
+}
+#endif
+
 constexpr VkExtent3D CaptureImageExtent{
     .width = VideoCore::Capture::LinearWidth,
     .height = VideoCore::Capture::LinearHeight,
@@ -155,9 +172,11 @@ try
                   present_manager,
                   scheduler,
                   PresentFiltersForAppletCapture)
-    , rasterizer(render_window, gpu, device_memory, device, memory_allocator, state_tracker, scheduler) {
-
-    is_headless = (render_window.GetWindowInfo().type == Core::Frontend::WindowSystemType::Headless);
+    , rasterizer(render_window, gpu, device_memory, device, memory_allocator, state_tracker, scheduler)
+#ifdef HAS_LSFG
+    , frame_gen(memory_allocator, scheduler)
+#endif
+{
 
     if (Settings::values.renderer_force_max_clock.GetValue() && device.ShouldBoostClocks()) {
         turbo_mode.emplace(instance, dld);
@@ -182,36 +201,6 @@ void RendererVulkan::Composite(std::span<const Tegra::FramebufferConfig> framebu
 
     RenderAppletCaptureLayer(framebuffers);
 
-    if (is_headless) {
-        static unsigned headless_composite_count = 0;
-        ++headless_composite_count;
-        if (headless_composite_count <= 5 || (headless_composite_count % 60) == 0) {
-            LOG_INFO(Render_Vulkan, "Headless Composite #{}, {} framebuffer layers",
-                     headless_composite_count, framebuffers.size());
-            fprintf(stderr, "[suyu-vulkan] Headless Composite #%u, %zu layers\n",
-                    headless_composite_count, framebuffers.size());
-            fflush(stderr);
-        }
-
-        RenderScreenshot(framebuffers);
-
-        if (!framebuffers.empty()) {
-            const Layout::FramebufferLayout layout{render_window.GetFramebufferLayout()};
-            headless_width = layout.width;
-            headless_height = layout.height;
-            const VkDeviceSize buffer_size = headless_width * headless_height * 4;
-
-            auto dst_buffer = RenderToBuffer(framebuffers, layout,
-                                             VK_FORMAT_B8G8R8A8_UNORM, buffer_size);
-            headless_frame_data.resize(buffer_size);
-            std::memcpy(headless_frame_data.data(), dst_buffer.Mapped().data(), buffer_size);
-        }
-
-        gpu.RendererFrameEndNotify();
-        rasterizer.TickFrame();
-        return;
-    }
-
     if (!render_window.IsShown()) {
         return;
     }
@@ -223,9 +212,28 @@ void RendererVulkan::Composite(std::span<const Tegra::FramebufferConfig> framebu
     blit_swapchain.DrawToFrame(device, rasterizer, frame, framebuffers,
                                render_window.GetFramebufferLayout(), swapchain.GetImageCount(),
                                swapchain.GetImageViewFormat());
+
+#ifdef HAS_LSFG
+    void(frame_gen.WantedGenerations(present_manager.MaxExtraFrames()));
+
+    frame_gen.Process(device, frame, swapchain.GetImageFormat(), GuestExtent(framebuffers));
+
+    const size_t generated_frames = frame_gen.GeneratedFrameCount();
+    for (size_t generation = 0; generation < generated_frames; ++generation) {
+        Frame* generated = present_manager.GetRenderFrame();
+        blit_swapchain.PrepareFrame(device, generated, render_window.GetFramebufferLayout());
+        frame_gen.GenerateInto(device, generated, generation);
+        scheduler.Flush(*generated->render_ready);
+        present_manager.Present(generated);
+    }
+#endif
+
     scheduler.Flush(*frame->render_ready);
 
     present_manager.Present(frame);
+#ifdef HAS_LSFG
+    scheduler.DispatchWork();
+#endif
 
     gpu.RendererFrameEndNotify();
     rasterizer.TickFrame();

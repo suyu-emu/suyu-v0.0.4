@@ -14,7 +14,7 @@
 namespace Kernel::Svc {
 
 Result SignalEvent(Core::System& system, Handle event_handle) {
-    LOG_DEBUG(Kernel_SVC, "called, event_handle=0x{:08X}", event_handle);
+    LOG_DEBUG(Kernel_SVC, "called, event_handle={:#08x}", event_handle);
 
     // Get the current handle table.
     const KHandleTable& handle_table = GetCurrentProcess(system.Kernel()).GetHandleTable();
@@ -26,7 +26,7 @@ Result SignalEvent(Core::System& system, Handle event_handle) {
         if (event.IsNotNull()) {
             event->Signal(system.Kernel());
         } else {
-            LOG_WARNING(Kernel_SVC, "SignalEvent best-effort unknown handle=0x{:08X} (ignored)",
+            LOG_WARNING(Kernel_SVC, "SignalEvent best-effort unknown handle={:#08x} (ignored)",
                         event_handle);
         }
         R_SUCCEED();
@@ -41,7 +41,7 @@ Result SignalEvent(Core::System& system, Handle event_handle) {
 }
 
 Result ClearEvent(Core::System& system, Handle event_handle) {
-    LOG_TRACE(Kernel_SVC, "called, event_handle=0x{:08X}", event_handle);
+    LOG_TRACE(Kernel_SVC, "called, event_handle={:#08x}", event_handle);
 
     // Get the current handle table.
     const auto& handle_table = GetCurrentProcess(system.Kernel()).GetHandleTable();

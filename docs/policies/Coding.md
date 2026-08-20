@@ -34,7 +34,7 @@ Everyone has their own way of viewing good/bad C++ practices, my general outline
   - The reason is because the project has `-fno-rtti` disabled by default, due to the costs of dynamic polymorphism.
 - Always copy-on-value for objects with `sizeof(void *) >= sizeof(T) * 2`, i.e objects sized as 2 pointers or less, for bigger objects you can use ref/pointer as usual.
 - Try using move semantics instead of references, whenever possible.
-- Remember function parameters are extremelly cheap as fuck, don't be afraid to place upto 8 parameters on a given function.
+- Function parameters are cheap. Don't be afraid to use as many as needed (API usability permitting).
 - Don't save a reference in structures of a parent object, i.e:
 
     ```c++

@@ -305,7 +305,7 @@ size_t GetTotalPipelineWorkers() {
         std::max<size_t>(static_cast<size_t>(std::thread::hardware_concurrency()), 2ULL) - 1ULL;
 #ifdef __ANDROID__
     const int configured = AndroidSettings::values.pipeline_worker_count.GetValue();
-    const int clamped = std::clamp(configured, 4, 8);
+    const int clamped = std::clamp(configured, 2, 8);
     const size_t desired = static_cast<size_t>(clamped);
     if (desired == 0) {
         return 1ULL;
@@ -340,17 +340,20 @@ PipelineCache::PipelineCache(Tegra::MaxwellDeviceMemoryManager& device_memory_,
                              const Device& device_, Scheduler& scheduler_,
                              DescriptorPool& descriptor_pool_,
                              GuestDescriptorQueue& guest_descriptor_queue_,
+                             DescriptorBufferRing& descriptor_buffer_ring_,
                              RenderPassCache& render_pass_cache_, BufferCache& buffer_cache_,
                              TextureCache& texture_cache_, VideoCore::ShaderNotify& shader_notify_)
     : VideoCommon::ShaderCache{device_memory_}, device{device_}, scheduler{scheduler_},
       descriptor_pool{descriptor_pool_}, guest_descriptor_queue{guest_descriptor_queue_},
+      descriptor_buffer_ring{descriptor_buffer_ring_},
       render_pass_cache{render_pass_cache_}, buffer_cache{buffer_cache_},
       texture_cache{texture_cache_}, shader_notify{shader_notify_},
       use_asynchronous_shaders{Settings::values.use_asynchronous_shaders.GetValue()},
       use_vulkan_pipeline_cache{Settings::values.use_vulkan_driver_pipeline_cache.GetValue()},
       workers(device.HasBrokenParallelShaderCompiling() ? 1ULL : GetTotalPipelineWorkers(),
-              "VkPipelineBuilder"),
-      serialization_thread(1, "VkPipelineSerialization") {
+              "VkPipelineBuilder", {}, Common::ThreadPlacement::Background),
+      serialization_thread(1, "VkPipelineSerialization", {},
+                           Common::ThreadPlacement::Background) {
     const auto& float_control{device.FloatControlProperties()};
     const VkDriverId driver_id{device.GetDriverID()};
     const VkShaderStageFlags subgroup_stages{device.GetSubgroupSupportedStages()};
@@ -374,9 +377,11 @@ PipelineCache::PipelineCache(Tegra::MaxwellDeviceMemoryManager& device_memory_,
         .support_int8 = device.IsInt8Supported(),
         .support_uniform_and_storage_buffer_8bit =
             device.IsUniformAndStorageBuffer8BitAccessSupported(),
+        .support_storage_buffer_8bit = device.IsStorageBuffer8BitAccessSupported(),
         .support_int16 = device.IsShaderInt16Supported(),
         .support_uniform_and_storage_buffer_16bit =
             device.IsUniformAndStorageBuffer16BitAccessSupported(),
+        .support_storage_buffer_16bit = device.IsStorageBuffer16BitAccessSupported(),
         .support_int64 = device.IsShaderInt64Supported(),
         .support_vertex_instance_id = false,
         .support_float_controls = device.IsKhrShaderFloatControlsSupported(),
@@ -395,6 +400,10 @@ PipelineCache::PipelineCache(Tegra::MaxwellDeviceMemoryManager& device_memory_,
         .support_fp64_signed_zero_nan_preserve =
             float_control.shaderSignedZeroInfNanPreserveFloat64 != VK_FALSE,
         .support_explicit_workgroup_layout = device.IsKhrWorkgroupMemoryExplicitLayoutSupported(),
+        .support_workgroup_layout_8bit_access =
+            device.IsWorkgroupMemoryExplicitLayout8BitAccessSupported(),
+        .support_workgroup_layout_16bit_access =
+            device.IsWorkgroupMemoryExplicitLayout16BitAccessSupported(),
         .support_vote = device.IsSubgroupFeatureSupported(VK_SUBGROUP_FEATURE_VOTE_BIT),
         .supported_subgroup_stages = supported_subgroup_stages,
         .support_viewport_index_layer_non_geometry =
@@ -404,6 +413,7 @@ PipelineCache::PipelineCache(Tegra::MaxwellDeviceMemoryManager& device_memory_,
         .support_demote_to_helper_invocation =
             device.IsExtShaderDemoteToHelperInvocationSupported(),
         .support_int64_atomics = device.IsExtShaderAtomicInt64Supported(),
+        .support_shared_int64_atomics = device.IsSharedInt64AtomicsSupported(),
         .support_derivative_control = true,
         .support_geometry_shader_passthrough = device.IsNvGeometryShaderPassthroughSupported(),
         .support_native_ndc = device.IsExtDepthClipControlSupported(),
@@ -412,6 +422,12 @@ PipelineCache::PipelineCache(Tegra::MaxwellDeviceMemoryManager& device_memory_,
         .support_geometry_streams = device.AreTransformFeedbackGeometryStreamsSupported(),
         .support_sampled_image_array_nonuniform_indexing =
             device.IsSampledImageArrayNonUniformIndexingSupported(),
+        .support_storage_image_array_nonuniform_indexing =
+            device.IsStorageImageArrayNonUniformIndexingSupported(),
+        .support_uniform_texel_buffer_array_nonuniform_indexing =
+            device.IsUniformTexelBufferArrayNonUniformIndexingSupported(),
+        .support_storage_texel_buffer_array_nonuniform_indexing =
+            device.IsStorageTexelBufferArrayNonUniformIndexingSupported(),
 
         .warp_size_potentially_larger_than_guest = device.IsWarpSizePotentiallyBiggerThanGuest(),
 
@@ -728,7 +744,7 @@ std::unique_ptr<GraphicsPipeline> PipelineCache::CreateGraphicsPipeline(
     std::span<Shader::Environment* const> envs, PipelineStatistics* statistics,
     bool build_in_parallel) try {
     auto hash = key.Hash();
-    LOG_INFO(Render_Vulkan, "0x{:016x}", hash);
+    LOG_INFO(Render_Vulkan, "{:#016x}", hash);
     size_t env_index{0};
     std::array<Shader::IR::Program, Maxwell::MaxShaderProgram> programs;
     const bool uses_vertex_a{key.unique_hashes[0] != 0};
@@ -823,8 +839,8 @@ std::unique_ptr<GraphicsPipeline> PipelineCache::CreateGraphicsPipeline(
     Common::ThreadWorker* const thread_worker{build_in_parallel ? &workers : nullptr};
     return std::make_unique<GraphicsPipeline>(
         scheduler, buffer_cache, texture_cache, vulkan_pipeline_cache, &shader_notify, device,
-        descriptor_pool, guest_descriptor_queue, thread_worker, statistics, render_pass_cache, key,
-        std::move(modules), infos);
+        descriptor_pool, guest_descriptor_queue, descriptor_buffer_ring, thread_worker, statistics,
+        render_pass_cache, key, std::move(modules), infos);
 
 } catch (const Shader::Exception& exception) {
     auto hash = key.Hash();
@@ -891,11 +907,11 @@ std::unique_ptr<ComputePipeline> PipelineCache::CreateComputePipeline(
     PipelineStatistics* statistics, bool build_in_parallel) try {
     auto hash = key.Hash();
     if (device.HasBrokenCompute()) {
-        LOG_ERROR(Render_Vulkan, "Skipping 0x{:016x}", hash);
+        LOG_ERROR(Render_Vulkan, "Skipping {:#016x}", hash);
         return nullptr;
     }
 
-    LOG_INFO(Render_Vulkan, "0x{:016x}", hash);
+    LOG_INFO(Render_Vulkan, "{:#016x}", hash);
 
     Shader::Maxwell::Flow::CFG cfg{env, pools.flow_block, env.StartAddress()};
 
@@ -912,7 +928,7 @@ std::unique_ptr<ComputePipeline> PipelineCache::CreateComputePipeline(
     const u32 max_shared_memory = device.GetMaxComputeSharedMemorySize();
     if (needs_shared_mem_clamp && program.shared_memory_size > max_shared_memory) {
         LOG_WARNING(Render_Vulkan,
-                    "Compute shader 0x{:016x} requests {}KB shared memory but device max is {}KB - clamping",
+                    "Compute shader {:#016x} requests {}KB shared memory but device max is {}KB - clamping",
                     key.unique_hash,
                     program.shared_memory_size / 1024,
                     max_shared_memory / 1024);
@@ -944,7 +960,8 @@ std::unique_ptr<ComputePipeline> PipelineCache::CreateComputePipeline(
     }
     Common::ThreadWorker* const thread_worker{build_in_parallel ? &workers : nullptr};
     return std::make_unique<ComputePipeline>(device, scheduler, vulkan_pipeline_cache, descriptor_pool,
-                                             guest_descriptor_queue, thread_worker, statistics,
+                                             guest_descriptor_queue, descriptor_buffer_ring,
+                                             thread_worker, statistics,
                                              &shader_notify, program.info, std::move(spv_module),
                                              key.unique_hash);
 

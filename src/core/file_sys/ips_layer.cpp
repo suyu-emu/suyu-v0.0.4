@@ -256,7 +256,7 @@ void IPSwitchCompiler::Parse() {
                 const auto& patch_line = lines[++i];
 
                 // Patch line may contain comments
-                if (StartsWith(patch_line, "//")) {
+                if (StartsWith(patch_line, "//") || StartsWith(patch_line, "#")) {
                     continue;
                 }
 
@@ -304,7 +304,7 @@ void IPSwitchCompiler::Parse() {
 
                 if (print_values) {
                     LOG_INFO(Loader,
-                             "[IPSwitchCompiler ('{}')]     - Patching value at offset 0x{:08X} "
+                             "[IPSwitchCompiler ('{}')]     - Patching value at offset {:#08x} "
                              "with byte string '{}'",
                              patch_text->GetName(), offset, Common::HexToString(replace));
                 }

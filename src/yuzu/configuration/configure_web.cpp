@@ -71,8 +71,8 @@ void ConfigureWeb::SetConfiguration() {
     connect(ui->edit_username, &QLineEdit::textChanged, this, &ConfigureWeb::VerifyLogin);
     connect(ui->edit_token, &QLineEdit::textChanged, this, &ConfigureWeb::VerifyLogin);
 
-    ui->edit_username->setText(QString::fromStdString(Settings::values.suyu_username.GetValue()));
-    ui->edit_token->setText(QString::fromStdString(Settings::values.suyu_token.GetValue()));
+    ui->edit_username->setText(QString::fromStdString(Settings::values.eden_username.GetValue()));
+    ui->edit_token->setText(QString::fromStdString(Settings::values.eden_token.GetValue()));
 
     VerifyLogin();
 
@@ -94,8 +94,8 @@ void ConfigureWeb::GenerateToken() {
 
 void ConfigureWeb::ApplyConfiguration() {
     UISettings::values.enable_discord_presence = ui->toggle_discordrpc->isChecked();
-    Settings::values.suyu_username = ui->edit_username->text().toStdString();
-    Settings::values.suyu_token = ui->edit_token->text().toStdString();
+    Settings::values.eden_username = ui->edit_username->text().toStdString();
+    Settings::values.eden_token = ui->edit_token->text().toStdString();
 }
 
 void ConfigureWeb::VerifyLogin() {

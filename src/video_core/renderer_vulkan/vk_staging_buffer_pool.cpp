@@ -84,9 +84,15 @@ StagingBufferPool::StagingBufferPool(const Device& device_, MemoryAllocator& mem
     if (device.IsExtTransformFeedbackSupported()) {
         stream_ci.usage |= VK_BUFFER_USAGE_TRANSFORM_FEEDBACK_BUFFER_BIT_EXT;
     }
+    if (device.IsBufferDeviceAddressSupported()) {
+        stream_ci.usage |= VK_BUFFER_USAGE_SHADER_DEVICE_ADDRESS_BIT;
+    }
     stream_buffer = memory_allocator.CreateBuffer(stream_ci, MemoryUsage::Stream);
     if (device.HasDebuggingToolAttached()) {
         stream_buffer.SetObjectNameEXT("Stream Buffer");
+    }
+    if (device.IsBufferDeviceAddressSupported()) {
+        stream_buffer_address = device.GetLogical().GetBufferDeviceAddress(*stream_buffer);
     }
     stream_pointer = stream_buffer.Mapped();
     ASSERT_MSG(!stream_pointer.empty(), "Stream buffer must be host visible!");
@@ -149,6 +155,7 @@ StagingBufferRef StagingBufferPool::GetStreamBuffer(size_t size) {
     iterator = Common::AlignUp(iterator + size, MAX_ALIGNMENT);
     return StagingBufferRef{
         .buffer = *stream_buffer,
+        .device_address = stream_buffer_address,
         .offset = static_cast<VkDeviceSize>(offset),
         .mapped_span = stream_pointer.subspan(offset, size),
         .usage{},
@@ -212,14 +219,22 @@ StagingBufferRef StagingBufferPool::CreateStagingBuffer(size_t size, MemoryUsage
     if (device.IsExtTransformFeedbackSupported()) {
         buffer_ci.usage |= VK_BUFFER_USAGE_TRANSFORM_FEEDBACK_BUFFER_BIT_EXT;
     }
+    if (device.IsBufferDeviceAddressSupported()) {
+        buffer_ci.usage |= VK_BUFFER_USAGE_SHADER_DEVICE_ADDRESS_BIT;
+    }
     vk::Buffer buffer = memory_allocator.CreateBuffer(buffer_ci, usage);
     if (device.HasDebuggingToolAttached()) {
         ++buffer_index;
         buffer.SetObjectNameEXT(fmt::format("Staging Buffer {}", buffer_index).c_str());
     }
     const std::span<u8> mapped_span = buffer.Mapped();
+    const VkDeviceAddress buffer_address =
+        device.IsBufferDeviceAddressSupported()
+            ? device.GetLogical().GetBufferDeviceAddress(*buffer)
+            : VkDeviceAddress{};
     StagingBuffer& entry = GetCache(usage)[log2_size].entries.emplace_back(StagingBuffer{
         .buffer = std::move(buffer),
+        .device_address = buffer_address,
         .mapped_span = mapped_span,
         .usage = usage,
         .log2_level = log2_size,

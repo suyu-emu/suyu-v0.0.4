@@ -189,7 +189,7 @@ void NsightAftermathTracker::OnShaderDebugInfoCallback(const void* shader_debug_
 
 void NsightAftermathTracker::OnCrashDumpDescriptionCallback(
     PFN_GFSDK_Aftermath_AddGpuCrashDumpDescription add_description) {
-    add_description(GFSDK_Aftermath_GpuCrashDumpDescriptionKey_ApplicationName, "suyu");
+    add_description(GFSDK_Aftermath_GpuCrashDumpDescriptionKey_ApplicationName, "Eden");
 }
 
 void NsightAftermathTracker::GpuCrashDumpCallback(const void* gpu_crash_dump,

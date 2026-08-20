@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+# SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 # SPDX-FileCopyrightText: 2022 yuzu Emulator Project
@@ -28,6 +28,6 @@ if (ENABLE_WEB_SERVICE)
 endif()
 
 # Solaris uses /lib/amd64/libsocket.so and /lib/amd64/libnsl.so
-if (PLATFORM_SUN)
+if (SOLARIS)
     target_link_libraries(network PRIVATE socket nsl)
 endif()

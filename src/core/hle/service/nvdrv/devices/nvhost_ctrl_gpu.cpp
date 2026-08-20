@@ -210,7 +210,7 @@ NvResult nvhost_ctrl_gpu::GetCharacteristics3(
 }
 
 NvResult nvhost_ctrl_gpu::GetTPCMasks1(IoctlGpuGetTpcMasksArgs& params) {
-    LOG_DEBUG(Service_NVDRV, "called, mask_buffer_size={:#X}", params.mask_buffer_size);
+    LOG_DEBUG(Service_NVDRV, "called, mask_buffer_size={:#x}", params.mask_buffer_size);
     if (params.mask_buffer_size != 0) {
         params.tcp_mask = 3;
     }
@@ -218,7 +218,7 @@ NvResult nvhost_ctrl_gpu::GetTPCMasks1(IoctlGpuGetTpcMasksArgs& params) {
 }
 
 NvResult nvhost_ctrl_gpu::GetTPCMasks3(IoctlGpuGetTpcMasksArgs& params, std::span<u32> tpc_mask) {
-    LOG_DEBUG(Service_NVDRV, "called, mask_buffer_size={:#X}", params.mask_buffer_size);
+    LOG_DEBUG(Service_NVDRV, "called, mask_buffer_size={:#x}", params.mask_buffer_size);
     if (params.mask_buffer_size != 0) {
         params.tcp_mask = 3;
     }
@@ -265,7 +265,7 @@ NvResult nvhost_ctrl_gpu::ZCullGetInfo(IoctlNvgpuGpuZcullGetInfoArgs& params) {
 
 NvResult nvhost_ctrl_gpu::ZBCSetTable(IoctlZbcSetTable& params) {
     if (params.type > supported_types) {
-        LOG_ERROR(Service_NVDRV, "ZBCSetTable: invalid type {:#X}", params.type);
+        LOG_ERROR(Service_NVDRV, "ZBCSetTable: invalid type {:#x}", params.type);
         return NvResult::BadParameter;
     }
 
@@ -288,11 +288,11 @@ NvResult nvhost_ctrl_gpu::ZBCSetTable(IoctlZbcSetTable& params) {
 
             if (color_it != zbc_colors.end()) {
                 ++color_it->ref_cnt;
-                LOG_DEBUG(Service_NVDRV, "ZBCSetTable: reused color entry fmt={:#X}, ref_cnt={:#X}",
+                LOG_DEBUG(Service_NVDRV, "ZBCSetTable: reused color entry fmt={:#x}, ref_cnt={:#x}",
                           params.format, color_it->ref_cnt);
             } else {
                 zbc_colors.push_back(color_entry);
-                LOG_DEBUG(Service_NVDRV, "ZBCSetTable: added color entry fmt={:#X}, index={:#X}",
+                LOG_DEBUG(Service_NVDRV, "ZBCSetTable: added color entry fmt={:#x}, index={:#x}",
                           params.format, zbc_colors.size() - 1);
             }
             break;
@@ -308,11 +308,11 @@ NvResult nvhost_ctrl_gpu::ZBCSetTable(IoctlZbcSetTable& params) {
 
             if (depth_it != zbc_depths.end()) {
                 ++depth_it->ref_cnt;
-                LOG_DEBUG(Service_NVDRV, "ZBCSetTable: reused depth entry fmt={:#X}, ref_cnt={:#X}",
+                LOG_DEBUG(Service_NVDRV, "ZBCSetTable: reused depth entry fmt={:#x}, ref_cnt={:#x}",
                           depth_entry.format, depth_it->ref_cnt);
             } else {
                 zbc_depths.push_back(depth_entry);
-                LOG_DEBUG(Service_NVDRV, "ZBCSetTable: added depth entry fmt={:#X}, index={:#X}",
+                LOG_DEBUG(Service_NVDRV, "ZBCSetTable: added depth entry fmt={:#x}, index={:#x}",
                           depth_entry.format, zbc_depths.size() - 1);
             }
         }
@@ -323,7 +323,7 @@ NvResult nvhost_ctrl_gpu::ZBCSetTable(IoctlZbcSetTable& params) {
 
 NvResult nvhost_ctrl_gpu::ZBCQueryTable(IoctlZbcQueryTable& params) {
     if (params.type > supported_types) {
-        LOG_ERROR(Service_NVDRV, "ZBCQueryTable: invalid type {:#X}", params.type);
+        LOG_ERROR(Service_NVDRV, "ZBCQueryTable: invalid type {:#x}", params.type);
         return NvResult::BadParameter;
     }
 
@@ -332,7 +332,7 @@ NvResult nvhost_ctrl_gpu::ZBCQueryTable(IoctlZbcQueryTable& params) {
     switch (static_cast<ZBCTypes>(params.type)) {
         case ZBCTypes::color: {
             if (params.index_size >= zbc_colors.size()) {
-                LOG_ERROR(Service_NVDRV, "ZBCQueryTable: invalid color index {:#X}", params.index_size);
+                LOG_ERROR(Service_NVDRV, "ZBCQueryTable: invalid color index {:#x}", params.index_size);
                 return NvResult::BadParameter;
             }
 
@@ -347,7 +347,7 @@ NvResult nvhost_ctrl_gpu::ZBCQueryTable(IoctlZbcQueryTable& params) {
         }
         case ZBCTypes::depth: {
             if (params.index_size >= zbc_depths.size()) {
-                LOG_ERROR(Service_NVDRV, "ZBCQueryTable: invalid depth index {:#X}", params.index_size);
+                LOG_ERROR(Service_NVDRV, "ZBCQueryTable: invalid depth index {:#x}", params.index_size);
                 return NvResult::BadParameter;
             }
 
@@ -365,7 +365,7 @@ NvResult nvhost_ctrl_gpu::ZBCQueryTable(IoctlZbcQueryTable& params) {
 }
 
 NvResult nvhost_ctrl_gpu::FlushL2(IoctlFlushL2& params) {
-    LOG_DEBUG(Service_NVDRV, "called {:#X}", params.flush);
+    LOG_DEBUG(Service_NVDRV, "called {:#x}", params.flush);
     // if ((params.flush & 0x01) != 0) //l2 flush
     //     /* we dont emulate l2 */;
     // if ((params.flush & 0x04) != 0) //fb flush

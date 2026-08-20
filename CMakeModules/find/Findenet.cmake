@@ -14,7 +14,7 @@ find_package_handle_standard_args(enet
     VERSION_VAR ENET_VERSION
 )
 
-if (PLATFORM_MSYS)
+if (MSYS2)
     FixMsysPath(PkgConfig::ENET)
 endif()
 

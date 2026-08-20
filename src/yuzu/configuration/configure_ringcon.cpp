@@ -378,6 +378,7 @@ void ConfigureRingController::mousePressEvent(QMouseEvent* event) {
 
     const auto button = GRenderWindow::QtButtonToMouseButton(event->button());
     input_subsystem->GetMouse()->PressButton(0, 0, button);
+    input_subsystem->GetMouse()->NotifyChanged();
 }
 
 void ConfigureRingController::keyPressEvent(QKeyEvent* event) {

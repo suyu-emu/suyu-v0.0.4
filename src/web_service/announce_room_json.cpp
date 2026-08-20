@@ -129,29 +129,7 @@ AnnounceMultiplayerRoom::RoomList RoomJson::GetRoomList() {
     if (reply.empty()) {
         return {};
     }
-
-    // A single malformed/unexpected room entry from the announce server must
-    // not take down the whole list - or the whole application, since an
-    // exception escaping a QtConcurrent::run task that isn't QException-
-    // derived calls std::terminate() rather than propagating through the
-    // future. Parse entries individually and skip only the bad ones.
-    AnnounceMultiplayerRoom::RoomList rooms;
-    try {
-        const auto parsed = nlohmann::json::parse(reply);
-        const auto& room_array = parsed.at("rooms");
-        rooms.reserve(room_array.size());
-        for (const auto& entry : room_array) {
-            try {
-                rooms.push_back(entry.get<AnnounceMultiplayerRoom::Room>());
-            } catch (const nlohmann::json::exception& e) {
-                LOG_ERROR(WebService, "Skipping malformed room entry from announce server: {}",
-                          e.what());
-            }
-        }
-    } catch (const nlohmann::json::exception& e) {
-        LOG_ERROR(WebService, "Failed to parse room list from announce server: {}", e.what());
-    }
-    return rooms;
+    return nlohmann::json::parse(reply).at("rooms").get<AnnounceMultiplayerRoom::RoomList>();
 }
 
 void RoomJson::Delete() {

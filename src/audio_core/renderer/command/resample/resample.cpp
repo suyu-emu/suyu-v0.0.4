@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2022 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -5,21 +8,13 @@
 
 namespace AudioCore::Renderer {
 
-static void ResampleLowQuality(std::span<s32> output, std::span<const s16> input,
-                               const Common::FixedPoint<49, 15>& sample_rate_ratio,
-                               Common::FixedPoint<49, 15>& fraction, const u32 samples_to_write) {
-    if (sample_rate_ratio == 1.0f) {
-        for (u32 i = 0; i < samples_to_write; i++) {
-            output[i] = input[i];
-        }
-    } else {
-        u32 read_index{0};
-        for (u32 i = 0; i < samples_to_write; i++) {
-            output[i] = input[read_index + (fraction >= 0.5f)];
-            fraction += sample_rate_ratio;
-            read_index += static_cast<u32>(fraction.to_int_floor());
-            fraction.clear_int();
-        }
+static void ResampleLowQuality(std::span<s32> output, std::span<const s16> input, const Common::FixedPoint<49, 15>& sample_rate_ratio, Common::FixedPoint<49, 15>& fraction, const u32 samples_to_write) {
+    u32 read_index{0};
+    for (u32 i = 0; i < samples_to_write; i++) {
+        output[i] = input[read_index + (fraction >= 0.5f)];
+        fraction += sample_rate_ratio;
+        read_index += u32(fraction.to_int_floor());
+        fraction.clear_int();
     }
 }
 
@@ -295,7 +290,7 @@ static void ResampleNormalQuality(std::span<s32> output, std::span<const s16> in
     auto lut{get_lut()};
     u32 read_index{0};
     for (u32 i = 0; i < samples_to_write; i++) {
-        const auto lut_index{(fraction.get_frac() >> 8) * 4};
+        const auto lut_index = ((fraction.get_frac() >> 8) << 2) & 511;
         const Common::FixedPoint<56, 8> sample0{input[read_index + 0] * lut[lut_index + 0]};
         const Common::FixedPoint<56, 8> sample1{input[read_index + 1] * lut[lut_index + 1]};
         const Common::FixedPoint<56, 8> sample2{input[read_index + 2] * lut[lut_index + 2]};
@@ -845,7 +840,7 @@ static void ResampleHighQuality(std::span<s32> output, std::span<const s16> inpu
     auto lut{get_lut()};
     u32 read_index{0};
     for (u32 i = 0; i < samples_to_write; i++) {
-        const auto lut_index{(fraction.get_frac() >> 8) * 8};
+        const auto lut_index = ((fraction.get_frac() >> 8) << 3) & 1023;
         const Common::FixedPoint<56, 8> sample0{input[read_index + 0] * lut[lut_index + 0]};
         const Common::FixedPoint<56, 8> sample1{input[read_index + 1] * lut[lut_index + 1]};
         const Common::FixedPoint<56, 8> sample2{input[read_index + 2] * lut[lut_index + 2]};

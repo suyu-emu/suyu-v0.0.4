@@ -71,6 +71,9 @@ Result NPadResource::RegisterAppletResourceUserId(u64 aruid) {
 
 void NPadResource::UnregisterAppletResourceUserId(u64 aruid) {
     const u64 aruid_index = GetIndexFromAruid(aruid);
+    if (aruid_index >= AruidIndexMax) {
+        return;
+    }
 
     FreeAppletResourceId(aruid);
     if (aruid_index < AruidIndexMax) {

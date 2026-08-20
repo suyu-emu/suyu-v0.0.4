@@ -19,7 +19,6 @@
 #ifdef HAVE_SDL3
 #include "audio_core/sink/sdl3_sink.h"
 #endif
-#include "audio_core/sink/libretro_sink.h"
 #include "audio_core/sink/null_sink.h"
 #include "common/logging.h"
 #include "common/settings_enums.h"
@@ -88,17 +87,6 @@ constexpr SinkDetails sink_details[] = {
             return std::make_unique<NullSink>(device_id);
         },
         [](bool capture) { return std::vector<std::string>{"null"}; },
-        []() { return 0u; },
-    },
-    // Routes the console's mixed output to the libretro frontend rather than a
-    // host device. Only selected explicitly by the libretro core - never by
-    // Auto, since it's useless without a frontend draining it.
-    SinkDetails{
-        Settings::AudioEngine::Libretro,
-        [](std::string_view device_id) -> std::unique_ptr<Sink> {
-            return std::make_unique<LibretroSink>(device_id);
-        },
-        [](bool capture) { return std::vector<std::string>{"libretro"}; },
         []() { return 0u; },
     },
 };

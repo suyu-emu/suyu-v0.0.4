@@ -10,6 +10,7 @@
 #include "audio_core/audio_core.h"
 #include "common/fs/fs.h"
 #include "common/logging.h"
+#include "common/adpf.h"
 #include "common/settings.h"
 #include "common/settings_enums.h"
 #include "common/string_util.h"
@@ -264,27 +265,19 @@ struct System::Impl {
 
         // Setting changes may require a full system reinitialization (e.g., disabling multicore).
         ReinitializeIfNecessary(system);
-
         kernel.Initialize();
-        cpu_manager.Initialize();
     }
 
     SystemResultStatus SetupForApplicationProcess(System& system, Frontend::EmuWindow& emu_window) {
-        LOG_INFO(Core, "SetupForApplicationProcess: host1x_core");
         host1x_core.emplace(system);
-        LOG_INFO(Core, "SetupForApplicationProcess: CreateGPU");
         VideoCore::CreateGPU(gpu_core, emu_window, system);
         if (!gpu_core)
             return SystemResultStatus::ErrorVideoCore;
-        LOG_INFO(Core, "SetupForApplicationProcess: CreateGPU done");
 
         audio_core.emplace(system);
-        LOG_INFO(Core, "SetupForApplicationProcess: audio_core done");
 
         service_manager = std::make_shared<Service::SM::ServiceManager>(kernel);
-        LOG_INFO(Core, "SetupForApplicationProcess: service_manager done");
         services.emplace(service_manager, system, stop_event.get_token());
-        LOG_INFO(Core, "SetupForApplicationProcess: services done");
 
         is_powered_on = true;
         exit_locked = false;
@@ -299,9 +292,7 @@ struct System::Impl {
         return SystemResultStatus::Success;
     }
 
-    SystemResultStatus Load(System& system, Frontend::EmuWindow& emu_window,
-                            const std::string& filepath,
-                            Service::AM::FrontendAppletParameters& params) {
+    SystemResultStatus Load(System& system, Frontend::EmuWindow& emu_window, const std::string& filepath, Service::AM::FrontendAppletParameters& params) {
         InitializeKernel(system);
 
         const auto file = GetGameFileFromPath(virtual_filesystem, filepath);
@@ -339,9 +330,7 @@ struct System::Impl {
         LaunchTimestampCache::SaveLaunchTimestamp(params.program_id);
 
         // Make the process created be the application
-        LOG_INFO(Core, "Load: calling kernel.MakeApplicationProcess");
         kernel.MakeApplicationProcess(process->GetHandle());
-        LOG_INFO(Core, "Load: kernel.MakeApplicationProcess returned");
 
         // Set up the rest of the system.
         SystemResultStatus init_result{SetupForApplicationProcess(system, emu_window)};
@@ -350,6 +339,8 @@ struct System::Impl {
             ShutdownMainProcess();
             return init_result;
         }
+        // Waiting for GPU before initializing CPU
+        cpu_manager.Initialize();
 
         // Initialize cheat engine
         if (cheat_engine) {
@@ -358,9 +349,7 @@ struct System::Impl {
 
         // Register with applet manager
         // All threads are started, begin main process execution, now that we're in the clear
-        LOG_INFO(Core, "SetupForApplicationProcess: calling CreateAndInsertByFrontendAppletParameters");
         applet_manager.CreateAndInsertByFrontendAppletParameters(std::move(process), params);
-        LOG_INFO(Core, "SetupForApplicationProcess: CreateAndInsertByFrontendAppletParameters returned");
 
         if (Settings::values.gamecard_inserted) {
             if (Settings::values.gamecard_current_game) {
@@ -397,6 +386,7 @@ struct System::Impl {
 
     void ShutdownMainProcess() {
         SetShuttingDown(true);
+        Common::ADPF::Shutdown();
 
         // Reset per-game flags
         Settings::values.use_squashed_iterated_blend = false;
@@ -977,11 +967,6 @@ void System::ApplySettings() {
     if (IsPoweredOn()) {
         Renderer().RefreshBaseSettings();
     }
-}
-
-Network::RoomNetwork& System::GetRoomNetwork() {
-    static Network::RoomNetwork room_network_compat;
-    return room_network_compat;
 }
 
 } // namespace Core

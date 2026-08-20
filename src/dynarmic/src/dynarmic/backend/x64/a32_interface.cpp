@@ -234,7 +234,7 @@ private:
     BlockOfCode block_of_code;
     A32EmitX64 emitter;
     Optimization::PolyfillOptions polyfill_options;
-    // Keep it here, you don't wanna mess with the fuckery that's initializer lists
+    // Keep it here in order to not mess with initializer lists
     const A32::UserConfig conf;
     Jit* jit_interface;
 

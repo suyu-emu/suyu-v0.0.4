@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: 2021 yuzu Emulator Project
 // SPDX-FileCopyrightText: 2021 Skyline Team and Contributors
 // SPDX-License-Identifier: GPL-3.0-or-later
@@ -25,6 +28,7 @@
 #include "core/hle/service/nvdrv/nvmemp.h"
 #include "core/hle/service/nvnflinger/nvnflinger.h"
 #include "core/hle/service/server_manager.h"
+#include "frontend_common/firmware_manager.h"
 #include "video_core/gpu.h"
 
 namespace Service::Nvidia {
@@ -42,26 +46,75 @@ void EventInterface::FreeEvent(Kernel::KEvent* event) {
     module.service_context.CloseEvent(event);
 }
 
+class NVGEM_C final : public ServiceFramework<NVGEM_C> {
+public:
+    explicit NVGEM_C(Core::System& system_)
+        : ServiceFramework{system_, "nvgem:c"}
+    {
+        static const FunctionInfo functions[] = {
+            {0, nullptr, "Initialize"},
+            {1, nullptr, "GetEventHandle"},
+            {2, nullptr, "ControlNotification"},
+            {3, nullptr, "SetNotificationPerm"},
+            {4, nullptr, "SetCoreDumpPerm"},
+            {5, nullptr, "GetAruid"},
+            {6, nullptr, "Reset"},
+            {7, nullptr, "GetAruid2"},
+        };
+        RegisterHandlers(functions);
+    }
+};
+
+class NVGEM_CD final : public ServiceFramework<NVGEM_CD> {
+public:
+    explicit NVGEM_CD(Core::System& system_)
+        : ServiceFramework{system_, "nvgem:cd"}
+    {
+        static const FunctionInfo functions[] = {
+            {0, nullptr, "Initialize"},
+            {1, nullptr, "GetAruid"},
+            {2, nullptr, "ReadNextBlock"},
+            {3, nullptr, "GetNextBlockSize"},
+            {4, nullptr, "ReadNextBlock2"},
+        };
+        RegisterHandlers(functions);
+    }
+};
+
+class NVDBG_D final : public ServiceFramework<NVDBG_D> {
+public:
+    explicit NVDBG_D(Core::System& system_)
+        : ServiceFramework{system_, "nvdbg:d"}
+    {
+        static const FunctionInfo functions[] = {
+            {0, nullptr, "Open"},
+            {1, nullptr, "Ioctl"},
+            {2, nullptr, "Close"},
+            {4, nullptr, "QueryEvent"},
+            {9, nullptr, "DumpStatus"},
+            {10, nullptr, "InitializeDevtools"},
+            {11, nullptr, "Ioctl2"},
+            {12, nullptr, "Ioctl3"},
+            {13, nullptr, "SetConfiguration"},
+        };
+        RegisterHandlers(functions);
+    }
+};
+
 void LoopProcess(Core::System& system) {
     auto server_manager = std::make_unique<ServerManager>(system);
     auto module = std::make_shared<Module>(system);
-    const auto NvdrvInterfaceFactoryForApplication = [&, module] {
-        return std::make_shared<NVDRV>(system, module, "nvdrv");
-    };
-    const auto NvdrvInterfaceFactoryForApplets = [&, module] {
-        return std::make_shared<NVDRV>(system, module, "nvdrv:a");
-    };
-    const auto NvdrvInterfaceFactoryForSysmodules = [&, module] {
-        return std::make_shared<NVDRV>(system, module, "nvdrv:s");
-    };
-    const auto NvdrvInterfaceFactoryForTesting = [&, module] {
-        return std::make_shared<NVDRV>(system, module, "nvdrv:t");
-    };
-    server_manager->RegisterNamedService("nvdrv", NvdrvInterfaceFactoryForApplication);
-    server_manager->RegisterNamedService("nvdrv:a", NvdrvInterfaceFactoryForApplets);
-    server_manager->RegisterNamedService("nvdrv:s", NvdrvInterfaceFactoryForSysmodules);
-    server_manager->RegisterNamedService("nvdrv:t", NvdrvInterfaceFactoryForTesting);
+    server_manager->RegisterNamedService("nvdrv", std::make_shared<NVDRV>(system, module, "nvdrv"));
+    server_manager->RegisterNamedService("nvdrv:a", std::make_shared<NVDRV>(system, module, "nvdrv:a"));
+    server_manager->RegisterNamedService("nvdrv:s", std::make_shared<NVDRV>(system, module, "nvdrv:s"));
+    server_manager->RegisterNamedService("nvdrv:t", std::make_shared<NVDRV>(system, module, "nvdrv:t"));
     server_manager->RegisterNamedService("nvmemp", std::make_shared<NVMEMP>(system));
+    server_manager->RegisterNamedService("nvgem:c", std::make_shared<NVGEM_C>(system));
+    server_manager->RegisterNamedService("nvgem:cd", std::make_shared<NVGEM_CD>(system));
+    // +10.0.0
+    if (FirmwareManager::GetFirmwareVersion(system).first.major >= 10) {
+        server_manager->RegisterNamedService("nvdbg:d", std::make_shared<NVDBG_D>(system));
+    }
     ServerManager::RunServer(std::move(server_manager));
 }
 

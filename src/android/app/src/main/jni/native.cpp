@@ -44,12 +44,14 @@ extern "C" {
 #include "common/android/android_common.h"
 #include "common/android/id_cache.h"
 #include "common/dynamic_library.h"
+#include "common/fs/fs_util.h"
 #include "common/fs/path_util.h"
 #include "common/logging.h"
 #include "common/scm_rev.h"
 #include "common/scope_exit.h"
 #include "common/settings.h"
 #include "common/string_util.h"
+#include "common/thread.h"
 #include "frontend_common/play_time_manager.h"
 #include "core/constants.h"
 #include "core/core.h"
@@ -89,6 +91,7 @@ extern "C" {
 #include "hid_core/hid_types.h"
 #include "input_common/drivers/virtual_amiibo.h"
 #include "jni/native.h"
+#include "video_core/frame_gen/lossless_dll.h"
 #include "video_core/renderer_base.h"
 #include "video_core/renderer_vulkan/renderer_vulkan.h"
 #include "video_core/capture.h"
@@ -997,7 +1000,7 @@ jstring Java_org_yuzu_yuzu_1emu_NativeLibrary_getCpuSummary(JNIEnv* env, jobject
         FILE* f = std::fopen(CPUINFO_PATH, "r");
         if (!f) return Common::Android::ToJString(env, result);
 
-        char buf[512];
+        char buf[4096];
 
         if (f) {
             std::set<std::string> feature_set;
@@ -1028,7 +1031,13 @@ jstring Java_org_yuzu_yuzu_1emu_NativeLibrary_getCpuSummary(JNIEnv* env, jobject
             bool has_dotprod = feature_set.count("asimddp") || feature_set.count("dotprod");
             bool has_i8mm = feature_set.count("i8mm");
             bool has_bf16 = feature_set.count("bf16");
+            bool has_fp16 = feature_set.count("fphp") || feature_set.count("asimdhp");
             bool has_atomics = feature_set.count("atomics") || feature_set.count("lse");
+            bool has_lse2 = feature_set.count("uscat");
+            bool has_rcpc = feature_set.count("lrcpc");
+            bool has_rcpc2 = feature_set.count("ilrcpc");
+            bool has_flagm = feature_set.count("flagm");
+            bool has_flagm2 = feature_set.count("flagm2");
 
             std::string features;
             if (has_neon || has_fp) {
@@ -1036,6 +1045,7 @@ jstring Java_org_yuzu_yuzu_1emu_NativeLibrary_getCpuSummary(JNIEnv* env, jobject
                 if (has_dotprod) features += "+DP";
                 if (has_i8mm) features += "+I8MM";
                 if (has_bf16) features += "+BF16";
+                if (has_fp16) features += "+FP16";
             }
 
             if (has_sve) {
@@ -1052,6 +1062,19 @@ jstring Java_org_yuzu_yuzu_1emu_NativeLibrary_getCpuSummary(JNIEnv* env, jobject
             if (has_atomics) {
                 if (!features.empty()) features += " | ";
                 features += "LSE";
+                if (has_lse2) features += "2";
+            }
+
+            if (has_rcpc) {
+                if (!features.empty()) features += " | ";
+                features += "RCpc";
+                if (has_rcpc2) features += "2";
+            }
+
+            if (has_flagm) {
+                if (!features.empty()) features += " | ";
+                features += "FlagM";
+                if (has_flagm2) features += "2";
             }
 
             if (!features.empty()) {
@@ -1088,6 +1111,34 @@ VkPhysicalDeviceProperties GetVulkanDeviceProperties() {
 
     const Vulkan::vk::PhysicalDevice physical_device(physical_devices[0], dld);
     return physical_device.GetProperties();
+}
+
+bool GetVulkanMemoryModelSupport() {
+    Common::DynamicLibrary library;
+    if (!library.Open("libvulkan.so")) {
+        return false;
+    }
+
+    Vulkan::vk::InstanceDispatch dld;
+    const auto instance = Vulkan::CreateInstance(library, dld, VK_API_VERSION_1_1);
+    const auto physical_devices = instance.EnumeratePhysicalDevices();
+    if (physical_devices.empty()) {
+        return false;
+    }
+
+    const Vulkan::vk::PhysicalDevice physical_device(physical_devices[0], dld);
+
+    VkPhysicalDeviceVulkanMemoryModelFeatures memory_model{
+        .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_MEMORY_MODEL_FEATURES,
+        .pNext = nullptr,
+    };
+    VkPhysicalDeviceFeatures2 features{
+        .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FEATURES_2,
+        .pNext = &memory_model,
+    };
+    physical_device.GetFeatures2(features);
+
+    return memory_model.vulkanMemoryModel == VK_TRUE;
 }
 } // namespace
 
@@ -1164,6 +1215,14 @@ jstring Java_org_yuzu_yuzu_1emu_NativeLibrary_getVulkanApiVersion(JNIEnv* env, j
     }
 }
 
+jboolean Java_org_yuzu_yuzu_1emu_NativeLibrary_supportsFrameGeneration(JNIEnv* env, jobject jobj) {
+    try {
+        return static_cast<jboolean>(GetVulkanMemoryModelSupport());
+    } catch (...) {
+        return static_cast<jboolean>(false);
+    }
+}
+
 jstring Java_org_yuzu_yuzu_1emu_NativeLibrary_getGpuModel(JNIEnv* env, jobject jobj) {
     const auto props = GetVulkanDeviceProperties();
     if (props.deviceID == 0) {
@@ -1180,6 +1239,10 @@ void Java_org_yuzu_yuzu_1emu_NativeLibrary_applySettings(JNIEnv* env, jobject jo
 
 void Java_org_yuzu_yuzu_1emu_NativeLibrary_logSettings(JNIEnv* env, jobject jobj) {
     Settings::LogSettings();
+}
+
+void Java_org_yuzu_yuzu_1emu_NativeLibrary_refreshThreadPolicies(JNIEnv* env, jobject jobj) {
+    Common::RefreshThreadPolicies();
 }
 
 jboolean Java_org_yuzu_yuzu_1emu_NativeLibrary_getDebugKnobAt(JNIEnv* env, jobject jobj, jint index) {
@@ -1383,6 +1446,39 @@ jint Java_org_yuzu_yuzu_1emu_NativeLibrary_installKeys(JNIEnv* env, jclass clazz
     const auto ext = Common::Android::GetJString(env, jext);
 
     return static_cast<int>(FirmwareManager::InstallKeys(path, ext));
+}
+
+jstring Java_org_yuzu_yuzu_1emu_NativeLibrary_getLosslessDllPath(JNIEnv* env, jclass clazz) {
+#ifdef HAS_LSFG
+    const auto path = VideoCore::FrameGen::GetLosslessDllPath();
+    return Common::Android::ToJString(env, Common::FS::PathToUTF8String(path));
+#else
+    return Common::Android::ToJString(env, "");
+#endif
+}
+
+jint Java_org_yuzu_yuzu_1emu_NativeLibrary_validateLosslessDll(JNIEnv* env, jclass clazz) {
+#ifdef HAS_LSFG
+    return static_cast<jint>(VideoCore::FrameGen::GetInstalledLosslessStatus());
+#else
+    return static_cast<jint>(VideoCore::FrameGen::LosslessStatus::NotInstalled);
+#endif
+}
+
+jint Java_org_yuzu_yuzu_1emu_NativeLibrary_prepareLosslessDll(JNIEnv* env, jclass clazz) {
+#ifdef HAS_LSFG
+    return static_cast<jint>(VideoCore::FrameGen::BuildShaderCache());
+#else
+    return static_cast<jint>(VideoCore::FrameGen::LosslessStatus::NotInstalled);
+#endif
+}
+
+jboolean Java_org_yuzu_yuzu_1emu_NativeLibrary_removeLosslessDll(JNIEnv* env, jclass clazz) {
+#ifdef HAS_LSFG
+    return static_cast<jboolean>(VideoCore::FrameGen::RemoveInstalledLosslessDll());
+#else
+    return static_cast<jboolean>(false);
+#endif
 }
 
 jobjectArray Java_org_yuzu_yuzu_1emu_NativeLibrary_getPatchesForFile(JNIEnv* env, jobject jobj,
@@ -1794,7 +1890,7 @@ JNIEXPORT jobjectArray JNICALL Java_org_yuzu_yuzu_1emu_NativeLibrary_getAllUsers
     manager.ResetUserSaveFile();
 
     if (manager.GetUserCount() == 0) {
-        manager.CreateNewUser(Common::UUID::MakeRandom(), "suyu");
+        manager.CreateNewUser(Common::UUID::MakeRandom(), "Eden");
         manager.WriteUserSaveFile();
     }
 
@@ -2011,7 +2107,7 @@ JNIEXPORT void JNICALL Java_org_yuzu_yuzu_1emu_NativeLibrary_reloadProfiles(
 
     // create a default user if non exist
     if (manager.GetUserCount() == 0) {
-        manager.CreateNewUser(Common::UUID::MakeRandom(), "suyu");
+        manager.CreateNewUser(Common::UUID::MakeRandom(), "Eden");
         manager.WriteUserSaveFile();
     }
 

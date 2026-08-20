@@ -1,7 +1,8 @@
 // SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-// Qt on macOS doesn't define VMA shit
+// Static Qt on macOS doesn't use Vulkan
+// Other platforms do, and thus have conflicting VulkanMemoryAllocator symbols
 #if defined(QT_STATICPLUGIN) && !defined(__APPLE__)
 #undef VMA_IMPLEMENTATION
 #endif
@@ -3116,8 +3117,8 @@ void MainWindow::OnMenuReportCompatibility() {
     //         return;
     //     }
 
-    //     if (!Settings::values.suyu_token.GetValue().empty() &&
-    //         !Settings::values.suyu_username.GetValue().empty()) {
+    //     if (!Settings::values.eden_token.GetValue().empty() &&
+    //         !Settings::values.eden_username.GetValue().empty()) {
     //     } else {
     //         QMessageBox::critical(
     //             this, tr("Missing yuzu Account"),

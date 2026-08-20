@@ -111,7 +111,8 @@ public:
 #ifndef NDEBUG
     void EmitVerboseDebuggingOutput(RegAlloc& reg_alloc);
 #endif
-    virtual void EmitTerminal(IR::Terminal terminal, IR::LocationDescriptor initial_location, bool is_single_step) noexcept = 0;
+    virtual bool EmitLeafTerminal(IR::Term::LeafTerminal const& terminal, IR::LocationDescriptor initial_location, bool is_single_step) noexcept = 0;
+    virtual bool EmitTerminal(IR::Term::Terminal const& terminal, IR::LocationDescriptor initial_location, bool is_single_step) noexcept = 0;
 
     // Patching
     struct PatchInformation {

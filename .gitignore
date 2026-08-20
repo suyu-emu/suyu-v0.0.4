@@ -63,23 +63,3 @@ artifacts
 /install*
 vulkansdk*.exe
 *.tar.zst
-/aot_test_output
-*.log
-
-# vcpkg manifest-mode install tree (build output, 350+ MB)
-vcpkg_installed/
-
-# Local debugging/test scratch that used to be committed at the repo root.
-/boot_test.ps1
-/mcp_live_test.ps1
-/test_mcp.ps1
-/verify_ssl.ps1
-/dump_analyzer.obj
-/live_analyzer.obj
-/stack_debugger.obj
-/gamer_mode.png
-/hacker_mode.png
-/programmer_mode.png
-/smash_test.png
-/smash_test3.png
-/search_results.csv

@@ -11,7 +11,7 @@ if (NOT libusb_ADDED)
 endif()
 
 # TODO: *BSD fails to compile--may need different configs/symbols
-if (MINGW OR PLATFORM_LINUX OR APPLE)
+if (MINGW OR LINUX OR APPLE)
     set(LIBUSB_FOUND ON CACHE BOOL "libusb is present" FORCE)
     set(LIBUSB_VERSION "1.0.24" CACHE STRING "libusb version string" FORCE)
 

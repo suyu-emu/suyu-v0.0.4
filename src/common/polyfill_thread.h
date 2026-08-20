@@ -27,11 +27,4 @@ bool StoppableTimedWait(std::stop_token token, const std::chrono::duration<Rep, 
     return !cv.wait_for(lk, token, rel_time, [&] { return token.stop_requested(); });
 }
 
-// suyu uses Common::CondvarWait — Eden removed it; restore as inline helper
-template <typename Mutex, typename Pred>
-void CondvarWait(std::condition_variable_any& cv, std::unique_lock<Mutex>& lk,
-                 std::stop_token token, Pred pred) {
-    cv.wait(lk, token, std::move(pred));
-}
-
 } // namespace Common

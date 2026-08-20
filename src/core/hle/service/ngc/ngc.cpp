@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 // SPDX-FileCopyrightText: Copyright 2021 yuzu Emulator Project
@@ -13,13 +13,13 @@
 
 namespace Service::NGC {
 
-class NgctServiceImpl final : public ServiceFramework<NgctServiceImpl> {
+class IService final : public ServiceFramework<IService> {
 public:
-    explicit NgctServiceImpl(Core::System& system_) : ServiceFramework{system_, "ngct:u"} {
+    explicit IService(Core::System& system_) : ServiceFramework{system_, "ngct:u"} {
         // clang-format off
         static const FunctionInfo functions[] = {
-            {0, &NgctServiceImpl::Match, "Match"},
-            {1, &NgctServiceImpl::Filter, "Filter"},
+            {0, &IService::Match, "Match"},
+            {1, &IService::Filter, "Filter"},
         };
         // clang-format on
 
@@ -29,8 +29,9 @@ public:
 private:
     void Match(HLERequestContext& ctx) {
         const auto buffer = ctx.ReadBuffer();
-        const auto text = Common::StringFromFixedZeroTerminatedBuffer(
-            reinterpret_cast<const char*>(buffer.data()), buffer.size());
+        const auto text = !buffer.empty()
+            ? Common::StringFromFixedZeroTerminatedBuffer(reinterpret_cast<const char*>(buffer.data()), buffer.size())
+            : std::string{};
 
         LOG_WARNING(Service_NGC, "(STUBBED) called, text={}", text);
 
@@ -42,8 +43,9 @@ private:
 
     void Filter(HLERequestContext& ctx) {
         const auto buffer = ctx.ReadBuffer();
-        const auto text = Common::StringFromFixedZeroTerminatedBuffer(
-            reinterpret_cast<const char*>(buffer.data()), buffer.size());
+        const auto text = !buffer.empty()
+            ? Common::StringFromFixedZeroTerminatedBuffer(reinterpret_cast<const char*>(buffer.data()), buffer.size())
+            : std::string{};
 
         LOG_WARNING(Service_NGC, "(STUBBED) called, text={}", text);
 
@@ -144,10 +146,31 @@ private:
     }
 };
 
+class IServiceWithManagementApi final : public ServiceFramework<IServiceWithManagementApi> {
+public:
+    explicit IServiceWithManagementApi(Core::System& system_) : ServiceFramework(system_, "ngct:s") {
+        // clang-format off
+        static const FunctionInfo functions[] = {
+            {0 , nullptr, "Match"},
+            {1 , nullptr, "Filter"},
+            {100, nullptr, "ConfigureAutoUpdateSetting"},
+            {101, nullptr, "RequestResourceUpdateCheck"},
+            {110, nullptr, "Reload"},
+            {111, nullptr, "IsReloadRequired"},
+            {112, nullptr, "TryAcquireReloadRequestNotifier"},
+            {120, nullptr, "CalculateContentFingerprint"},
+            {130, nullptr, "TryEnableTemporalPassThrough"},
+        };
+        // clang-format on
+        RegisterHandlers(functions);
+    }
+};
+
 void LoopProcess(Core::System& system) {
     auto server_manager = std::make_unique<ServerManager>(system);
 
-    server_manager->RegisterNamedService("ngct:u", std::make_shared<NgctServiceImpl>(system));
+    server_manager->RegisterNamedService("ngct:u", std::make_shared<IService>(system));
+    server_manager->RegisterNamedService("ngct:s", std::make_shared<IServiceWithManagementApi>(system));
     server_manager->RegisterNamedService("ngc:u", std::make_shared<NgcServiceImpl>(system));
     ServerManager::RunServer(std::move(server_manager));
 }

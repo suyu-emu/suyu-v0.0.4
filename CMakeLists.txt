@@ -28,23 +28,23 @@ if (NOT DEFINED ARCHITECTURE)
 endif()
 
 # Needed for FFmpeg w/ VAAPI and DRM
-if (PLATFORM_OPENBSD)
+if (OPENBSD)
     # OpenBSD 7.8 broke libcxx when upgrading, so we must define the PSTL backend manually
     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -I${CMAKE_SYSROOT}/usr/X11R6/include -D_LIBCPP_PSTL_BACKEND_SERIAL=1")
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -I${CMAKE_SYSROOT}/usr/X11R6/include -D_LIBCPP_PSTL_BACKEND_SERIAL=1")
     set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -L${CMAKE_SYSROOT}/usr/X11R6/lib")
-elseif (PLATFORM_NETBSD)
+elseif (NETBSD)
     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -I${CMAKE_SYSROOT}/usr/X11R7/include -I${CMAKE_SYSROOT}/usr/pkg/include/c++/v1")
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -I${CMAKE_SYSROOT}/usr/X11R7/include -I${CMAKE_SYSROOT}/usr/pkg/include/c++/v1")
     set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -L${CMAKE_SYSROOT}/usr/X11R7/lib")
 endif()
 
 # NetBSD: Fun for the whole family!
-if (PLATFORM_NETBSD)
+if (NETBSD)
     set(ENV{PKG_CONFIG_PATH} "${PKG_CONFIG_PATH}:${CMAKE_SYSROOT}/usr/pkg/lib/ffmpeg7/pkgconfig")
 endif()
 
-cmake_dependent_option(YUZU_STATIC_ROOM "Build a static room executable only (CI only)" OFF "PLATFORM_LINUX" OFF)
+cmake_dependent_option(YUZU_STATIC_ROOM "Build a static room executable only (CI only)" OFF "LINUX" OFF)
 if (YUZU_STATIC_ROOM)
     set(YUZU_ROOM ON)
     set(YUZU_ROOM_STANDALONE ON)
@@ -79,6 +79,10 @@ set(YUZU_QT_MIRROR "" CACHE STRING "What mirror to use for downloading the bundl
 cmake_dependent_option(YUZU_USE_BUNDLED_QT "Download bundled Qt binaries" "${MSVC}" "ENABLE_QT" OFF)
 
 option(ENABLE_DEBUG_TOOLS "Enable debugging tools (maxwell disassembler, SPIRV translator, etc)" OFF)
+option(ENABLE_WERROR "Enable -Werror diagnostics" ON)
+
+# Lossless Scaling frame generation. Only Android.
+cmake_dependent_option(ENABLE_LSFG "Enable Lossless Scaling frame generation" ON "ANDROID" OFF)
 
 # non-linux bundled qt are static
 if (YUZU_USE_BUNDLED_QT AND (APPLE OR NOT UNIX))
@@ -157,6 +161,17 @@ if (CXX_CLANG_CL)
         $<$<COMPILE_LANGUAGE:C,CXX>:-Wno-reserved-identifier>
         $<$<COMPILE_LANGUAGE:C,CXX>:-Wno-deprecated-declarations>
         $<$<COMPILE_LANGUAGE:C,CXX>:-Wno-cast-function-type-mismatch>
+        $<$<COMPILE_LANGUAGE:C,CXX>:-Wno-c99-extensions>
+        $<$<COMPILE_LANGUAGE:C,CXX>:-Wno-c++17-compat>
+        $<$<COMPILE_LANGUAGE:C,CXX>:-Wno-c++11-compat-reserved-user-defined-literal>
+        $<$<COMPILE_LANGUAGE:C,CXX>:-Wno-c++11-compat-deprecated-writable-strings>
+        $<$<COMPILE_LANGUAGE:C,CXX>:-Wno-c++11-compat-pedantic>
+        $<$<COMPILE_LANGUAGE:C,CXX>:-Wno-c++11-compat>
+        $<$<COMPILE_LANGUAGE:C,CXX>:-Wno-c++0x-compat>
+        $<$<COMPILE_LANGUAGE:C,CXX>:-Wno-c++98-c++11-compat-binary-literal>
+        $<$<COMPILE_LANGUAGE:C,CXX>:-Wno-c++98-compat-pedantic>
+        $<$<COMPILE_LANGUAGE:C,CXX>:-Wno-c++98-compat>
+        $<$<COMPILE_LANGUAGE:C,CXX>:-Wno-c99-compat>
         $<$<COMPILE_LANGUAGE:C,CXX>:/EHsc>)
     # REQUIRED CPU features IN Windows-amd64
     if (ARCHITECTURE_x86_64)
@@ -210,7 +225,7 @@ endif()
 
 # ffmpeg
 option(YUZU_USE_BUNDLED_FFMPEG "Download bundled FFmpeg" ${EXT_DEFAULT})
-cmake_dependent_option(YUZU_USE_EXTERNAL_FFMPEG "Build FFmpeg from external source" "${PLATFORM_SUN}" "NOT WIN32 AND NOT ANDROID" OFF)
+cmake_dependent_option(YUZU_USE_EXTERNAL_FFMPEG "Build FFmpeg from external source" "${SOLARIS}" "NOT WIN32 AND NOT ANDROID" OFF)
 
 # sirit
 set(BUNDLED_SIRIT_DEFAULT OFF)
@@ -221,13 +236,12 @@ endif()
 option(YUZU_USE_BUNDLED_SIRIT "Download bundled sirit" ${BUNDLED_SIRIT_DEFAULT})
 
 # FreeBSD 15+ has libusb, versions below should disable it
-cmake_dependent_option(ENABLE_LIBUSB "Enable the use of LibUSB" ON "WIN32 OR PLATFORM_LINUX OR PLATFORM_FREEBSD OR APPLE" OFF)
+cmake_dependent_option(ENABLE_LIBUSB "Enable the use of LibUSB" ON "WIN32 OR LINUX OR FREEBSD OR APPLE" OFF)
 
 cmake_dependent_option(ENABLE_OPENGL "Enable OpenGL" ON "NOT (WIN32 AND ARCHITECTURE_arm64) AND NOT APPLE" OFF)
 mark_as_advanced(FORCE ENABLE_OPENGL)
 
 option(ENABLE_WEB_SERVICE "Enable web services (telemetry, etc.)" ON)
-option(SUYU_BUILD_LIBRETRO_CORE "Build suyu as a libretro core (suyu_libretro.dll)" OFF)
 option(ENABLE_WIFI_SCAN "Enable WiFi scanning" OFF)
 
 cmake_dependent_option(USE_DISCORD_PRESENCE "Enables Discord Rich Presence" OFF "ENABLE_QT" OFF)
@@ -236,7 +250,7 @@ option(YUZU_TESTS "Compile tests" "${BUILD_TESTING}")
 
 # Install udev rules on Linux (mainly for gyros)
 # Only acts on joysticks and nothing else.
-cmake_dependent_option(YUZU_INSTALL_UDEV_RULES "Install udev rules for gyro access" OFF "PLATFORM_LINUX" OFF)
+cmake_dependent_option(YUZU_INSTALL_UDEV_RULES "Install udev rules for gyro access" OFF "LINUX" OFF)
 
 option(YUZU_DOWNLOAD_ANDROID_VVL "Download validation layer binary for android" ON)
 
@@ -249,7 +263,7 @@ cmake_dependent_option(YUZU_ROOM_STANDALONE "Enable standalone room executable" 
 
 cmake_dependent_option(YUZU_CMD "Compile the eden-cli executable" ON "NOT ANDROID" OFF)
 
-cmake_dependent_option(YUZU_CRASH_DUMPS "Compile crash dump (Minidump) support" OFF "WIN32 OR PLATFORM_LINUX" OFF)
+cmake_dependent_option(YUZU_CRASH_DUMPS "Compile crash dump (Minidump) support" OFF "WIN32 OR LINUX" OFF)
 
 option(YUZU_DOWNLOAD_TIME_ZONE_DATA "Always download time zone binaries" ON)
 set(YUZU_TZDB_PATH "" CACHE STRING "Path to a pre-downloaded timezone database")
@@ -259,7 +273,7 @@ cmake_dependent_option(YUZU_USE_BUNDLED_MOLTENVK "Download bundled MoltenVK lib"
 option(YUZU_DISABLE_LLVM "Disable LLVM (useful for CI)" OFF)
 
 set(DEFAULT_YUZU_USE_BUNDLED_OPENSSL OFF)
-if (EXT_DEFAULT OR PLATFORM_SUN OR PLATFORM_OPENBSD)
+if (EXT_DEFAULT OR SOLARIS OR OPENBSD)
     set(DEFAULT_YUZU_USE_BUNDLED_OPENSSL ON)
 endif()
 
@@ -282,7 +296,7 @@ if(EXISTS ${PROJECT_SOURCE_DIR}/hooks/pre-commit AND NOT EXISTS ${PROJECT_SOURCE
     endif()
 endif()
 
-if (ARCHITECTURE_arm64 AND (ANDROID OR PLATFORM_LINUX))
+if (ARCHITECTURE_arm64 AND (ANDROID OR LINUX))
     set(HAS_NCE 1)
     add_compile_definitions(HAS_NCE=1)
 endif()
@@ -291,7 +305,7 @@ if (YUZU_ROOM)
     add_compile_definitions(YUZU_ROOM)
 endif()
 
-if (UNIX AND NOT (PLATFORM_LINUX OR WIN32))
+if (UNIX AND NOT (LINUX OR WIN32))
     if(CXX_APPLE OR CXX_CLANG)
         # libc++ has stop_token and jthread as experimental
         set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fexperimental-library")
@@ -326,11 +340,12 @@ if (CXX_GCC OR CXX_CLANG)
         endif()
     elseif(ARCHITECTURE_arm64)
         # See https://gcc.gnu.org/onlinedocs/gcc/AArch64-Options.html
-        set(YUZU_BUILD_PRESET "custom" CACHE STRING "Build preset to use. One of: custom, generic, armv9, native")
+        set(YUZU_BUILD_PRESET "custom" CACHE STRING "Build preset to use. One of: custom, generic, optimized, armv9, native")
         set(mtune generic)
-
         if (${YUZU_BUILD_PRESET} STREQUAL "generic")
             set(march armv8-a)
+        elseif (${YUZU_BUILD_PRESET} STREQUAL "optimized")
+            set(march armv8.2-a+lse+rcpc)
         elseif (${YUZU_BUILD_PRESET} STREQUAL "armv9")
             set(march armv9-a)
         endif()
@@ -405,7 +420,7 @@ if (Boost_ADDED)
 
     if (NOT MSVC OR CXX_CLANG)
         # boost sucks
-        if (PLATFORM_SUN)
+        if (SOLARIS)
             add_compile_options($<$<COMPILE_LANGUAGE:C,CXX>:-pthreads>)
         endif()
 
@@ -509,9 +524,9 @@ elseif (WIN32)
         # PSAPI is the Process Status API
         set(PLATFORM_LIBRARIES ${PLATFORM_LIBRARIES} psapi imm32 version crypt32 rpcrt4 gdi32 wldap32 mswsock)
     endif()
-elseif (PLATFORM_MANAGARM)
+elseif (MANAGARM)
     set(PLATFORM_LIBRARIES iconv intl)
-elseif (PLATFORM_HAIKU)
+elseif (HAIKUOS)
     # Haiku is so special :)
     set(PLATFORM_LIBRARIES bsd /boot/system/lib/libnetwork.so)
 elseif (CMAKE_SYSTEM_NAME MATCHES "^(Linux|kFreeBSD|GNU|SunOS)$")
@@ -604,8 +619,8 @@ if (ENABLE_QT)
     ## Components ##
 
     # Best practice is to ask for all components at once, so they are from the same version
-    set(YUZU_QT_COMPONENTS Core Widgets Charts Concurrent Gui Network Svg)
-    if (PLATFORM_LINUX OR PLATFORM_FREEBSD)
+    set(YUZU_QT_COMPONENTS Core Widgets Charts Concurrent Gui)
+    if (LINUX OR FREEBSD)
         list(APPEND YUZU_QT_COMPONENTS DBus)
         # yes Qt, we get it
         set(QT_NO_PRIVATE_MODULE_WARNING ON)

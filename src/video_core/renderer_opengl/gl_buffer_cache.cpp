@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 // SPDX-FileCopyrightText: Copyright 2018 yuzu Emulator Project
@@ -56,7 +56,7 @@ Buffer::Buffer(BufferCacheRuntime& runtime, DAddr cpu_addr_, u64 size_bytes_)
     : VideoCommon::BufferBase(cpu_addr_, size_bytes_) {
     buffer.Create();
     if (runtime.device.HasDebuggingToolAttached()) {
-        const std::string name = fmt::format("Buffer 0x{:x}", CpuAddr());
+        const std::string name = fmt::format("Buffer {:#x}", CpuAddr());
         glObjectLabel(GL_BUFFER, buffer.handle, static_cast<GLsizei>(name.size()), name.data());
     }
     glNamedBufferData(buffer.handle, SizeBytes(), nullptr, GL_DYNAMIC_DRAW);

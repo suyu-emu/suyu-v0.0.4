@@ -60,6 +60,8 @@ public:
                      const Layout::FramebufferLayout& layout, size_t current_swapchain_image_count,
                      VkFormat current_swapchain_view_format);
 
+    void PrepareFrame(const Device& device, Frame* frame, const Layout::FramebufferLayout& layout);
+
     [[nodiscard]] vk::Framebuffer CreateFramebuffer(const Device& device, const Layout::FramebufferLayout& layout,
                                                     VkImageView image_view,
                                                     VkFormat current_view_format);

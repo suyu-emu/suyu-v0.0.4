@@ -32,7 +32,7 @@ constexpr bool IsValidSharedMemoryPermission(MemoryPermission perm) {
 Result MapSharedMemory(Core::System& system, Handle shmem_handle, u64 address, u64 size,
                        Svc::MemoryPermission map_perm) {
     LOG_TRACE(Kernel_SVC,
-              "called, shared_memory_handle={:#X}, addr=0x{:X}, size=0x{:X}, permissions=0x{:08X}",
+              "called, shared_memory_handle={:#x}, addr={:#x}, size={:#x}, permissions={:#08x}",
               shmem_handle, address, size, map_perm);
 
     // Validate the address/size.

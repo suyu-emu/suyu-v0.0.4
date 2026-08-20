@@ -291,6 +291,23 @@
     <string name="gpu_driver_fetcher">Obtenedor de controladores de la GPU</string>
     <string name="gpu_driver_manager">Gestor de controladores de la GPU</string>
     <string name="install_gpu_driver_description">Instale los controladores alternativos para obtener un posible mejor rendimiento o precisión</string>
+    <string name="frame_gen">Generación de fotograma</string>
+    <string name="frame_gen_multiplier">Multiplicador de fotograma</string>
+    <string name="frame_gen_multiplier_2x">2x</string>
+    <string name="frame_gen_multiplier_3x">3x</string>
+    <string name="frame_gen_multiplier_4x">4x</string>
+    <string name="frame_gen_target_rate_60">60 FPS</string>
+    <string name="frame_gen_target_rate_90">90 FPS</string>
+    <string name="frame_gen_target_rate_120">120 FPS</string>
+    <string name="frame_gen_target_rate_144">144 FPS</string>
+    <string name="frame_gen_target_rate_165">165 FPS</string>
+    <string name="frame_gen_queue_target_1">Equilibrado (1 fotograma)</string>
+    <string name="frame_generation_support">Generación de fotograma</string>
+    <string name="frame_generation_supported">Soportado</string>
+    <string name="lossless_scaling">Escalado sin pérdidas</string>
+    <string name="lossless_scaling_installed">Instalado</string>
+    <string name="lossless_scaling_not_installed">No instalado</string>
+    <string name="lossless_scaling_missing">Lossless.dll no instalado</string>
     <string name="advanced_settings">Ajustes avanzados</string>
     <string name="settings_description">Configurar los ajustes del emulador</string>
     <string name="search_recently_played">Jugado recientemente</string>
@@ -437,9 +454,6 @@
     <string name="use_custom_rtc_description">Le permite tener un reloj personalizado en tiempo real diferente de la hora de su sistema.</string>
     <string name="set_custom_rtc">Configurar RTC personalizado</string>
 
-    <!-- CPU -->
-    <string name="fast_cpu_time">Overclock de la CPU</string>
-    <string name="fast_cpu_time_description">Fuerza a la CPU emulada a ejecutarser a una velocidad de reloj más alta, lo cual reduce ciertos limitadores de fotogramas por segundo. Usa Boost (1700 MHz) para ejecutar a la velocidad de reloj nativa más alta de la Switch, o Fast (2000 MHz) para ejecutar a una velocidad doble de reloj.</string>
     <string name="custom_cpu_ticks">Ticks de CPU personalizados</string>
     <string name="custom_cpu_ticks_description">Establezca un valor personalizado de los ciclos de la CPU. Los valores más altos pueden aumentar el rendimiento, pero también pueden hacer que el juego se congele. Se recomienda un rango de 77–21000.</string>
     <string name="cpu_ticks">Ciclos</string>
@@ -467,7 +481,6 @@
     <string name="advanced">Avanzado</string>
 
     <string name="renderer_accuracy">Modo de la GPU</string>
-    <string name="renderer_accuracy_description">Controla el modo de la emulación de la GPU. La mayoría de los juegos se renderizan correctamente en los modos Rápido o Equilibrado, pero algunos requieren Preciso. Las partículas tienden a renderizarse correctamente solo con el modo Preciso.</string>
     <string name="dma_accuracy">Precisión de DMA</string>
     <string name="dma_accuracy_description">Controla la precisión de DMA. La precisión segura puede solucionar problemas en algunos juegos, pero también puede afectar al rendimiento en algunos casos. Si no está seguro, déjelo en Predeterminado.</string>
     <string name="gpu_fence_behavior">Comportamiento de vallado de la GPU</string>
@@ -499,8 +512,6 @@
 
     <string name="hacks">Hacks</string>
 
-    <string name="fast_gpu_time">Tiempo rápido de la GPU</string>
-    <string name="fast_gpu_time_description">Fuerza a la mayoría de los juegos a ejecutarse a su resolución nativa más alta. Usa 256 para un máximo rendimiento y 512 para una fidelidad gráfica óptima.</string>
     <string name="skip_cpu_inner_invalidation">Omitir invalidación interna de la CPU</string>
     <string name="skip_cpu_inner_invalidation_description">Omite ciertas invalidaciones de caché de la CPU durante las actualizaciones de memoria, lo que reduce el uso de la CPU y mejora su rendimiento. Esto puede causar fallos o bloqueos en algunos juegos.</string>
     <string name="fix_bloom_effects">Arreglar los efectos de resplandor</string>
@@ -946,14 +957,13 @@
     <string name="memory_6gb">6GB (Inseguro)</string>
     <string name="memory_8gb">8GB (Inseguro)</string>
 
-    <!--CPU clock speeds-->
-    <string name="clock_boost">Impulsado (1700MHz)</string>
-    <string name="clock_fast">Rápido (2000MHz)</string>
+    <!-- CPU clock levels -->
+    <string name="clock_normal">Normal</string>
+    <string name="clock_fast">Overclock</string>
 
-    <!-- GPU overclock factors -->
-    <string name="off">Desactivado</string>
-    <string name="fast_gpu_medium">Medio (256)</string>
-    <string name="fast_gpu_high">Alto (512)</string>
+    <!-- GPU clock levels -->
+    <string name="fast_gpu_normal">Normal</string>
+    <string name="fast_gpu_high">Overclock</string>
 
     <!-- GPU swizzle texture size -->
     <string name="gpu_texturesizeswizzle_verysmall">Muy pequeño (16 MB)</string>
@@ -993,7 +1003,6 @@
 
     <!-- Renderer Accuracy -->
     <string name="renderer_accuracy_low">Rápido</string>
-    <string name="renderer_accuracy_medium">Equilibrado</string>
     <string name="renderer_accuracy_high">Preciso</string>
 
     <!-- DMA Accuracy -->

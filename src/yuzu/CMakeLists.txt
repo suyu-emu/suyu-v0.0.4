@@ -8,7 +8,7 @@ set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
 # Set the RPATH for Qt Libraries
 # This must be done before the `yuzu` target is created
-if (YUZU_USE_BUNDLED_QT AND PLATFORM_LINUX)
+if (YUZU_USE_BUNDLED_QT AND LINUX)
     set(CMAKE_BUILD_RPATH "${CMAKE_BINARY_DIR}/bin/lib/")
 endif()
 

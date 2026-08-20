@@ -242,7 +242,7 @@ void GPULogger::LogMemoryAllocation(uintptr_t memory, u64 size, u32 memory_flags
     }
 
     const auto log_entry = fmt::format(
-        "[{}] [Memory] Allocated {} at 0x{:x} (Device:{}, Host:{})\n", FormatTimestamp(timestamp),
+        "[{}] [Memory] Allocated {} at {:#x} (Device:{}, Host:{})\n", FormatTimestamp(timestamp),
         FormatMemorySize(size), memory, is_device_local ? "Yes" : "No",
         is_host_visible ? "Yes" : "No");
     WriteToLog(log_entry);
@@ -274,7 +274,7 @@ void GPULogger::LogMemoryDeallocation(uintptr_t memory) {
 
     if (size > 0) {
         const auto log_entry =
-            fmt::format("[{}] [Memory] Deallocated {} at 0x{:x}\n", FormatTimestamp(timestamp),
+            fmt::format("[{}] [Memory] Deallocated {} at {:#x}\n", FormatTimestamp(timestamp),
                         FormatMemorySize(size), memory);
         WriteToLog(log_entry);
     }

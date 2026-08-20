@@ -235,7 +235,7 @@ AppLoader_NSO::LoadResult AppLoader_NSO::Load(Kernel::KProcess& process, Core::S
     }
 
     modules.insert_or_assign(base_address, file->GetName());
-    LOG_DEBUG(Loader, "loaded module {} @ {:#X}", file->GetName(), base_address);
+    LOG_DEBUG(Loader, "loaded module {} @ {:#x}", file->GetName(), base_address);
 
     is_loaded = true;
     return {ResultStatus::Success, LoadParameters{Kernel::KThread::DefaultThreadPriority,

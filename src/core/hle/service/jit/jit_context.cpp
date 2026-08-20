@@ -142,7 +142,7 @@ public:
         if (boost::icl::contains(mapped_ranges, vaddr)) {
             memory.ReadBlock(vaddr, &ret, sizeof(T));
         } else if (vaddr + sizeof(T) > local_memory.size()) {
-            LOG_CRITICAL(Service_JIT, "plugin: unmapped read @ 0x{:016x}", vaddr);
+            LOG_CRITICAL(Service_JIT, "plugin: unmapped read @ {:#016x}", vaddr);
         } else {
             std::memcpy(&ret, local_memory.data() + vaddr, sizeof(T));
         }
@@ -154,7 +154,7 @@ public:
         if (boost::icl::contains(mapped_ranges, vaddr)) {
             memory.WriteBlock(vaddr, &value, sizeof(T));
         } else if (vaddr + sizeof(T) > local_memory.size()) {
-            LOG_CRITICAL(Service_JIT, "plugin: unmapped write @ 0x{:016x}", vaddr);
+            LOG_CRITICAL(Service_JIT, "plugin: unmapped write @ {:#016x}", vaddr);
         } else {
             std::memcpy(local_memory.data() + vaddr, &value, sizeof(T));
         }
@@ -416,7 +416,7 @@ void DynarmicCallbacks64::CallSVC(u32 swi) {
         LOG_CRITICAL(Service_JIT, "plugin panicked!");
         parent.jit->HaltExecution();
     } else {
-        LOG_CRITICAL(Service_JIT, "plugin issued syscall at unknown address 0x{:x}", pc);
+        LOG_CRITICAL(Service_JIT, "plugin issued syscall at unknown address {:#x}", pc);
         parent.jit->HaltExecution();
     }
 }

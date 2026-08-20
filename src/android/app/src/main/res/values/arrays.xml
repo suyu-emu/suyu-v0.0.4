@@ -34,7 +34,7 @@
     </integer-array>
 
     <string-array name="clockNames">
-        <item>@string/off</item>
+        <item>@string/clock_normal</item>
         <item>@string/clock_boost</item>
         <item>@string/clock_fast</item>
     </string-array>
@@ -103,14 +103,12 @@
 
     <string-array name="rendererAccuracyNames">
         <item>@string/renderer_accuracy_low</item>
-        <item>@string/renderer_accuracy_medium</item>
         <item>@string/renderer_accuracy_high</item>
     </string-array>
 
     <integer-array name="rendererAccuracyValues">
         <item>0</item>
         <item>1</item>
-        <item>2</item>
     </integer-array>
 
     <!-- VRAM USAGE MODE CHOICES -->
@@ -163,6 +161,48 @@
         <item>@string/resolution_three</item>
         <item>@string/resolution_four</item>
     </string-array>
+
+    <string-array name="frameGenMultiplierNames">
+        <item>@string/frame_gen_multiplier_2x</item>
+        <item>@string/frame_gen_multiplier_3x</item>
+        <item>@string/frame_gen_multiplier_4x</item>
+    </string-array>
+
+    <integer-array name="frameGenMultiplierValues">
+        <item>2</item>
+        <item>3</item>
+        <item>4</item>
+    </integer-array>
+
+    <string-array name="frameGenTargetRateNames">
+        <item>@string/frame_gen_target_rate_off</item>
+        <item>@string/frame_gen_target_rate_60</item>
+        <item>@string/frame_gen_target_rate_90</item>
+        <item>@string/frame_gen_target_rate_120</item>
+        <item>@string/frame_gen_target_rate_144</item>
+        <item>@string/frame_gen_target_rate_165</item>
+    </string-array>
+
+    <integer-array name="frameGenTargetRateValues">
+        <item>0</item>
+        <item>60</item>
+        <item>90</item>
+        <item>120</item>
+        <item>144</item>
+        <item>165</item>
+    </integer-array>
+
+    <string-array name="frameGenQueueTargetNames">
+        <item>@string/frame_gen_queue_target_0</item>
+        <item>@string/frame_gen_queue_target_1</item>
+        <item>@string/frame_gen_queue_target_2</item>
+    </string-array>
+
+    <integer-array name="frameGenQueueTargetValues">
+        <item>0</item>
+        <item>1</item>
+        <item>2</item>
+    </integer-array>
 
     <string-array name="rendererVSyncNames">
         <item>@string/renderer_vsync_immediate</item>
@@ -549,7 +589,7 @@
     </integer-array>
 
     <string-array name="gpuEntries">
-        <item>@string/off</item>
+        <item>@string/fast_gpu_normal</item>
         <item>@string/fast_gpu_medium</item>
         <item>@string/fast_gpu_high</item>
     </string-array>
@@ -638,6 +678,16 @@
         <item>@string/error_keys_copy_failed</item>
         <item>@string/error_keys_invalid_filename</item>
         <item>@string/error_keys_failed_init</item>
+    </string-array>
+
+    <string-array name="losslessDllResults">
+        <item>""</item>
+        <item>@string/error_lossless_copy_failed</item>
+        <item>@string/error_lossless_unreadable</item>
+        <item>@string/error_lossless_not_pe</item>
+        <item>@string/error_lossless_missing_shaders</item>
+        <item>@string/error_lossless_translation_failed</item>
+        <item>@string/error_lossless_cache_failed</item>
     </string-array>
 
     <!-- GPU Logging Arrays -->

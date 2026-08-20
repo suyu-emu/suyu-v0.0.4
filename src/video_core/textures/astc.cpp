@@ -1769,6 +1769,12 @@ static void DecompressBlock(std::span<const u8, 16> inBuf, const u32 blockWidth,
         return;
     }
 
+    if (weightParams.GetNumWeightValues() > 64) {
+        assert(false && "Too many weights in the weight grid");
+        FillError(outBuf, blockWidth, blockHeight);
+        return;
+    }
+
     // Read num partitions
     u32 nPartitions = strm.ReadBits<2>() + 1;
     assert(nPartitions <= 4);
@@ -1805,6 +1811,11 @@ static void DecompressBlock(std::span<const u8, 16> inBuf, const u32 blockWidth,
 
     // Remaining bits are color endpoint data...
     u32 nWeightBits = weightParams.GetPackedBitSize();
+    if (nWeightBits < 24 || nWeightBits > 96) {
+        assert(false && "Invalid weight bit count");
+        FillError(outBuf, blockWidth, blockHeight);
+        return;
+    }
     s32 remainingBits = 128 - nWeightBits - static_cast<int>(strm.GetBitsRead());
 
     // Consider extra bits prior to texel data...

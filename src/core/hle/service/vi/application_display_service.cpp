@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 // SPDX-FileCopyrightText: Copyright 2024 yuzu Emulator Project
@@ -141,7 +141,7 @@ Result IApplicationDisplayService::GetDisplayResolution(Out<s64> out_width, Out<
 }
 
 Result IApplicationDisplayService::SetLayerScalingMode(NintendoScaleMode scale_mode, u64 layer_id) {
-    LOG_DEBUG(Service_VI, "called. scale_mode={}, unknown=0x{:016X}", scale_mode, layer_id);
+    LOG_DEBUG(Service_VI, "called. scale_mode={}, unknown={:#016x}", scale_mode, layer_id);
 
     if (scale_mode > NintendoScaleMode::PreserveAspectRatio) {
         LOG_ERROR(Service_VI, "Invalid scaling mode provided.");

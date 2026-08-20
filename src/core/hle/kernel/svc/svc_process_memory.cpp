@@ -32,7 +32,7 @@ constexpr bool IsValidProcessMemoryPermission(Svc::MemoryPermission perm) {
 Result SetProcessMemoryPermission(Core::System& system, Handle process_handle, u64 address,
                                   u64 size, Svc::MemoryPermission perm) {
     LOG_TRACE(Kernel_SVC,
-              "called, process_handle={:#X}, addr=0x{:X}, size=0x{:X}, permissions=0x{:08X}",
+              "called, process_handle={:#x}, addr={:#x}, size={:#x}, permissions={:#08x}",
               process_handle, address, size, perm);
 
     // Validate the address/size.
@@ -62,7 +62,7 @@ Result SetProcessMemoryPermission(Core::System& system, Handle process_handle, u
 Result MapProcessMemory(Core::System& system, u64 dst_address, Handle process_handle,
                         u64 src_address, u64 size) {
     LOG_TRACE(Kernel_SVC,
-              "called, dst_address={:#X}, process_handle=0x{:X}, src_address=0x{:X}, size=0x{:X}",
+              "called, dst_address={:#x}, process_handle={:#x}, src_address={:#x}, size={:#x}",
               dst_address, process_handle, src_address, size);
 
     // Validate the address/size.
@@ -103,7 +103,7 @@ Result MapProcessMemory(Core::System& system, u64 dst_address, Handle process_ha
 Result UnmapProcessMemory(Core::System& system, u64 dst_address, Handle process_handle,
                           u64 src_address, u64 size) {
     LOG_TRACE(Kernel_SVC,
-              "called, dst_address={:#X}, process_handle=0x{:X}, src_address=0x{:X}, size=0x{:X}",
+              "called, dst_address={:#x}, process_handle={:#x}, src_address={:#x}, size={:#x}",
               dst_address, process_handle, src_address, size);
 
     // Validate the address/size.
@@ -136,39 +136,39 @@ Result UnmapProcessMemory(Core::System& system, u64 dst_address, Handle process_
 Result MapProcessCodeMemory(Core::System& system, Handle process_handle, u64 dst_address,
                             u64 src_address, u64 size) {
     LOG_DEBUG(Kernel_SVC,
-              "called. process_handle=0x{:08X}, dst_address=0x{:016X}, "
-              "src_address=0x{:016X}, size=0x{:016X}",
+              "called. process_handle={:#08x}, dst_address={:#016x}, "
+              "src_address={:#016x}, size={:#016x}",
               process_handle, dst_address, src_address, size);
 
     if (!Common::IsAligned(src_address, Core::Memory::YUZU_PAGESIZE)) {
-        LOG_ERROR(Kernel_SVC, "src_address is not page-aligned (src_address=0x{:016X}).",
+        LOG_ERROR(Kernel_SVC, "src_address is not page-aligned (src_address={:#016X}).",
                   src_address);
         R_THROW(ResultInvalidAddress);
     }
 
     if (!Common::IsAligned(dst_address, Core::Memory::YUZU_PAGESIZE)) {
-        LOG_ERROR(Kernel_SVC, "dst_address is not page-aligned (dst_address=0x{:016X}).",
+        LOG_ERROR(Kernel_SVC, "dst_address is not page-aligned (dst_address={:#016X}).",
                   dst_address);
         R_THROW(ResultInvalidAddress);
     }
 
     if (size == 0 || !Common::IsAligned(size, Core::Memory::YUZU_PAGESIZE)) {
-        LOG_ERROR(Kernel_SVC, "Size is zero or not page-aligned (size=0x{:016X})", size);
+        LOG_ERROR(Kernel_SVC, "Size is zero or not page-aligned (size={:#016X})", size);
         R_THROW(ResultInvalidSize);
     }
 
     if (!IsValidAddressRange(dst_address, size)) {
         LOG_ERROR(Kernel_SVC,
-                  "Destination address range overflows the address space (dst_address=0x{:016X}, "
-                  "size=0x{:016X}).",
+                  "Destination address range overflows the address space (dst_address={:#016x}, "
+                  "size={:#016x}).",
                   dst_address, size);
         R_THROW(ResultInvalidCurrentMemory);
     }
 
     if (!IsValidAddressRange(src_address, size)) {
         LOG_ERROR(Kernel_SVC,
-                  "Source address range overflows the address space (src_address=0x{:016X}, "
-                  "size=0x{:016X}).",
+                  "Source address range overflows the address space (src_address={:#016x}, "
+                  "size={:#016x}).",
                   src_address, size);
         R_THROW(ResultInvalidCurrentMemory);
     }
@@ -176,7 +176,7 @@ Result MapProcessCodeMemory(Core::System& system, Handle process_handle, u64 dst
     const auto& handle_table = GetCurrentProcess(system.Kernel()).GetHandleTable();
     KScopedAutoObject process = handle_table.GetObject<KProcess>(system.Kernel(), process_handle);
     if (process.IsNull()) {
-        LOG_ERROR(Kernel_SVC, "Invalid process handle specified (handle=0x{:08X}).",
+        LOG_ERROR(Kernel_SVC, "Invalid process handle specified (handle={:#08x}).",
                   process_handle);
         R_THROW(ResultInvalidHandle);
     }
@@ -184,8 +184,8 @@ Result MapProcessCodeMemory(Core::System& system, Handle process_handle, u64 dst
     auto& page_table = process->GetPageTable();
     if (!page_table.Contains(src_address, size)) {
         LOG_ERROR(Kernel_SVC,
-                  "Source address range is not within the address space (src_address=0x{:016X}, "
-                  "size=0x{:016X}).",
+                  "Source address range is not within the address space (src_address={:#016x}, "
+                  "size={:#016x}).",
                   src_address, size);
         R_THROW(ResultInvalidCurrentMemory);
     }
@@ -197,39 +197,39 @@ Result MapProcessCodeMemory(Core::System& system, Handle process_handle, u64 dst
 Result UnmapProcessCodeMemory(Core::System& system, Handle process_handle, u64 dst_address,
                               u64 src_address, u64 size) {
     LOG_DEBUG(Kernel_SVC,
-              "called. process_handle=0x{:08X}, dst_address=0x{:016X}, src_address=0x{:016X}, "
-              "size=0x{:016X}",
+              "called. process_handle={:#08x}, dst_address={:#016x}, src_address={:#016x}, "
+              "size={:#016x}",
               process_handle, dst_address, src_address, size);
 
     if (!Common::IsAligned(dst_address, Core::Memory::YUZU_PAGESIZE)) {
-        LOG_ERROR(Kernel_SVC, "dst_address is not page-aligned (dst_address=0x{:016X}).",
+        LOG_ERROR(Kernel_SVC, "dst_address is not page-aligned (dst_address={:#016X}).",
                   dst_address);
         R_THROW(ResultInvalidAddress);
     }
 
     if (!Common::IsAligned(src_address, Core::Memory::YUZU_PAGESIZE)) {
-        LOG_ERROR(Kernel_SVC, "src_address is not page-aligned (src_address=0x{:016X}).",
+        LOG_ERROR(Kernel_SVC, "src_address is not page-aligned (src_address={:#016X}).",
                   src_address);
         R_THROW(ResultInvalidAddress);
     }
 
     if (size == 0 || !Common::IsAligned(size, Core::Memory::YUZU_PAGESIZE)) {
-        LOG_ERROR(Kernel_SVC, "Size is zero or not page-aligned (size=0x{:016X}).", size);
+        LOG_ERROR(Kernel_SVC, "Size is zero or not page-aligned (size={:#016X}).", size);
         R_THROW(ResultInvalidSize);
     }
 
     if (!IsValidAddressRange(dst_address, size)) {
         LOG_ERROR(Kernel_SVC,
-                  "Destination address range overflows the address space (dst_address=0x{:016X}, "
-                  "size=0x{:016X}).",
+                  "Destination address range overflows the address space (dst_address={:#016x}, "
+                  "size={:#016x}).",
                   dst_address, size);
         R_THROW(ResultInvalidCurrentMemory);
     }
 
     if (!IsValidAddressRange(src_address, size)) {
         LOG_ERROR(Kernel_SVC,
-                  "Source address range overflows the address space (src_address=0x{:016X}, "
-                  "size=0x{:016X}).",
+                  "Source address range overflows the address space (src_address={:#016x}, "
+                  "size={:#016x}).",
                   src_address, size);
         R_THROW(ResultInvalidCurrentMemory);
     }
@@ -237,7 +237,7 @@ Result UnmapProcessCodeMemory(Core::System& system, Handle process_handle, u64 d
     const auto& handle_table = GetCurrentProcess(system.Kernel()).GetHandleTable();
     KScopedAutoObject process = handle_table.GetObject<KProcess>(system.Kernel(), process_handle);
     if (process.IsNull()) {
-        LOG_ERROR(Kernel_SVC, "Invalid process handle specified (handle=0x{:08X}).",
+        LOG_ERROR(Kernel_SVC, "Invalid process handle specified (handle={:#08x}).",
                   process_handle);
         R_THROW(ResultInvalidHandle);
     }
@@ -245,8 +245,8 @@ Result UnmapProcessCodeMemory(Core::System& system, Handle process_handle, u64 d
     auto& page_table = process->GetPageTable();
     if (!page_table.Contains(src_address, size)) {
         LOG_ERROR(Kernel_SVC,
-                  "Source address range is not within the address space (src_address=0x{:016X}, "
-                  "size=0x{:016X}).",
+                  "Source address range is not within the address space (src_address={:#016x}, "
+                  "size={:#016x}).",
                   src_address, size);
         R_THROW(ResultInvalidCurrentMemory);
     }

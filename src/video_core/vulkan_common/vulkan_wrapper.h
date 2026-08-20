@@ -352,6 +352,12 @@ struct DeviceDispatch : InstanceDispatch {
     PFN_vkSetDebugUtilsObjectTagEXT vkSetDebugUtilsObjectTagEXT{};
     PFN_vkUnmapMemory vkUnmapMemory{};
     PFN_vkUpdateDescriptorSetWithTemplate vkUpdateDescriptorSetWithTemplate{};
+    PFN_vkGetBufferDeviceAddress vkGetBufferDeviceAddress{};
+    PFN_vkGetDescriptorSetLayoutSizeEXT vkGetDescriptorSetLayoutSizeEXT{};
+    PFN_vkGetDescriptorSetLayoutBindingOffsetEXT vkGetDescriptorSetLayoutBindingOffsetEXT{};
+    PFN_vkGetDescriptorEXT vkGetDescriptorEXT{};
+    PFN_vkCmdBindDescriptorBuffersEXT vkCmdBindDescriptorBuffersEXT{};
+    PFN_vkCmdSetDescriptorBufferOffsetsEXT vkCmdSetDescriptorBufferOffsetsEXT{};
     PFN_vkUpdateDescriptorSets vkUpdateDescriptorSets{};
     PFN_vkWaitForFences vkWaitForFences{};
     PFN_vkWaitSemaphores vkWaitSemaphores{};
@@ -793,6 +799,11 @@ public:
         return !mapped.empty();
     }
 
+    /// Returns true if host writes are visible to the device.
+    bool IsHostCoherent() const noexcept {
+        return is_coherent;
+    }
+
     void Flush() const;
 
     void Invalidate() const;
@@ -1085,6 +1096,34 @@ public:
     void UpdateDescriptorSet(VkDescriptorSet set, VkDescriptorUpdateTemplate update_template,
                              const void* data) const noexcept {
         dld->vkUpdateDescriptorSetWithTemplate(handle, set, update_template, data);
+    }
+
+    [[nodiscard]] VkDeviceAddress GetBufferDeviceAddress(VkBuffer buffer) const noexcept {
+        const VkBufferDeviceAddressInfo info{
+            .sType = VK_STRUCTURE_TYPE_BUFFER_DEVICE_ADDRESS_INFO,
+            .pNext = nullptr,
+            .buffer = buffer,
+        };
+        return dld->vkGetBufferDeviceAddress(handle, &info);
+    }
+
+    [[nodiscard]] VkDeviceSize GetDescriptorSetLayoutSizeEXT(
+        VkDescriptorSetLayout layout) const noexcept {
+        VkDeviceSize size{};
+        dld->vkGetDescriptorSetLayoutSizeEXT(handle, layout, &size);
+        return size;
+    }
+
+    [[nodiscard]] VkDeviceSize GetDescriptorSetLayoutBindingOffsetEXT(
+        VkDescriptorSetLayout layout, u32 binding) const noexcept {
+        VkDeviceSize offset{};
+        dld->vkGetDescriptorSetLayoutBindingOffsetEXT(handle, layout, binding, &offset);
+        return offset;
+    }
+
+    void GetDescriptorEXT(const VkDescriptorGetInfoEXT& info, size_t size,
+                          void* descriptor) const noexcept {
+        dld->vkGetDescriptorEXT(handle, &info, size, descriptor);
     }
 
     VkResult AcquireNextImageKHR(VkSwapchainKHR swapchain, u64 timeout, VkSemaphore semaphore,
@@ -1398,6 +1437,18 @@ public:
                          VkDependencyFlags dependency_flags,
                          const VkImageMemoryBarrier& image_barrier) const noexcept {
         PipelineBarrier(src_stage_mask, dst_stage_mask, dependency_flags, {}, {}, image_barrier);
+    }
+
+    void BindDescriptorBuffersEXT(Span<VkDescriptorBufferBindingInfoEXT> bindings) const noexcept {
+        dld->vkCmdBindDescriptorBuffersEXT(handle, bindings.size(), bindings.data());
+    }
+
+    void SetDescriptorBufferOffsetsEXT(VkPipelineBindPoint bind_point, VkPipelineLayout layout,
+                                       u32 first_set, Span<u32> buffer_indices,
+                                       Span<VkDeviceSize> offsets) const noexcept {
+        dld->vkCmdSetDescriptorBufferOffsetsEXT(handle, bind_point, layout, first_set,
+                                                buffer_indices.size(), buffer_indices.data(),
+                                                offsets.data());
     }
 
     void CopyBufferToImage(VkBuffer src_buffer, VkImage dst_image, VkImageLayout dst_image_layout,

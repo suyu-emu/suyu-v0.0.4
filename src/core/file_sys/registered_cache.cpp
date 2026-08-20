@@ -984,6 +984,22 @@ bool RegisteredCache::RemoveExistingEntry(u64 title_id) const {
     return removed_data;
 }
 
+bool RegisteredCache::Delete(const NcaID& id) const {
+    const auto path = GetRelativePathFromNcaID(id, false, true, false);
+
+    const bool is_file = dir->GetFileRelative(path) != nullptr;
+    const bool is_dir = dir->GetDirectoryRelative(path) != nullptr;
+
+    if (is_file) {
+        return dir->DeleteFile(path);
+    }
+    if (is_dir) {
+        return dir->DeleteSubdirectoryRecursive(path);
+    }
+
+    return true;
+}
+
 InstallResult RegisteredCache::RawInstallNCA(const NCA& nca, const VfsCopyFunction& copy,
                                              bool overwrite_if_exists,
                                              std::optional<NcaID> override_id) {

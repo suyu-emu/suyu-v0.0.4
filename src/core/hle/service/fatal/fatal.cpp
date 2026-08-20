@@ -71,9 +71,9 @@ static void GenerateErrorReport(Core::System& system, Result error_code, const F
     std::string crash_report = fmt::format(
         "Eden {}-{} crash report\n"
         "Title ID:                        {:016x}\n"
-        "Result:                          {:#X} ({:04}-{:04d})\n"
-        "Set flags:                       0x{:16X}\n"
-        "Program entry point:             0x{:16X}\n"
+        "Result:                          {:#x} ({:04}-{:04d})\n"
+        "Set flags:                       {:#16X}\n"
+        "Program entry point:             {:#16X}\n"
         "\n",
         Common::g_scm_branch, Common::g_scm_desc, title_id, error_code.raw,
         2000 + static_cast<u32>(error_code.GetModule()),
@@ -98,7 +98,7 @@ static void GenerateErrorReport(Core::System& system, Result error_code, const F
         }
 
         crash_report += fmt::format("Architecture:                    {}\n", info.ArchAsString());
-        crash_report += fmt::format("Unknown 10:                      0x{:016x}\n", info.unk10);
+        crash_report += fmt::format("Unknown 10:                      {:#016x}\n", info.unk10);
     }
 
     LOG_ERROR(Service_Fatal, "{}", crash_report);
@@ -111,7 +111,7 @@ static void GenerateErrorReport(Core::System& system, Result error_code, const F
 
 static void ThrowFatalError(Core::System& system, Result error_code, FatalType fatal_type,
                             const FatalInfo& info) {
-    LOG_ERROR(Service_Fatal, "Threw fatal error type {} with error code {:#X}", fatal_type,
+    LOG_ERROR(Service_Fatal, "Threw fatal error type {} with error code {:#x}", fatal_type,
               error_code.raw);
 
     switch (fatal_type) {

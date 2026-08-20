@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 // SPDX-FileCopyrightText: Copyright 2021 yuzu Emulator Project
@@ -53,7 +53,7 @@ IR::U32 skewBytes(IR::IREmitter& ir, SZ sizeRead) {
 } // Anonymous namespace
 
 void TranslatorVisitor::ISBERD(u64 insn) {
-    LOG_DEBUG(Shader, "called with insn={:#X}", insn);
+    LOG_DEBUG(Shader, "called with insn={:#x}", insn);
 
     union {
         u64 raw;

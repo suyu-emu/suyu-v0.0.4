@@ -1177,7 +1177,7 @@ static void *stbi__load_main(stbi__context *s, int *x, int *y, int *comp, int re
    #endif
 
    #ifndef STBI_NO_TGA
-   // test tga last because it's a crappy test!
+   // test tga last because it's a bad test!
    if (stbi__tga_test(s))
       return stbi__tga_load(s,x,y,comp,req_comp, ri);
    #endif
@@ -7662,7 +7662,7 @@ static int stbi__info_main(stbi__context *s, int *x, int *y, int *comp)
    if (stbi__hdr_info(s, x, y, comp))  return 1;
    #endif
 
-   // test tga last because it's a crappy test!
+   // test tga last because it's a bad test!
    #ifndef STBI_NO_TGA
    if (stbi__tga_info(s, x, y, comp))
        return 1;

@@ -145,7 +145,14 @@ bool Patcher::PatchText(std::span<const u8> program_image, const Kernel::CodeSet
 
         // MRS Xn, CNTFRQ_EL0
         if (auto mrs = MRS{inst}; mrs.Verify() && mrs.GetSystemReg() == CntfrqEl0) {
-            UNREACHABLE();
+            bool pre_buffer = false;
+            auto ret = AddRelocations(pre_buffer);
+            if (pre_buffer) {
+                WriteCntfrqHandler(ret, oaknut::XReg{static_cast<int>(mrs.GetRt())}, c_pre);
+            } else {
+                WriteCntfrqHandler(ret, oaknut::XReg{static_cast<int>(mrs.GetRt())}, c);
+            }
+            continue;
         }
 
         // MSR TPIDR_EL0, Xn
@@ -571,6 +578,16 @@ void Patcher::WriteMsrHandler(ModuleDestLabel module_dest, oaknut::XReg src_reg,
     cg.LDR(scratch_reg, SP, POST_INDEXED, 16);
 
     // Jump back to the instruction after the emulated MSR.
+    if (&cg == &c_pre)
+        this->BranchToModulePre(module_dest);
+    else
+        this->BranchToModule(module_dest);
+}
+
+void Patcher::WriteCntfrqHandler(ModuleDestLabel module_dest, oaknut::XReg dest_reg, oaknut::VectorCodeGenerator& cg) {
+    cg.MOV(dest_reg, Common::WallClock::CNTFRQ);
+
+    // Jump back to the instruction after the emulated MRS.
     if (&cg == &c_pre)
         this->BranchToModulePre(module_dest);
     else

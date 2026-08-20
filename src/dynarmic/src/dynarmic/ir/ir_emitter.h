@@ -2943,7 +2943,7 @@ public:
         Inst(Opcode::CallHostFunction, Imm64(std::bit_cast<u64>(fn)), arg1, arg2, arg3);
     }
 
-    void SetTerm(const Terminal& terminal) {
+    void SetTerm(const Term::Terminal& terminal) {
         block.SetTerminal(terminal);
     }
 

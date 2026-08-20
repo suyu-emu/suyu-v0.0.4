@@ -1451,6 +1451,7 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
 
     override fun onResume() {
         super.onResume()
+        NativeLibrary.refreshThreadPolicies()
         val b = _binding ?: return
         updateStatsPosition(IntSetting.PERF_OVERLAY_POSITION.getInt())
         updateSocPosition(IntSetting.SOC_OVERLAY_POSITION.getInt())

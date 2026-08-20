@@ -26,13 +26,12 @@ EventObserver::EventObserver(Core::System& system, WindowSystem& window_system)
     m_window_system.SetEventObserver(this);
     m_wakeup_holder.SetUserData(static_cast<uintptr_t>(UserDataTag::WakeupEvent));
     m_wakeup_holder.LinkToMultiWait(std::addressof(m_multi_wait));
-    m_thread = std::thread([this] {
+    m_thread = std::jthread([this](std::stop_token stop_token) {
         Common::SetCurrentThreadName("am:EventObserver");
-        while (true) {
-            auto* signaled_holder = this->WaitSignaled();
-            if (!signaled_holder) {
+        while (!stop_token.stop_requested()) {
+            auto* signaled_holder = this->WaitSignaled(stop_token);
+            if (!signaled_holder)
                 break;
-            }
             this->Process(signaled_holder);
         }
     });
@@ -40,9 +39,12 @@ EventObserver::EventObserver(Core::System& system, WindowSystem& window_system)
 
 EventObserver::~EventObserver() {
     // Signal thread and wait for processing to finish.
-    m_stop_source.request_stop();
-    m_wakeup_event.Signal(m_system.Kernel());
-    m_thread.join();
+    if (m_thread.joinable()) {
+        // Signal thread and wait for processing to finish.
+        m_thread.request_stop();
+        m_wakeup_event.Signal(m_system.Kernel());
+        m_thread.join();
+    }
 
     // Free remaining owned sessions.
     auto it = m_process_holder_list.begin();
@@ -88,12 +90,12 @@ void EventObserver::LinkDeferred() {
     m_multi_wait.MoveAll(std::addressof(m_deferred_wait_list));
 }
 
-MultiWaitHolder* EventObserver::WaitSignaled() {
+MultiWaitHolder* EventObserver::WaitSignaled(std::stop_token stop_token) {
     while (true) {
         this->LinkDeferred();
 
         // If we're done, return before we start waiting.
-        if (m_stop_source.stop_requested()) {
+        if (stop_token.stop_requested()) {
             return nullptr;
         }
 
@@ -131,7 +133,6 @@ void EventObserver::OnProcessEvent(ProcessHolder* holder) {
     // Check process state.
     auto& applet = holder->GetApplet();
     auto& process = holder->GetProcess();
-
     {
         std::scoped_lock lk{m_lock, applet.lock};
         if (process.IsTerminated()) {
@@ -156,7 +157,6 @@ void EventObserver::OnProcessEvent(ProcessHolder* holder) {
 void EventObserver::DestroyAppletProcessHolderLocked(ProcessHolder* holder) {
     // Remove from owned list.
     m_process_holder_list.erase(m_process_holder_list.iterator_to(*holder));
-
     // Destroy and free.
     delete holder;
 }

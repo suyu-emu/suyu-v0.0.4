@@ -16,7 +16,7 @@ namespace Kernel::Svc {
 /// Gets system/memory information for the current process
 Result GetInfo(Core::System& system, u64* result, InfoType info_id_type, Handle handle,
                u64 info_sub_id) {
-    LOG_TRACE(Kernel_SVC, "called info_id={:#X}, info_sub_id=0x{:X}, handle=0x{:08X}",
+    LOG_TRACE(Kernel_SVC, "called info_id={:#x}, info_sub_id={:#x}, handle={:#08x}",
               info_id_type, info_sub_id, handle);
 
     u32 info_id = static_cast<u32>(info_id_type);
@@ -153,7 +153,7 @@ Result GetInfo(Core::System& system, u64* result, InfoType info_id_type, Handle 
             break;
         }
 
-        LOG_ERROR(Kernel_SVC, "Unimplemented svcGetInfo id=0x{:016X}", info_id);
+        LOG_ERROR(Kernel_SVC, "Unimplemented svcGetInfo id={:#016x}", info_id);
         R_THROW(ResultInvalidEnumValue);
     }
 
@@ -206,7 +206,7 @@ Result GetInfo(Core::System& system, u64* result, InfoType info_id_type, Handle 
             .GetHandleTable()
             .GetObject<KThread>(system.Kernel(), Handle(handle));
         if (thread.IsNull()) {
-            LOG_ERROR(Kernel_SVC, "Thread handle does not exist, handle=0x{:08X}",
+            LOG_ERROR(Kernel_SVC, "Thread handle does not exist, handle={:#08x}",
                       static_cast<Handle>(handle));
             R_THROW(ResultInvalidHandle);
         }
@@ -265,7 +265,7 @@ Result GetInfo(Core::System& system, u64* result, InfoType info_id_type, Handle 
         R_SUCCEED();
     }
     default:
-        LOG_ERROR(Kernel_SVC, "Unimplemented svcGetInfo id=0x{:016X}", info_id);
+        LOG_ERROR(Kernel_SVC, "Unimplemented svcGetInfo id={:#016x}", info_id);
         R_THROW(ResultInvalidEnumValue);
     }
 }

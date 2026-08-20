@@ -15,7 +15,7 @@ namespace Kernel::Svc {
 /// Sets the thread activity
 Result SetThreadActivity(Core::System& system, Handle thread_handle,
                          ThreadActivity thread_activity) {
-    LOG_DEBUG(Kernel_SVC, "called, handle=0x{:08X}, activity=0x{:08X}", thread_handle,
+    LOG_DEBUG(Kernel_SVC, "called, handle={:#08x}, activity={:#08x}", thread_handle,
               thread_activity);
 
     // Validate the activity.

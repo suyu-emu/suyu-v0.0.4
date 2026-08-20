@@ -233,14 +233,12 @@ AppletManager::~AppletManager() = default;
 
 void AppletManager::CreateAndInsertByFrontendAppletParameters(
     std::unique_ptr<Process> process, const FrontendAppletParameters& params) {
-    LOG_INFO(Service_AM, "CreateAndInsertByFrontendAppletParameters: setting pending process");
     {
         std::scoped_lock lk{m_lock};
         m_pending_process = std::move(process);
         m_pending_parameters = params;
     }
     m_cv.notify_all();
-    LOG_INFO(Service_AM, "CreateAndInsertByFrontendAppletParameters: notified");
 }
 
 void AppletManager::RequestExit() {
@@ -265,9 +263,7 @@ void AppletManager::SetWindowSystem(WindowSystem* window_system) {
         return;
     }
 
-    LOG_INFO(Service_AM, "SetWindowSystem: waiting for pending process");
     m_cv.wait(lk, [&] { return m_pending_process != nullptr; });
-    LOG_INFO(Service_AM, "SetWindowSystem: pending process arrived");
 
     if (Settings::values.enable_overlay && m_window_system->GetOverlayDisplayApplet() == nullptr) {
         if (auto overlay_process = CreateProcess(m_system, static_cast<u64>(AppletProgramId::OverlayDisplay), 0, 0)) {
@@ -355,9 +351,7 @@ void AppletManager::SetWindowSystem(WindowSystem* window_system) {
         m_window_system->RequestApplicationToGetForeground();
     }
 
-    LOG_INFO(Service_AM, "SetWindowSystem: calling applet->process->Run()");
     applet->process->Run();
-    LOG_INFO(Service_AM, "SetWindowSystem: applet->process->Run() returned");
 }
 
 } // namespace Service::AM

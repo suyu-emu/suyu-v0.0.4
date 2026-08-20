@@ -22,8 +22,8 @@ namespace Core {
 AnnounceMultiplayerSession::AnnounceMultiplayerSession() {
 #ifdef ENABLE_WEB_SERVICE
     backend = std::make_unique<WebService::RoomJson>(Settings::values.web_api_url.GetValue(),
-                                                     Settings::values.suyu_username.GetValue(),
-                                                     Settings::values.suyu_token.GetValue());
+                                                     Settings::values.eden_username.GetValue(),
+                                                     Settings::values.eden_token.GetValue());
 #else
     backend = std::make_unique<AnnounceMultiplayerRoom::NullBackend>();
 #endif
@@ -146,8 +146,8 @@ void AnnounceMultiplayerSession::UpdateCredentials() {
     ASSERT_MSG(!IsRunning(), "Credentials can only be updated when session is not running");
 #ifdef ENABLE_WEB_SERVICE
     backend = std::make_unique<WebService::RoomJson>(Settings::values.web_api_url.GetValue(),
-                                                     Settings::values.suyu_username.GetValue(),
-                                                     Settings::values.suyu_token.GetValue());
+                                                     Settings::values.eden_username.GetValue(),
+                                                     Settings::values.eden_token.GetValue());
 #else
     backend = std::make_unique<AnnounceMultiplayerRoom::NullBackend>();
 #endif

@@ -4,6 +4,8 @@
 // SPDX-FileCopyrightText: Copyright 2024 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
+#include <openssl/evp.h>
+
 #include "common/settings.h"
 #include "common/uuid.h"
 #include "core/file_sys/control_metadata.h"
@@ -154,20 +156,7 @@ Result IApplicationFunctions::GetDesiredLanguage(Out<u64> out_language_code) {
     // Default to 0 (all languages supported)
     u32 supported_languages = 0;
 
-    const auto res = [this] {
-        const FileSys::PatchManager pm{m_applet->program_id, system.GetFileSystemController(),
-                                       system.GetContentProvider()};
-        auto metadata = pm.GetControlMetadata();
-        if (metadata.first != nullptr) {
-            return metadata;
-        }
-
-        const FileSys::PatchManager pm_update{FileSys::GetUpdateTitleID(m_applet->program_id),
-                                              system.GetFileSystemController(),
-                                              system.GetContentProvider()};
-        return pm_update.GetControlMetadata();
-    }();
-
+    const auto res = FileSys::PatchManager::GetMetadataFromBaseOrUpdate(system, m_applet->program_id);
     if (res.first != nullptr) {
         supported_languages = res.first->GetSupportedLanguages();
     }
@@ -205,20 +194,7 @@ Result IApplicationFunctions::SetTerminateResult(Result terminate_result) {
 Result IApplicationFunctions::GetDisplayVersion(Out<DisplayVersion> out_display_version) {
     LOG_DEBUG(Service_AM, "called");
 
-    const auto res = [this] {
-        const FileSys::PatchManager pm{m_applet->program_id, system.GetFileSystemController(),
-                                       system.GetContentProvider()};
-        auto metadata = pm.GetControlMetadata();
-        if (metadata.first != nullptr) {
-            return metadata;
-        }
-
-        const FileSys::PatchManager pm_update{FileSys::GetUpdateTitleID(m_applet->program_id),
-                                              system.GetFileSystemController(),
-                                              system.GetContentProvider()};
-        return pm_update.GetControlMetadata();
-    }();
-
+    const auto res = FileSys::PatchManager::GetMetadataFromBaseOrUpdate(system, m_applet->program_id);
     if (res.first != nullptr) {
         const auto& version = res.first->GetVersionString();
         std::memcpy(out_display_version->string.data(), version.data(),
@@ -347,8 +323,21 @@ Result IApplicationFunctions::NotifyRunning(Out<bool> out_became_running) {
 }
 
 Result IApplicationFunctions::GetPseudoDeviceId(Out<Common::UUID> out_pseudo_device_id) {
-    LOG_WARNING(Service_AM, "(STUBBED) called");
-    *out_pseudo_device_id = {};
+    LOG_WARNING(Service_AM, "(stubbed)");
+
+    // This should be hashed with the device specific hash
+    // for now this will do
+    const auto res = FileSys::PatchManager::GetMetadataFromBaseOrUpdate(system, m_applet->program_id);
+    u8 hash[EVP_MAX_MD_SIZE];
+    unsigned int hash_len = 0;
+    auto const seed = res.first->raw.seed_for_pseudo_device_id;
+    EVP_MD_CTX *ctx = EVP_MD_CTX_new();
+    auto const algorithm = EVP_sha1();
+    EVP_DigestInit_ex(ctx, algorithm, nullptr);
+    EVP_DigestUpdate(ctx, &seed, sizeof(seed));
+    EVP_DigestFinal_ex(ctx, hash, &hash_len);
+    EVP_MD_CTX_free(ctx);
+    *out_pseudo_device_id = Common::UUID::MakeRFC4122V5(std::span<u8, 20>{hash, std::size(hash)});
     R_SUCCEED();
 }
 

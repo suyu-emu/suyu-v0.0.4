@@ -56,7 +56,7 @@ if (NOT YUZU_USE_BUNDLED_FFMPEG)
     endif()
 endif()
 
-if (PLATFORM_PS4 OR PLATFORM_MANAGARM)
+if (OPENORBIS OR MANAGARM)
     # Doesn't support VA-API, don't go thru the embarrassment of trying to enable it
     list(APPEND FFmpeg_HWACCEL_FLAGS --disable-vaapi)
 elseif (ANDROID)
@@ -75,7 +75,7 @@ elseif (UNIX AND NOT DEFINED FFmpeg_IS_CROSS_COMPILING AND NOT ANDROID)
     if(X11_FOUND)
         if (NOT APPLE)
             # In Solaris needs explicit linking for ffmpeg which links to /lib/amd64/libX11.so
-            if(PLATFORM_SUN)
+            if(SOLARIS)
                 list(APPEND FFmpeg_HWACCEL_LIBRARIES
                     X11
                     "${CMAKE_SYSROOT}/usr/lib/xorg/amd64/libdrm.so")
@@ -158,7 +158,7 @@ elseif (UNIX AND NOT DEFINED FFmpeg_IS_CROSS_COMPILING AND NOT ANDROID)
     endif()
 endif()
 
-if (PLATFORM_PS4)
+if (OPENORBIS)
     list(APPEND FFmpeg_CROSS_COMPILE_LIBS
         -lkernel
         -lSceUserService
@@ -172,7 +172,7 @@ if (PLATFORM_PS4)
         --extra-cxxflags=${CMAKE_SYSROOT}/usr/include
         --extra-libs="${FFmpeg_CROSS_COMPILE_LIBS}"
     )
-elseif (PLATFORM_MANAGARM)
+elseif (MANAGARM)
     # Required for proper stuff
     list(APPEND FFmpeg_CROSS_COMPILE_FLAGS
         --disable-pthreads
@@ -299,7 +299,7 @@ else()
     set(FFmpeg_BUILD_LIBRARIES ${FFmpeg_LIBRARIES})
 
     # BSD make or Solaris make don't support ffmpeg make-j8
-    if (PLATFORM_LINUX OR ANDROID OR APPLE OR WIN32 OR PLATFORM_FREEBSD)
+    if (LINUX OR ANDROID OR APPLE OR WIN32 OR FREEBSD)
         set(FFmpeg_MAKE_ARGS -j${SYSTEM_THREADS})
     else()
         set(FFmpeg_MAKE_ARGS "")

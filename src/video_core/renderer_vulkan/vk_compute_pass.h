@@ -164,23 +164,4 @@ private:
     ComputePassDescriptorQueue& compute_pass_descriptor_queue;
 };
 
-
-class MSAACopyPass final : public ComputePass {
-public:
-    explicit MSAACopyPass(const Device& device_, Scheduler& scheduler_,
-                          DescriptorPool& descriptor_pool_, StagingBufferPool& staging_buffer_pool_,
-                          ComputePassDescriptorQueue& compute_pass_descriptor_queue_);
-    ~MSAACopyPass();
-
-    void CopyImage(Image& dst_image, Image& src_image,
-                   std::span<const VideoCommon::ImageCopy> copies, bool msaa_to_non_msaa);
-
-private:
-    Scheduler& scheduler;
-    StagingBufferPool& staging_buffer_pool;
-    ComputePassDescriptorQueue& compute_pass_descriptor_queue;
-    std::array<vk::ShaderModule, 2> modules;
-    std::array<vk::Pipeline, 2> pipelines;
-};
-
 } // namespace Vulkan

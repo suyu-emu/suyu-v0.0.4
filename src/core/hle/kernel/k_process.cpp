@@ -20,7 +20,6 @@
 
 #include "core/arm/dynarmic/arm_dynarmic_32.h"
 #include "core/arm/dynarmic/arm_dynarmic_64.h"
-#include "core/arm/recomp/arm_recomp.h"
 #ifdef HAS_NCE
 #include "core/arm/nce/arm_nce.h"
 #endif
@@ -1026,10 +1025,7 @@ Result KProcess::Run(KernelCore& kernel, s32 priority, size_t stack_size) {
     }
 
     // Run our thread.
-    LOG_INFO(Kernel, "KProcess::Run starting main thread, entry={:#x}, prio={}",
-             GetInteger(this->GetEntryPoint()), priority);
     R_TRY(main_thread->Run(kernel));
-    LOG_INFO(Kernel, "KProcess::Run main thread started");
 
     // Open a reference to represent that we're running.
     this->Open(kernel);
@@ -1306,31 +1302,6 @@ void KProcess::LoadModule(KernelCore& kernel, CodeSet code_set, KProcessAddress 
 void KProcess::InitializeInterfaces(KernelCore& kernel) {
     m_exclusive_monitor =
         Core::MakeExclusiveMonitor(this->GetMemory(), Core::Hardware::NUM_CPU_CORES);
-
-    // A statically recompiled image runs on ArmRecomp rather than a JIT. It
-    // still goes through ArmInterface, so the kernel, the services and the GPU
-    // above this point are unchanged and the recompiled code gets the real HLE
-    // stack instead of the generated runtime's stub SVC handler.
-    // Only the application runs on a recompiled image. A registered lookup is
-    // global, so without this guard every system/HLE process created after it
-    // - the service modules that come up during boot - would also be handed
-    // ArmRecomp and the game's image, which is not their code at all. They come
-    // up before the application starts, so wedging them there is why boot never
-    // reaches the application's own thread.
-    if (const auto recomp_lookup = this->IsApplication() ? Core::GetRecompLookup() : nullptr) {
-        LOG_INFO(Kernel, "Using ArmRecomp for process '{}' (is_app={})", this->GetName(),
-                 this->IsApplication());
-        for (size_t i = 0; i < Core::Hardware::NUM_CPU_CORES; i++) {
-            // The exclusive monitor and process are handed over so ArmRecomp can
-            // build a dynarmic fallback on demand: statically recompiled images
-            // never cover every indirect call target, and without a fallback the
-            // first uncovered PC hangs the thread for good.
-            m_arm_interfaces[i] = std::make_unique<Core::ArmRecomp>(
-                kernel.System(), kernel.IsMulticore(), recomp_lookup, this,
-                &static_cast<Core::DynarmicExclusiveMonitor&>(*m_exclusive_monitor), i);
-        }
-        return;
-    }
 
 #ifdef HAS_NCE
     if (this->IsApplication() && Settings::IsNceEnabled()) {

@@ -83,7 +83,7 @@ CDmaPusher::CDmaPusher(Host1x::Host1x& host1x_, s32 id)
                     break;
                 }
                 default:
-                    LOG_ERROR(HW_GPU, "Bad command at index {} (bytes {:#X}), buffer size {}", i - 1, (i - 1) * sizeof(u32), command_list.size());
+                    LOG_ERROR(HW_GPU, "Bad command at index {} (bytes {:#x}), buffer size {}", i - 1, (i - 1) * sizeof(u32), command_list.size());
                     UNIMPLEMENTED_MSG("ChSubmission mode {} is not implemented!", u32(mode));
                     break;
                 }
@@ -97,7 +97,7 @@ CDmaPusher::~CDmaPusher() = default;
 void CDmaPusher::ExecuteCommand(u32 method, u32 arg) {
     switch (current_class) {
     case ChClassId::Control:
-        LOG_TRACE(Service_NVDRV, "Class {} method {:#X} arg 0x{:X}", u32(current_class), method, arg);
+        LOG_TRACE(Service_NVDRV, "Class {} method {:#x} arg {:#x}", u32(current_class), method, arg);
         host_processor.ProcessMethod(host1x, Host1x::Control::Method(method), arg);
         break;
     default:
@@ -113,7 +113,7 @@ void CDmaPusher::ExecuteCommand(u32 method, u32 arg) {
             break;
         }
         case ThiMethod::SetMethod1:
-            LOG_TRACE(Service_NVDRV, "Class {} method {:#X} arg 0x{:X}", u32(current_class), u32(thi_regs.method_0), arg);
+            LOG_TRACE(Service_NVDRV, "Class {} method {:#x} arg {:#x}", u32(current_class), u32(thi_regs.method_0), arg);
             ProcessMethod(thi_regs.method_0, arg);
             break;
         default:

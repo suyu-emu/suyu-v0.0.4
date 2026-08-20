@@ -157,6 +157,7 @@ public:
         GenerateEdenPath(EdenPath::KeysDir, eden_path / KEYS_DIR);
         GenerateEdenPath(EdenPath::LoadDir, eden_path / LOAD_DIR);
         GenerateEdenPath(EdenPath::LogDir, eden_path / LOG_DIR);
+        GenerateEdenPath(EdenPath::LosslessDir, eden_path / LOSSLESS_DIR);
         GenerateEdenPath(EdenPath::NANDDir, eden_path / NAND_DIR);
         GenerateEdenPath(EdenPath::PlayTimeDir, eden_path / PLAY_TIME_DIR);
         GenerateEdenPath(EdenPath::SaveDir, eden_path / NAND_DIR);
@@ -164,7 +165,6 @@ public:
         GenerateEdenPath(EdenPath::SDMCDir, eden_path / SDMC_DIR);
         GenerateEdenPath(EdenPath::TASDir, eden_path / TAS_DIR);
         GenerateEdenPath(EdenPath::IconsDir, eden_path / ICONS_DIR);
-        GenerateEdenPath(EdenPath::ThemesDir, eden_path / THEMES_DIR);
         // config
         GenerateEdenPath(EdenPath::ConfigDir, eden_path_config);
         // cache
@@ -477,6 +477,29 @@ std::string SanitizePath(std::string_view path_, DirectorySeparator directory_se
     path.erase(std::unique(start, path.end(),
                            [type2](char c1, char c2) { return c1 == type2 && c2 == type2; }),
                path.end());
+
+    const bool absolute = !path.empty() && path[0] == type2;
+    std::vector<std::string_view> parts;
+
+    for (const auto part : SplitPathComponents(path))
+    {
+        if (part.empty() || part == ".")
+            continue;
+        if (part == ".." && !parts.empty() && parts.back() != "..")
+            parts.pop_back();
+        else if (part != "..") parts.push_back(part);
+    }
+
+    std::string resolved = absolute ? std::string(1, type2) : std::string{};
+    for (std::size_t i = 0; i < parts.size(); ++i)
+    {
+        if (i != 0)
+            resolved += type2;
+        resolved.append(parts[i].data(), parts[i].size());
+    }
+
+    path = std::move(resolved);
+
     return std::string(RemoveTrailingSlash(path));
 }
 

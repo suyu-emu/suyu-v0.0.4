@@ -4,7 +4,6 @@
 // SPDX-FileCopyrightText: Copyright 2018 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
-#include "common/logging/log.h"
 #include "common/fiber.h"
 #include "common/scope_exit.h"
 #include "common/thread.h"
@@ -74,7 +73,6 @@ void CpuManager::HandleInterrupt(Kernel::KernelCore& kernel) {
 void CpuManager::MultiCoreRunGuestThread(Kernel::KernelCore& kernel) {
     // Similar to UserModeThreadStarter in HOS
     auto* thread = Kernel::GetCurrentThreadPointer(kernel);
-    LOG_INFO(Core, "CpuManager: guest fiber running, thread={}", fmt::ptr(thread));
     kernel.CurrentScheduler()->OnThreadStart(kernel);
 
     while (true) {
@@ -176,12 +174,7 @@ void CpuManager::RunThread(std::stop_token token, std::size_t core) {
     std::string name = is_multicore ? ("CPUCore_" + std::to_string(core)) : std::string{"CPUThread"};
     Common::SetCurrentThreadName(name.c_str());
     Common::SetCurrentThreadPriority(Common::ThreadPriority::Critical);
-#ifdef __ANDROID__
-    // Aimed specifically for Snapdragon 8 Elite devices
-    // This kills performance on desktop, but boosts perf for UMA devices
-    // like the S8E. Mediatek and Mali likely won't suffer.
-    Common::PinCurrentThreadToPerformanceCore(core);
-#endif
+    Common::SetCurrentThreadToPerformanceCores();
     auto& data = core_data[core];
     data.host_context = Common::Fiber::ThreadToFiber();
 

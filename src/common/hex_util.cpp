@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: 2013 Dolphin Emulator Project
 // SPDX-FileCopyrightText: 2014 Citra Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
@@ -12,7 +15,7 @@ std::vector<u8> HexStringToVector(std::string_view str, bool little_endian) {
         for (std::size_t i = str.size() - 2; i <= str.size(); i -= 2)
             out[i / 2] = (ToHexNibble(str[i]) << 4) | ToHexNibble(str[i + 1]);
     } else {
-        for (std::size_t i = 0; i < str.size(); i += 2)
+        for (std::size_t i = 0; i + 1 < str.size(); i += 2)
             out[i / 2] = (ToHexNibble(str[i]) << 4) | ToHexNibble(str[i + 1]);
     }
     return out;

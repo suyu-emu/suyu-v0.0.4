@@ -7,8 +7,6 @@
 add_library(core STATIC
     arm/arm_interface.cpp
     arm/arm_interface.h
-    arm/recomp/arm_recomp.cpp
-    arm/recomp/arm_recomp.h
     arm/debug.cpp
     arm/debug.h
     arm/exclusive_monitor.cpp
@@ -19,8 +17,6 @@ add_library(core STATIC
     constants.h
     core.cpp
     core.h
-    libretro_wrapper.cpp
-    libretro_wrapper.h
     game_settings.cpp
     game_settings.h
     core_timing.cpp
@@ -392,14 +388,6 @@ add_library(core STATIC
     hle/result.h
     hle/service/acc/acc.cpp
     hle/service/acc/acc.h
-    hle/service/acc/acc_aa.cpp
-    hle/service/acc/acc_aa.h
-    hle/service/acc/acc_su.cpp
-    hle/service/acc/acc_su.h
-    hle/service/acc/acc_u0.cpp
-    hle/service/acc/acc_u0.h
-    hle/service/acc/acc_u1.cpp
-    hle/service/acc/acc_u1.h
     hle/service/acc/async_context.cpp
     hle/service/acc/async_context.h
     hle/service/acc/errors.h
@@ -772,8 +760,8 @@ add_library(core STATIC
     hle/service/mii/types/ver3_store_data.h
     hle/service/mm/mm_u.cpp
     hle/service/mm/mm_u.h
-    hle/service/mnpp/mnpp_app.cpp
-    hle/service/mnpp/mnpp_app.h
+    hle/service/mnpp/mnpp.cpp
+    hle/service/mnpp/mnpp.h
     hle/service/ncm/ncm.cpp
     hle/service/ncm/ncm.h
     hle/service/nfc/common/amiibo_crypto.cpp
@@ -1093,6 +1081,8 @@ add_library(core STATIC
     hle/service/ssl/ssl.h
     hle/service/ssl/ssl_backend.h
     hle/service/ssl/ssl_types.h
+    hle/service/tma/tma.cpp
+    hle/service/tma/tma.h
     hle/service/usb/usb.cpp
     hle/service/usb/usb.h
     hle/service/vi/application_display_service.cpp
@@ -1129,6 +1119,8 @@ add_library(core STATIC
     hle/service/gpio/gpio.h
     hle/service/i2c/i2c.cpp
     hle/service/i2c/i2c.h
+    hle/service/wlan/wlan.cpp
+    hle/service/wlan/wlan.h
     internal_network/emu_net_state.cpp
     internal_network/emu_net_state.h
     internal_network/network.cpp
@@ -1177,7 +1169,7 @@ add_library(core STATIC
 
 if (ENABLE_WIFI_SCAN)
     target_sources(core PRIVATE internal_network/wifi_scanner.cpp)
-    if (PLATFORM_LINUX)
+    if (LINUX)
         target_link_libraries(core PRIVATE iw)
     endif()
 else()
@@ -1203,7 +1195,7 @@ if (MSVC)
     )
 else()
     target_compile_options(core PRIVATE
-        $<$<COMPILE_LANGUAGE:C,CXX>:-Werror=conversion>
+        $<$<COMPILE_LANGUAGE:C,CXX>:-Wconversion>
         $<$<COMPILE_LANGUAGE:C,CXX>:-Wno-sign-conversion>
         $<$<COMPILE_LANGUAGE:C,CXX>:-Wno-cast-function-type>
         $<$<CXX_COMPILER_ID:Clang>:-fsized-deallocation>)
@@ -1214,7 +1206,7 @@ else()
 endif()
 
 target_include_directories(core PRIVATE ${OPUS_INCLUDE_DIRS})
-target_link_libraries(core PUBLIC common PRIVATE audio_core hid_core network video_core nx_tzdb tz nintendo_library)
+target_link_libraries(core PUBLIC common PRIVATE audio_core hid_core network video_core nx_tzdb tz)
 
 if (BOOST_NO_HEADERS)
     target_link_libraries(core PUBLIC Boost::container Boost::heap Boost::asio Boost::process Boost::crc)

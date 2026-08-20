@@ -38,7 +38,7 @@ std::vector<Asset> Release::GetPlatformAssets() const {
 
     // FIXME: This is mildly inefficient.
     // Finds assets based on a hierarchy of regex search strings.
-    const auto find_asset = [&found_assets, this](const std::string& name,
+    const auto find_asset = [&found_assets, ref, this](const std::string& name,
                                                        const std::vector<std::string>& suffixes) {
         for (const std::string& asset : assets) {
             for (const auto& suffix : suffixes) {

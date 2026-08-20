@@ -424,6 +424,9 @@
     <string name="cpu_accuracy">Точность ЦП</string>
     <string name="value_with_units">%1$s%2$s</string>
 
+    <string name="program_args">Аргументы Homebrew</string>
+    <string name="program_args_description">Аргументы командной строки, переданные Homebrew при запуске (например, -noglsl)</string>
+
     <!-- System settings strings -->
     <string name="device_name">Название устройства</string>
     <string name="use_docked_mode">Режим док-станции</string>
@@ -436,9 +439,6 @@
     <string name="use_custom_rtc_description">Позволяет установить пользовательские часы реального времени отдельно от текущего системного времени.</string>
     <string name="set_custom_rtc">Установить пользовательский RTC</string>
 
-    <!-- CPU -->
-    <string name="fast_cpu_time">Разгон ЦП</string>
-    <string name="fast_cpu_time_description">Принудительно повышает тактовую частоту эмулируемого ЦП, снижая влияние некоторых ограничителей FPS. Используйте Разгон (1700 МГц) для работы на максимальной штатной частоте Switch или Быстрая (2000 МГц) для удвоенной частоты.</string>
     <string name="custom_cpu_ticks">Пользовательские такты ЦП</string>
     <string name="custom_cpu_ticks_description">Установите пользовательское значение тактов ЦП. Более высокие значения могут увеличить производительность, но также могут вызвать зависание игры. Рекомендуется диапазон 77–21000.</string>
     <string name="cpu_ticks">Такты</string>
@@ -466,9 +466,11 @@
     <string name="advanced">Расширенные</string>
 
     <string name="renderer_accuracy">Режим ГПУ</string>
-    <string name="renderer_accuracy_description">Управляет режимом эмуляции графического процессора. Большинство игр нормально отображаются в режимах «Быстрый» или «Сбалансированный», но для некоторых требуется режим «Точный». Частицы обычно корректно отображаются только в режиме «Точный».</string>
+    <string name="renderer_accuracy_description">Управляет режимом эмуляции ГПУ. Большинство игр нормально отображаются в режиме Быстрый, но для некоторых требуется режим Точный. Частицы обычно корректно отображаются только в режиме Точный.</string>
     <string name="dma_accuracy">Точность DMA</string>
     <string name="dma_accuracy_description">Управляет точностью DMA. Безопасная точность может исправить проблемы в некоторых играх, но в некоторых случаях также может повлиять на производительность. Если не уверены, оставьте значение По умолчанию.</string>
+    <string name="gpu_fence_behavior">Поведение барьеров ГПУ</string>
+    <string name="gpu_fence_behavior_description">Управляет поведением синхронизации через барьеры ГПУ. Мгновенный — самый быстрый вариант, но может вызывать некоторые проблемы. Сбалансированный обеспечивает лучшую совместимость и может исправлять проблемы в некоторых играх. Точный ещё больше повышает совместимость ценой некоторого снижения производительности. Строгий — самый медленный вариант, но может исправлять проблемы, требующие более строгой синхронизации. По умолчанию соответствует настройке точности ГПУ.</string>
     <string name="anisotropic_filtering">Анизотропная фильтрация</string>
     <string name="anisotropic_filtering_description">Улучшает качество текстур под углом</string>
     <string name="vram_usage_mode">Режим VRAM</string>
@@ -490,13 +492,13 @@
     <string name="renderer_reactive_flushing_description">Повышение точности рендеринга в некоторых играх за счет снижения производительности.</string>
     <string name="enable_buffer_history">Включить историю буфера</string>
     <string name="enable_buffer_history_description">Позволяет обращаться к предыдущим состояниям буфера. Эта опция может повысить качество рендеринга и стабильность производительности в некоторых играх.</string>
+    <string name="enable_gpu_buffer_readback">Включить обратное чтение буфера ГПУ</string>
+    <string name="enable_gpu_buffer_readback_description">Сохраняет измененные ГПУ данные буфера путем чтения их обратно перед выгрузками. Некоторые игры требуют этого, чтобы рендерить определенные эффекты правильно. Может вызывать проблемы если оборудование не может обработать дополнительную рабочую нагрузку.</string>
     <string name="use_optimized_vertex_buffers">Оптимизированные вершинные буферы</string>
     <string name="use_optimized_vertex_buffers_description">Включает оптимизированную привязку вершинного буфера для повышения производительности. Требует Mesa Turnip 26.0+ / QCOM. Приводит к вылету на старых версиях драйверов Turnip (25.3 и ниже).</string>
 
     <string name="hacks">Хаки</string>
 
-    <string name="fast_gpu_time">Быстрое время ГПУ</string>
-    <string name="fast_gpu_time_description">Принудительно запускает большинство игр в их максимальном нативном разрешении. Используйте значение 256 для максимальной производительности и 512 для максимального качества графики.</string>
     <string name="skip_cpu_inner_invalidation">Пропустить внутреннюю инвалидацию ЦП</string>
     <string name="skip_cpu_inner_invalidation_description">Пропускает некоторые инвалидации кэша на стороне ЦП при обновлениях памяти, уменьшая нагрузку на процессор и повышая производительность. Может вызывать сбои в некоторых играх.</string>
     <string name="fix_bloom_effects">Исправить эффекты размытия</string>
@@ -564,6 +566,12 @@
     <string name="gpu_log_level_description">Уровень детализации логов ГПУ (больше значение = больше деталей, выше нагрузка)</string>
     <string name="gpu_log_vulkan_calls">Записывать вызовы Vulkan API</string>
     <string name="gpu_log_vulkan_calls_description">Отслеживать все вызовы Vulkan API в кольцевом буфере</string>
+    <string name="gpu_log_shader_dumps">Выгрузить SPIR-V шейдеры</string>
+    <string name="gpu_log_shader_dumps_description">Сохранять перекомпилированные SPIR-V бинарные файлы (.spv) в папку дампа. Проверять с помощью spirv-dis/spirv-cross/spirv-val.</string>
+    <string name="dump_guest_shaders">Выгрузить гостевые (Maxwell) шейдеры</string>
+    <string name="dump_guest_shaders_description">Сохранять файлы байткода гостевых шейдеров Maxwell (*.ash) в папку дампа. Проверять с помощью nvdisasm.</string>
+    <string name="dump_macros">Выгрузить макросы Maxwell</string>
+    <string name="dump_macros_description">Сохранять файлы макропрограмм Maxwell (*.macro) в папку дампа. Проверять с помощью envydis.</string>
     <string name="gpu_log_memory_tracking">Отслеживать память ГПУ</string>
     <string name="gpu_log_memory_tracking_description">Мониторить выделение и освобождение памяти ГПУ</string>
     <string name="gpu_log_driver_debug">Отладочная информация драйвера</string>
@@ -936,15 +944,6 @@
     <string name="memory_6gb">6 ГБ (Небезопасно)</string>
     <string name="memory_8gb">8 ГБ (Небезопасно)</string>
 
-    <!--CPU clock speeds-->
-    <string name="clock_boost">Разгон (1700MHz)</string>
-    <string name="clock_fast">Быстрая (2000MHz)</string>
-
-    <!-- GPU overclock factors -->
-    <string name="off">Выкл.</string>
-    <string name="fast_gpu_medium">Среднее (256)</string>
-    <string name="fast_gpu_high">Высокое (512)</string>
-
     <!-- GPU swizzle texture size -->
     <string name="gpu_texturesizeswizzle_verysmall">Очень малый (16 МБ)</string>
     <string name="gpu_texturesizeswizzle_small">Малый (32 МБ)</string>
@@ -983,13 +982,19 @@
 
     <!-- Renderer Accuracy -->
     <string name="renderer_accuracy_low">Быстрый</string>
-    <string name="renderer_accuracy_medium">Сбалансированный</string>
     <string name="renderer_accuracy_high">Точный</string>
 
     <!-- DMA Accuracy -->
     <string name="dma_accuracy_default">По умолчанию</string>
     <string name="dma_accuracy_unsafe">Небезопасно</string>
     <string name="dma_accuracy_safe">Безопасный</string>
+
+    <!-- GPU Fence Behavior -->
+    <string name="gpu_fence_behavior_default">По умолчанию</string>
+    <string name="gpu_fence_behavior_immediate">Мгновенный</string>
+    <string name="gpu_fence_behavior_balanced">Сбалансированный</string>
+    <string name="gpu_fence_behavior_accurate">Точный</string>
+    <string name="gpu_fence_behavior_strict">Строгий</string>
 
     <string name="vram_usage_conservative">Консервативный</string>
     <string name="vram_usage_aggressive">Агрессивный</string>

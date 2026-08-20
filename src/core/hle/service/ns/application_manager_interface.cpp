@@ -9,6 +9,7 @@
 #include "core/file_sys/registered_cache.h"
 #include "core/hle/service/cmif_serialization.h"
 #include "core/hle/service/filesystem/filesystem.h"
+#include "core/hle/service/ipc_helpers.h"
 #include "core/hle/service/ns/application_manager_interface.h"
 
 #include "core/file_sys/content_archive.h"
@@ -19,6 +20,7 @@
 #include "core/launch_timestamp_cache.h"
 
 #include <algorithm>
+#include <cstring>
 #include <vector>
 
 namespace Service::NS {
@@ -36,14 +38,14 @@ IApplicationManagerInterface::IApplicationManagerInterface(Core::System& system_
         {1, nullptr, "GenerateApplicationRecordCount"},
         {2, D<&IApplicationManagerInterface::GetApplicationRecordUpdateSystemEvent>, "GetApplicationRecordUpdateSystemEvent"},
         {3, nullptr, "GetApplicationViewDeprecated"},
-        {4, nullptr, "DeleteApplicationEntity"},
-        {5, nullptr, "DeleteApplicationCompletely"},
+        {4, D<&IApplicationManagerInterface::DeleteApplicationEntity>, "DeleteApplicationEntity"},
+        {5, D<&IApplicationManagerInterface::DeleteApplicationCompletely>, "DeleteApplicationCompletely"},
         {6, nullptr, "IsAnyApplicationEntityRedundant"},
         {7, nullptr, "DeleteRedundantApplicationEntity"},
         {8, nullptr, "IsApplicationEntityMovable"},
         {9, nullptr, "MoveApplicationEntity"},
         {11, nullptr, "CalculateApplicationOccupiedSize"},
-        {16, nullptr, "PushApplicationRecord"},
+        {16, &IApplicationManagerInterface::PushApplicationRecord, "PushApplicationRecord"},
         {17, nullptr, "ListApplicationRecordContentMeta"},
         {19, nullptr, "LaunchApplicationOld"},
         {21, nullptr, "GetApplicationContentPath"},
@@ -643,6 +645,27 @@ Result IApplicationManagerInterface::IsAnyApplicationEntityInstalled(
     R_SUCCEED();
 }
 
+Result IApplicationManagerInterface::DeleteApplicationEntity(u64 application_id) {
+    LOG_DEBUG(Service_NS, "called, application_id={:016X}", application_id);
+
+    auto& fsc = system.GetFileSystemController();
+    if (auto* const user_cache = fsc.GetUserNANDContents(); user_cache != nullptr) {
+        user_cache->RemoveExistingEntry(application_id);
+        user_cache->Refresh();
+    }
+    if (auto* const sdmc_cache = fsc.GetSDMCContents(); sdmc_cache != nullptr) {
+        sdmc_cache->RemoveExistingEntry(application_id);
+        sdmc_cache->Refresh();
+    }
+
+    record_update_system_event.Signal(system.Kernel());
+    R_SUCCEED();
+}
+
+Result IApplicationManagerInterface::DeleteApplicationCompletely(u64 application_id) {
+    R_RETURN(DeleteApplicationEntity(application_id));
+}
+
 Result IApplicationManagerInterface::GetApplicationViewDeprecated(
     OutArray<ApplicationViewV19, BufferAttr_HipcMapAlias> out_application_views,
     InArray<u64, BufferAttr_HipcMapAlias> application_ids) {
@@ -841,6 +864,29 @@ Result IApplicationManagerInterface::Unknown4023(Out<u64> out_result) {
 Result IApplicationManagerInterface::Unknown4053() {
     LOG_WARNING(Service_NS, "(STUBBED) called.");
     R_SUCCEED();
+}
+
+void IApplicationManagerInterface::PushApplicationRecord(HLERequestContext& ctx) {
+    const auto record = ctx.ReadBuffer();
+    u64 application_id{};
+    if (record.size() >= sizeof(application_id)) {
+        std::memcpy(&application_id, record.data(), sizeof(application_id));
+    }
+
+    LOG_DEBUG(Service_NS, "called, application_id={:016X}, size={}", application_id, record.size());
+
+    auto& fsc = system.GetFileSystemController();
+    if (auto* const user_cache = fsc.GetUserNANDContents(); user_cache != nullptr) {
+        user_cache->Refresh();
+    }
+    if (auto* const sdmc_cache = fsc.GetSDMCContents(); sdmc_cache != nullptr) {
+        sdmc_cache->Refresh();
+    }
+
+    record_update_system_event.Signal(system.Kernel());
+
+    IPC::ResponseBuilder rb{ctx, 2};
+    rb.Push(ResultSuccess);
 }
 
 void IApplicationManagerInterface::ListApplicationTitle(HLERequestContext& ctx) {

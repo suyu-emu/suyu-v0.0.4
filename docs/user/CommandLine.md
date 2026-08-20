@@ -27,3 +27,6 @@ There are two main applications, an SDL-based app (`eden-cli`) and a Qt based ap
 - `--user/-u`: Specify the user index.
 - `--version/-v`: Display version and quit.
 - `--input-profile/-i`: Specifies input profile name to use (for player #0 only).
+- `--null-render/-n`: Forces the usage of the "Null" render backend irrespective of settings.
+- `--filter/-x`: Sets the debug log filter irrespective of settings.
+- `--singlecore/-s`: Forces single-core regardless of settings.

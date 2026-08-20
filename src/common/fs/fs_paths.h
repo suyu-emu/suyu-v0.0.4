@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 // SPDX-FileCopyrightText: Copyright 2021 yuzu Emulator Project
@@ -8,7 +8,7 @@
 
 // yuzu data directories
 
-#define EDEN_DIR "suyu"
+#define EDEN_DIR "eden"
 #define PORTABLE_DIR "user"
 
 // Sub-directories contained within a yuzu data directory
@@ -20,6 +20,7 @@
 #define KEYS_DIR "keys"
 #define LOAD_DIR "load"
 #define LOG_DIR "log"
+#define LOSSLESS_DIR "lossless"
 #define NAND_DIR "nand"
 #define PLAY_TIME_DIR "play_time"
 #define SCREENSHOTS_DIR "screenshots"
@@ -27,7 +28,6 @@
 #define SHADER_DIR "shader"
 #define TAS_DIR "tas"
 #define ICONS_DIR "icons"
-#define THEMES_DIR "themes"
 
 // Compatibility with other emulators
 #define CITRON_DIR "citron"
@@ -37,4 +37,6 @@
 #define RYUJINX_DIR "Ryujinx"
 
 // yuzu-specific files
-#define LOG_FILE "suyu_log.txt"
+#define LOG_FILE "eden_log.txt"
+#define LOSSLESS_DLL_FILE "Lossless.dll"
+#define LOSSLESS_CACHE_FILE "lsfg_spirv.cache"

@@ -92,12 +92,9 @@ std::unique_ptr<TranslationMap> InitializeTranslations(QObject* parent) {
            tr("Change the accuracy of the emulated CPU (for debugging only)."));
     INSERT(Settings, cpu_backend, tr("Backend:"), QString());
 
-    INSERT(Settings, fast_cpu_time, tr("CPU Overclock"),
-           tr("Overclocks the emulated CPU to remove some FPS limiters. Weaker CPUs may see "
-              "reduced performance, "
-              "and certain games may behave improperly.\nUse Boost (1700MHz) to run at the "
-              "Switch's highest native "
-              "clock, or Fast (2000MHz) to run at 2x clock."));
+    INSERT(Settings, cpu_clock, tr("CPU Clocks"),
+           tr("Raises the clock the emulated CPU reports, which removes some FPS limiters.\n"
+              "Weaker CPUs may see reduced performance, and certain games may behave improperly."));
 
     INSERT(Settings, use_custom_cpu_ticks, QString(), QString());
     INSERT(Settings, cpu_ticks, tr("Custom CPU Ticks"),
@@ -230,9 +227,9 @@ std::unique_ptr<TranslationMap> InitializeTranslations(QObject* parent) {
            tr("Preserves GPU-modified data by reading it back before uploading.\nSome games require this to render certain effects properly."));
     INSERT(Settings, use_asynchronous_shaders, tr("Enable asynchronous shader compilation"),
            tr("May reduce shader stutter."));
-    INSERT(Settings, fast_gpu_time, tr("Fast GPU Time"),
-           tr("Overclocks the emulated GPU to increase dynamic resolution and render "
-              "distance.\nUse 256 for maximal performance and 512 for maximal graphics fidelity."));
+    INSERT(Settings, gpu_clock, tr("GPU Clocks"),
+           tr("Makes the game believe GPU work finishes faster than it does, so it stops lowering "
+              "resolution and render distance to fit the Switch's clocks."));
     INSERT(Settings, gpu_unswizzle_enabled, tr("GPU Unswizzle"),
            tr("Accelerates BCn 3D texture decoding using GPU compute.\n"
               "Disable if experiencing crashes or graphical glitches."));
@@ -639,9 +636,9 @@ std::unique_ptr<ComboboxTranslationMap> ComboboxEnumeration(QObject* parent) {
                           }});
     translations->insert({Settings::EnumMetadata<Settings::CpuClock>::Index(),
                           {
-                              PAIR(CpuClock, Off, tr("Off")),
-                              PAIR(CpuClock, Boost, tr("Boost (1700MHz)")),
-                              PAIR(CpuClock, Fast, tr("Fast (2000MHz)")),
+                              PAIR(CpuClock, Normal, tr("Normal")),
+                              PAIR(CpuClock, Boost, tr("Boost")),
+                              PAIR(CpuClock, Overclock, tr("Overclock")),
                           }});
     translations->insert(
         {Settings::EnumMetadata<Settings::ConfirmStop>::Index(),
@@ -650,11 +647,11 @@ std::unique_ptr<ComboboxTranslationMap> ComboboxEnumeration(QObject* parent) {
              PAIR(ConfirmStop, Ask_Based_On_Game, tr("Only if game specifies not to stop")),
              PAIR(ConfirmStop, Ask_Never, tr("Never ask")),
          }});
-    translations->insert({Settings::EnumMetadata<Settings::GpuOverclock>::Index(),
+    translations->insert({Settings::EnumMetadata<Settings::GpuClock>::Index(),
                           {
-                              PAIR(GpuOverclock, Normal, tr("Off")),
-                              PAIR(GpuOverclock, Medium, tr("Medium (256)")),
-                              PAIR(GpuOverclock, High, tr("High (512)")),
+                              PAIR(GpuClock, Normal, tr("Normal")),
+                              PAIR(GpuClock, Boost, tr("Boost")),
+                              PAIR(GpuClock, Overclock, tr("Overclock")),
                           }});
     translations->insert({Settings::EnumMetadata<Settings::GpuUnswizzleSize>::Index(),
                           {

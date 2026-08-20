@@ -274,23 +274,22 @@ public:
     explicit NACP(VirtualFile file);
     ~NACP();
 
-    const LanguageEntry& GetLanguageEntry() const;
-    std::string GetApplicationName() const;
-    std::string GetDeveloperName() const;
-    u64 GetTitleId() const;
-    u64 GetDLCBaseTitleId() const;
-    std::string GetVersionString() const;
-    u64 GetDefaultNormalSaveSize() const;
-    u64 GetDefaultJournalSaveSize() const;
-    u32 GetSupportedLanguages() const;
-    std::vector<std::string> GetApplicationNames() const;
-    std::vector<u8> GetRawBytes() const;
-    bool GetUserAccountSwitchLock() const;
-    u64 GetDeviceSaveDataSize() const;
-    u32 GetParentalControlFlag() const;
-    const std::array<u8, 0x20>& GetRatingAge() const;
+    [[nodiscard]] const LanguageEntry& GetLanguageEntry() const;
+    [[nodiscard]] std::string GetApplicationName() const;
+    [[nodiscard]] std::string GetDeveloperName() const;
+    [[nodiscard]] u64 GetTitleId() const;
+    [[nodiscard]] u64 GetDLCBaseTitleId() const;
+    [[nodiscard]] std::string GetVersionString() const;
+    [[nodiscard]] u64 GetDefaultNormalSaveSize() const;
+    [[nodiscard]] u64 GetDefaultJournalSaveSize() const;
+    [[nodiscard]] u32 GetSupportedLanguages() const;
+    [[nodiscard]] std::vector<std::string> GetApplicationNames() const;
+    [[nodiscard]] std::vector<u8> GetRawBytes() const;
+    [[nodiscard]] bool GetUserAccountSwitchLock() const;
+    [[nodiscard]] u64 GetDeviceSaveDataSize() const;
+    [[nodiscard]] u32 GetParentalControlFlag() const;
+    [[nodiscard]] const std::array<u8, 0x20>& GetRatingAge() const;
 
-private:
     RawNACP raw{};
     std::vector<LanguageEntry> language_entries;
 };

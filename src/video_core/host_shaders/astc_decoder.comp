@@ -77,14 +77,8 @@ uvec4 local_buff;
 uvec4 color_endpoint_data;
 int color_bitsread = 0;
 
-// Global "vector" to be pushed into when decoding
-// At most will require BLOCK_WIDTH x BLOCK_HEIGHT in single plane mode
-// At most will require BLOCK_WIDTH x BLOCK_HEIGHT x 2 in dual plane mode
-// So the maximum would be 144 (12 x 12) elements, x 2 for two planes
-#define DIVCEIL(number, divisor) (number + divisor - 1) / divisor
-#define ARRAY_NUM_ELEMENTS 144
-#define VECTOR_ARRAY_SIZE DIVCEIL(ARRAY_NUM_ELEMENTS * 2, 4)
-uint result_vector[ARRAY_NUM_ELEMENTS * 2];
+#define MAX_WEIGHT_VALUES 64
+uint result_vector[MAX_WEIGHT_VALUES];
 
 int result_index = 0;
 uint result_vector_max_index;
@@ -492,7 +486,7 @@ void DecodeColorValues(uvec4 modes, uint num_partitions, uint color_data_bits, o
         A = ReplicateBitTo9((bitval & 1));
         switch (encoding) {
         case JUST_BITS:
-            color_values[++out_index] = FastReplicateTo8(bitval, bitlen);
+            color_values[out_index++] = FastReplicateTo8(bitval, bitlen);
             break;
         case TRIT: {
             D = QuintTritValue(val);
@@ -571,7 +565,7 @@ void DecodeColorValues(uvec4 modes, uint num_partitions, uint color_data_bits, o
             uint T = (D * C) + B;
             T ^= A;
             T = (A & 0x80) | (T >> 2);
-            color_values[++out_index] = T;
+            color_values[out_index++] = T;
         }
     }
 }
@@ -753,12 +747,12 @@ void ComputeEndpoints(out uvec4 ep1, out uvec4 ep2, uint color_endpoint_mode, ui
 #define READ_UINT_VALUES(N)                                                                        \
     uvec4 V[2];                                                                                    \
     for (uint i = 0; i < N; i++) {                                                                 \
-        V[i / 4][i % 4] = color_values[++colvals_index];                      \
+        V[i / 4][i % 4] = color_values[colvals_index++];                      \
     }
 #define READ_INT_VALUES(N)                                                                         \
     ivec4 V[2];                                                                                    \
     for (uint i = 0; i < N; i++) {                                                                 \
-        V[i / 4][i % 4] = int(color_values[++colvals_index]);                      \
+        V[i / 4][i % 4] = int(color_values[colvals_index++]);                      \
     }
 
     switch (color_endpoint_mode) {
@@ -1225,6 +1219,10 @@ void DecompressBlock(ivec3 coord) {
         FillError(coord);
         return;
     }
+    if (GetNumWeightValues(size_params, dual_plane) > MAX_WEIGHT_VALUES) {
+        FillError(coord);
+        return;
+    }
     uint partition_index = 1;
     uvec4 color_endpoint_mode = uvec4(0);
     uint ced_pointer = 0;
@@ -1239,6 +1237,10 @@ void DecompressBlock(ivec3 coord) {
     const uint base_mode = base_cem & 3;
     const uint max_weight = DecodeMaxWeight(mode);
     const uint weight_bits = GetPackedBitSize(size_params, dual_plane, max_weight);
+    if (weight_bits < 24 || weight_bits > 96) {
+        FillError(coord);
+        return;
+    }
     uint remaining_bits = 128 - weight_bits - total_bitsread;
     uint extra_cem_bits = 0;
     if (base_mode > 0) {
@@ -1253,6 +1255,7 @@ void DecompressBlock(ivec3 coord) {
             extra_cem_bits += 8;
             break;
         default:
+            FillError(coord);
             return;
         }
     }
@@ -1262,6 +1265,7 @@ void DecompressBlock(ivec3 coord) {
     if (remaining_bits > 128) {
         // Bad data, more remaining bits than 4 bytes
         // return early
+        FillError(coord);
         return;
     }
     // Read color data...
@@ -1384,11 +1388,7 @@ void DecompressBlock(ivec3 coord) {
                 p = Cf / 65535.0f;
             }
 
-#ifdef VULKAN
-            imageStore(dest_image, coord + ivec3(i, j, 0), p.gbar);
-#else
             imageStore(dest_image, coord + ivec3(i, j, 0), clamp(p, 0.0f, 1.0f).gbar);
-#endif
         }
     }
 }

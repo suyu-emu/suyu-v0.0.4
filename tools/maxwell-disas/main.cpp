@@ -40,7 +40,7 @@ Opcode Decode(u64 insn) {
         return Opcode::name;
 #include "shader_recompiler/frontend/maxwell/maxwell.inc"
 #undef INST
-    ASSERT_MSG(false, "Invalid insn 0x{:016x}", insn);
+    ASSERT_MSG(false, "Invalid insn {:#016x}", insn);
     return Opcode::NOP;
 }
 

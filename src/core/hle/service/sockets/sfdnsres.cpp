@@ -16,7 +16,6 @@
 #include "core/hle/service/sockets/sockets.h"
 #include "core/hle/service/sockets/sockets_translate.h"
 #include "core/internal_network/network.h"
-#include "common/settings.h"
 #include "core/memory.h"
 
 namespace Service::Sockets {
@@ -101,25 +100,6 @@ static bool IsBlockedHost(const std::string& host) {
     return std::any_of(
         blockedDomains.begin(), blockedDomains.end(),
         [&host](const std::string& domain) { return host.find(domain) != std::string::npos; });
-}
-
-/// Hostname to actually resolve for a request the guest aimed at Nintendo.
-///
-/// Nintendo's own online services cannot be reached, so those hostnames are
-/// normally refused outright. Replacement networks - Nextendo and similar,
-/// which reimplement identity and matchmaking and are what a modded console
-/// reaches by pointing its DNS at them - work by answering for those same
-/// hostnames instead. Setting a replacement host turns the block into a
-/// redirect; leaving it empty keeps the previous refuse-everything behaviour.
-static std::optional<std::string> ReplacementHostFor(const std::string& host) {
-    if (!IsBlockedHost(host)) {
-        return std::nullopt;
-    }
-    const auto& replacement = Settings::values.network_replacement_host.GetValue();
-    if (replacement.empty()) {
-        return std::nullopt;
-    }
-    return replacement;
 }
 
 static NetDbError GetAddrInfoErrorToNetDbError(GetAddrInfoError result) {
@@ -222,18 +202,13 @@ static std::pair<u32, GetAddrInfoError> GetHostByNameRequestImpl(HLERequestConte
     const std::string host = Common::StringFromBuffer(host_buffer);
     // For now, ignore options, which are in input buffer 1 for GetHostByNameRequestWithOptions.
 
-    // Nintendo's own servers are unreachable. Either send the request to a
-    // replacement network standing in for them, or refuse it as before.
-    std::string resolve_host = host;
-    if (const auto replacement = ReplacementHostFor(host)) {
-        LOG_INFO(Network, "Redirecting {} to replacement network host {}", host, *replacement);
-        resolve_host = *replacement;
-    } else if (IsBlockedHost(host)) {
+    // Prevent resolution of Nintendo servers
+    if (IsBlockedHost(host)) {
         LOG_WARNING(Network, "Resolution of hostname {} requested, returning EAI_AGAIN", host);
         return {0, GetAddrInfoError::AGAIN};
     }
 
-    auto res_v = Network::GetAddressInfo(resolve_host, /*service*/ std::nullopt);
+    auto res_v = Network::GetAddressInfo(host, /*service*/ std::nullopt);
     if (auto* res = std::get_if<std::vector<Network::AddrInfo>>(&res_v)) {
         const std::vector<u8> data = SerializeAddrInfoAsHostEnt(*res, host);
         const u32 data_size = u32(data.size());
@@ -343,13 +318,8 @@ static std::pair<u32, GetAddrInfoError> GetAddrInfoRequestImpl(HLERequestContext
     const auto host_buffer = ctx.ReadBuffer(0);
     const std::string host = Common::StringFromBuffer(host_buffer);
 
-    // Same treatment as GetHostByName above: redirect to the replacement
-    // network when one is configured, otherwise refuse.
-    std::string resolve_host = host;
-    if (const auto replacement = ReplacementHostFor(host)) {
-        LOG_INFO(Network, "Redirecting {} to replacement network host {}", host, *replacement);
-        resolve_host = *replacement;
-    } else if (IsBlockedHost(host)) {
+    // Prevent resolution of Nintendo servers
+    if (IsBlockedHost(host)) {
         LOG_WARNING(Network, "Resolution of hostname {} requested, returning EAI_AGAIN", host);
         return {0, GetAddrInfoError::AGAIN};
     }
@@ -362,7 +332,7 @@ static std::pair<u32, GetAddrInfoError> GetAddrInfoRequestImpl(HLERequestContext
 
     // Serialized hints are also passed in a buffer, but are ignored for now.
 
-    auto res_v = Network::GetAddressInfo(resolve_host, service);
+    auto res_v = Network::GetAddressInfo(host, service);
     if (auto* res = std::get_if<std::vector<Network::AddrInfo>>(&res_v)) {
         const std::vector<u8> data = SerializeAddrInfo(*res, host);
         const u32 data_size = u32(data.size());
@@ -436,4 +406,21 @@ void SFDNSRES::ResolverSetOptionRequest(HLERequestContext& ctx) {
     rb.Push(ResultSuccess);
     rb.Push<s32>(0); // bsd errno
 }
+
+
+DNS_PRIV::DNS_PRIV(Core::System& system_)
+    : ServiceFramework{system_, "dns:priv"} {
+    // clang-format off
+    static const FunctionInfo functions[] = {
+        {0, nullptr, "Cmd0"},
+        {1, nullptr, "Cmd1"},
+        {2, nullptr, "Cmd2"},
+    };
+    // clang-format on
+    RegisterHandlers(functions);
+}
+
+DNS_PRIV::~DNS_PRIV() = default;
+
+
 } // namespace Service::Sockets

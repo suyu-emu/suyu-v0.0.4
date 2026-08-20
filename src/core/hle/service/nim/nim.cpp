@@ -519,11 +519,25 @@ private:
     }
 };
 
+class NIM_ECAS final : public ServiceFramework<NIM_ECAS> {
+public:
+    explicit NIM_ECAS(Core::System& system_) : ServiceFramework{system_, "nim:ecas"} {
+        // clang-format off
+        static const FunctionInfo functions[] = {
+            {0, nullptr, "RegisterSpecialClient"},
+            {1, nullptr, "UnregisterSpecialClient"},
+        };
+        // clang-format on
+        RegisterHandlers(functions);
+    }
+};
+
 void LoopProcess(Core::System& system) {
     auto server_manager = std::make_unique<ServerManager>(system);
 
     server_manager->RegisterNamedService("nim", std::make_shared<NIM>(system));
     server_manager->RegisterNamedService("nim:eca", std::make_shared<NIM_ECA>(system));
+    server_manager->RegisterNamedService("nim:ecas", std::make_shared<NIM_ECAS>(system));
     server_manager->RegisterNamedService("nim:shp", std::make_shared<NIM_SHP>(system));
     server_manager->RegisterNamedService("ntc", std::make_shared<NTC>(system));
     ServerManager::RunServer(std::move(server_manager));

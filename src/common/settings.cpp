@@ -118,7 +118,7 @@ void LogSettings() {
     for (auto& [category, settings] : values.linkage.by_category) {
         for (const auto& setting : settings) {
             // Hide the token secret, for security reasons.
-            if (setting->Id() != values.suyu_token.Id()) {
+            if (setting->Id() != values.eden_token.Id()) {
                 auto const is_default = setting->ToString() == setting->DefaultToString();
                 auto const name = fmt::format(
                     "{:c}{:c} {}.{}",
@@ -273,8 +273,6 @@ const char* TranslateCategory(Category category) {
         return "GpuDriver";
     case Category::LibraryApplet:
         return "LibraryApplet";
-    case Category::Linux:
-        return "Linux";
     case Category::Miscellaneous:
         return "Miscellaneous";
     case Category::Network:
@@ -380,6 +378,28 @@ void UpdateRescalingInfo() {
     const auto setup = values.resolution_setup.GetValue();
     auto& info = values.resolution_info;
     TranslateResolutionInfo(setup, info);
+}
+
+u32 FrameGenMultiplier() {
+    return std::clamp(values.frame_gen_multiplier.GetValue(), MIN_FRAME_GEN_MULTIPLIER,
+                      MAX_FRAME_GEN_MULTIPLIER);
+}
+
+size_t FrameGenGenerations() {
+    if (!values.frame_gen.GetValue()) {
+        return 0;
+    }
+    return FrameGenMultiplier() - 1;
+}
+
+size_t FrameGenMaxGenerations() {
+    if (!values.frame_gen.GetValue()) {
+        return 0;
+    }
+    if (values.frame_gen_target_rate.GetValue() != 0) {
+        return MAX_FRAME_GEN_MULTIPLIER - 1;
+    }
+    return FrameGenMultiplier() - 1;
 }
 
 void RestoreGlobalState(bool is_powered_on) {

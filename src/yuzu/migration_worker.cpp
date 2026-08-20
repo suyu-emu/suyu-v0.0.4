@@ -38,7 +38,7 @@ void MigrationWorker::process() {
     try {
         fs::remove_all(eden_dir);
     } catch (fs::filesystem_error& _) {
-        // ignore because linux does stupid crap sometimes
+        // directory may not exist at this point, that's fine
     }
 
     switch (strategy) {

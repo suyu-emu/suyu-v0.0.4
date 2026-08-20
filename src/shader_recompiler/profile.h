@@ -18,8 +18,10 @@ struct Profile {
     bool support_descriptor_aliasing{};
     bool support_int8{};
     bool support_uniform_and_storage_buffer_8bit{};
+    bool support_storage_buffer_8bit{};
     bool support_int16{};
     bool support_uniform_and_storage_buffer_16bit{};
+    bool support_storage_buffer_16bit{};
     bool support_int64{};
     bool support_vertex_instance_id{};
     bool support_float_controls{};
@@ -33,6 +35,8 @@ struct Profile {
     bool support_fp32_signed_zero_nan_preserve{};
     bool support_fp64_signed_zero_nan_preserve{};
     bool support_explicit_workgroup_layout{};
+    bool support_workgroup_layout_8bit_access{};
+    bool support_workgroup_layout_16bit_access{};
     bool support_vote{};
     u32 supported_subgroup_stages{0x7F};
     bool support_viewport_index_layer_non_geometry{};
@@ -40,6 +44,7 @@ struct Profile {
     bool support_typeless_image_loads{};
     bool support_demote_to_helper_invocation{};
     bool support_int64_atomics{};
+    bool support_shared_int64_atomics{};
     bool support_derivative_control{};
     bool support_geometry_shader_passthrough{};
     bool support_native_ndc{};
@@ -54,6 +59,9 @@ struct Profile {
     bool support_multi_viewport{};
     bool support_geometry_streams{};
     bool support_sampled_image_array_nonuniform_indexing{};
+    bool support_storage_image_array_nonuniform_indexing{};
+    bool support_uniform_texel_buffer_array_nonuniform_indexing{};
+    bool support_storage_texel_buffer_array_nonuniform_indexing{};
 
     bool warp_size_potentially_larger_than_guest{};
 

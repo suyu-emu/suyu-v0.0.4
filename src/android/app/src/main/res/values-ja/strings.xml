@@ -590,10 +590,6 @@
     <string name="memory_6gb">6GB (安全でない)</string>
     <string name="memory_8gb">8GB (安全でない)</string>
 
-    <!--CPU clock speeds-->
-    <string name="clock_boost">ブースト (1700MHz)</string>
-    <string name="clock_fast">高速 (2000MHz)</string>
-
     <!-- Temperature Units -->
     <string name="temperature_celsius">摂氏</string>
     <string name="temperature_fahrenheit">華氏</string>

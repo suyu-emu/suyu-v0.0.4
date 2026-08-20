@@ -44,7 +44,7 @@ if (MSVC)
         /we4800 # Implicit conversion from 'type' to bool. Possible information loss
     )
 else()
-    target_compile_options(input_common PRIVATE $<$<COMPILE_LANGUAGE:C,CXX>:-Werror=conversion>)
+    target_compile_options(input_common PRIVATE $<$<COMPILE_LANGUAGE:C,CXX>:-Wconversion>)
 endif()
 
 if (ANDROID)

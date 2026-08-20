@@ -371,7 +371,7 @@ Id CasFunction(EmitContext& ctx, Operation operation, Id value_type) {
 Id CasLoop(EmitContext& ctx, Operation operation, Id array_pointer, Id element_pointer,
            Id value_type, Id memory_type, spv::Scope scope) {
     const bool is_shared{scope == spv::Scope::Workgroup};
-    const bool is_struct{!is_shared || ctx.profile.support_explicit_workgroup_layout};
+    const bool is_struct{!is_shared || ctx.uses_explicit_workgroup_layout};
     const Id cas_func{CasFunction(ctx, operation, value_type)};
     const Id zero{ctx.u32_zero_value};
     const Id scope_id{ctx.Const(static_cast<u32>(scope))};
@@ -591,7 +591,8 @@ void EmitContext::DefineLocalMemory(const IR::Program& program) {
         return;
     }
     const u32 num_elements{Common::DivCeil(program.local_memory_size, 4U)};
-    const Id type{TypeArray(U32[1], Const(num_elements))};
+    const Id element_type{TypeStruct(U32[1])};
+    const Id type{TypeArray(element_type, Const(num_elements))};
     const Id pointer{TypePointer(spv::StorageClass::Private, type)};
     local_memory = AddGlobalVariable(pointer, spv::StorageClass::Private);
     if (profile.supported_spirv >= 0x00010400) {
@@ -600,6 +601,10 @@ void EmitContext::DefineLocalMemory(const IR::Program& program) {
 }
 
 void EmitContext::DefineSharedMemory(const IR::Program& program) {
+    uses_explicit_workgroup_layout =
+        profile.support_explicit_workgroup_layout &&
+        (!program.info.uses_int8 || profile.support_workgroup_layout_8bit_access) &&
+        (!program.info.uses_int16 || profile.support_workgroup_layout_16bit_access);
     if (program.shared_memory_size == 0) {
         return;
     }
@@ -620,18 +625,18 @@ void EmitContext::DefineSharedMemory(const IR::Program& program) {
 
         return std::make_tuple(variable, element_pointer, pointer);
     }};
-    if (profile.support_explicit_workgroup_layout) {
+    if (uses_explicit_workgroup_layout) {
         AddExtension("SPV_KHR_workgroup_memory_explicit_layout");
         AddCapability(spv::Capability::WorkgroupMemoryExplicitLayoutKHR);
-        if (program.info.uses_int8) {
+        if (program.info.uses_int8 && profile.support_int8) {
             AddCapability(spv::Capability::WorkgroupMemoryExplicitLayout8BitAccessKHR);
             std::tie(shared_memory_u8, shared_u8, std::ignore) = make(U8, 1);
         }
-        if (program.info.uses_int16) {
+        if (program.info.uses_int16 && profile.support_int16) {
             AddCapability(spv::Capability::WorkgroupMemoryExplicitLayout16BitAccessKHR);
             std::tie(shared_memory_u16, shared_u16, std::ignore) = make(U16, 2);
         }
-        if (program.info.uses_int64) {
+        if (program.info.uses_int64 && profile.support_int64) {
             std::tie(shared_memory_u64, shared_u64, std::ignore) = make(U64, 8);
         }
         std::tie(shared_memory_u32, shared_u32, shared_memory_u32_type) = make(U32[1], 4);
@@ -1229,16 +1234,17 @@ void EmitContext::DefineStorageBuffers(const Info& info, u32& binding) {
     }
     AddExtension("SPV_KHR_storage_buffer_storage_class");
 
-    const IR::Type used_types{profile.support_descriptor_aliasing ? info.used_storage_buffer_types
-                                                                  : IR::Type::U32};
-    if (profile.support_int8 && profile.support_uniform_and_storage_buffer_8bit &&
+    IR::Type used_types{profile.support_descriptor_aliasing ? info.used_storage_buffer_types
+                                                            : IR::Type::U32};
+    used_types |= IR::Type::U32;
+    if (profile.support_int8 && profile.support_storage_buffer_8bit &&
         True(used_types & IR::Type::U8)) {
         DefineSsbos(*this, storage_types.U8, &StorageDefinitions::U8, info, binding, U8,
                     sizeof(u8));
         DefineSsbos(*this, storage_types.S8, &StorageDefinitions::S8, info, binding, S8,
                     sizeof(u8));
     }
-    if (profile.support_int16 && profile.support_uniform_and_storage_buffer_16bit &&
+    if (profile.support_int16 && profile.support_storage_buffer_16bit &&
         True(used_types & IR::Type::U16)) {
         DefineSsbos(*this, storage_types.U16, &StorageDefinitions::U16, info, binding, U16,
                     sizeof(u16));

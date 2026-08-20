@@ -155,12 +155,24 @@ else()
             $<$<COMPILE_LANGUAGE:CXX>:-fno-rtti>)
     endif()
 
+    if (ENABLE_WERROR)
+        add_compile_options(
+            $<$<COMPILE_LANGUAGE:C,CXX>:-Werror=all>
+            $<$<COMPILE_LANGUAGE:C,CXX>:-Werror=extra>
+            $<$<COMPILE_LANGUAGE:C,CXX>:-Werror=missing-declarations>
+            $<$<COMPILE_LANGUAGE:C,CXX>:-Werror=shadow>
+            $<$<COMPILE_LANGUAGE:C,CXX>:-Werror=unused>)
+    else()
+        add_compile_options(
+            $<$<COMPILE_LANGUAGE:C,CXX>:-Wall>
+            $<$<COMPILE_LANGUAGE:C,CXX>:-Wextra>
+            $<$<COMPILE_LANGUAGE:C,CXX>:-Wmissing-declarations>
+            $<$<COMPILE_LANGUAGE:C,CXX>:-Wshadow>
+            $<$<COMPILE_LANGUAGE:C,CXX>:-Wunused>
+            # Some compilers could particularly misbehave :)
+            $<$<COMPILE_LANGUAGE:C,CXX>:-Wno-error-all>)
+    endif()
     add_compile_options(
-        $<$<COMPILE_LANGUAGE:C,CXX>:-Werror=all>
-        $<$<COMPILE_LANGUAGE:C,CXX>:-Werror=extra>
-        $<$<COMPILE_LANGUAGE:C,CXX>:-Werror=missing-declarations>
-        $<$<COMPILE_LANGUAGE:C,CXX>:-Werror=shadow>
-        $<$<COMPILE_LANGUAGE:C,CXX>:-Werror=unused>
         $<$<COMPILE_LANGUAGE:C,CXX>:-Wno-attributes>
         $<$<COMPILE_LANGUAGE:C,CXX>:-Wno-invalid-offsetof>
         $<$<COMPILE_LANGUAGE:C,CXX>:-Wno-unused-parameter>
@@ -169,9 +181,9 @@ else()
     if (CXX_CLANG OR CXX_ICC OR CXX_APPLE) # Clang, AppleClang, or Intel C++
         if (NOT MSVC)
             add_compile_options(
-                $<$<COMPILE_LANGUAGE:C,CXX>:-Werror=shadow-uncaptured-local>
-                $<$<COMPILE_LANGUAGE:C,CXX>:-Werror=implicit-fallthrough>
-                $<$<COMPILE_LANGUAGE:C,CXX>:-Werror=type-limits>)
+                $<$<COMPILE_LANGUAGE:C,CXX>:-Wshadow-uncaptured-local>
+                $<$<COMPILE_LANGUAGE:C,CXX>:-Wimplicit-fallthrough>
+                $<$<COMPILE_LANGUAGE:C,CXX>:-Wtype-limits>)
         endif()
         add_compile_options(
             $<$<COMPILE_LANGUAGE:C,CXX>:-Wno-braced-scalar-init>
@@ -181,7 +193,7 @@ else()
 
     if (ARCHITECTURE_x86_64)
         add_compile_options($<$<COMPILE_LANGUAGE:C,CXX>:-mcx16>)
-        if (PLATFORM_LINUX OR PLATFORM_FREEBSD)
+        if (LINUX OR FREEBSD)
             add_compile_options($<$<COMPILE_LANGUAGE:C,CXX>:-mtls-dialect=gnu2>)
         endif()
     endif()
@@ -245,14 +257,13 @@ endif()
 
 if (YUZU_ROOM_STANDALONE)
     add_subdirectory(yuzu_room_standalone)
-    set_target_properties(yuzu-room PROPERTIES OUTPUT_NAME "suyu-room")
+    set_target_properties(yuzu-room PROPERTIES OUTPUT_NAME "eden-room")
 endif()
 
 if (YUZU_STATIC_ROOM)
     return()
 endif()
 
-add_subdirectory(nintendo_library)
 add_subdirectory(core)
 add_subdirectory(audio_core)
 add_subdirectory(video_core)
@@ -266,16 +277,13 @@ if (YUZU_TESTS)
 endif()
 
 if (YUZU_CMD)
-    add_subdirectory(suyu_cmd)
+    add_subdirectory(yuzu_cmd)
+    set_target_properties(yuzu-cmd PROPERTIES OUTPUT_NAME "eden-cli")
 endif()
 
 if (ENABLE_QT)
     add_subdirectory(qt_common)
-    add_subdirectory(suyu)
-endif()
-
-if (SUYU_BUILD_LIBRETRO_CORE)
-    add_subdirectory(libretro_core)
+    add_subdirectory(yuzu)
 endif()
 
 if (ENABLE_WEB_SERVICE)

@@ -8,6 +8,12 @@
 #include <memory>
 #include <regex>
 #include <string>
+#include "common/settings_enums.h"
+#ifdef __EMSCRIPTEN__
+#include <emscripten.h>
+#endif
+#define SDL_MAIN_USE_CALLBACKS 1
+#include <SDL3/SDL_main.h>
 
 #include <fmt/ostream.h>
 
@@ -39,9 +45,7 @@
 #ifdef _WIN32
 // windows.h needs to be included before shellapi.h
 #include <windows.h>
-
 #include <shellapi.h>
-
 #include "common/windows/timer_resolution.h"
 #endif
 
@@ -174,8 +178,14 @@ static void OnStatusMessageReceived(const Network::StatusMessageEntry& msg) {
         std::cout << std::endl << "* " << message << std::endl << std::endl;
 }
 
-/// Application entry point
-int main(int argc, char** argv) {
+struct SdlState {
+    Core::System system{};
+    std::unique_ptr<EmuWindow_SDL3> emu_window;
+};
+
+extern "C" SDL_AppResult SDL_AppInit(void **appstate, int argc, char **argv) {
+    SdlState* state = new SdlState();
+
 #ifdef _WIN32
     if (AttachConsole(ATTACH_PARENT_PROCESS)) {
         freopen("CONOUT$", "wb", stdout);
@@ -191,10 +201,9 @@ int main(int argc, char** argv) {
 #ifdef _WIN32
     int argc_w;
     auto argv_w = CommandLineToArgvW(GetCommandLineW(), &argc_w);
-
     if (argv_w == nullptr) {
         LOG_CRITICAL(Frontend, "Failed to get command line arguments");
-        return -1;
+        return SDL_APP_FAILURE;
     }
 #endif
     std::string filepath;
@@ -204,10 +213,13 @@ int main(int argc, char** argv) {
     std::optional<u16> override_gdb_port{};
     bool use_multiplayer = false;
     bool fullscreen = false;
+    bool force_null_render = false;
+    bool force_single_core = false;
     std::string nickname{};
     std::string password{};
     std::string address{};
     std::string input_profile{};
+    std::optional<std::string> log_filter{};
     u16 port = Network::DefaultRoomPort;
 
     static struct option long_options[] = {
@@ -222,6 +234,9 @@ int main(int argc, char** argv) {
         {"user", required_argument, 0, 'u'},
         {"version", no_argument, 0, 'v'},
         {"input-profile", no_argument, 0, 'i'},
+        {"null-render", no_argument, 0, 'n'},
+        {"singlecore", no_argument, 0, 's'},
+        {"filter", no_argument, 0, 'x'},
         {0, 0, 0, 0},
         // clang-format on
     };
@@ -242,7 +257,7 @@ int main(int argc, char** argv) {
                 break;
             case 'h':
                 PrintHelp(argv[0]);
-                return 0;
+                return SDL_APP_FAILURE;
             case 'g':
                 filepath = std::string(optarg);
                 break;
@@ -259,7 +274,7 @@ int main(int argc, char** argv) {
                 if (!std::regex_match(str_arg, re)) {
                     std::cout << "Wrong format for option --multiplayer\n";
                     PrintHelp(argv[0]);
-                    return 0;
+                    return SDL_APP_FAILURE;
                 }
 
                 std::smatch match;
@@ -269,17 +284,16 @@ int main(int argc, char** argv) {
                 password = match[2];
                 address = match[3];
                 if (!match[4].str().empty()) {
-                    port = static_cast<u16>(std::strtoul(match[4].str().c_str(), nullptr, 0));
+                    port = u16(std::strtoul(match[4].str().c_str(), nullptr, 0));
                 }
                 std::regex nickname_re("^[a-zA-Z0-9._\\- ]+$");
                 if (!std::regex_match(nickname, nickname_re)) {
-                    std::cout
-                        << "Nickname is not valid. Must be 4 to 20 alphanumeric characters.\n";
-                    return 0;
+                    LOG_ERROR(Frontend, "Nickname is not valid. Must be 4 to 20 alphanumeric characters");
+                    return SDL_APP_FAILURE;
                 }
                 if (address.empty()) {
-                    std::cout << "Address to room must not be empty.\n";
-                    return 0;
+                    LOG_ERROR(Frontend, "Address to room must not be empty");
+                    return SDL_APP_FAILURE;
                 }
                 break;
             }
@@ -292,7 +306,17 @@ int main(int argc, char** argv) {
                 break;
             case 'v':
                 PrintVersion();
-                return 0;
+                return SDL_APP_FAILURE;
+            case 'n':
+                force_null_render = true;
+                break;
+            case 's':
+                force_single_core = true;
+                break;
+            case 'x':
+                log_filter = argv[optind];
+                ++optind;
+                break;
             }
         } else {
 #ifdef _WIN32
@@ -309,7 +333,7 @@ int main(int argc, char** argv) {
     // apply the log_filter setting
     // the logger was initialized before and doesn't pick up the filter on its own
     Common::Log::Filter filter;
-    filter.ParseFilterString(Settings::values.log_filter.GetValue());
+    filter.ParseFilterString(log_filter.value_or(Settings::values.log_filter.GetValue()));
     Common::Log::SetGlobalFilter(filter);
 
     if (!program_args.empty()) {
@@ -330,85 +354,87 @@ int main(int argc, char** argv) {
         Settings::values.gdbstub_port = *override_gdb_port;
     }
 
+    if (force_single_core) {
+        Settings::values.use_multi_core = false;
+    }
+
+    if (force_null_render) {
+        Settings::values.renderer_backend = Settings::RendererBackend::Null;
+    }
+
 #ifdef _WIN32
     LocalFree(argv_w);
 #endif
 
     if (filepath.empty()) {
         LOG_CRITICAL(Frontend, "Failed to load ROM: No ROM specified");
-        return -1;
+        return SDL_APP_FAILURE;
     }
 
-    Core::System system{};
-    system.Initialize();
+    state->system.Initialize();
 
     InputCommon::InputSubsystem input_subsystem{};
 
     // Apply the command line arguments
-    system.ApplySettings();
+    state->system.ApplySettings();
 
-    std::unique_ptr<EmuWindow_SDL3> emu_window;
     switch (Settings::values.renderer_backend.GetValue()) {
 #ifdef HAS_OPENGL
     case Settings::RendererBackend::OpenGL_GLSL:
     case Settings::RendererBackend::OpenGL_GLASM:
     case Settings::RendererBackend::OpenGL_SPIRV:
-        emu_window = std::make_unique<EmuWindow_SDL3_GL>(&input_subsystem, system, fullscreen);
+        state->emu_window = std::make_unique<EmuWindow_SDL3_GL>(&input_subsystem, state->system, fullscreen);
         break;
 #endif
     case Settings::RendererBackend::Vulkan:
-        emu_window = std::make_unique<EmuWindow_SDL3_VK>(&input_subsystem, system, fullscreen);
+        state->emu_window = std::make_unique<EmuWindow_SDL3_VK>(&input_subsystem, state->system, fullscreen);
         break;
     case Settings::RendererBackend::Null:
-        emu_window = std::make_unique<EmuWindow_SDL3_Null>(&input_subsystem, system, fullscreen);
+        state->emu_window = std::make_unique<EmuWindow_SDL3_Null>(&input_subsystem, state->system, fullscreen);
         break;
     default:
         LOG_CRITICAL(Frontend, "Invalid renderer backend");
-        return -1;
+        return SDL_APP_FAILURE;
     }
 
 #ifdef _WIN32
     Common::Windows::SetCurrentTimerResolutionToMaximum();
-    system.CoreTiming().SetTimerResolutionNs(Common::Windows::GetCurrentTimerResolution());
+    state->system.CoreTiming().SetTimerResolutionNs(Common::Windows::GetCurrentTimerResolution());
 #endif
 
-    system.SetContentProvider(std::make_unique<FileSys::ContentProviderUnion>());
-    system.SetFilesystem(std::make_shared<FileSys::RealVfsFilesystem>());
-    system.GetFileSystemController().CreateFactories(*system.GetFilesystem());
-    system.GetUserChannel().clear();
+    state->system.SetContentProvider(std::make_unique<FileSys::ContentProviderUnion>());
+    state->system.SetFilesystem(std::make_shared<FileSys::RealVfsFilesystem>());
+    state->system.GetFileSystemController().CreateFactories(*state->system.GetFilesystem());
+    state->system.GetUserChannel().clear();
 
     Service::AM::FrontendAppletParameters load_parameters{
         .applet_id = Service::AM::AppletId::Application,
     };
-    const Core::SystemResultStatus load_result{system.Load(*emu_window, filepath, load_parameters)};
-
+    const Core::SystemResultStatus load_result = state->system.Load(*state->emu_window, filepath, load_parameters);
     switch (load_result) {
-    case Core::SystemResultStatus::ErrorGetLoader:
-        LOG_CRITICAL(Frontend, "Failed to obtain loader for {}!", filepath);
-        return -1;
-    case Core::SystemResultStatus::ErrorLoader:
-        LOG_CRITICAL(Frontend, "Failed to load ROM!");
-        return -1;
-    case Core::SystemResultStatus::ErrorNotInitialized:
-        LOG_CRITICAL(Frontend, "CPUCore not initialized");
-        return -1;
-    case Core::SystemResultStatus::ErrorVideoCore:
-        LOG_CRITICAL(Frontend, "Failed to initialize VideoCore!");
-        return -1;
     case Core::SystemResultStatus::Success:
         break; // Expected case
+    case Core::SystemResultStatus::ErrorGetLoader:
+        LOG_CRITICAL(Frontend, "Failed to obtain loader for {}!", filepath);
+        return SDL_APP_FAILURE;
+    case Core::SystemResultStatus::ErrorLoader:
+        LOG_CRITICAL(Frontend, "Failed to load ROM!");
+        return SDL_APP_FAILURE;
+    case Core::SystemResultStatus::ErrorNotInitialized:
+        LOG_CRITICAL(Frontend, "CPUCore not initialized");
+        return SDL_APP_FAILURE;
+    case Core::SystemResultStatus::ErrorVideoCore:
+        LOG_CRITICAL(Frontend, "Failed to initialize VideoCore!");
+        return SDL_APP_FAILURE;
     default:
-        if (static_cast<u32>(load_result) >
-            static_cast<u32>(Core::SystemResultStatus::ErrorLoader)) {
-            const u16 loader_id = static_cast<u16>(Core::SystemResultStatus::ErrorLoader);
-            const u16 error_id = static_cast<u16>(load_result) - loader_id;
-            LOG_CRITICAL(Frontend,
-                         "While attempting to load the ROM requested, an error occurred. Please "
-                         "refer to the Eden wiki for more information or the Eden discord for "
-                         "additional help.\n\nError Code: {:04X}-{:04X}\nError Description: {}",
-                         loader_id, error_id, static_cast<Loader::ResultStatus>(error_id));
-        }
-        break;
+        const u16 loader_id = u16(Core::SystemResultStatus::ErrorLoader);
+        const u16 error_id = u16(load_result) - loader_id;
+        LOG_CRITICAL(Frontend,
+            "While attempting to load the ROM requested, an error occurred. Please "
+            "refer to the Eden wiki for more information or the Eden discord for "
+            "additional help.\n\nError Code: {:04X}-{:04X}\nError Description: {}",
+            loader_id, error_id, Loader::ResultStatus(error_id));
+        return SDL_APP_FAILURE;
     }
 
     if (use_multiplayer) {
@@ -417,40 +443,46 @@ int main(int argc, char** argv) {
             member->BindOnStatusMessageReceived(OnStatusMessageReceived);
             member->BindOnStateChanged(OnStateChanged);
             member->BindOnError(OnNetworkError);
-            LOG_DEBUG(Network, "Start connection to {}:{} with nickname {}", address, port,
-                      nickname);
+            LOG_DEBUG(Network, "Start connection to {}:{} with nickname {}", address, port, nickname);
             member->Join(nickname, address.c_str(), port, 0, Network::NoPreferredIP, password);
         } else {
             LOG_ERROR(Network, "Could not access RoomMember");
-            return 0;
+            return SDL_APP_FAILURE;
         }
     }
 
     // Core is loaded, start the GPU (makes the GPU contexts current to this thread)
-    system.GPU().Start();
-    system.GetCpuManager().OnGpuReady();
+    state->system.GPU().Start();
+    state->system.GetCpuManager().OnGpuReady();
 
     if (Settings::values.use_disk_shader_cache.GetValue()) {
-        system.Renderer().ReadRasterizer()->LoadDiskResources(
-            system.GetApplicationProcessProgramID(), std::stop_token{},
+        state->system.Renderer().ReadRasterizer()->LoadDiskResources(
+            state->system.GetApplicationProcessProgramID(), std::stop_token{},
             [](VideoCore::LoadCallbackStage, size_t value, size_t total) {});
     }
 
-    system.RegisterExitCallback([&] {
-        // Just exit right away.
-        exit(0);
-    });
-    void(system.Run());
-    if (system.DebuggerEnabled()) {
-        system.InitializeDebugger();
-    }
-    while (emu_window->IsOpen()) {
-        emu_window->WaitEvent();
-    }
-    system.DetachDebugger();
-    void(system.Pause());
-    system.ShutdownMainProcess();
-    return 0;
+    // don't do anything, SDL3 already exists for us :D
+    state->system.RegisterExitCallback([] {});
+    void(state->system.Run());
+    if (state->system.DebuggerEnabled())
+        state->system.InitializeDebugger();
+    return SDL_APP_SUCCESS;
+}
+extern "C" SDL_AppResult SDL_AppIterate(void *appstate) {
+    SdlState *state = (SdlState *)appstate;
+    return state->emu_window->IsOpen() ? SDL_APP_CONTINUE : SDL_APP_SUCCESS;
+}
+extern "C" SDL_AppResult SDL_AppEvent(void *appstate, SDL_Event *event) {
+    SdlState *state = (SdlState *)appstate;
+    state->emu_window->OnEvent(*event);
+    return SDL_APP_SUCCESS;
+}
+extern "C" void SDL_AppQuit(void *appstate, SDL_AppResult result) {
+    SdlState *state = (SdlState *)appstate;
+    state->system.DetachDebugger();
+    void(state->system.Pause());
+    state->system.ShutdownMainProcess();
+    delete state;
 }
 
 #define VMA_IMPLEMENTATION

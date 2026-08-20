@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 // SPDX-FileCopyrightText: Copyright 2020 yuzu Emulator Project
@@ -37,10 +37,25 @@ class StatefulThreadWorker {
     using StateMaker = std::conditional_t<with_state, std::function<StateType()>, DummyCallable>;
 
 public:
-    explicit StatefulThreadWorker(size_t num_workers, std::string name, StateMaker func = {})
+    explicit StatefulThreadWorker(size_t num_workers, std::string name, StateMaker func = {},
+                                  ThreadPlacement placement = ThreadPlacement::Default)
         : workers_queued{num_workers}, thread_name{std::move(name)} {
-        const auto lambda = [this, func](std::stop_token stop_token) {
+        const auto lambda = [this, func, placement](std::stop_token stop_token) {
             Common::SetCurrentThreadName(thread_name.c_str());
+            if (placement != ThreadPlacement::Default) {
+                Common::SetCurrentThreadPriority(ThreadPriority::Low);
+            }
+            switch (placement) {
+            case ThreadPlacement::Efficiency:
+                Common::SetCurrentThreadToEfficiencyCores();
+                break;
+            case ThreadPlacement::Background:
+                Common::SetCurrentThreadToBackgroundWork();
+                break;
+            default:
+                Common::SetCurrentThreadToAllCores();
+                break;
+            }
             {
                 [[maybe_unused]] std::conditional_t<with_state, StateType, int> state{func()};
                 while (!stop_token.stop_requested()) {

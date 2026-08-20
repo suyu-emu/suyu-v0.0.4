@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2018 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -25,6 +28,8 @@ public:
         // General
         void GetConfig(HLERequestContext& ctx);
         void ModularExponentiate(HLERequestContext& ctx);
+        void GenerateAesKek(HLERequestContext& ctx);
+        void GenerateAesKey(HLERequestContext& ctx);
         void SetConfig(HLERequestContext& ctx);
         void GenerateRandomBytes(HLERequestContext& ctx);
         void IsDevelopment(HLERequestContext& ctx);

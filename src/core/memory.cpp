@@ -282,7 +282,7 @@ struct Memory::Impl {
     bool ReadBlockImpl(const Common::ProcessAddress addr, void* buffer, const std::size_t size, bool unsafe) {
         return WalkBlock(addr, size,
         [addr, size, &buffer](const std::size_t offset, const std::size_t copy_amount, const Common::ProcessAddress current_vaddr) {
-            LOG_ERROR(HW_Memory, "Unmapped @ {:#016X} (start address = {:#016X}, size = {})", GetInteger(current_vaddr), GetInteger(addr), size);
+            LOG_ERROR(HW_Memory, "Unmapped @ {:#016x} (start address = {:#016x}, size = {})", GetInteger(current_vaddr), GetInteger(addr), size);
             std::memset(reinterpret_cast<u8*>(buffer) + offset, 0, copy_amount);
         },
         [&](const std::size_t offset, const std::size_t copy_amount, const u8* const ptr) {
@@ -306,7 +306,7 @@ struct Memory::Impl {
     bool WriteBlockImpl(const Common::ProcessAddress addr, const void* buffer, const std::size_t size, bool unsafe) {
         return WalkBlock(addr, size,
         [addr, size](const std::size_t offset, const std::size_t copy_amount, const Common::ProcessAddress current_vaddr) {
-            LOG_ERROR(HW_Memory, "Unmapped @ 0x{:016X} (start address = 0x{:016X}, size = {})", GetInteger(current_vaddr), GetInteger(addr), size);
+            LOG_ERROR(HW_Memory, "Unmapped @ {:#016x} (start address = {:#016x}, size = {})", GetInteger(current_vaddr), GetInteger(addr), size);
         },
         [&](const std::size_t offset, const std::size_t copy_amount, u8* const ptr) {
             std::memcpy(ptr, reinterpret_cast<u8 const*>(buffer) + offset, copy_amount);
@@ -322,7 +322,7 @@ struct Memory::Impl {
     bool ZeroBlock(const Common::ProcessAddress addr, const std::size_t size) {
         return WalkBlock(addr, size,
         [addr, size](const std::size_t offset, const std::size_t copy_amount, const Common::ProcessAddress current_vaddr) {
-            LOG_ERROR(HW_Memory, "Unmapped @ {:#016X} (start address = {:#016X}, size = {})", GetInteger(current_vaddr), GetInteger(addr), size);
+            LOG_ERROR(HW_Memory, "Unmapped @ {:#016x} (start address = {:#016x}, size = {})", GetInteger(current_vaddr), GetInteger(addr), size);
         },
         [=](const std::size_t offset, const std::size_t copy_amount, u8* const ptr) {
             std::memset(ptr, 0, copy_amount);
@@ -336,7 +336,7 @@ struct Memory::Impl {
     bool CopyBlock(Common::ProcessAddress dest_addr, Common::ProcessAddress src_addr, const std::size_t size) {
         return WalkBlock(dest_addr, size,
         [&](const std::size_t offset, const std::size_t copy_amount, const Common::ProcessAddress current_vaddr) {
-            LOG_ERROR(HW_Memory, "Unmapped @ {:#016X} (start address = {:#016X}, size = {})", GetInteger(current_vaddr), GetInteger(src_addr), size);
+            LOG_ERROR(HW_Memory, "Unmapped @ {:#016x} (start address = {:#016x}, size = {})", GetInteger(current_vaddr), GetInteger(src_addr), size);
             ZeroBlock(dest_addr + offset, copy_amount);
         },
         [&](const std::size_t offset, const std::size_t copy_amount, const u8* const ptr) {
@@ -575,7 +575,7 @@ struct Memory::Impl {
             } else {
                 switch (Common::PageTable::PageInfo::ExtractType(raw_pointer)) {
                 case Common::PageType::Memory:
-                    ASSERT_MSG(false, "Mapped memory page without a pointer @ 0x{:016X}", vaddr);
+                    ASSERT_MSG(false, "Mapped memory page without a pointer @ {:#016x}", vaddr);
                     return nullptr;
                 case Common::PageType::DebugMemory:
                     return GetPointerFromDebugMemory(vaddr);
@@ -603,7 +603,7 @@ struct Memory::Impl {
         return GetPointerImpl(
             GetInteger(vaddr),
             [vaddr]() {
-                LOG_ERROR(HW_Memory, "Unmapped GetPointer @ 0x{:016X}", GetInteger(vaddr));
+                LOG_ERROR(HW_Memory, "Unmapped GetPointer @ {:#016x}", GetInteger(vaddr));
             },
             []() {});
     }
@@ -621,7 +621,7 @@ struct Memory::Impl {
     inline T Read(Common::ProcessAddress vaddr) noexcept requires(std::is_trivially_copyable_v<T>) {
         const u64 addr = GetInteger(vaddr);
         if (auto const ptr = GetPointerImpl(addr, [addr]() {
-            LOG_ERROR(HW_Memory, "Unmapped Read{} @ 0x{:016X}", sizeof(T) * 8, addr);
+            LOG_ERROR(HW_Memory, "Unmapped Read{} @ {:#016x}", sizeof(T) * 8, addr);
         }, [&]() {
             HandleRasterizerDownload(addr, sizeof(T));
         }); ptr) [[likely]] {
@@ -642,7 +642,7 @@ struct Memory::Impl {
     inline void Write(Common::ProcessAddress vaddr, const T data) noexcept requires(std::is_trivially_copyable_v<T>) {
         const u64 addr = GetInteger(vaddr);
         if (auto const ptr = GetPointerImpl(addr, [addr, data]() {
-            LOG_ERROR(HW_Memory, "Unmapped Write{} @ 0x{:016X} = 0x{:016X}", sizeof(T) * 8, addr, u64(data));
+            LOG_ERROR(HW_Memory, "Unmapped Write{} @ {:#016x} = {:#016x}", sizeof(T) * 8, addr, u64(data));
         }, [&]() { HandleRasterizerWrite(addr, sizeof(T)); }); ptr) [[likely]]
             std::memcpy(ptr, &data, sizeof(T));
     }
@@ -652,7 +652,7 @@ struct Memory::Impl {
         u8* const ptr = GetPointerImpl(
             GetInteger(vaddr),
             [vaddr, data]() {
-                LOG_ERROR(HW_Memory, "Unmapped WriteExclusive{} @ 0x{:016X} = 0x{:016X}",
+                LOG_ERROR(HW_Memory, "Unmapped WriteExclusive{} @ {:#016x} = {:#016x}",
                           sizeof(T) * 8, GetInteger(vaddr), static_cast<u64>(data));
             },
             [&]() { HandleRasterizerWrite(GetInteger(vaddr), sizeof(T)); });
@@ -666,7 +666,7 @@ struct Memory::Impl {
         u8* const ptr = GetPointerImpl(
             GetInteger(vaddr),
             [vaddr, data]() {
-                LOG_ERROR(HW_Memory, "Unmapped WriteExclusive128 @ 0x{:016X} = 0x{:016X}{:016X}",
+                LOG_ERROR(HW_Memory, "Unmapped WriteExclusive128 @ {:#016x} = {:#016x}{:016X}",
                           GetInteger(vaddr), static_cast<u64>(data[1]), static_cast<u64>(data[0]));
             },
             [&]() { HandleRasterizerWrite(GetInteger(vaddr), sizeof(u128)); });

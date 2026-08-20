@@ -17,7 +17,6 @@
 #include "core/core.h"
 #include "core/file_sys/card_image.h"
 #include "core/file_sys/common_funcs.h"
-#include "core/file_sys/content_archive.h"
 #include "core/file_sys/submission_package.h"
 #include "core/hle/kernel/k_process.h"
 #include "core/loader/deconstructed_rom_directory.h"
@@ -324,23 +323,6 @@ std::unique_ptr<AppLoader> GetLoader(Core::System& system, FileSys::VirtualFile 
 
     FileType type = IdentifyFile(file);
     const FileType filename_type = GuessFromFilename(file->GetName());
-
-    // Special case: an exefs "main" is itself a valid NSO0, so IdentifyFile
-    // (which tries AppLoader_NSO before AppLoader_DeconstructedRomDirectory)
-    // reports NSO for it. AppLoader_NSO::Load only maps that single module and
-    // never initializes the process - it has no NPDM, so it cannot set up the
-    // page table - and the very first KProcess::LoadModule() then writes
-    // through a null Memory::Impl::current_page_table. GuessFromFilename only
-    // ever returns DeconstructedRomDirectory for a file literally named
-    // "main" (see above), which is exactly this situation, so that alone is
-    // enough - originally this also required FileSys::IsDirectoryExeFS(
-    // file->GetContainingDirectory()) to see "main.npdm" beside it, but for
-    // some VirtualFile implementations GetContainingDirectory() doesn't
-    // return a populated listing, silently defeating the check and leaving
-    // the null-page-table crash in place.
-    if (type == FileType::NSO && filename_type == FileType::DeconstructedRomDirectory) {
-        type = FileType::DeconstructedRomDirectory;
-    }
 
     // Special case: 00 is either a NCA or NAX.
     if (type != filename_type && !(file->GetName() == "00" && type == FileType::NAX)) {

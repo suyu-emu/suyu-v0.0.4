@@ -30,6 +30,7 @@ void ThreadManager::StartThread(VideoCore::RendererBase& renderer, Core::Fronten
     thread = std::jthread([&](std::stop_token stop_token) {
         Common::SetCurrentThreadName("GPU");
         Common::SetCurrentThreadPriority(Common::ThreadPriority::Critical);
+        Common::SetCurrentThreadToPerformanceCores();
         system.RegisterHostThread();
 
         auto current_context = context.Acquire();

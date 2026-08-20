@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2020 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -9,20 +12,23 @@
 
 namespace Service::OLSC {
 
+class ISProfileBgAgentForSystemProcess final : public ServiceFramework<ISProfileBgAgentForSystemProcess> {
+public:
+    explicit ISProfileBgAgentForSystemProcess(Core::System& system_)
+        : ServiceFramework{system_, "spbg:sp"}
+    {
+        static const FunctionInfo functions[] = {
+            { 100, nullptr, "OpenBgAgentController" },
+        };
+        RegisterHandlers(functions);
+    }
+};
+
 void LoopProcess(Core::System& system) {
     auto server_manager = std::make_unique<ServerManager>(system);
-
-    const auto OlscFactoryForApplication = [&] {
-        return std::make_shared<IOlscServiceForApplication>(system);
-    };
-
-    const auto OlscFactoryForSystemService = [&] {
-        return std::make_shared<IOlscServiceForSystemService>(system);
-    };
-
-    server_manager->RegisterNamedService("olsc:u", OlscFactoryForApplication);
-    server_manager->RegisterNamedService("olsc:s", OlscFactoryForSystemService);
-
+    server_manager->RegisterNamedService("olsc:u", std::make_shared<IOlscServiceForApplication>(system));
+    server_manager->RegisterNamedService("olsc:s", std::make_shared<IOlscServiceForSystemService>(system));
+    server_manager->RegisterNamedService("spbg:sp", std::make_shared<ISProfileBgAgentForSystemProcess>(system));
     ServerManager::RunServer(std::move(server_manager));
 }
 

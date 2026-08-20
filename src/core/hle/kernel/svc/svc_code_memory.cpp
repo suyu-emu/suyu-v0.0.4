@@ -33,7 +33,7 @@ constexpr bool IsValidUnmapFromOwnerCodeMemoryPermission(MemoryPermission perm) 
 } // namespace
 
 Result CreateCodeMemory(Core::System& system, Handle* out, u64 address, uint64_t size) {
-    LOG_TRACE(Kernel_SVC, "called, address={:#X}, size=0x{:X}", address, size);
+    LOG_TRACE(Kernel_SVC, "called, address={:#x}, size={:#x}", address, size);
 
     // Validate address / size.
     R_UNLESS(Common::IsAligned(address, PageSize), ResultInvalidAddress);
@@ -69,8 +69,8 @@ Result ControlCodeMemory(Core::System& system, Handle code_memory_handle,
                          MemoryPermission perm) {
 
     LOG_TRACE(Kernel_SVC,
-              "called, code_memory_handle={:#X}, operation=0x{:X}, address=0x{:X}, size=0x{:X}, "
-              "permission={:#X}",
+              "called, code_memory_handle={:#x}, operation={:#x}, address={:#x}, size={:#x}, "
+              "permission={:#x}",
               code_memory_handle, operation, address, size, perm);
 
     // Validate the address / size.

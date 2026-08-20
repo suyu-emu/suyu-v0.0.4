@@ -20,7 +20,7 @@ void Control::ProcessMethod(Host1x& host1x, Method method, u32 argument) {
         Execute(host1x, argument);
         break;
     default:
-        UNIMPLEMENTED_MSG("Control method {:#X}", u32(method));
+        UNIMPLEMENTED_MSG("Control method {:#x}", u32(method));
         break;
     }
 }

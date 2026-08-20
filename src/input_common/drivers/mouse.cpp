@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 // SPDX-FileCopyrightText: Copyright 2021 yuzu Emulator Project
@@ -72,15 +72,6 @@ Mouse::Mouse(std::string input_engine_) : InputEngine(std::move(input_engine_)) 
     wheel_position = {};
     last_mouse_change = {};
     last_motion_change = {};
-
-    update_thread = std::jthread([this](std::stop_token stop_token) {
-        Common::SetCurrentThreadName("Mouse");
-        while (!stop_token.stop_requested()) {
-            UpdateStickInput();
-            UpdateMotionInput();
-            std::this_thread::sleep_for(std::chrono::milliseconds(update_time));
-        }
-    });
 }
 
 void Mouse::UpdateStickInput() {
@@ -183,6 +174,11 @@ void Mouse::Move(int x, int y, int center_x, int center_y) {
             last_motion_change.z,
         };
     }
+}
+
+void Mouse::NotifyChanged() {
+    UpdateStickInput();
+    UpdateMotionInput();
 }
 
 void Mouse::MouseMove(f32 touch_x, f32 touch_y) {

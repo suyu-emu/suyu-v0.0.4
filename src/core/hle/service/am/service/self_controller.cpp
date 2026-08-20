@@ -57,7 +57,7 @@ ISelfController::ISelfController(Core::System& system_, std::shared_ptr<Applet> 
         {64, nullptr, "SetInputDetectionSourceSet"},
         {65, D<&ISelfController::ReportUserIsActive>, "ReportUserIsActive"},
         {66, nullptr, "GetCurrentIlluminance"},
-        {67, nullptr, "IsIlluminanceAvailable"},
+        {67, D<&ISelfController::IsIlluminanceAvailable>, "IsIlluminanceAvailable"},
         {68, D<&ISelfController::SetAutoSleepDisabled>, "SetAutoSleepDisabled"},
         {69, D<&ISelfController::IsAutoSleepDisabled>, "IsAutoSleepDisabled"},
         {70, nullptr, "ReportMultimediaError"},
@@ -344,6 +344,12 @@ Result ISelfController::IsAutoSleepDisabled(Out<bool> out_is_auto_sleep_disabled
     std::scoped_lock lk{m_applet->lock};
     *out_is_auto_sleep_disabled = m_applet->auto_sleep_disabled;
 
+    R_SUCCEED();
+}
+
+Result ISelfController::IsIlluminanceAvailable(Out<bool> out_is_illuminance_available) {
+    LOG_WARNING(Service_AM, "(stubbed)");
+    *out_is_illuminance_available = false;
     R_SUCCEED();
 }
 

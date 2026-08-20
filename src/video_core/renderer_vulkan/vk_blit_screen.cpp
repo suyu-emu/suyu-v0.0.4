@@ -85,6 +85,17 @@ void BlitScreen::SetWindowAdaptPass(const Device& device) {
     }
 }
 
+void BlitScreen::PrepareFrame(const Device& device, Frame* frame,
+                              const Layout::FramebufferLayout& layout) {
+    if (!window_adapt || (frame->width == layout.width && frame->height == layout.height)) {
+        return;
+    }
+
+    WaitIdle(device);
+    present_manager.RecreateFrame(frame, layout.width, layout.height, swapchain_view_format,
+                                  window_adapt->GetRenderPass());
+}
+
 void BlitScreen::DrawToFrame(const Device& device, RasterizerVulkan& rasterizer, Frame* frame,
                              std::span<const Tegra::FramebufferConfig> framebuffers,
                              const Layout::FramebufferLayout& layout,

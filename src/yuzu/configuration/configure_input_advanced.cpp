@@ -99,6 +99,7 @@ ConfigureInputAdvanced::ConfigureInputAdvanced(Core::HID::HIDCore& hid_core_, QW
 
 #ifndef _WIN32
     ui->enable_raw_input->setVisible(false);
+    ui->disable_wgi_xinput->setVisible(false);
 #endif
 
     LoadConfiguration();
@@ -139,6 +140,7 @@ void ConfigureInputAdvanced::ApplyConfiguration() {
     Settings::values.emulate_analog_keyboard = ui->emulate_analog_keyboard->isChecked();
     Settings::values.touchscreen.enabled = ui->touchscreen_enabled->isChecked();
     Settings::values.enable_raw_input = ui->enable_raw_input->isChecked();
+    Settings::values.disable_wgi_xinput = ui->disable_wgi_xinput->isChecked();
     Settings::values.enable_udp_controller = ui->enable_udp_controller->isChecked();
     Settings::values.controller_navigation = ui->controller_navigation->isChecked();
     Settings::values.enable_ring_controller = ui->enable_ring_controller->isChecked();
@@ -174,6 +176,7 @@ void ConfigureInputAdvanced::LoadConfiguration() {
     ui->emulate_analog_keyboard->setChecked(Settings::values.emulate_analog_keyboard.GetValue());
     ui->touchscreen_enabled->setChecked(Settings::values.touchscreen.enabled);
     ui->enable_raw_input->setChecked(Settings::values.enable_raw_input.GetValue());
+    ui->disable_wgi_xinput->setChecked(Settings::values.disable_wgi_xinput.GetValue());
     ui->enable_udp_controller->setChecked(Settings::values.enable_udp_controller.GetValue());
     ui->controller_navigation->setChecked(Settings::values.controller_navigation.GetValue());
     ui->enable_ring_controller->setChecked(Settings::values.enable_ring_controller.GetValue());

@@ -237,7 +237,7 @@ IHidServer::IHidServer(Core::System& system_, std::shared_ptr<ResourceManager> r
         {3013, nullptr, "SetDebugPadGenericPadMap"}, //21.0.0+
         {3014, nullptr, "GetDebugPadKeyboardMap"}, //21.0.0+
         {3015, nullptr, "SetDebugPadKeyboardMap"}, //21.0.0+
-        {3150, nullptr, "SetMouseLibraryVersion"}, //21.0.0+
+        {3150, C<&IHidServer::SetMouseLibraryVersion>, "SetMouseLibraryVersion"}, //21.0.0+
         // What? -- {12010, nullptr, "SetButtonConfigLeft"},
     };
     // clang-format on
@@ -251,7 +251,7 @@ Result IHidServer::CreateAppletResource(OutInterface<IAppletResource> out_applet
                                         ClientAppletResourceUserId aruid) {
     const auto result = GetResourceManager()->CreateAppletResource(aruid.pid);
 
-    LOG_DEBUG(Service_HID, "called, applet_resource_user_id={}, result={:#X}", aruid.pid,
+    LOG_DEBUG(Service_HID, "called, applet_resource_user_id={}, result={:#x}", aruid.pid,
               result.raw);
 
     *out_applet_resource = std::make_shared<IAppletResource>(system, resource_manager, aruid.pid);
@@ -1150,7 +1150,7 @@ Result IHidServer::InitializeSevenSixAxisSensor(ClientAppletResourceUserId aruid
                                                 InCopyHandle<Kernel::KTransferMemory> t_mem_1,
                                                 InCopyHandle<Kernel::KTransferMemory> t_mem_2) {
     LOG_WARNING(Service_HID,
-                "called, t_mem_1_size=0x{:08X}, t_mem_2_size=0x{:08X}, "
+                "called, t_mem_1_size={:#08x}, t_mem_2_size={:#08x}, "
                 "applet_resource_user_id={}",
                 t_mem_1_size, t_mem_2_size, aruid.pid);
 
@@ -1468,6 +1468,12 @@ Result IHidServer::SetTouchScreenResolution(u32 width, u32 height,
              aruid.pid);
 
     GetResourceManager()->GetTouchScreen()->SetTouchScreenResolution(width, height, aruid.pid);
+    R_SUCCEED();
+}
+
+Result IHidServer::SetMouseLibraryVersion(ClientAppletResourceUserId aruid) {
+    LOG_INFO(Service_HID, "(STUBBED) called, applet_resource_user_id={}", aruid.pid);
+
     R_SUCCEED();
 }
 

@@ -17,7 +17,6 @@
 
 #include "common/common_types.h"
 #include "core/file_sys/vfs/vfs_types.h"
-#include "network/network.h"
 #include "core/hle/service/os/event.h"
 #include "core/hle/service/kernel_helpers.h"
 
@@ -438,9 +437,6 @@ public:
 
     /// Applies any changes to settings to this core instance.
     void ApplySettings();
-
-    // suyu compat: Eden replaced RoomNetwork class with free functions; return a wrapper here.
-    [[nodiscard]] Network::RoomNetwork& GetRoomNetwork();
 
     struct Impl;
     std::unique_ptr<Impl> impl;

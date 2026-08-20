@@ -487,6 +487,7 @@ void GRenderWindow::mousePressEvent(QMouseEvent* event) {
     input_subsystem->GetMouse()->PressMouseButton(button);
     input_subsystem->GetMouse()->PressButton(pos.x(), pos.y(), button);
     input_subsystem->GetMouse()->PressTouchButton(touch_x, touch_y, button);
+    input_subsystem->GetMouse()->NotifyChanged();
 
     emit MouseActivity();
 }
@@ -507,6 +508,7 @@ void GRenderWindow::mouseMoveEvent(QMouseEvent* event) {
     input_subsystem->GetMouse()->MouseMove(touch_x, touch_y);
     input_subsystem->GetMouse()->TouchMove(touch_x, touch_y);
     input_subsystem->GetMouse()->Move(pos.x(), pos.y(), center_x, center_y);
+    input_subsystem->GetMouse()->NotifyChanged();
 
     // Center mouse for mouse panning
     if (Settings::values.mouse_panning && !Settings::values.mouse_enabled) {
@@ -532,6 +534,7 @@ void GRenderWindow::mouseReleaseEvent(QMouseEvent* event) {
 
     const auto button = QtButtonToMouseButton(event->button());
     input_subsystem->GetMouse()->ReleaseButton(button);
+    input_subsystem->GetMouse()->NotifyChanged();
 }
 
 void GRenderWindow::ConstrainMouse() {
@@ -564,6 +567,7 @@ void GRenderWindow::wheelEvent(QWheelEvent* event) {
     const int x = event->angleDelta().x();
     const int y = event->angleDelta().y();
     input_subsystem->GetMouse()->MouseWheelChange(x, y);
+    input_subsystem->GetMouse()->NotifyChanged();
 }
 
 void GRenderWindow::TouchBeginEvent(const QTouchEvent* event) {
@@ -710,8 +714,9 @@ bool GRenderWindow::event(QEvent* event) {
 void GRenderWindow::focusOutEvent(QFocusEvent* event) {
     QWidget::focusOutEvent(event);
     input_subsystem->GetKeyboard()->ReleaseAllKeys();
-    input_subsystem->GetMouse()->ReleaseAllButtons();
     input_subsystem->GetTouchScreen()->ReleaseAllTouch();
+    input_subsystem->GetMouse()->ReleaseAllButtons();
+    input_subsystem->GetMouse()->NotifyChanged();
 }
 
 void GRenderWindow::resizeEvent(QResizeEvent* event) {

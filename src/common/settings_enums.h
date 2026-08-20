@@ -92,7 +92,7 @@ struct EnumMetadata {
 // AudioEngine must be specified discretely due to having existing but slightly different
 // canonicalizations
 // TODO (lat9nq): Remove explicit definition of AudioEngine/sink_id
-enum class AudioEngine : u32 { Auto, Cubeb, Sdl3, Null, Oboe, Libretro, };
+enum class AudioEngine : u32 { Auto, Cubeb, Sdl3, Null, Oboe, };
 template<>
 inline std::vector<std::pair<std::string_view, AudioEngine>> EnumMetadata<AudioEngine>::Canonicalizations() {
     return {
@@ -100,7 +100,6 @@ inline std::vector<std::pair<std::string_view, AudioEngine>> EnumMetadata<AudioE
         {"cubeb", AudioEngine::Cubeb},
         {"sdl3", AudioEngine::Sdl3},
         {"null", AudioEngine::Null}, {"oboe", AudioEngine::Oboe},
-        {"libretro", AudioEngine::Libretro},
     };
 }
 /// @brief This is just a sufficiently large number that is more than the number of other enums declared here
@@ -114,11 +113,7 @@ inline AudioEngine EnumMetadata<AudioEngine>::GetFirst() {
 }
 template<>
 inline AudioEngine EnumMetadata<AudioEngine>::GetLast() {
-    // Must name the last enumerator: SwitchableSetting::SetValue clamps enum
-    // values to this, so leaving it at Oboe silently turned every
-    // SetValue(Libretro) into Oboe - which isn't built on desktop, so audio
-    // fell back to the null sink and the libretro core was silent.
-    return AudioEngine::Libretro;
+    return AudioEngine::Oboe;
 }
 
 ENUM(AudioMode, Mono, Stereo, Surround);
@@ -145,7 +140,7 @@ ENUM(DmaAccuracy, Default, Unsafe, Safe);
 ENUM(GpuFenceBehavior, Default, Immediate, Balanced, Accurate, Strict);
 ENUM(CpuBackend, Dynarmic, Nce);
 ENUM(CpuAccuracy, Auto, Accurate, Unsafe, Paranoid, Debugging);
-ENUM(CpuClock, Off, Boost, Fast)
+ENUM(CpuClock, Normal, Boost, Overclock)
 ENUM(MemoryLayout, Memory_4Gb, Memory_6Gb, Memory_8Gb, Memory_10Gb, Memory_12Gb);
 ENUM(ConfirmStop, Ask_Always, Ask_Based_On_Game, Ask_Never);
 ENUM(FullscreenMode, Borderless, Exclusive);
@@ -153,11 +148,11 @@ ENUM(NvdecEmulation, Off, Cpu, Gpu);
 ENUM(ResolutionSetup, Res1_4X, Res1_2X, Res3_4X, Res1X, Res5_4X, Res3_2X, Res2X, Res3X, Res4X, Res5X, Res6X, Res7X, Res8X);
 ENUM(ScalingFilter, NearestNeighbor, Bilinear, Bicubic, Gaussian, Lanczos, ScaleForce, Fsr, Area, ZeroTangent, BSpline, Mitchell, Spline1, Mmpx, Sgsr, SgsrEdge);
 ENUM(AntiAliasing, None, Fxaa, Smaa);
-ENUM(AspectRatio, R16_9, R4_3, R21_9, R16_10, R32_9, Stretch);
+ENUM(AspectRatio, R16_9, R4_3, R21_9, R16_10, Stretch);
 ENUM(ConsoleMode, Handheld, Docked);
 ENUM(AppletMode, HLE, LLE);
 ENUM(SpirvOptimizeMode, Never, OnLoad, Always);
-ENUM(GpuOverclock, Normal, Medium, High)
+ENUM(GpuClock, Normal, Boost, Overclock)
 ENUM(GpuUnswizzleSize, VerySmall, Small, Normal, Large, VeryLarge)
 ENUM(GpuUnswizzle, VeryLow, Low, Normal, Medium, High)
 ENUM(GpuUnswizzleChunk, VeryLow, Low, Normal, Medium, High)
@@ -166,8 +161,6 @@ ENUM(ExtendedDynamicState, Disabled, EDS1, EDS2, EDS3);
 ENUM(GpuLogLevel, Off, Errors, Standard, Verbose, All)
 ENUM(GameListMode, TreeView, GridView, CarouselView);
 ENUM(SpeedMode, Standard, Turbo, Slow);
-// suyu-exclusive UI enum for dark mode control
-ENUM(DarkModeState, Auto, On, Off);
 
 template <typename Type>
 inline std::string_view CanonicalizeEnum(Type id) {

@@ -260,10 +260,10 @@ struct Values {
                                                     Category::Cpu};
     SwitchableSetting<CpuAccuracy, true> cpu_accuracy{linkage, CpuAccuracy::Auto,
                                                       "cpu_accuracy", Category::Cpu};
-    SwitchableSetting<CpuClock> fast_cpu_time{linkage,
-                                              CpuClock::Off,
+    SwitchableSetting<CpuClock> cpu_clock{linkage,
+                                              CpuClock::Normal,
                                               "fast_cpu_time",
-                                              Category::Cpu,
+                                              Category::System,
                                               Specialization::Default,
                                               true,
                                               true};
@@ -352,7 +352,7 @@ struct Values {
                                                   true};
 
     SwitchableSetting<ScalingFilter> scaling_filter{linkage,
-                                                    ScalingFilter::Bilinear,
+                                                    ScalingFilter::NearestNeighbor,
                                                     "scaling_filter",
                                                     Category::Renderer,
                                                     Specialization::Default,
@@ -387,6 +387,69 @@ struct Values {
                                                   Specialization::Default,
                                                   true,
                                                   true};
+
+    SwitchableSetting<bool> frame_gen{linkage, false, "frame_gen", Category::Renderer,
+                                      Specialization::Default, true, false};
+
+    SwitchableSetting<u32, true> frame_gen_multiplier{linkage,
+                                                      2,
+                                                      2,
+                                                      4,
+                                                      "frame_gen_multiplier",
+                                                      Category::Renderer,
+                                                      Specialization::Countable,
+                                                      true,
+                                                      false,
+                                                      &frame_gen};
+
+    SwitchableSetting<u32, true> frame_gen_target_rate{linkage,
+                                                       0,
+                                                       0,
+                                                       240,
+                                                       "frame_gen_target_rate",
+                                                       Category::Renderer,
+                                                       Specialization::Countable,
+                                                       true,
+                                                       true,
+                                                       &frame_gen};
+
+    SwitchableSetting<bool> frame_gen_flow_scale_auto{linkage,
+                                                      true,
+                                                      "frame_gen_flow_scale_auto",
+                                                      Category::Renderer,
+                                                      Specialization::Default,
+                                                      true,
+                                                      false,
+                                                      &frame_gen};
+
+    SwitchableSetting<u32, true> frame_gen_flow_scale{linkage,
+                                                      75,
+                                                      25,
+                                                      100,
+                                                      "frame_gen_flow_scale",
+                                                      Category::Renderer,
+                                                      Specialization::Countable |
+                                                          Specialization::Percentage,
+                                                      true,
+                                                      true,
+                                                      &frame_gen};
+
+    SwitchableSetting<u32, true> frame_gen_queue_target{linkage,
+                                                        1,
+                                                        0,
+                                                        2,
+                                                        "frame_gen_queue_target",
+                                                        Category::Renderer,
+                                                        Specialization::Countable,
+                                                        true,
+                                                        false,
+                                                        &frame_gen};
+
+    SwitchableSetting<bool> frame_gen_fp16{linkage,      true,  "frame_gen_fp16", Category::Renderer,
+                                           Specialization::Default, true, false, &frame_gen};
+
+    SwitchableSetting<bool> frame_gen_dump_flow{linkage, false, "frame_gen_dump_flow",
+                                                Category::Renderer};
 
     SwitchableSetting<bool> use_asynchronous_gpu_emulation{linkage,
 #ifdef __ANDROID__
@@ -540,21 +603,13 @@ struct Values {
 #endif
 
     // Renderer Hacks //
-    SwitchableSetting<bool> use_fast_gpu_time{linkage,
-                                              true,
-                                              "use_fast_gpu_time",
-                                              Category::RendererHacks,
-                                              Specialization::Default,
-                                              true,
-                                              true};
-
-    SwitchableSetting<GpuOverclock> fast_gpu_time{linkage,
-                                                  GpuOverclock::Medium,
-                                                  "fast_gpu_time",
-                                                  Category::RendererHacks,
-                                                  Specialization::Default,
-                                                        true,
-                                                        true};
+    SwitchableSetting<GpuClock> gpu_clock{linkage,
+                                          GpuClock::Boost,
+                                          "fast_gpu_time",
+                                          Category::System,
+                                          Specialization::Default,
+                                          true,
+                                          true};
 
     SwitchableSetting<bool> skip_cpu_inner_invalidation{linkage,
                                                         false,
@@ -577,13 +632,8 @@ struct Values {
     SwitchableSetting<bool> emulate_bgr565{linkage, false, "emulate_bgr565",
                                             Category::RendererHacks};
 
-    SwitchableSetting<bool> rescale_hack{linkage,
-#ifdef __ANDROID__
-        true,
-#else
-        false,
-#endif
-        "rescale_hack", Category::RendererHacks};
+    SwitchableSetting<bool> rescale_hack{linkage, false, "rescale_hack",
+                                         Category::RendererHacks};
     SwitchableSetting<bool> enable_gpu_buffer_readback{linkage,
                                                        false,
                                                        "enable_gpu_buffer_readback",
@@ -692,7 +742,7 @@ struct Values {
                                     linkage, 0,    "rng_seed",       Category::System, Specialization::Hex,
                                     true,    true, &rng_seed_enabled};
     Setting<std::string> device_name{
-        linkage, "suyu", "device_name", Category::System, Specialization::Default, true, true};
+        linkage, "Eden", "device_name", Category::System, Specialization::Default, true, true};
 
     Setting<s32> current_user{linkage, 0, "current_user", Category::System};
 
@@ -710,7 +760,15 @@ struct Values {
 
     // Controls
     InputSetting<std::array<PlayerInput, 10>> players;
-
+    Setting<bool> disable_wgi_xinput{
+        linkage, false, "disable_wgi_xinput", Category::Controls, Specialization::Default,
+// Only read/write disable_wgi_xinput on Windows platforms
+#ifdef _WIN32
+        true
+#else
+        false
+#endif
+    };
     Setting<bool> enable_raw_input{
         linkage, false, "enable_raw_input", Category::Controls, Specialization::Default,
 // Only read/write enable_raw_input on Windows platforms
@@ -830,13 +888,6 @@ struct Values {
     Setting<bool> perform_vulkan_check{linkage, true, "perform_vulkan_check", Category::Debugging};
     Setting<bool> disable_web_applet{linkage, true, "disable_web_applet", Category::Debugging};
 
-    // suyu-exclusive debug/misc settings (not present in Eden upstream)
-    Setting<bool> cpu_debug_mode{linkage, false, "cpu_debug_mode", Category::Debugging};
-    Setting<bool> dump_shaders{linkage, false, "dump_shaders", Category::DebuggingGraphics};
-    Setting<bool> log_async{linkage, true, "log_async", Category::Miscellaneous};
-    Setting<bool> enable_gamemode{linkage, false, "enable_gamemode", Category::Miscellaneous};
-    Setting<bool> optimize_spirv_output{linkage, false, "optimize_spirv_output", Category::Renderer};
-
     // GPU Logging
     Setting<GpuLogLevel> gpu_log_level{linkage, GpuLogLevel::Off, "gpu_log_level",
                                        Category::Debugging};
@@ -869,31 +920,32 @@ struct Values {
                                            Category::Network};
     SwitchableSetting<bool> airplane_mode{linkage, false, "airplane_mode", Category::Network};
 
-    /// Hostname to answer with when a game asks for one of Nintendo's online
-    /// services. Those are unreachable and are otherwise refused; pointing this
-    /// at a replacement network - Nextendo and similar, which reimplement
-    /// identity and matchmaking and which a modded console reaches by
-    /// redirecting its DNS - turns the refusal into a redirect. Empty keeps the
-    /// refuse-everything behaviour.
-    Setting<std::string> network_replacement_host{linkage, "", "network_replacement_host",
-                                                  Category::Network};
-
     // WebService
     Setting<std::string> web_api_url{linkage, "api.ynet-fun.xyz", "web_api_url",
                                      Category::WebService};
-    Setting<std::string> suyu_username{linkage, "suyu", "suyu_username",
+    Setting<std::string> eden_username{linkage, "Eden", "eden_username",
                                        Category::WebService};
-    Setting<std::string> suyu_token{linkage, "",
-                                    "suyu_token", Category::WebService};
+    Setting<std::string> eden_token{linkage, "",
+                                    "eden_token", Category::WebService};
 
     // Add-Ons
     std::map<u64, std::vector<std::string>> disabled_addons;
 
     // Per-game overrides
     bool use_squashed_iterated_blend;
+
 };
 
 extern Values values;
+
+constexpr u32 MIN_FRAME_GEN_MULTIPLIER = 2;
+constexpr u32 MAX_FRAME_GEN_MULTIPLIER = 4;
+
+[[nodiscard]] u32 FrameGenMultiplier();
+
+[[nodiscard]] size_t FrameGenGenerations();
+
+[[nodiscard]] size_t FrameGenMaxGenerations();
 
 bool getDebugKnobAt(u8 i);
 

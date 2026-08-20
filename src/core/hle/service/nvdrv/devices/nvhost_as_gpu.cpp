@@ -94,7 +94,7 @@ void nvhost_as_gpu::OnOpen(NvCore::SessionId session_id, DeviceFD fd) {}
 void nvhost_as_gpu::OnClose(DeviceFD fd) {}
 
 NvResult nvhost_as_gpu::AllocAsEx(IoctlAllocAsEx& params) {
-    LOG_DEBUG(Service_NVDRV, "called, big_page_size={:#X}", params.big_page_size);
+    LOG_DEBUG(Service_NVDRV, "called, big_page_size={:#x}", params.big_page_size);
 
     std::scoped_lock lock(mutex);
 
@@ -105,12 +105,12 @@ NvResult nvhost_as_gpu::AllocAsEx(IoctlAllocAsEx& params) {
 
     if (params.big_page_size) {
         if (!std::has_single_bit(params.big_page_size)) {
-            LOG_ERROR(Service_NVDRV, "Non power-of-2 big page size: {:#X}!", params.big_page_size);
+            LOG_ERROR(Service_NVDRV, "Non power-of-2 big page size: {:#x}!", params.big_page_size);
             return NvResult::BadValue;
         }
 
         if ((params.big_page_size & VM::SUPPORTED_BIG_PAGE_SIZES) == 0) {
-            LOG_ERROR(Service_NVDRV, "Unsupported big page size: {:#X}!", params.big_page_size);
+            LOG_ERROR(Service_NVDRV, "Unsupported big page size: {:#x}!", params.big_page_size);
             return NvResult::BadValue;
         }
 
@@ -252,7 +252,7 @@ NvResult nvhost_as_gpu::FreeSpace(IoctlFreeSpace& params) {
 }
 
 NvResult nvhost_as_gpu::Remap(std::span<IoctlRemapEntry> entries) {
-    LOG_DEBUG(Service_NVDRV, "called, num_entries={:#X}", entries.size());
+    LOG_DEBUG(Service_NVDRV, "called, num_entries={:#x}", entries.size());
 
     if (!vm.initialised) {
         return NvResult::BadValue;
@@ -300,7 +300,7 @@ NvResult nvhost_as_gpu::Remap(std::span<IoctlRemapEntry> entries) {
 NvResult nvhost_as_gpu::MapBufferEx(IoctlMapBufferEx& params) {
     LOG_DEBUG(Service_NVDRV,
               "called, flags={:X}, nvmap_handle={:X}, buffer_offset={}, mapping_size={}"
-              ", offset={:#X}",
+              ", offset={:#x}",
               params.flags, params.handle, params.buffer_offset, params.mapping_size,
               params.offset);
 
@@ -315,7 +315,7 @@ NvResult nvhost_as_gpu::MapBufferEx(IoctlMapBufferEx& params) {
         if (auto const it = mapping_map.find(params.offset); it != mapping_map.end()) {
             auto const mapping = it->second;
             if (mapping.size < params.mapping_size) {
-                LOG_WARNING(Service_NVDRV, "Cannot remap a partially mapped GPU address space region: {:#X}", params.offset);
+                LOG_WARNING(Service_NVDRV, "Cannot remap a partially mapped GPU address space region: {:#x}", params.offset);
                 return NvResult::BadValue;
             }
             u64 gpu_address = u64(params.offset + params.buffer_offset);
@@ -323,7 +323,7 @@ NvResult nvhost_as_gpu::MapBufferEx(IoctlMapBufferEx& params) {
             gmmu->Map(gpu_address, device_address, params.mapping_size, Tegra::PTEKind(params.kind), mapping.big_page);
             return NvResult::Success;
         } else {
-            LOG_WARNING(Service_NVDRV, "Cannot remap an unmapped GPU address space region: {:#X}", params.offset);
+            LOG_WARNING(Service_NVDRV, "Cannot remap an unmapped GPU address space region: {:#x}", params.offset);
             return NvResult::BadValue;
         }
     }
@@ -383,7 +383,7 @@ NvResult nvhost_as_gpu::MapBufferEx(IoctlMapBufferEx& params) {
 NvResult nvhost_as_gpu::UnmapBuffer(IoctlUnmapBuffer& params) {
     std::scoped_lock lock(mutex);
     if (auto const offset_it = map_buffer_offsets.find(params.offset); offset_it != map_buffer_offsets.end()) {
-        LOG_DEBUG(Service_NVDRV, "called, offset={:#X}", params.offset);
+        LOG_DEBUG(Service_NVDRV, "called, offset={:#x}", params.offset);
         if (!vm.initialised) {
             return NvResult::BadValue;
         }

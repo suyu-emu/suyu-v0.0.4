@@ -48,6 +48,9 @@ static VkPresentModeKHR ChooseSwapPresentMode(bool has_imm, bool has_mailbox,
     Settings::VSyncMode setting = [has_imm, has_mailbox]() {
         // Choose Mailbox or Immediate if unlocked and those modes are supported
         const auto mode = Settings::values.vsync_mode.GetValue();
+        if (Settings::values.frame_gen.GetValue()) {
+            return mode == Settings::VSyncMode::FifoRelaxed ? mode : Settings::VSyncMode::Fifo;
+        }
         if (Settings::values.use_speed_limit.GetValue() &&
             Settings::values.current_speed_mode.GetValue() != Settings::SpeedMode::Turbo) {
             return mode;
@@ -124,15 +127,7 @@ Swapchain::Swapchain(
     , device{device_}
     , scheduler{scheduler_}
 {
-    if (surface) {
-        Create(surface, width_, height_);
-    } else {
-        width = width_;
-        height = height_;
-        image_view_format = VK_FORMAT_B8G8R8A8_UNORM;
-        surface_format = {VK_FORMAT_B8G8R8A8_UNORM, VK_COLOR_SPACE_SRGB_NONLINEAR_KHR};
-        image_count = 1;
-    }
+    Create(surface, width_, height_);
 }
 
 Swapchain::~Swapchain() = default;
@@ -147,10 +142,6 @@ void Swapchain::Create(
     width = width_;
     height = height_;
     surface = surface_;
-
-    if (!surface) {
-        return;
-    }
 
     const auto physical_device = device.GetPhysical();
     const auto capabilities{physical_device.GetSurfaceCapabilitiesKHR(VkSurfaceKHR(surface))};

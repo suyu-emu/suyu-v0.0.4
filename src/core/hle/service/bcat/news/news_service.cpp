@@ -72,7 +72,7 @@ Result INewsService::SetPassphrase(InBuffer<BufferAttr_HipcPointer> buffer_data)
 
 Result INewsService::GetTopicList(Out<s32> out_count, OutBuffer<BufferAttr_HipcMapAlias> out_topics, s32 filter) {
     constexpr size_t TopicIdSize = 32;
-    constexpr auto EdenTopicId = "suyu";
+    constexpr auto EdenTopicId = "eden";
 
     const size_t max_topics = out_topics.size() / TopicIdSize;
 

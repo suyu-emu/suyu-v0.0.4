@@ -11,6 +11,7 @@
 #include "core/hle/service/audio/audio_device.h"
 #include "core/hle/service/audio/audio_renderer.h"
 #include "core/hle/service/audio/audio_renderer_manager.h"
+#include "core/hle/service/audio/errors.h"
 #include "core/hle/service/cmif_serialization.h"
 
 namespace Service::Audio {
@@ -52,6 +53,11 @@ Result IAudioRendererManager::OpenAudioRenderer(
     if (session_id == -1) {
         LOG_ERROR(Service_Audio, "Tried to open a session that's already in use!");
         R_THROW(Audio::ResultOutOfSessions);
+    }
+
+    if (!process_handle) {
+        LOG_ERROR(Service_Audio, "Invalid handles");
+        R_THROW(Audio::ResultInvalidHandle);
     }
 
     LOG_DEBUG(Service_Audio, "Opened new AudioRenderer session {} sessions open {}", session_id,

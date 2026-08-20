@@ -112,6 +112,7 @@ void EmitA32Cond(biscuit::Assembler& as, EmitContext&, IR::Cond cond, biscuit::L
     }
 }
 
+void EmitA32LeafTerminal(biscuit::Assembler& as, EmitContext& ctx, IR::Term::LeafTerminal terminal, IR::LocationDescriptor initial_location, bool is_single_step);
 void EmitA32Terminal(biscuit::Assembler& as, EmitContext& ctx, IR::Term::Terminal terminal, IR::LocationDescriptor initial_location, bool is_single_step);
 
 void EmitA32Terminal(biscuit::Assembler& as, EmitContext& ctx, IR::Term::ReturnToDispatch, IR::LocationDescriptor, bool) {
@@ -170,18 +171,18 @@ void EmitA32Terminal(biscuit::Assembler& as, EmitContext& ctx, IR::Term::FastDis
 void EmitA32Terminal(biscuit::Assembler& as, EmitContext& ctx, IR::Term::If terminal, IR::LocationDescriptor initial_location, bool is_single_step) {
     biscuit::Label pass;
     EmitA32Cond(as, ctx, terminal.if_, &pass);
-    EmitA32Terminal(as, ctx, terminal.else_, initial_location, is_single_step);
+    EmitA32LeafTerminal(as, ctx, terminal.else_, initial_location, is_single_step);
     as.Bind(&pass);
-    EmitA32Terminal(as, ctx, terminal.then_, initial_location, is_single_step);
+    EmitA32LeafTerminal(as, ctx, terminal.then_, initial_location, is_single_step);
 }
 
 void EmitA32Terminal(biscuit::Assembler& as, EmitContext& ctx, IR::Term::CheckBit terminal, IR::LocationDescriptor initial_location, bool is_single_step) {
     biscuit::Label fail;
     as.LBU(Xscratch0, offsetof(StackLayout, check_bit), Xstate);
     as.BEQZ(Xscratch0, &fail);
-    EmitA32Terminal(as, ctx, terminal.then_, initial_location, is_single_step);
+    EmitA32LeafTerminal(as, ctx, terminal.then_, initial_location, is_single_step);
     as.Bind(&fail);
-    EmitA32Terminal(as, ctx, terminal.else_, initial_location, is_single_step);
+    EmitA32LeafTerminal(as, ctx, terminal.else_, initial_location, is_single_step);
 }
 
 void EmitA32Terminal(biscuit::Assembler& as, EmitContext& ctx, IR::Term::CheckHalt terminal, IR::LocationDescriptor initial_location, bool is_single_step) {
@@ -189,13 +190,35 @@ void EmitA32Terminal(biscuit::Assembler& as, EmitContext& ctx, IR::Term::CheckHa
     as.LWU(Xscratch0, 0, Xhalt);
     as.FENCE(biscuit::FenceOrder::RW, biscuit::FenceOrder::RW);
     as.BNEZ(Xscratch0, &fail);
-    EmitA32Terminal(as, ctx, terminal.else_, initial_location, is_single_step);
+    EmitA32LeafTerminal(as, ctx, terminal.else_, initial_location, is_single_step);
     as.Bind(&fail);
     EmitRelocation(as, ctx, LinkTarget::ReturnFromRunCode);
 }
 
+void EmitA32LeafTerminal(biscuit::Assembler& as, EmitContext& ctx, IR::Term::LeafTerminal terminal, IR::LocationDescriptor initial_location, bool is_single_step) {
+    if (auto const x = std::get_if<IR::Term::ReturnToDispatch>(&terminal))
+        return EmitA32LeafTerminal(as, ctx, *x, initial_location, is_single_step);
+    if (auto const x = std::get_if<IR::Term::LinkBlock>(&terminal))
+        return EmitA32LeafTerminal(as, ctx, *x, initial_location, is_single_step);
+    if (auto const x = std::get_if<IR::Term::LinkBlockFast>(&terminal))
+        return EmitA32LeafTerminal(as, ctx, *x, initial_location, is_single_step);
+    if (auto const x = std::get_if<IR::Term::PopRSBHint>(&terminal))
+        return EmitA32LeafTerminal(as, ctx, *x, initial_location, is_single_step);
+    if (auto const x = std::get_if<IR::Term::FastDispatchHint>(&terminal))
+        return EmitA32LeafTerminal(as, ctx, *x, initial_location, is_single_step);
+    UNREACHABLE();
+}
+
 void EmitA32Terminal(biscuit::Assembler& as, EmitContext& ctx, IR::Term::Terminal terminal, IR::LocationDescriptor initial_location, bool is_single_step) {
-    boost::apply_visitor([&](const auto& t) { EmitA32Terminal(as, ctx, t, initial_location, is_single_step); }, terminal);
+    if (auto const x = std::get_if<IR::Term::LeafTerminal>(&terminal))
+        return EmitA32LeafTerminal(as, ctx, *x, initial_location, is_single_step);
+    if (auto const x = std::get_if<IR::Term::If>(&terminal))
+        return EmitA32Terminal(as, ctx, *x, initial_location, is_single_step);
+    if (auto const x = std::get_if<IR::Term::CheckBit>(&terminal))
+        return EmitA32Terminal(as, ctx, *x, initial_location, is_single_step);
+    if (auto const x = std::get_if<IR::Term::CheckHalt>(&terminal))
+        return EmitA32Terminal(as, ctx, *x, initial_location, is_single_step);
+    UNREACHABLE();
 }
 
 void EmitA32Terminal(biscuit::Assembler& as, EmitContext& ctx) {

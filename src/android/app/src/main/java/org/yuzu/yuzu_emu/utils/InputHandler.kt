@@ -49,6 +49,12 @@ object InputHandler {
         MotionEvent.AXIS_RTRIGGER
     )
 
+    // Currently, Android doesn't support Joy-Con D-pad buttons. We fall back to the scan code
+    private const val LINUX_BUTTON_DPAD_UP = 0x220
+    private const val LINUX_BUTTON_DPAD_DOWN = 0x221
+    private const val LINUX_BUTTON_DPAD_LEFT = 0x222
+    private const val LINUX_BUTTON_DPAD_RIGHT = 0x223
+
     fun isPhysicalGameController(device: InputDevice?): Boolean {
         device ?: return false
 
@@ -87,10 +93,23 @@ object InputHandler {
         NativeInput.onGamePadButtonEvent(
             controllerData.getGUID(),
             controllerData.getPort(),
-            event.keyCode,
+            getButtonIdFromEvent(event),
             action
         )
         return true
+    }
+
+    fun getButtonIdFromEvent(event: KeyEvent): Int {
+        if (event.keyCode == 0) {
+            return when (event.scanCode) {
+                LINUX_BUTTON_DPAD_UP -> KeyEvent.KEYCODE_DPAD_UP
+                LINUX_BUTTON_DPAD_DOWN -> KeyEvent.KEYCODE_DPAD_DOWN
+                LINUX_BUTTON_DPAD_LEFT -> KeyEvent.KEYCODE_DPAD_LEFT
+                LINUX_BUTTON_DPAD_RIGHT -> KeyEvent.KEYCODE_DPAD_RIGHT
+                else -> return 0
+            }
+        }
+        return event.keyCode
     }
 
     fun dispatchGenericMotionEvent(event: MotionEvent): Boolean {

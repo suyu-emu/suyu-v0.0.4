@@ -224,7 +224,7 @@ void ExecuteA32Instruction(u32 instruction) {
             fmt::print("value: ");
             if (const auto value = get_value()) {
                 *(iter->second) = *value;
-                fmt::print("> {} = 0x{:08x}\n", reg_name, *value);
+                fmt::print("> {} = {:#08x}\n", reg_name, *value);
             }
         } else if (reg_name.starts_with("m")) {
             fmt::print("address: ");
@@ -232,7 +232,7 @@ void ExecuteA32Instruction(u32 instruction) {
                 fmt::print("value: ");
                 if (const auto value = get_value()) {
                     env.MemoryWrite32(*address, *value);
-                    fmt::print("> mem[0x{:08x}] = 0x{:08x}\n", *address, *value);
+                    fmt::print("> mem[{:#08x}] = {:#08x}\n", *address, *value);
                 }
             }
         } else if (reg_name == "exit" || reg_name == "end" || reg_name.starts_with("q")) {

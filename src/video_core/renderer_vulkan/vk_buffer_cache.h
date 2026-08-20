@@ -39,6 +39,10 @@ public:
         return *buffer;
     }
 
+    [[nodiscard]] VkDeviceAddress DeviceAddress() const noexcept {
+        return device_address;
+    }
+
     [[nodiscard]] bool IsRegionUsed(u64 offset, u64 size) const noexcept {
         return tracker.IsUsed(offset, size);
     }
@@ -70,6 +74,7 @@ private:
     vk::Buffer buffer;
     std::vector<BufferView> views;
     VideoCommon::UsageTracker tracker;
+    VkDeviceAddress device_address{};
     u64 last_usage_tick{};
     bool is_null{};
 };
@@ -145,22 +150,25 @@ public:
                                           [[maybe_unused]] u32 binding_index,
                                           u32 size) {
         const StagingBufferRef ref = staging_pool.Request(size, MemoryUsage::Upload);
-        BindBuffer(ref.buffer, static_cast<u32>(ref.offset), size);
+        guest_descriptor_queue.AddBuffer(ref.buffer, ref.device_address,
+                                         static_cast<u32>(ref.offset), size);
         return ref.mapped_span;
     }
 
-    void BindUniformBuffer(VkBuffer buffer, u32 offset, u32 size) {
+    void BindUniformBuffer(const Buffer& buffer, u32 offset, u32 size) {
         BindBuffer(buffer, offset, size);
     }
 
-    void BindStorageBuffer(VkBuffer buffer, u32 offset, u32 size,
+    void BindStorageBuffer(const Buffer& buffer, u32 offset, u32 size,
                            [[maybe_unused]] bool is_written) {
         BindBuffer(buffer, offset, size);
     }
 
     void BindTextureBuffer(Buffer& buffer, u32 offset, u32 size,
                            VideoCore::Surface::PixelFormat format) {
-        guest_descriptor_queue.AddTexelBuffer(buffer.View(offset, size, format));
+        guest_descriptor_queue.AddTexelBuffer(buffer.View(offset, size, format),
+                                              buffer.DeviceAddress(), offset, size,
+                                              TexelBufferFormat(format));
     }
 
     bool ShouldLimitDynamicStorageBuffers() const {
@@ -172,13 +180,16 @@ public:
     }
 
 private:
-    void BindBuffer(VkBuffer buffer, u32 offset, u32 size) {
-        if (buffer == VK_NULL_HANDLE) {
-            guest_descriptor_queue.AddBuffer(buffer, 0, VK_WHOLE_SIZE);
+    void BindBuffer(const Buffer& buffer, u32 offset, u32 size) {
+        const VkBuffer handle = buffer.Handle();
+        if (handle == VK_NULL_HANDLE) {
+            guest_descriptor_queue.AddBuffer(handle, 0, 0, VK_WHOLE_SIZE);
         } else {
-            guest_descriptor_queue.AddBuffer(buffer, offset, size);
+            guest_descriptor_queue.AddBuffer(handle, buffer.DeviceAddress(), offset, size);
         }
     }
+
+    VkFormat TexelBufferFormat(VideoCore::Surface::PixelFormat format) const;
 
     void ReserveNullBuffer();
     vk::Buffer CreateNullBuffer();

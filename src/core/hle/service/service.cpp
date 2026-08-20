@@ -25,7 +25,7 @@ namespace Service {
     int num_params = (cmd_buf[0] & 0x3F) + ((cmd_buf[0] >> 6) & 0x3F);
     std::string function_string = fmt::format("fn '{}': port={}", name, port_name);
     for (int i = 1; i <= num_params; ++i)
-        function_string += fmt::format(", cmd_buf[{}]={:#X}", i, cmd_buf[i]);
+        function_string += fmt::format(", cmd_buf[{}]={:#x}", i, cmd_buf[i]);
     return function_string;
 }
 
@@ -62,9 +62,9 @@ void ServiceFrameworkBase::ReportUnimplementedFunction(HLERequestContext& ctx,
     std::string function_name = info == nullptr ? "<unknown>" : info->name;
 
     fmt::memory_buffer buf;
-    fmt::format_to(std::back_inserter(buf), "function '{}({})': port='{}' cmd_buf={{[0]={:#X}", ctx.GetCommand(), function_name, service_name, cmd_buf[0]);
+    fmt::format_to(std::back_inserter(buf), "function '{}({})': port='{}' cmd_buf={{[0]={:#x}", ctx.GetCommand(), function_name, service_name, cmd_buf[0]);
     for (int i = 1; i <= 8; ++i)
-        fmt::format_to(std::back_inserter(buf), ", [{}]={:#X}", i, cmd_buf[i]);
+        fmt::format_to(std::back_inserter(buf), ", [{}]={:#x}", i, cmd_buf[i]);
     buf.push_back('}');
 
     system.GetReporter().SaveUnimplementedFunctionReport(ctx, ctx.GetCommand(), function_name, service_name);

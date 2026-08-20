@@ -20,6 +20,7 @@ This contains documentation created by developers. This contains build instructi
 - **[Driver Bugs](./DriverBugs.md)**
 - **[Building Older Commits](./build/OlderCommits.md)**
 - Subsystems:
+  - **[Design Overview](./DesignOverview.md)**
   - **[Dynarmic](./dynarmic/README.md)**
   - **[HOS Kernel](./HosKernel.md)**
   - **[Settings](./Settings.md)**
