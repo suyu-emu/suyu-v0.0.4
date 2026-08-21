@@ -10,7 +10,7 @@ lz4/1.9.4
 zstd/1.5.6
 opus/1.5.2
 catch2/3.5.2  # Testing framework required for SUYU_TESTS
-sdl/2.28.5  # SDL2 for graphics/input/audio
+sdl/3.4.14  # SDL3 for graphics/input/audio (suyu migrated off SDL2)
 # qt/6.7.3  # DISABLED: Qt from Conan builds from source (2+ hours), no pre-built binaries available
 # TODO: Re-enable after base migration validates, or use bundled Qt5 binaries
 

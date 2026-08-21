@@ -316,7 +316,7 @@ struct ArmRecomp::Impl {
         u32 max_index = 8192;
         if (d.strtab_va > d.symtab_va) {
             const u64 span = d.strtab_va - d.symtab_va;
-            max_index = std::min<u64>(span / 24, 65536);
+            max_index = static_cast<u32>(std::min<u64>(span / 24, 65536));
         }
         for (u32 i = 1; i < max_index; ++i) { // index 0 is always the null symbol
             const auto sym = ReadSymbol(d, i);
@@ -820,10 +820,10 @@ void ArmRecomp::SetContext(const Kernel::Svc::ThreadContext& ctx) {
     impl->ctx.x[30] = ctx.lr;
     impl->ctx.x[31] = ctx.sp;
     impl->ctx.pc = ctx.pc;
-    impl->ctx.n = (ctx.pstate >> 31) & 1;
-    impl->ctx.z = (ctx.pstate >> 30) & 1;
-    impl->ctx.c = (ctx.pstate >> 29) & 1;
-    impl->ctx.v = (ctx.pstate >> 28) & 1;
+    impl->ctx.n = static_cast<u8>((ctx.pstate >> 31) & 1);
+    impl->ctx.z = static_cast<u8>((ctx.pstate >> 30) & 1);
+    impl->ctx.c = static_cast<u8>((ctx.pstate >> 29) & 1);
+    impl->ctx.v = static_cast<u8>((ctx.pstate >> 28) & 1);
     for (size_t i = 0; i < 32; ++i) {
         impl->ctx.vreg[i][0] = ctx.v[i][0];
         impl->ctx.vreg[i][1] = ctx.v[i][1];

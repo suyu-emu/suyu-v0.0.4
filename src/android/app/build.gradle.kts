@@ -29,7 +29,7 @@ plugins {
  */
 val autoVersion = (((System.currentTimeMillis() / 1000) - 1451606400) / 10).toInt()
 
-val edenDir = project(":Eden").projectDir
+val edenDir = project(":suyu").projectDir
 
 @Suppress("UnstableApiUsage")
 android {
@@ -64,8 +64,8 @@ android {
     }
 
     defaultConfig {
-        applicationId = "dev.eden.eden_emulator"
-        minSdk = 24
+        applicationId = "org.suyu.suyu_emu"
+        minSdk = 26
         targetSdk = 36
         versionName = getGitVersion()
         versionCode = autoVersion
@@ -182,15 +182,15 @@ android {
     }
 
     // appNameBase is used for the primary identifier
-    // this should be "Eden <flavorName>"
+    // this should be "suyu <flavorName>"
     flavorDimensions.add("version")
     productFlavors {
         create("mainline") {
             dimension = "version"
             isDefault = true
 
-            manifestPlaceholders += mapOf("appNameBase" to "Eden")
-            resValue("string", "app_name_suffixed", "Eden")
+            manifestPlaceholders += mapOf("appNameBase" to "suyu")
+            resValue("string", "app_name_suffixed", "suyu")
 
             ndk {
                 abiFilters += listOf("arm64-v8a")
@@ -199,8 +199,8 @@ android {
 
         create("genshinSpoof") {
             dimension = "version"
-            manifestPlaceholders += mapOf("appNameBase" to "Eden Optimized")
-            resValue("string", "app_name_suffixed", "Eden Optimized")
+            manifestPlaceholders += mapOf("appNameBase" to "suyu Optimized")
+            resValue("string", "app_name_suffixed", "suyu Optimized")
             applicationId = "com.miHoYo.Yuanshen"
 
             externalNativeBuild {
@@ -216,9 +216,9 @@ android {
 
         create("legacy") {
             dimension = "version"
-            manifestPlaceholders += mapOf("appNameBase" to "Eden Legacy")
-            resValue("string", "app_name_suffixed", "Eden Legacy")
-            applicationId = "dev.legacy.eden_emulator"
+            manifestPlaceholders += mapOf("appNameBase" to "suyu Legacy")
+            resValue("string", "app_name_suffixed", "suyu Legacy")
+            applicationId = "org.suyu.suyu_legacy"
 
             externalNativeBuild {
                 cmake {
@@ -239,8 +239,8 @@ android {
 
         create("chromeOS") {
             dimension = "version"
-            manifestPlaceholders += mapOf("appNameBase" to "Eden ChromeOS")
-            resValue("string", "app_name_suffixed", "Eden ChromeOS")
+            manifestPlaceholders += mapOf("appNameBase" to "suyu ChromeOS")
+            resValue("string", "app_name_suffixed", "suyu ChromeOS")
 
             ndk {
                 abiFilters += listOf("x86_64")
@@ -262,12 +262,12 @@ android {
     }
 
     productFlavors.all {
-        val currentName = manifestPlaceholders["appNameBase"] as? String ?: "Eden"
+        val currentName = manifestPlaceholders["appNameBase"] as? String ?: "suyu"
         val suffix = if (isNightly) " Nightly" else ""
 
         // apply nightly suffix I/A
         resValue("string", "app_name_suffixed", "$currentName$suffix")
-        resValue("string", "app_name", "Eden$suffix")
+        resValue("string", "app_name", "suyu$suffix")
     }
 }
 

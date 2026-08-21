@@ -305,7 +305,7 @@ bool IsSDLSuitable() {
 #else
     // Check SDL can init
     if (!SDL_WasInit(SDL_INIT_AUDIO)) {
-        if (SDL_InitSubSystem(SDL_INIT_AUDIO) < 0) {
+        if (!SDL_InitSubSystem(SDL_INIT_AUDIO)) {
             LOG_ERROR(Audio_Sink, "SDL failed to init, it is not suitable. Error: {}",
                       SDL_GetError());
             return false;
