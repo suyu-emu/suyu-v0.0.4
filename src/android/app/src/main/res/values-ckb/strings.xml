@@ -52,7 +52,7 @@
     <string name="show_soc_model">نیشاندانی مۆدێلی SoC</string>
     <string name="show_fw_version">نیشاندانی وەشانی فریموێر</string>
 
-    <!-- Eden\'s Veil -->
+    <!-- suyu\'s Veil -->
     <string name="buffer_reorder_disable">ڕێکخستنەوەی بافر ناچالاک بکە</string>
     <string name="buffer_reorder_disable_description">کە دیاریکرا، ڕێکخستنەوەی بارکردنی بیرگەی نەخشەکراو ناچالاک دەکات کە ڕێگەدەدات بارکردنەکان بە ڕەسمی دیاریکراو ببەسترێت. لە هەندێک حاڵەتدا کاراییمان دەکاتەوە.</string>
 
@@ -156,7 +156,7 @@
 
     <!-- Setup strings -->
     <string name="welcome">بەخێربێیت!</string>
-    <string name="welcome_description">فێربە چۆن &lt;b>Eden&lt;/b> ڕێکبخەیت و بچییە ناو ئیمولەیشن.</string>
+    <string name="welcome_description">فێربە چۆن &lt;b>suyu&lt;/b> ڕێکبخەیت و بچییە ناو ئیمولەیشن.</string>
     <string name="get_started">دەست پێبکە</string>
     <string name="keys">کلیلەکان</string>
     <string name="keys_description">فایلی &lt;b>prod.keys&lt;/b> هەڵبژێرە بە دوگمەی خوارەوە.</string>
@@ -234,7 +234,7 @@
     <string name="install_game_content_success_install">%1$d بە سەرکەوتوویی دامەزرا</string>
     <string name="install_game_content_success_overwrite">%1$d بە سەرکەوتوویی نوێکرایەوە</string>
     <string name="custom_driver_not_supported">وەگەڕخەری تایبەتمەند پشتگیری ناکرێت</string>
-    <string name="manage_yuzu_data">بەڕێوەبردنی داتای eden</string>
+    <string name="manage_yuzu_data">بەڕێوەبردنی داتای suyu</string>
     <string name="manage_yuzu_data_description">هاوردە/هەناردەکردنی پتەوواڵا، کلیل، داتای بەکارهێنەر و زیاتر!</string>
     <string name="game_folders">فۆڵدەری یارییەکان</string>
     <string name="deep_scan">گەڕانی قووڵ</string>

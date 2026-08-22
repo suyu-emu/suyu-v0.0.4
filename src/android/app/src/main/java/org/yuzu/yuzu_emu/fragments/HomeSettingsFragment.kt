@@ -438,14 +438,14 @@ class HomeSettingsFragment : Fragment() {
             mainActivity,
             DocumentsContract.buildDocumentUri(
                 DocumentProvider.AUTHORITY,
-                "${DocumentProvider.ROOT_ID}/log/eden_log.txt"
+                "${DocumentProvider.ROOT_ID}/log/suyu_log.txt"
             )
         )!!
         val oldLog = DocumentFile.fromSingleUri(
             mainActivity,
             DocumentsContract.buildDocumentUri(
                 DocumentProvider.AUTHORITY,
-                "${DocumentProvider.ROOT_ID}/log/eden_log.txt.old.txt"
+                "${DocumentProvider.ROOT_ID}/log/suyu_log.txt.old.txt"
             )
         )!!
 
@@ -472,14 +472,14 @@ class HomeSettingsFragment : Fragment() {
             mainActivity,
             DocumentsContract.buildDocumentUri(
                 DocumentProvider.AUTHORITY,
-                "${DocumentProvider.ROOT_ID}/log/eden_gpu.log"
+                "${DocumentProvider.ROOT_ID}/log/suyu_gpu.log"
             )
         )!!
         val oldLog = DocumentFile.fromSingleUri(
             mainActivity,
             DocumentsContract.buildDocumentUri(
                 DocumentProvider.AUTHORITY,
-                "${DocumentProvider.ROOT_ID}/log/eden_gpu.log.old.txt"
+                "${DocumentProvider.ROOT_ID}/log/suyu_gpu.log.old.txt"
             )
         )!!
 

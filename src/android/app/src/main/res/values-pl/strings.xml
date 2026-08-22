@@ -5,8 +5,8 @@
     <string name="notice_notification_channel_name">Powiadomienia błędy</string>
     <string name="notice_notification_channel_description">Pokaż powiadomienie gdy coś pójdzie źle</string>
     <string name="notification_permission_not_granted">Nie zezwolono na powiadomienia!</string>
-    <string name="app_notification_channel_description">Powiadomienia emulatora switcha Eden</string>
-    <string name="app_notification_running">Eden działa</string>
+    <string name="app_notification_channel_description">Powiadomienia emulatora switcha suyu</string>
+    <string name="app_notification_running">suyu działa</string>
     <string name="seconds">Sekundy</string>
 
     <!-- Spinbox strings -->
@@ -83,7 +83,7 @@
     <string name="show_soc_model">Pokaż model SoC</string>
     <string name="show_fw_version">Pokaż wersję firmware</string>
 
-    <!-- Eden\'s Veil -->
+    <!-- suyu\'s Veil -->
     <string name="buffer_reorder_disable">Wyłącz przestawianie bufora</string>
     <string name="buffer_reorder_disable_description">Po zaznaczeniu wyłącza przestawianie załadowań zmapowanej pamięci, umożliwiając powiązanie załadowań z konkretnymi rysunkami. Może zmniejszyć wydajność w niektórych przypadkach.</string>
 
@@ -192,7 +192,7 @@
 
     <!-- Setup strings -->
     <string name="welcome">Witaj!</string>
-    <string name="welcome_description">Zobacz jak skonfigurować &lt;b>Eden&lt;/b> i wskocz w świat emulacji.</string>
+    <string name="welcome_description">Zobacz jak skonfigurować &lt;b>suyu&lt;/b> i wskocz w świat emulacji.</string>
     <string name="get_started">Zaczynamy</string>
     <string name="keys">Klucze</string>
     <string name="keys_description">Wybierz swoje klucze &lt;b>prod.keys&lt;/b> za pomocą przycisku poniżej.</string>
@@ -230,7 +230,7 @@
     <string name="home_settings">Ustawienia</string>
     <string name="empty_gamelist">Nie znaleziono plików, lub nie wybrano jeszcze katalogu zawierającego gry.</string>
     <string name="manage_game_folders">Zarządzaj folderami gier</string>
-    <string name="select_games_folder_description">Pozwala Eden wygenerować listę gier</string>
+    <string name="select_games_folder_description">Pozwala suyu wygenerować listę gier</string>
     <string name="add_games_warning">Pominąć wybór folderu z grami?</string>
     <string name="add_games_warning_description">Aby pokazać listę gier wybierz katalog zawierający gry.</string>
     <string name="add_games_warning_help">https://yuzu-mirror.github.io/help/quickstart/#dumping-games</string>
@@ -286,7 +286,7 @@
     <string name="settings_description">Skonfiguruj ustawienia emulatora</string>
     <string name="search_recently_played">Ostatnio grane</string>
     <string name="search_recently_added">Ostatnio dodane</string>
-    <string name="open_user_folder">Otwórz folder Eden</string>
+    <string name="open_user_folder">Otwórz folder suyu</string>
     <string name="open_user_folder_description">Zarządzaj plikami emulatora</string>
     <string name="app_settings_description">Dostosuj działanie i wygląd aplikacji</string>
     <string name="no_file_manager">Nie znaleziono menedżera plików</string>
@@ -308,7 +308,7 @@
     <string name="firmware_installed_failure_description">Upewnij się, że pliki firmware’u NCA znajdują się w katalogu głównym archiwum ZIP i spróbuj ponownie.</string>
     <string name="firmware_uninstalled_failure">Odinstalowanie firmware’u nie powiodło się</string>
     <string name="share_log">Udostępnij logi debugowania</string>
-    <string name="share_log_description">Podziel się logami Eden, pomoże to twórcom w poprawie działania emulatora</string>
+    <string name="share_log_description">Podziel się logami suyu, pomoże to twórcom w poprawie działania emulatora</string>
     <string name="share_log_missing">Nie znaleziono plików logów</string>
     <string name="install_game_content">Zainstaluj zawartość gry</string>
     <string name="install_game_content_description">Zainstaluj aktualizację gry lub dodatek DLC</string>
@@ -323,7 +323,7 @@
     <string name="install_game_content_help_link">https://yuzu-mirror.github.io/help/quickstart/#dumping-installed-updates</string>
     <string name="custom_driver_not_supported">Niestandardowe sterowniki nieobsługiwane</string>
     <string name="custom_driver_not_supported_description">Ładowanie niestandardowego sterownika nie jest obecnie obsługiwane na tym urządzeniu.\nSprawdź tę opcję ponownie w przyszłości, aby zobaczyć, czy dodano obsługę!</string>
-    <string name="manage_yuzu_data">Zarządzaj danymi Eden</string>
+    <string name="manage_yuzu_data">Zarządzaj danymi suyu</string>
     <string name="manage_yuzu_data_description">Importuj/eksportuj firmware, klucze i dane.</string>
     <string name="game_folders">Foldery gier</string>
     <string name="deep_scan">Głębokie skanowanie</string>
@@ -385,13 +385,13 @@
     <string name="copied_to_clipboard">Skopiowano do schowka</string>
     <string name="about_app_description">Otwarto-źródłowy emulator konsoli Switch</string>
     <string name="contributors">Współtwórcy</string>
-    <string name="licenses_description">Projekty dzięki którym Eden mógł zostać stworzony</string>
+    <string name="licenses_description">Projekty dzięki którym suyu mógł zostać stworzony</string>
     <string name="build">Wersja</string>
     <string name="user_data">Dane użytkownika</string>
     <string name="user_data_description">Importuj/eksportuj wszystkie dane aplikacji.\n\nPodczas importu danych użytkownika wszystkie istniejące dane użytkownika zostaną usunięte!\n\nImport danych z Citron może powodować problemy. Zaleca się ręczny import wszystkich potrzebnych danych.</string>
     <string name="exporting_user_data">Eksportowanie danych użytkownika…</string>
     <string name="importing_user_data">Importowanie danych użytkownika…</string>
-    <string name="invalid_yuzu_backup">Nieprawidłowa kopia zapasowa Eden</string>
+    <string name="invalid_yuzu_backup">Nieprawidłowa kopia zapasowa suyu</string>
     <string name="user_data_export_success">Dane użytkownika wyeksportowano pomyślnie</string>
     <string name="user_data_import_success">Dane użytkownika zaimportowano pomyślnie</string>
     <string name="user_data_export_cancelled">Eksport anulowano</string>
@@ -722,7 +722,7 @@
     <string name="clear_shader_cache_warning_description">Możesz doświadczyć większych przycięć, gdy pamięć podręczna shaderów będzie się odbudowywać</string>
     <string name="cleared_shaders_successfully">Pomyślnie wyczyszczono shadery</string>
     <string name="driver_shader_wipe_dialog_title">Shadery wyczyszczone</string>
-    <string name="driver_shader_wipe_dialog_message">Eden automatycznie wyczyścił wszystkie pamięci podręczne shaderów, aby zachować poprawność walidacji potoków Vulkan. Jest to wymagane przy zmianie sterowników GPU, aby zapobiec awariom i błędom graficznym. Podczas ponownego budowania shaderów możesz doświadczyć chwilowych przycięć.</string>
+    <string name="driver_shader_wipe_dialog_message">suyu automatycznie wyczyścił wszystkie pamięci podręczne shaderów, aby zachować poprawność walidacji potoków Vulkan. Jest to wymagane przy zmianie sterowników GPU, aby zapobiec awariom i błędom graficznym. Podczas ponownego budowania shaderów możesz doświadczyć chwilowych przycięć.</string>
     <string name="addons_game">Dodatki: %1$s</string>
     <string name="save_data">Dane zapisu</string>
     <string name="save_data_description">Zarządzaj danymi zapisu specyficznymi dla tej gry</string>

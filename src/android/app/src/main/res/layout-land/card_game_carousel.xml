@@ -24,7 +24,7 @@
             android:layout_height="0dp"
             android:scaleType="centerCrop"
             android:contentDescription="@string/game_image_desc"
-            app:shapeAppearanceOverlay="@style/ShapeAppearance.Eden.CarouselImage"
+            app:shapeAppearanceOverlay="@style/ShapeAppearance.suyu.CarouselImage"
             app:layout_constraintTop_toTopOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintEnd_toEndOf="parent"

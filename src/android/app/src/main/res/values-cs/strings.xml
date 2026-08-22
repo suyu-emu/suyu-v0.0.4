@@ -5,8 +5,8 @@
     <string name="notice_notification_channel_name">Upozornění a chyby</string>
     <string name="notice_notification_channel_description">Zobrazí oznámení v případě chyby.</string>
     <string name="notification_permission_not_granted">Oprávnění k zobrazení oznámení nebylo uděleno!</string>
-    <string name="app_notification_channel_description">Oznámení emulátoru Eden</string>
-    <string name="app_notification_running">Eden je spuštěn</string>
+    <string name="app_notification_channel_description">Oznámení emulátoru suyu</string>
+    <string name="app_notification_running">suyu je spuštěn</string>
     <string name="seconds">Sekundy</string>
 
     <!-- Spinbox strings -->
@@ -83,7 +83,7 @@
     <string name="show_soc_model">Zobrazit model SoC</string>
     <string name="show_fw_version">Zobrazit verzi firmwaru</string>
 
-    <!-- Eden\'s Veil -->
+    <!-- suyu\'s Veil -->
     <string name="buffer_reorder_disable">Zakázat přeřazování vyrovnávací paměti</string>
     <string name="buffer_reorder_disable_description">Zakáže přeskupování nahrávání mapované paměti. To sice umožní přiřadit nahrávání ke konkrétním vykreslovacím operacím, ale v některých případech může snížit výkon.</string>
 
@@ -192,7 +192,7 @@
 
     <!-- Setup strings -->
     <string name="welcome">Vítejte!</string>
-    <string name="welcome_description">Přečtěte si, jak nastavit <b>Eden</b> a pusťte se do emulace.</string>
+    <string name="welcome_description">Přečtěte si, jak nastavit <b>suyu</b> a pusťte se do emulace.</string>
     <string name="get_started">Začínáme</string>
     <string name="keys">Klíče</string>
     <string name="keys_description">Vyberte svůj soubor <b>prod.keys</b> pomocí tlačítka níže.</string>
@@ -230,7 +230,7 @@
     <string name="home_settings">Nastavení</string>
     <string name="empty_gamelist">Nebyly nalezeny žádné soubory, nebo nebyla vybrána složka s hrami.</string>
     <string name="manage_game_folders">Spravovat složky s hrami</string>
-    <string name="select_games_folder_description">Umožní aplikaci Eden načíst seznam her</string>
+    <string name="select_games_folder_description">Umožní aplikaci suyu načíst seznam her</string>
     <string name="add_games_warning">Přeskočit výběr složky s hrami\?</string>
     <string name="add_games_warning_description">Pokud nevyberete složku, hry se v seznamu nezobrazí.</string>
     <string name="add_games_warning_help">https://yuzu-mirror.github.io/help/quickstart/#dumping-games</string>
@@ -286,11 +286,11 @@
     <string name="settings_description">Nastavení emulátoru</string>
     <string name="search_recently_played">Nedávno hrané</string>
     <string name="search_recently_added">Nedávno přidané</string>
-    <string name="open_user_folder">Otevřít složku Edenu</string>
+    <string name="open_user_folder">Otevřít složku suyuu</string>
     <string name="open_user_folder_description">Správa interních souborů aplikace</string>
     <string name="app_settings_description">Změna chování a vzhledu aplikace</string>
     <string name="no_file_manager">Nenalezen žádný správce souborů</string>
-    <string name="notification_no_directory_link">Nepovedlo se otevřít složku Edenu</string>
+    <string name="notification_no_directory_link">Nepovedlo se otevřít složku suyuu</string>
     <string name="notification_no_directory_link_description">Vyhledejte prosím uživatelskou složku ručně v postranním panelu správce souborů.</string>
     <string name="manage_save_data">Správa uložených pozic</string>
     <string name="manage_save_data_description">Nalezeny uložené pozice. Prosím vyberte možnost níže.</string>
@@ -323,7 +323,7 @@
     <string name="install_game_content_help_link">https://yuzu-mirror.github.io/help/quickstart/#dumping-installed-updates</string>
     <string name="custom_driver_not_supported">Vlastní ovladače nejsou podporovány</string>
     <string name="custom_driver_not_supported_description">Na tomto zařízení není momentálně podporováno nahrání vlastních ovladačů.\nZkuste to znovu později, podpora může být přidána v budoucnu!</string>
-    <string name="manage_yuzu_data">Spravovat data aplikace Eden</string>
+    <string name="manage_yuzu_data">Spravovat data aplikace suyu</string>
     <string name="manage_yuzu_data_description">Import/export firmware, klíčů, uživatelských dat a další!</string>
     <string name="game_folders">Složky s hrami</string>
     <string name="deep_scan">Hloubkový sken</string>
@@ -358,7 +358,7 @@
 
     <string name="keys_failed">Selhání instalace klíčů</string>
     <string name="keys_install_success">Klíče byly úspěšně nainstalovány</string>
-    <string name="error_keys_copy_failed">Jeden nebo více klíčů se nepodařilo zkopírovat.</string>
+    <string name="error_keys_copy_failed">Jsuyu nebo více klíčů se nepodařilo zkopírovat.</string>
     <string name="error_keys_invalid_filename">Ujistěte se, že soubor s klíči má příponu .keys a zkuste to znovu.</string>
     <string name="error_keys_failed_init">Klíče se nepodařilo inicializovat. Zkontrolujte, zda jsou vaše nástroje pro dumping klíčů aktuální, a zkuste je z vaší konzole získat znovu.</string>
 
@@ -385,13 +385,13 @@
     <string name="copied_to_clipboard">Zkopírováno do schránky</string>
     <string name="about_app_description">Open-source emulátor konzole Switch</string>
     <string name="contributors">Přispěvatelé</string>
-    <string name="licenses_description">Eden pro Android bylo možné zrealizovat díky těmto projektům</string>
+    <string name="licenses_description">suyu pro Android bylo možné zrealizovat díky těmto projektům</string>
     <string name="build">Číslo sestavení</string>
     <string name="user_data">Uživatelská data</string>
     <string name="user_data_description">Import/export všech dat aplikace.\n\nPři importu uživatelských dat budou všechna stávající uživatelská data smazána!\n\nImport dat z emulátoru Citron může způsobit potíže. Doporučujeme potřebná data zkopírovat ručně.</string>
     <string name="exporting_user_data">Exportují se uživatelská data…</string>
     <string name="importing_user_data">Importují se uživatelská data…</string>
-    <string name="invalid_yuzu_backup">Neplatná záloha aplikace Eden</string>
+    <string name="invalid_yuzu_backup">Neplatná záloha aplikace suyu</string>
     <string name="user_data_export_success">Uživatelská data byla úspěšně exportována.</string>
     <string name="user_data_import_success">Uživatelská data byla úspěšně importována.</string>
     <string name="user_data_export_cancelled">Export zrušen</string>

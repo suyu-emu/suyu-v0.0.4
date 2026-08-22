@@ -69,10 +69,10 @@ std::string DiscordImpl::GetGameString(const std::string& title) {
     return icon_name;
 }
 
-static constexpr char DEFAULT_DISCORD_TEXT[] = "Eden is an emulator for the Nintendo Switch";
+static constexpr char DEFAULT_DISCORD_TEXT[] = "suyu is an emulator for the Nintendo Switch";
 static constexpr char DEFAULT_DISCORD_IMAGE[] =
-    "https://git.eden-emu.dev/eden-emu/eden/raw/branch/master/dist/qt_themes/default/icons/256x256/"
-    "eden.png";
+    "https://github.com/suyu-emu/suyu"
+    "suyu.png";
 
 void DiscordImpl::UpdateGameStatus(bool use_default) {
     const std::string url = use_default ? std::string{DEFAULT_DISCORD_IMAGE} : game_url;

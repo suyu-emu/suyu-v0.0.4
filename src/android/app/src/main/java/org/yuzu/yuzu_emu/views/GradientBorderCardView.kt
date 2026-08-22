@@ -53,7 +53,7 @@ class GradientBorderCardView @JvmOverloads constructor(
 
         // Update border style based on theme
         if (isEdenTheme) {
-            // Gradient for Eden theme
+            // Gradient for suyu theme
             borderPaint.shader = LinearGradient(
                 0f,
                 0f,

@@ -5,8 +5,8 @@
     <string name="notice_notification_channel_name">Avis et erreurs</string>
     <string name="notice_notification_channel_description">Affiche des notifications en cas de problème.</string>
     <string name="notification_permission_not_granted">Permission de notification non accordée !</string>
-    <string name="app_notification_channel_description">Notifications de l\'émulateur Switch Eden</string>
-    <string name="app_notification_running">Eden est en cours d\'exécution</string>
+    <string name="app_notification_channel_description">Notifications de l\'émulateur Switch suyu</string>
+    <string name="app_notification_running">suyu est en cours d\'exécution</string>
     <string name="seconds">Secondes</string>
 
     <!-- Spinbox strings -->
@@ -90,7 +90,7 @@
     <string name="show_soc_model">Afficher le modèle du SoC</string>
     <string name="show_fw_version">Afficher la version du firmware</string>
 
-    <!-- Eden\'s Veil -->
+    <!-- suyu\'s Veil -->
     <string name="buffer_reorder_disable">Désactiver le réordonnancement du tampon</string>
     <string name="buffer_reorder_disable_description">Lorsqu\'il est coché, désactive le réordonnancement des téléchargements de mémoire mappée, permettant d\'associer les téléchargements à des dessins spécifiques. Peut réduire les performances dans certains cas.</string>
 
@@ -199,7 +199,7 @@
 
     <!-- Setup strings -->
     <string name="welcome">Bienvenue !</string>
-    <string name="welcome_description">Apprenez à configurer &lt;b>Eden&lt;/b> et passez à l\'émulation.</string>
+    <string name="welcome_description">Apprenez à configurer &lt;b>suyu&lt;/b> et passez à l\'émulation.</string>
     <string name="get_started">Commencer</string>
     <string name="keys">Clés</string>
     <string name="keys_description">Sélectionnez votre fichier &lt;b>prod.keys&lt;/b> avec le bouton ci-dessous.</string>
@@ -237,7 +237,7 @@
     <string name="home_settings">Paramètres</string>
     <string name="empty_gamelist">Aucun fichier n\'a été trouvé ou aucun répertoire de jeu n\'a encore été sélectionné.</string>
     <string name="manage_game_folders">Gérer les dossiers de jeux</string>
-    <string name="select_games_folder_description">Permet à Eden de remplir la liste des jeux</string>
+    <string name="select_games_folder_description">Permet à suyu de remplir la liste des jeux</string>
     <string name="add_games_warning">Ne pas sélectionner le dossier des jeux ?</string>
     <string name="add_games_warning_description">Les jeux ne seront pas affichés dans la liste des jeux si aucun dossier n\'est sélectionné.</string>
     <string name="add_games_warning_help">https://yuzu-mirror.github.io/help/quickstart/#dumping-games</string>
@@ -293,11 +293,11 @@
     <string name="settings_description">Configurer les paramètres de l\'émulateur</string>
     <string name="search_recently_played">Joué récemment</string>
     <string name="search_recently_added">Ajouté récemment</string>
-    <string name="open_user_folder">Ouvrir le dossier de Eden</string>
-    <string name="open_user_folder_description">Gérer les fichiers internes de Eden</string>
+    <string name="open_user_folder">Ouvrir le dossier de suyu</string>
+    <string name="open_user_folder_description">Gérer les fichiers internes de suyu</string>
     <string name="app_settings_description">Modifier le comportement et l’apparence de l’application</string>
     <string name="no_file_manager">Aucun gestionnaire de fichiers trouvé</string>
-    <string name="notification_no_directory_link">Impossible d\'ouvrir le répertoire de Eden</string>
+    <string name="notification_no_directory_link">Impossible d\'ouvrir le répertoire de suyu</string>
     <string name="notification_no_directory_link_description">Veuillez localiser manuellement le dossier utilisateur avec le panneau latéral du gestionnaire de fichiers.</string>
     <string name="manage_save_data">Gérer les données de sauvegarde</string>
     <string name="manage_save_data_description">Données de sauvegarde trouvées. Veuillez sélectionner une option ci-dessous.</string>
@@ -315,10 +315,10 @@
     <string name="firmware_installed_failure_description">Assurez-vous que les fichiers NCA du firmware se trouvent à la racine du fichier ZIP, puis réessayez.</string>
     <string name="firmware_uninstalled_failure">Désinstallation du firmware échoué</string>
     <string name="share_log">Partager les logs de débogage</string>
-    <string name="share_log_description">Partagez le fichier de log de Eden pour déboguer les problèmes.</string>
+    <string name="share_log_description">Partagez le fichier de log de suyu pour déboguer les problèmes.</string>
     <string name="share_log_missing">Aucun fichier de log trouvé</string>
     <string name="share_gpu_log">Partager les logs du GPU</string>
-    <string name="share_gpu_log_description">Partage les logs du GPU générés par Eden afin de déboguer les problèmes graphiques.</string>
+    <string name="share_gpu_log_description">Partage les logs du GPU générés par suyu afin de déboguer les problèmes graphiques.</string>
     <string name="share_gpu_log_missing">Aucun fichier de log du GPU trouvé,</string>
     <string name="install_game_content">Installer le contenu du jeu</string>
     <string name="install_game_content_description">Installer une mise à jour ou un DLC</string>
@@ -333,7 +333,7 @@
     <string name="install_game_content_help_link">https://yuzu-mirror.github.io/help/quickstart/#dumping-installed-updates</string>
     <string name="custom_driver_not_supported">Pilotes personnalisés non supporté</string>
     <string name="custom_driver_not_supported_description">Le chargement de pilotes personnalisés n\'est actuellement pas pris en charge pour cet appareil.\nVérifiez à nouveau cette option ultérieurement pour voir si la prise en charge a été ajoutée !</string>
-    <string name="manage_yuzu_data">Gérer les données de Eden</string>
+    <string name="manage_yuzu_data">Gérer les données de suyu</string>
     <string name="manage_yuzu_data_description">Importer/exporter le firmware, les clés, les données utilisateur, et bien plus encore !</string>
     <string name="game_folders">Dossiers de jeux</string>
     <string name="deep_scan">Analyse approfondie</string>
@@ -395,14 +395,14 @@
     <string name="copied_to_clipboard">Copié dans le presse-papier</string>
     <string name="about_app_description">Un émulateur Switch open source</string>
     <string name="contributors">Contributeurs</string>
-    <string name="contributors_description">Les gens qui ont rendu possible Eden pour Android</string>
-    <string name="licenses_description">Des projets qui rendent possible Eden pour Android</string>
+    <string name="contributors_description">Les gens qui ont rendu possible suyu pour Android</string>
+    <string name="licenses_description">Des projets qui rendent possible suyu pour Android</string>
     <string name="build">Build</string>
     <string name="user_data">Données utilisateur</string>
     <string name="user_data_description">Importer/exporter toutes les données de l\'application\n\nLors de l\'importation des données utilisateur, toutes les données déjà existantes seront supprimé !\n\nImporter les données depuis Citron peut poser des problèmes. Il est recommandé de faire l\'importation manuellement de toutes les données nécessaire.</string>
     <string name="exporting_user_data">Exportation des données utilisateur...</string>
     <string name="importing_user_data">Importation des données utilisateur...</string>
-    <string name="invalid_yuzu_backup">Backup Eden invalide</string>
+    <string name="invalid_yuzu_backup">Backup suyu invalide</string>
     <string name="user_data_export_success">Les données utilisateur ont été exportés avec succès</string>
     <string name="user_data_import_success">Les données utilisateur ont été importées avec succès</string>
     <string name="user_data_export_cancelled">Exportation annulée</string>
@@ -1036,7 +1036,7 @@
     <string name="app_language_system">Suivre le système</string>
     <!-- Static Themes -->
     <string name="static_theme_color">Couleur du thème</string>
-    <string name="eden_theme">Eden</string>
+    <string name="suyu_theme">suyu</string>
     <string name="violet">Violet (Par défaut)</string>
     <string name="blue">Bleu</string>
     <string name="cyan">Cyan</string>

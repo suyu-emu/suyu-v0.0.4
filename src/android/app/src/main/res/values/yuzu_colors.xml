@@ -221,7 +221,7 @@
     <color name="yuzu_inversePrimary_gray">#BDBDBD</color>
     <color name="yuzu_surfaceTint_gray">#9E9E9E</color>
 
-    <!-- Eden Theme Colors -->
+    <!-- suyu Theme Colors -->
 
     <!-- Synthwave/Vaporwave Primary Colors -->
     <color name="eden_primary">#FF0080</color> <!-- Neon magenta -->

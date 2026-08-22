@@ -81,9 +81,9 @@ std::vector<u8> TryLoadFromDisk(const std::filesystem::path& path) {
 
 // TODO(crueter): Migrate to use Common::Net
 std::vector<u8> DownloadImage(const std::string& url_path, const std::filesystem::path& cache_path) {
-    LOG_DEBUG(Service_BCAT, "Downloading image: https://eden-emu.dev{}", url_path);
+    LOG_DEBUG(Service_BCAT, "Downloading image: https://suyu.dev{}", url_path);
     try {
-        httplib::Client cli("https://eden-emu.dev");
+        httplib::Client cli("https://suyu.dev");
         cli.set_follow_location(true);
         cli.set_connection_timeout(std::chrono::seconds(2));
         cli.set_read_timeout(std::chrono::seconds(2));

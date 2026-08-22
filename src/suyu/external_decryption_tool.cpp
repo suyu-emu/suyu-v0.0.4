@@ -47,7 +47,7 @@ std::vector<ExternalToolInfo> ExternalDecryptionTool::KnownTools() {
           QStringLiteral("Ryujinx.Headless.SDL2")}},
         {QStringLiteral("eden"),
          QStringLiteral("Eden"),
-         QStringLiteral("Eden emulator (git.eden.dev). Point to the eden executable; "
+         QStringLiteral("suyu emulator. Point to the eden executable; "
                         "suyu will invoke its CLI for decryption."),
          {QStringLiteral("eden.exe"), QStringLiteral("eden")}},
         {QStringLiteral("yuzu"),

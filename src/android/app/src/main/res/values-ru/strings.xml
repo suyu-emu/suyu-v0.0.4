@@ -5,8 +5,8 @@
     <string name="notice_notification_channel_name">Уведомления и ошибки</string>
     <string name="notice_notification_channel_description">Показывает уведомления, когда что-то пошло не так</string>
     <string name="notification_permission_not_granted">Вы не предоставили разрешение на уведомления!</string>
-    <string name="app_notification_channel_description">Уведомления эмулятора switch Eden</string>
-    <string name="app_notification_running">Eden работает</string>
+    <string name="app_notification_channel_description">Уведомления эмулятора switch suyu</string>
+    <string name="app_notification_running">suyu работает</string>
     <string name="seconds">Секунды</string>
 
     <!-- Spinbox strings -->
@@ -92,7 +92,7 @@
     <string name="show_soc_model">Показать модель SoC</string>
     <string name="show_fw_version">Показать версию прошивки</string>
 
-    <!-- Eden\'s Veil -->
+    <!-- suyu\'s Veil -->
     <string name="buffer_reorder_disable">Отключить переупорядочивание буфера</string>
     <string name="buffer_reorder_disable_description">При включении отключает переупорядочивание загрузки отображенной памяти, позволяя связывать загрузки с конкретными отрисовками. В некоторых случаях может снизить производительность.</string>
 
@@ -201,7 +201,7 @@
 
     <!-- Setup strings -->
     <string name="welcome">Добро пожаловать!</string>
-    <string name="welcome_description">Узнайте, как настроить &lt;b>Eden&lt;/b> и перейти прямиком к эмуляции.</string>
+    <string name="welcome_description">Узнайте, как настроить &lt;b>suyu&lt;/b> и перейти прямиком к эмуляции.</string>
     <string name="get_started">Начать</string>
     <string name="keys">Ключи</string>
     <string name="keys_description">Выберите ваш файл &lt;b>prod.keys&lt;/b> с помощью кнопки ниже.</string>
@@ -239,7 +239,7 @@
     <string name="home_settings">Настройки</string>
     <string name="empty_gamelist">Не найдены файлы или еще не выбрана папка с играми.</string>
     <string name="manage_game_folders">Управление папками</string>
-    <string name="select_games_folder_description">Позволяет Eden заполнить список игр</string>
+    <string name="select_games_folder_description">Позволяет suyu заполнить список игр</string>
     <string name="add_games_warning">Пропустить выбор папки с играми?</string>
     <string name="add_games_warning_description">Игры не будут отображаться в списке Игры, если папка не выбрана.</string>
     <string name="add_games_warning_help">https://yuzu-mirror.github.io/help/quickstart/#dumping-games</string>
@@ -295,11 +295,11 @@
     <string name="settings_description">Настройка параметров эмулятора</string>
     <string name="search_recently_played">Недавно сыгранные</string>
     <string name="search_recently_added">Недавно добавлено</string>
-    <string name="open_user_folder">Открыть папку Eden</string>
-    <string name="open_user_folder_description">Управление внутренними файлами Eden</string>
+    <string name="open_user_folder">Открыть папку suyu</string>
+    <string name="open_user_folder_description">Управление внутренними файлами suyu</string>
     <string name="app_settings_description">Изменяет поведение и внешний вид приложения</string>
     <string name="no_file_manager">Не найден файловый менеджер</string>
-    <string name="notification_no_directory_link">Не удалось открыть папку Eden</string>
+    <string name="notification_no_directory_link">Не удалось открыть папку suyu</string>
     <string name="notification_no_directory_link_description">Пожалуйста, найдите папку пользователя с помощью боковой панели файлового менеджера вручную.</string>
     <string name="manage_save_data">Управление данными сохранений</string>
     <string name="manage_save_data_description">Найдены данные сохранений. Пожалуйста, выберите вариант ниже.</string>
@@ -317,10 +317,10 @@
     <string name="firmware_installed_failure_description">Убедитесь что файлы прошивки nca находятся в корне zip-архива и повторите попытку.</string>
     <string name="firmware_uninstalled_failure">Не удалось удалить прошивку</string>
     <string name="share_log">Поделиться журналом отладки</string>
-    <string name="share_log_description">Поделиться журналом отладки Eden для устранения проблем</string>
+    <string name="share_log_description">Поделиться журналом отладки suyu для устранения проблем</string>
     <string name="share_log_missing">Файл журнала не найден</string>
     <string name="share_gpu_log">Поделиться журналом ГПУ</string>
-    <string name="share_gpu_log_description">Поделиться журналом ГПУ Eden для отладки графики</string>
+    <string name="share_gpu_log_description">Поделиться журналом ГПУ suyu для отладки графики</string>
     <string name="share_gpu_log_missing">Журнал ГПУ не найден</string>
     <string name="install_game_content">Установить игровой контент</string>
     <string name="install_game_content_description">Установить обновления игры или дополнений</string>
@@ -335,7 +335,7 @@
     <string name="install_game_content_help_link">https://yuzu-mirror.github.io/help/quickstart/#dumping-installed-updates</string>
     <string name="custom_driver_not_supported">Пользовательские драйверы не поддерживаются</string>
     <string name="custom_driver_not_supported_description">Загрузка пользовательского драйвера в настоящее время не поддерживается для этого устройства.\nПроверьте этот параметр в будущем чтобы узнать была ли добавлена ​​поддержка!</string>
-    <string name="manage_yuzu_data">Управление данными Eden</string>
+    <string name="manage_yuzu_data">Управление данными suyu</string>
     <string name="manage_yuzu_data_description">Импортируйте/экспортируйте прошивку, ключи, пользовательские данные и многое другое!</string>
     <string name="game_folders">Папки с играми</string>
     <string name="deep_scan">Глубокий анализ</string>
@@ -399,14 +399,14 @@
     <string name="copied_to_clipboard">Скопировано в буфер обмена</string>
     <string name="about_app_description">Эмулятор Switch с открытым исходным кодом</string>
     <string name="contributors">Контрибьюторы</string>
-    <string name="contributors_description">Люди, благодаря которым появился Eden для Android</string>
-    <string name="licenses_description">Проекты, которые сделали Eden для Android возможным</string>
+    <string name="contributors_description">Люди, благодаря которым появился suyu для Android</string>
+    <string name="licenses_description">Проекты, которые сделали suyu для Android возможным</string>
     <string name="build">Сборка</string>
     <string name="user_data">Данные пользователя</string>
     <string name="user_data_description">Импорт/экспорт всех данных\n\nПри импорте все текущие данные будут удалены!\n\nИмпорт из Citron может вызвать ошибки. Рекомендуется ручной перенос.</string>
     <string name="exporting_user_data">Экспорт пользовательских данных…</string>
     <string name="importing_user_data">Импорт пользовательских данных…</string>
-    <string name="invalid_yuzu_backup">Неверная резервная копия Eden</string>
+    <string name="invalid_yuzu_backup">Неверная резервная копия suyu</string>
     <string name="user_data_export_success">Пользовательские данные успешно экспортированы</string>
     <string name="user_data_import_success">Пользовательские данные успешно импортированы</string>
     <string name="user_data_export_cancelled">Экспорт отменен</string>
@@ -790,7 +790,7 @@
     <string name="clear_shader_cache_warning_description">У вас будет больше лагов во время повторной генерации кэша шейдеров</string>
     <string name="cleared_shaders_successfully">Успешно очищены шейдеры</string>
     <string name="driver_shader_wipe_dialog_title">Шейдеры очищены</string>
-    <string name="driver_shader_wipe_dialog_message">Eden автоматически очистил все кэши шейдеров для поддержания валидации Vulkan-конвейера. Это необходимо при переключении драйверов графического процессора для предотвращения сбоев и графических артефактов. Вы можете столкнуться с некоторыми подтормаживаниями во время перекомпиляции шейдеров.</string>
+    <string name="driver_shader_wipe_dialog_message">suyu автоматически очистил все кэши шейдеров для поддержания валидации Vulkan-конвейера. Это необходимо при переключении драйверов графического процессора для предотвращения сбоев и графических артефактов. Вы можете столкнуться с некоторыми подтормаживаниями во время перекомпиляции шейдеров.</string>
     <string name="addons_game">Аддоны: %1$s</string>
     <string name="save_data">Сохранить данные</string>
     <string name="save_data_description">Управлять сохранениями этой игры.</string>
@@ -1084,7 +1084,7 @@
     <string name="app_language_system">Следовать системе</string>
     <!-- Static Themes -->
     <string name="static_theme_color">Цвет темы</string>
-    <string name="eden_theme">Eden</string>
+    <string name="suyu_theme">suyu</string>
     <string name="violet">Фиолетовый </string>
     <string name="blue">Синий</string>
     <string name="cyan">Циановый</string>

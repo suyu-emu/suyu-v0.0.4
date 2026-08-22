@@ -96,7 +96,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
                 <data android:mimeType="application/octet-stream" android:scheme="content"/>
             </intent-filter>
             <intent-filter>
-                <action android:name="dev.eden.eden_emulator.LAUNCH_WITH_CUSTOM_CONFIG" />
+                <action android:name="org.suyu.suyu_emu.LAUNCH_WITH_CUSTOM_CONFIG" />
                 <category android:name="android.intent.category.DEFAULT" />
             </intent-filter>
             <meta-data android:name="android.nfc.action.TECH_DISCOVERED" android:resource="@xml/nfc_tech_filter" />

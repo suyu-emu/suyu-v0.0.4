@@ -327,7 +327,7 @@ void FixProfiles() {
     QtCommon::Frontend::Critical(
         tr("Orphaned Profiles Detected!"),
         tr("UNEXPECTED BAD THINGS MAY HAPPEN IF YOU DON'T READ THIS!<br>"
-           "Eden has detected the following save directories with no attached profile:<br>"
+           "suyu has detected the following save directories with no attached profile:<br>"
            "%1<br><br>"
            "The following profiles are valid:<br>"
            "%2<br><br>"
@@ -336,7 +336,7 @@ void FixProfiles() {
            "delete all orphaned profiles, and move your copied contents to the good "
            "profile.<br><br>"
            "Still confused? See the <a "
-           "href='https://git.eden-emu.dev/eden-emu/eden/src/branch/master/docs/user/"
+           "href='https://github.com/suyu-emu/suyu"
            "Orphaned.md'>help page</a>.<br>")
             .arg(qorphaned, qgood));
 
@@ -499,7 +499,7 @@ bool CheckKeys() {
     if (!ContentManager::AreKeysPresent()) {
         QtCommon::Frontend::Information(
             tr("Keys not installed"),
-            tr("Install decryption keys and restart Eden before attempting to install firmware."));
+            tr("Install decryption keys and restart suyu before attempting to install firmware."));
         return false;
     }
 

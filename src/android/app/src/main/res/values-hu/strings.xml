@@ -52,7 +52,7 @@
     <string name="show_soc_model">SoC modell megjelenítése</string>
     <string name="show_fw_version">Firmver verzió megjelenítése</string>
 
-    <!-- Eden\'s Veil -->
+    <!-- suyu\'s Veil -->
     <string name="buffer_reorder_disable">Puffer újrarendezés letiltása</string>
     <string name="buffer_reorder_disable_description">Ha be van jelölve, letiltja a leképezett memória feltöltéseinek újrarendezését, lehetővé téve a feltöltések összerendelését konkrét rajzolásokkal. Bizonyos esetekben csökkentheti a teljesítményt.</string>
 
@@ -156,7 +156,7 @@
 
     <!-- Setup strings -->
     <string name="welcome">Üdvözöljük!</string>
-    <string name="welcome_description">Ismerkedj meg a &lt;b>Eden&lt;/b> beállításával és ugorj bele az emulációba.</string>
+    <string name="welcome_description">Ismerkedj meg a &lt;b>suyu&lt;/b> beállításával és ugorj bele az emulációba.</string>
     <string name="get_started">Vágjunk bele</string>
     <string name="keys">Kulcsok</string>
     <string name="keys_description">Válaszd ki a &lt;b>prod.keys&lt;/b> fájlodat az alábbi gombbal.</string>
@@ -210,10 +210,10 @@
     <string name="settings_description">Emulátorbeállítások konfigurálása</string>
     <string name="search_recently_played">Nemrég játszva</string>
     <string name="search_recently_added">Nemrég hozzáadva</string>
-    <string name="open_user_folder">Eden mappa megnyitása</string>
-    <string name="open_user_folder_description">Eden belső fájljainak kezelése</string>
+    <string name="open_user_folder">suyu mappa megnyitása</string>
+    <string name="open_user_folder_description">suyu belső fájljainak kezelése</string>
     <string name="no_file_manager">Nem található fájlkezelő</string>
-    <string name="notification_no_directory_link">Nem sikerült megnyitni a Eden könyvtárat</string>
+    <string name="notification_no_directory_link">Nem sikerült megnyitni a suyu könyvtárat</string>
     <string name="notification_no_directory_link_description">Kérjük, manuálisan keresd meg a felhasználói mappát a fájlkezelő oldalsó paneljével.</string>
     <string name="manage_save_data">Mentésadatok kezelése</string>
     <string name="manage_save_data_description">Mentés található. Kérjük, válassz egyet az alábbi opciók közül.</string>
@@ -230,7 +230,7 @@
     <string name="firmware_installed_failure">Firmware telepítése sikertelen</string>
     <string name="firmware_installed_failure_description">Győződj meg róla, hogy a firmware nca fájlok a zip gyökerénél vannak, és próbáld meg újra.</string>
     <string name="share_log">Hibakereső logok megosztása</string>
-    <string name="share_log_description">A Eden naplófájl megosztása a problémák elhárításához</string>
+    <string name="share_log_description">A suyu naplófájl megosztása a problémák elhárításához</string>
     <string name="share_log_missing">Nem található log fájl</string>
     <string name="install_game_content">Játéktartalom telepítése</string>
     <string name="install_game_content_description">Játékfrissítések vagy DLC telepítése</string>
@@ -243,7 +243,7 @@
     <string name="install_game_content_success_install">%1$d sikeresen telepítve</string>
     <string name="install_game_content_success_overwrite">%1$d sikeresen felülírva</string>
     <string name="custom_driver_not_supported">Egyéni illesztőprogramok nem támogatottak</string>
-    <string name="manage_yuzu_data">Eden adatok kezelése</string>
+    <string name="manage_yuzu_data">suyu adatok kezelése</string>
     <string name="manage_yuzu_data_description">Firmware, kulcsok, felhasználói adatok és egyebek importálása/exportálása</string>
     <string name="game_folders">Játékmappák</string>
     <string name="deep_scan">Mély szkennelés</string>
@@ -299,11 +299,11 @@
     <string name="copied_to_clipboard">Másolva a vágólapra</string>
     <string name="about_app_description">Egy nyílt forráskódú Switch emulátor</string>
     <string name="contributors">Hozzájárulók</string>
-    <string name="licenses_description">Projektek, amik nélkül a Eden nem jöhetett volna létre Androidra</string>
+    <string name="licenses_description">Projektek, amik nélkül a suyu nem jöhetett volna létre Androidra</string>
     <string name="user_data">Felhasználói adatok</string>
     <string name="exporting_user_data">Felhasználói adatok exportálása...</string>
     <string name="importing_user_data">Felhasználói adatok importálása...</string>
-    <string name="invalid_yuzu_backup">Érvénytelen Eden biztonsági másolat</string>
+    <string name="invalid_yuzu_backup">Érvénytelen suyu biztonsági másolat</string>
     <string name="user_data_export_success">Felhasználói adatok sikeresen exportálva</string>
     <string name="user_data_import_success">Felhasználói adatok sikeresen importálva</string>
     <string name="user_data_export_cancelled">Exportálás megszakítva</string>

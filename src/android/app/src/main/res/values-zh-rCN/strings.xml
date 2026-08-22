@@ -5,8 +5,8 @@
     <string name="notice_notification_channel_name">错误与注意事项</string>
     <string name="notice_notification_channel_description">当发生错误时显示通知。</string>
     <string name="notification_permission_not_granted">未授予通知权限！</string>
-    <string name="app_notification_channel_description">Eden模拟器通知</string>
-    <string name="app_notification_running">Eden正在运行</string>
+    <string name="app_notification_channel_description">suyu模拟器通知</string>
+    <string name="app_notification_running">suyu正在运行</string>
     <string name="seconds">秒</string>
 
     <!-- Spinbox strings -->
@@ -92,7 +92,7 @@
     <string name="show_soc_model">显示SoC型号</string>
     <string name="show_fw_version">显示固件版本</string>
 
-    <!-- Eden\'s Veil -->
+    <!-- suyu\'s Veil -->
     <string name="buffer_reorder_disable">禁用缓冲重排序</string>
     <string name="buffer_reorder_disable_description">勾选时，禁用映射内存上传的重排序功能，允许将上传与特定绘制关联。在某些情况下可能会降低性能。</string>
 
@@ -201,7 +201,7 @@
 
     <!-- Setup strings -->
     <string name="welcome">欢迎！</string>
-    <string name="welcome_description">了解如何设置 &lt;b>Eden&lt;/b> 并进行模拟。</string>
+    <string name="welcome_description">了解如何设置 &lt;b>suyu&lt;/b> 并进行模拟。</string>
     <string name="get_started">开始</string>
     <string name="keys">密钥文件</string>
     <string name="keys_description">使用下方的按钮来选择你的 &lt;b>prod.keys&lt;/b> 文件。</string>
@@ -239,7 +239,7 @@
     <string name="home_settings">设置</string>
     <string name="empty_gamelist">找不到游戏，或者尚未选择游戏文件夹。</string>
     <string name="manage_game_folders">管理游戏文件夹</string>
-    <string name="select_games_folder_description">允许 Eden 更新游戏列表</string>
+    <string name="select_games_folder_description">允许 suyu 更新游戏列表</string>
     <string name="add_games_warning">跳过选择游戏文件夹？</string>
     <string name="add_games_warning_description">如果未选择游戏文件夹，游戏将不会显示在游戏列表中。</string>
     <string name="add_games_warning_help">https://yuzu-mirror.github.io/help/quickstart/#dumping-games</string>
@@ -295,11 +295,11 @@
     <string name="settings_description">更改模拟器设置</string>
     <string name="search_recently_played">最近游玩</string>
     <string name="search_recently_added">最近添加</string>
-    <string name="open_user_folder">打开 Eden 文件夹</string>
-    <string name="open_user_folder_description">管理 Eden 内部文件</string>
+    <string name="open_user_folder">打开 suyu 文件夹</string>
+    <string name="open_user_folder_description">管理 suyu 内部文件</string>
     <string name="app_settings_description">更改 app 的外观</string>
     <string name="no_file_manager">找不到可用的文件管理器</string>
-    <string name="notification_no_directory_link">无法打开 Eden 文件夹</string>
+    <string name="notification_no_directory_link">无法打开 suyu 文件夹</string>
     <string name="notification_no_directory_link_description">请使用文件管理器侧边栏中的内部存储手动定位用户文件夹。</string>
     <string name="manage_save_data">管理存档数据</string>
     <string name="manage_save_data_description">已找到存档数据，请选择下方的选项。</string>
@@ -317,10 +317,10 @@
     <string name="firmware_installed_failure_description">请确保固件 nca 文件位于 zip 压缩包的根目录，然后重试。</string>
     <string name="firmware_uninstalled_failure">固件安装失败</string>
     <string name="share_log">分享调试日志</string>
-    <string name="share_log_description">分享 Eden 日志文件以便调试</string>
+    <string name="share_log_description">分享 suyu 日志文件以便调试</string>
     <string name="share_log_missing">未找到日志文件</string>
     <string name="share_gpu_log">分享 GPU 日志</string>
-    <string name="share_gpu_log_description">分享 Eden 的 GPU 日志来调试图形问题</string>
+    <string name="share_gpu_log_description">分享 suyu 的 GPU 日志来调试图形问题</string>
     <string name="share_gpu_log_missing">找不到 GPU 日志文件</string>
     <string name="install_game_content">安装游戏附加内容</string>
     <string name="install_game_content_description">安装游戏更新及 DLC</string>
@@ -335,7 +335,7 @@
     <string name="install_game_content_help_link">https://yuzu-mirror.github.io/help/quickstart/#dumping-installed-updates</string>
     <string name="custom_driver_not_supported">不支持自定义驱动</string>
     <string name="custom_driver_not_supported_description">此设备不支持自定义驱动。\n请之后再访问此项，查看是否已为此设备添加支持。</string>
-    <string name="manage_yuzu_data">管理 Eden 数据</string>
+    <string name="manage_yuzu_data">管理 suyu 数据</string>
     <string name="manage_yuzu_data_description">导入/导出固件、密钥、用户数据以及其他</string>
     <string name="game_folders">游戏文件夹</string>
     <string name="deep_scan">深度扫描</string>
@@ -393,14 +393,14 @@
     <string name="copied_to_clipboard">已复制到剪贴板</string>
     <string name="about_app_description">一款开源的 Switch 模拟器</string>
     <string name="contributors">贡献者</string>
-    <string name="contributors_description">Eden Android 版的诞生离不开这些人的支持</string>
-    <string name="licenses_description">Android 版 Eden 离不开这些项目的支持</string>
+    <string name="contributors_description">suyu Android 版的诞生离不开这些人的支持</string>
+    <string name="licenses_description">Android 版 suyu 离不开这些项目的支持</string>
     <string name="build">构建版本</string>
     <string name="user_data">用户数据</string>
     <string name="user_data_description">导入导出所有应用数据。\n\n导入数据时，现有的数据均会被删除！\n\n从Citron导入数据可能会导致问题，建议手动导入所有需要的数据。</string>
     <string name="exporting_user_data">正在导出用户数据...</string>
     <string name="importing_user_data">正在导入用户数据...</string>
-    <string name="invalid_yuzu_backup">无效的 Eden 备份</string>
+    <string name="invalid_yuzu_backup">无效的 suyu 备份</string>
     <string name="user_data_export_success">导出用户数据成功</string>
     <string name="user_data_import_success">导入用户数据成功</string>
     <string name="user_data_export_cancelled">已取消导出数据</string>
@@ -795,7 +795,7 @@
     <string name="clear_shader_cache_warning_description">由于着色器缓存需要重新生成，您将遇到更多卡顿</string>
     <string name="cleared_shaders_successfully">着色器缓存清除成功</string>
     <string name="driver_shader_wipe_dialog_title">已清理着色器</string>
-    <string name="driver_shader_wipe_dialog_message">Eden 已自动清空所有着色器缓存，以维持 Vulkan 管线验证流程。在切换 GPU 驱动程序时，此操作是必要的，可防止崩溃和画面异常。在着色器重构期间，您可能会感受到些许卡顿。</string>
+    <string name="driver_shader_wipe_dialog_message">suyu 已自动清空所有着色器缓存，以维持 Vulkan 管线验证流程。在切换 GPU 驱动程序时，此操作是必要的，可防止崩溃和画面异常。在着色器重构期间，您可能会感受到些许卡顿。</string>
     <string name="addons_game">附加项: %1$s</string>
     <string name="save_data">保存数据</string>
     <string name="save_data_description">管理此游戏的保存数据</string>
@@ -1089,7 +1089,7 @@
     <string name="app_language_system">跟随系统</string>
     <!-- Static Themes -->
     <string name="static_theme_color">主题颜色</string>
-    <string name="eden_theme">Eden</string>
+    <string name="suyu_theme">suyu</string>
     <string name="violet">紫色</string>
     <string name="blue">蓝色</string>
     <string name="cyan">青色</string>

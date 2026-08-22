@@ -162,7 +162,7 @@
         <item name="rippleColor">@color/yuzu_inversePrimary_pink</item>
     </style>
 
-    <!-- Eden theme styles -->
+    <!-- suyu theme styles -->
     <style name="EdenSlider" parent="Widget.Material3.Slider">
         <item name="tickVisible">false</item>
         <item name="labelBehavior">gone</item>
@@ -192,7 +192,7 @@
         <item name="rippleColor">@color/eden_glow_pink</item>
     </style>
 
-    <style name="Widget.Eden.TransparentTopAppBarLayout" parent="">
+    <style name="Widget.suyu.TransparentTopAppBarLayout" parent="">
         <item name="android:background">@android:color/transparent</item>
         <item name="android:elevation">0dp</item>
         <item name="android:stateListAnimator">@null</item>
@@ -201,7 +201,7 @@
         <item name="statusBarForeground">@android:color/transparent</item>
     </style>
 
-    <style name="Widget.Eden.TransparentTopToolbar" parent="">
+    <style name="Widget.suyu.TransparentTopToolbar" parent="">
         <item name="android:background">@android:color/transparent</item>
         <item name="android:elevation">0dp</item>
         <item name="backgroundTint">@android:color/transparent</item>
@@ -297,7 +297,7 @@
         <item name="android:shadowRadius">4</item>
     </style>
     <!-- Shape appearance for carousel images -->
-    <style name="ShapeAppearance.Eden.CarouselImage" parent="">
+    <style name="ShapeAppearance.suyu.CarouselImage" parent="">
         <item name="cornerFamily">rounded</item>
         <item name="cornerSizeTopLeft">8dp</item>
         <item name="cornerSizeTopRight">8dp</item>

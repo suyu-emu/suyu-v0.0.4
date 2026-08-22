@@ -12,7 +12,7 @@
 
         <com.google.android.material.appbar.AppBarLayout
             android:id="@+id/appbar_folders"
-            style="@style/Widget.Eden.TransparentTopAppBarLayout"
+            style="@style/Widget.suyu.TransparentTopAppBarLayout"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:fitsSystemWindows="true"
@@ -20,7 +20,7 @@
 
             <com.google.android.material.appbar.MaterialToolbar
                 android:id="@+id/toolbar_folders"
-                style="@style/Widget.Eden.TransparentTopToolbar"
+                style="@style/Widget.suyu.TransparentTopToolbar"
                 android:layout_width="match_parent"
                 android:layout_height="?attr/actionBarSize"
                 android:touchscreenBlocksFocus="false"

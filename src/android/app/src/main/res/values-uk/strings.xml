@@ -5,8 +5,8 @@
     <string name="notice_notification_channel_name">Сповіщення та помилки</string>
     <string name="notice_notification_channel_description">Показує сповіщення у разі виникнення проблем.</string>
     <string name="notification_permission_not_granted">Дозвіл на сповіщення не надано!</string>
-    <string name="app_notification_channel_description">Сповіщення емулятора Switch Eden</string>
-    <string name="app_notification_running">Eden працює</string>
+    <string name="app_notification_channel_description">Сповіщення емулятора Switch suyu</string>
+    <string name="app_notification_running">suyu працює</string>
     <string name="seconds">с</string>
 
     <!-- Spinbox strings -->
@@ -92,7 +92,7 @@
     <string name="show_soc_model">Показати модель SoC</string>
     <string name="show_fw_version">Показати версію прошивки</string>
 
-    <!-- Eden\'s Veil -->
+    <!-- suyu\'s Veil -->
     <string name="buffer_reorder_disable">Вимкнути переупорядкування буфера</string>
     <string name="buffer_reorder_disable_description">Якщо позначено, вимикає переупорядкування завантажень відображеної пам\'яті, що дозволяє пов\'язувати завантаження з конкретними малюваннями. Може знизити продуктивність у деяких випадках.</string>
 
@@ -201,7 +201,7 @@
 
     <!-- Setup strings -->
     <string name="welcome">Вітаємо!</string>
-    <string name="welcome_description">Дізнайтеся, як налаштувати &lt;b>Eden&lt;/b> та перейти до емуляції.</string>
+    <string name="welcome_description">Дізнайтеся, як налаштувати &lt;b>suyu&lt;/b> та перейти до емуляції.</string>
     <string name="get_started">Розпочати</string>
     <string name="keys">Ключі</string>
     <string name="keys_description">Виберіть ваш файл &lt;b>prod.keys&lt;/b> за допомогою кнопки нижче.</string>
@@ -239,7 +239,7 @@
     <string name="home_settings">Налаштування</string>
     <string name="empty_gamelist">Не знайдено файлів або ще не вибрано теку з іграми.</string>
     <string name="manage_game_folders">Керування ігровими теками</string>
-    <string name="select_games_folder_description">Дозволяє Eden заповнити список ігор</string>
+    <string name="select_games_folder_description">Дозволяє suyu заповнити список ігор</string>
     <string name="add_games_warning">Пропустити вибір теки з іграми?</string>
     <string name="add_games_warning_description">Ігри не відображатимуться у списку Ігри, якщо теку не вибрано.</string>
     <string name="add_games_warning_help">https://yuzu-mirror.github.io/help/quickstart/#dumping-games</string>
@@ -295,11 +295,11 @@
     <string name="settings_description">Налаштування параметрів емулятора</string>
     <string name="search_recently_played">Нещодавно зіграно</string>
     <string name="search_recently_added">Нещодавно додано</string>
-    <string name="open_user_folder">Відкрити теку Eden</string>
-    <string name="open_user_folder_description">Керування внутрішніми файлами Eden</string>
+    <string name="open_user_folder">Відкрити теку suyu</string>
+    <string name="open_user_folder_description">Керування внутрішніми файлами suyu</string>
     <string name="app_settings_description">Змінити зовнішній вигляд і поведінку застосунку</string>
     <string name="no_file_manager">Не знайдено файлового менеджера</string>
-    <string name="notification_no_directory_link">Не вдалося відкрити теку Eden</string>
+    <string name="notification_no_directory_link">Не вдалося відкрити теку suyu</string>
     <string name="notification_no_directory_link_description">Будь ласка, знайдіть теку користувача за допомогою бічної панелі файлового менеджера вручну.</string>
     <string name="manage_save_data">Керування даними збережень</string>
     <string name="manage_save_data_description">Знайдено дані збережень. Будь ласка, виберіть варіант нижче.</string>
@@ -320,7 +320,7 @@
     <string name="share_log_description">Поділіться лог-файлом для діагностики та допомоги з проблемою.</string>
     <string name="share_log_missing">Файл логу не знайдено</string>
     <string name="share_gpu_log">Поділитися журналом ГП</string>
-    <string name="share_gpu_log_description">Поділитися файлом журналу ГП Eden’а для зневадження графічних помилок</string>
+    <string name="share_gpu_log_description">Поділитися файлом журналу ГП suyu’а для зневадження графічних помилок</string>
     <string name="share_gpu_log_missing">Файл журналу ГП не виявлено</string>
     <string name="install_game_content">Встановити вміст гри</string>
     <string name="install_game_content_description">Встановити оновлення або DLC</string>
@@ -335,7 +335,7 @@
     <string name="install_game_content_help_link">https://yuzu-mirror.github.io/help/quickstart/#dumping-installed-updates</string>
     <string name="custom_driver_not_supported">Спеціальні драйвери не підтримуються</string>
     <string name="custom_driver_not_supported_description">Завантаження спеціальних драйверів цим пристроєм наразі не підтримується.\nПідтримку може бути додано пізніше, тож час від часу перевіряйте цей параметр!</string>
-    <string name="manage_yuzu_data">Керування даними eden</string>
+    <string name="manage_yuzu_data">Керування даними suyu</string>
     <string name="manage_yuzu_data_description">Імпорт/експорт прошивки, ключів, даних користувача та іншого.</string>
     <string name="game_folders">Тека з іграми</string>
     <string name="deep_scan">Глибоке сканування</string>
@@ -399,14 +399,14 @@
     <string name="copied_to_clipboard">Скопійовано в буфер обміну</string>
     <string name="about_app_description">Емулятор Switch із відкритим вихідним кодом</string>
     <string name="contributors">Автори проєкту</string>
-    <string name="contributors_description">Люди, які зробили Eden на Android можливим</string>
-    <string name="licenses_description">Проєкти, які зробили запуск Eden на Android можливим</string>
+    <string name="contributors_description">Люди, які зробили suyu на Android можливим</string>
+    <string name="licenses_description">Проєкти, які зробили запуск suyu на Android можливим</string>
     <string name="build">Збірка</string>
     <string name="user_data">Дані користувача</string>
     <string name="user_data_description">Імпортувати/експортувати всі дані програми.\n\nПри імпорті даних користувача всі наявні користувацькі дані буде видалено!\n\nЗавантаження даних із Citron може викликати проблеми. Рекомендується імпортувати всі необхідні дані звідти вручну.</string>
     <string name="exporting_user_data">Експорт даних користувача…</string>
     <string name="importing_user_data">Імпорт даних користувача…</string>
-    <string name="invalid_yuzu_backup">Некоректна резервна копія Eden</string>
+    <string name="invalid_yuzu_backup">Некоректна резервна копія suyu</string>
     <string name="user_data_export_success">Дані користувача успішно експортовано</string>
     <string name="user_data_import_success">Дані користувача успішно імпортовано</string>
     <string name="user_data_export_cancelled">Експорт скасовано</string>
@@ -793,7 +793,7 @@
     <string name="clear_shader_cache_warning_description">Під час повторної генерації шейдерів можуть виникати затримки</string>
     <string name="cleared_shaders_successfully">Очищення шейдерів успішне </string>
     <string name="driver_shader_wipe_dialog_title">Шейдери очищено</string>
-    <string name="driver_shader_wipe_dialog_message">Eden автоматично очистив увесь кеш шейдерів, щоб забезпечити перевірку конвеєра Vulkan. Це необхідно при зміні драйверів ГП, щоб уникнути збоїв і графічних помилок.  У вас можуть виникнути мікропідвисання під час повторної компіляції шейдерів.</string>
+    <string name="driver_shader_wipe_dialog_message">suyu автоматично очистив увесь кеш шейдерів, щоб забезпечити перевірку конвеєра Vulkan. Це необхідно при зміні драйверів ГП, щоб уникнути збоїв і графічних помилок.  У вас можуть виникнути мікропідвисання під час повторної компіляції шейдерів.</string>
     <string name="addons_game">Доповнення: %1$s</string>
     <string name="save_data">Збереження</string>
     <string name="save_data_description">Керування збереження цієї гри</string>
@@ -1087,7 +1087,7 @@
     <string name="app_language_system">Як у системі</string>
     <!-- Static Themes -->
     <string name="static_theme_color">Колір теми</string>
-    <string name="eden_theme">Eden</string>
+    <string name="suyu_theme">suyu</string>
     <string name="violet">Фіолетовий</string>
     <string name="blue">Синій</string>
     <string name="cyan">Блакитний</string>

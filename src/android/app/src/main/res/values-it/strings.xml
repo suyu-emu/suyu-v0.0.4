@@ -5,8 +5,8 @@
     <string name="notice_notification_channel_name">Avvisi ed errori</string>
     <string name="notice_notification_channel_description">Mostra le notifiche quando qualcosa va storto.</string>
     <string name="notification_permission_not_granted">Autorizzazione di notifica non concessa!</string>
-    <string name="app_notification_channel_description">Notifiche dell\'emulatore Eden Switch</string>
-    <string name="app_notification_running">Eden è in esecuzione</string>
+    <string name="app_notification_channel_description">Notifiche dell\'emulatore suyu Switch</string>
+    <string name="app_notification_running">suyu è in esecuzione</string>
     <string name="seconds">secondi</string>
 
     <!-- Spinbox strings -->
@@ -69,7 +69,7 @@
     <string name="show_soc_model">Mostra modello SoC</string>
     <string name="show_fw_version">Mostra versione firmware</string>
 
-    <!-- Eden\'s Veil -->
+    <!-- suyu\'s Veil -->
     <string name="buffer_reorder_disable">Disabilita riordino buffer</string>
     <string name="buffer_reorder_disable_description">Se selezionato, disabilita il riordino dei caricamenti di memoria mappata consentendo di associare i caricamenti a disegni specifici. Potrebbe ridurre le prestazioni in alcuni casi.</string>
 
@@ -174,7 +174,7 @@
 
     <!-- Setup strings -->
     <string name="welcome">Benvenuto!</string>
-    <string name="welcome_description">Scopri come configurare &lt;b>Eden&lt;/b> e passare all\'emulazione.</string>
+    <string name="welcome_description">Scopri come configurare &lt;b>suyu&lt;/b> e passare all\'emulazione.</string>
     <string name="get_started">Iniziare</string>
     <string name="keys">Chiavi</string>
     <string name="keys_description">Seleziona il tuo file &lt;b>prod.keys&lt;/b> con il pulsante in basso.</string>
@@ -206,7 +206,7 @@
     <string name="home_settings">Impostazioni</string>
     <string name="empty_gamelist">Non sono stati trovati file o non è stata ancora selezionata alcuna directory di gioco.</string>
     <string name="manage_game_folders">Gestisci le cartelle dei giochi</string>
-    <string name="select_games_folder_description">Consente a Eden di popolare l\'elenco dei giochi</string>
+    <string name="select_games_folder_description">Consente a suyu di popolare l\'elenco dei giochi</string>
     <string name="add_games_warning">Saltare la selezione della cartella dei giochi?</string>
     <string name="add_games_warning_description">I giochi non saranno mostrati nella lista dei giochi se una cartella non è selezionata.</string>
     <string name="add_games_warning_help">https://yuzu-mirror.github.io/help/quickstart/#dumping-games</string>
@@ -239,11 +239,11 @@
     <string name="settings_description">Configura le impostazioni dell\'emulatore</string>
     <string name="search_recently_played">Giocati recentemente</string>
     <string name="search_recently_added">Aggiunti recentemente</string>
-    <string name="open_user_folder">Apri la cartella di Eden</string>
-    <string name="open_user_folder_description">Gestisci i file interni di Eden</string>
+    <string name="open_user_folder">Apri la cartella di suyu</string>
+    <string name="open_user_folder_description">Gestisci i file interni di suyu</string>
     <string name="app_settings_description">Modifica il comportamento e l\'aspetto dell\'app</string>
     <string name="no_file_manager">Nessun file manager trovato</string>
-    <string name="notification_no_directory_link">Impossibile aprire la cartella di Eden</string>
+    <string name="notification_no_directory_link">Impossibile aprire la cartella di suyu</string>
     <string name="notification_no_directory_link_description">Per favore individua la cartella dell\'utente manualmente con il pannello laterale del file manager.</string>
     <string name="manage_save_data">Gestisci i salvataggi</string>
     <string name="manage_save_data_description">Salvataggio non trovato. Seleziona un\'opzione di seguito.</string>
@@ -261,7 +261,7 @@
     <string name="firmware_installed_failure_description">Accertati che i file .nca del firmware siano contenuti direttamente nella radice dello .zip e riprova.</string>
     <string name="firmware_uninstalled_failure">Disinstallazione del firmware fallita</string>
     <string name="share_log">Condividi log di debug</string>
-    <string name="share_log_description">Condividi i log di Eden per ricevere supporto</string>
+    <string name="share_log_description">Condividi i log di suyu per ricevere supporto</string>
     <string name="share_log_missing">Nessun file di log trovato</string>
     <string name="install_game_content">Installa contenuti di gioco</string>
     <string name="install_game_content_description">Installa aggiornamenti o DLC</string>
@@ -276,7 +276,7 @@
     <string name="install_game_content_help_link">https://yuzu-mirror.github.io/help/quickstart/#dumping-installed-updates</string>
     <string name="custom_driver_not_supported">I driver personalizzati non sono supportati.</string>
     <string name="custom_driver_not_supported_description">I driver personalizzati non sono attualmente supportati per questo dispositivo.\nRicontrolla in futuro se il supporto è stato aggiunto.</string>
-    <string name="manage_yuzu_data">Gestisci i dati di Eden</string>
+    <string name="manage_yuzu_data">Gestisci i dati di suyu</string>
     <string name="manage_yuzu_data_description">Importa/Esporta il firmware, le keys, i dati utente, e altro!</string>
     <string name="game_folders">Cartelle di gioco</string>
     <string name="deep_scan">Scansione Sotto-Cartelle</string>
@@ -336,13 +336,13 @@
     <string name="copied_to_clipboard">Copiato negli appunti</string>
     <string name="about_app_description">Un emulatore della Switch open-source.</string>
     <string name="contributors">Collaboratori</string>
-    <string name="licenses_description">Progetti che rendono Eden per Android possibile</string>
+    <string name="licenses_description">Progetti che rendono suyu per Android possibile</string>
     <string name="build">Compilazione</string>
     <string name="user_data">Dati Utente</string>
     <string name="user_data_description">Importa/Esporta tutti i dati dell\'app.\n\nQuando si importano nuovi dati utente, tutti quelli esistenti verranno cancellati!\n\nImportare dati da Citron può causare problemi. È raccomandato importare manualmente tutti i dati utili.</string>
     <string name="exporting_user_data">Esportazione dei Dati Utente...</string>
     <string name="importing_user_data">Importazione dei Dati Utente...</string>
-    <string name="invalid_yuzu_backup">Backup di Eden Invalido</string>
+    <string name="invalid_yuzu_backup">Backup di suyu Invalido</string>
     <string name="user_data_export_success">Dati Utente esportati con successo</string>
     <string name="user_data_import_success">Dati Utente importati con successo.</string>
     <string name="user_data_export_cancelled">Esportazione annullata</string>

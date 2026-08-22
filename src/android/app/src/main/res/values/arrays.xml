@@ -442,7 +442,7 @@
     </integer-array>
 
     <string-array name="staticThemeNames">
-        <item>@string/eden_theme</item>
+        <item>@string/suyu_theme</item>
         <item>@string/violet</item>
         <item>@string/blue</item>
         <item>@string/cyan</item>

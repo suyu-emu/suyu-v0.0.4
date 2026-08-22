@@ -5,8 +5,8 @@
     <string name="notice_notification_channel_name">Notificações e erros</string>
     <string name="notice_notification_channel_description">Mostra notificações quando acontecer um erro.</string>
     <string name="notification_permission_not_granted">Acesso às notificações não foi permitido!</string>
-    <string name="app_notification_channel_description">Notificações do Eden Switch Emulator</string>
-    <string name="app_notification_running">Eden está em execução</string>
+    <string name="app_notification_channel_description">Notificações do suyu Switch Emulator</string>
+    <string name="app_notification_running">suyu está em execução</string>
     <string name="seconds">Segundos</string>
 
     <!-- Spinbox strings -->
@@ -77,7 +77,7 @@
     <string name="show_soc_model">Mostrar Modelo do SoC</string>
     <string name="show_fw_version">Mostrar Versão do Firmware</string>
 
-    <!-- Eden\'s Veil -->
+    <!-- suyu\'s Veil -->
     <string name="buffer_reorder_disable">Desativar Reordenação de Buffers</string>
     <string name="buffer_reorder_disable_description">Quando marcado, desativa a reordenação de uploads de memória mapeada, permitindo associar uploads a desenhos específicos. Pode reduzir o desempenho em alguns casos.</string>
 
@@ -186,7 +186,7 @@
 
     <!-- Setup strings -->
     <string name="welcome">Bem-vindo! </string>
-    <string name="welcome_description">Aprenda como configurar o <b>Eden</b> e mergulhe na emulação.</string>
+    <string name="welcome_description">Aprenda como configurar o <b>suyu</b> e mergulhe na emulação.</string>
     <string name="get_started">Vamos começar</string>
     <string name="keys">Chaves (Keys)</string>
     <string name="keys_description">Selecione seu arquivo &lt;b>prod.keys&lt;/b> com o botão abaixo.</string>
@@ -224,7 +224,7 @@
     <string name="home_settings">Configurações</string>
     <string name="empty_gamelist">Nenhum jogo foi encontrado ou nenhuma pasta de jogos foi definida.</string>
     <string name="manage_game_folders">Gerenciar pastas de jogos</string>
-    <string name="select_games_folder_description">Permite ao Eden preencher a lista de jogos</string>
+    <string name="select_games_folder_description">Permite ao suyu preencher a lista de jogos</string>
     <string name="add_games_warning">Pular a seleção da pasta de jogos\?</string>
     <string name="add_games_warning_description">Os jogos não serão exibidos na lista de jogos se nenhuma pasta for selecionada.</string>
     <string name="add_games_warning_help">https://yuzu-mirror.github.io/help/quickstart/#dumping-games</string>
@@ -280,11 +280,11 @@
     <string name="settings_description">Configure opções do emulador</string>
     <string name="search_recently_played">Jogado recentemente</string>
     <string name="search_recently_added">Adicionado recentemente</string>
-    <string name="open_user_folder">Abrir a pasta do Eden</string>
-    <string name="open_user_folder_description">Gerencie os arquivos internos do Eden</string>
+    <string name="open_user_folder">Abrir a pasta do suyu</string>
+    <string name="open_user_folder_description">Gerencie os arquivos internos do suyu</string>
     <string name="app_settings_description">Alterar o comportamento e aparência do aplicativo</string>
     <string name="no_file_manager">Nenhum gerenciador de arquivos encontrado</string>
-    <string name="notification_no_directory_link">Não foi possível abrir a pasta do Eden</string>
+    <string name="notification_no_directory_link">Não foi possível abrir a pasta do suyu</string>
     <string name="notification_no_directory_link_description">Localize manualmente a pasta do usuário usando o gerenciador de arquivos.</string>
     <string name="manage_save_data">Gerenciar dados salvos</string>
     <string name="manage_save_data_description">Dados salvos encontrados. Por favor, escolha uma opção abaixo.</string>
@@ -302,7 +302,7 @@
     <string name="firmware_installed_failure_description">Verifique se os arquivos nca do firmware estão na raiz do arquivo zip e tente novamente.</string>
     <string name="firmware_uninstalled_failure">Falha na desinstalação do firmware</string>
     <string name="share_log">Compartilhar registros de depuração</string>
-    <string name="share_log_description">Compartilhe o arquivo de registro do Eden para depurar problemas</string>
+    <string name="share_log_description">Compartilhe o arquivo de registro do suyu para depurar problemas</string>
     <string name="share_log_missing">Arquivo de registro não encontrado</string>
     <string name="install_game_content">Instalar conteúdo de jogos</string>
     <string name="install_game_content_description">Instale atualizações de jogos ou DLC</string>
@@ -317,7 +317,7 @@
     <string name="install_game_content_help_link">https://yuzu-mirror.github.io/help/quickstart/#dumping-installed-updates</string>
     <string name="custom_driver_not_supported">Drivers personalizados não suportado</string>
     <string name="custom_driver_not_supported_description">Carregamento de drivers personalizados não suportado para este dispositivo no momento.\nVerifique essa opção novamente no futuro para ver se o suporte foi adicionado!</string>
-    <string name="manage_yuzu_data">Administrar Dados do Eden</string>
+    <string name="manage_yuzu_data">Administrar Dados do suyu</string>
     <string name="manage_yuzu_data_description">Importar/exportar firmware, chaves, dados do usuário e mais!</string>
     <string name="game_folders">Pastas de jogos</string>
     <string name="deep_scan">Varredura profunda</string>
@@ -377,13 +377,13 @@
     <string name="copied_to_clipboard">Copiado para a área de transferência</string>
     <string name="about_app_description">Um emulador de Switch de código aberto</string>
     <string name="contributors">Colaboradores</string>
-    <string name="licenses_description">Projetos que tornam o Eden para Android possível</string>
+    <string name="licenses_description">Projetos que tornam o suyu para Android possível</string>
     <string name="build">Versão da Compilação</string>
     <string name="user_data">Dados do usuário</string>
     <string name="user_data_description">Importar/exportar todos os dados do aplicativo.\n\nAo importar, todos os dados existentes serão excluídos!\n\nImportar dados do Citron pode causar problemas. Recomenda-se importar manualmente apenas o necessário.</string>
     <string name="exporting_user_data">Exportando dados do usuário...</string>
     <string name="importing_user_data">Importando dados do usuário...</string>
-    <string name="invalid_yuzu_backup">Backup do Eden inválido</string>
+    <string name="invalid_yuzu_backup">Backup do suyu inválido</string>
     <string name="user_data_export_success">Dados de usuário exportados com sucesso</string>
     <string name="user_data_import_success">Dados de usuário importados com sucesso</string>
     <string name="user_data_export_cancelled">Exportação cancelada</string>
@@ -677,7 +677,7 @@
     <string name="clear_shader_cache_warning_description">Você terá mais engasgos enquanto o cache de shaders for recompilado</string>
     <string name="cleared_shaders_successfully">Shaders excluídos com sucesso</string>
     <string name="driver_shader_wipe_dialog_title">Cache de Shader Limpo</string>
-    <string name="driver_shader_wipe_dialog_message">O Eden limpou automaticamente todos os caches de shader para manter a validação do pipeline Vulkan. Isso é necessário ao trocar drivers de GPU para evitar travamentos e corrupção gráfica. Você pode notar alguns engasgos enquanto os shaders são reconstruídos.</string>
+    <string name="driver_shader_wipe_dialog_message">O suyu limpou automaticamente todos os caches de shader para manter a validação do pipeline Vulkan. Isso é necessário ao trocar drivers de GPU para evitar travamentos e corrupção gráfica. Você pode notar alguns engasgos enquanto os shaders são reconstruídos.</string>
     <string name="addons_game">Complementos: %1$s</string>
     <string name="save_data">Dados salvos</string>
     <string name="save_data_description">Gerencie dados salvos específicos deste jogo</string>

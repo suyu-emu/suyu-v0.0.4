@@ -52,7 +52,7 @@
     <string name="show_soc_model">Vis SoC-modell</string>
     <string name="show_fw_version">Vis firmwareversjon</string>
 
-    <!-- Eden\'s Veil -->
+    <!-- suyu\'s Veil -->
     <string name="buffer_reorder_disable">Deaktiver bufferomorganisering</string>
     <string name="buffer_reorder_disable_description">Når merket, deaktiveres omorganisering av kartlagt minneopplasting som tillater å knytte opplastinger til spesifikke tegninger. Kan redusere ytelsen i noen tilfeller.</string>
 
@@ -156,7 +156,7 @@
 
     <!-- Setup strings -->
     <string name="welcome">Velkommen!</string>
-    <string name="welcome_description">Lær å sette opp &lt;b>Eden&lt;/b> og hopp inn i emulering.</string>
+    <string name="welcome_description">Lær å sette opp &lt;b>suyu&lt;/b> og hopp inn i emulering.</string>
     <string name="get_started">Kom i gang</string>
     <string name="keys">Nøkler</string>
     <string name="keys_description">Velg din &lt;b>prod.keys&lt;/b> fil ved å bruke knappen under.</string>
@@ -178,7 +178,7 @@
     <string name="home_search">Søk</string>
     <string name="home_settings">Innstillinger</string>
     <string name="empty_gamelist">Ingen filer ble funnet eller ingen spillkatalog er valgt ennå.</string>
-    <string name="select_games_folder_description">Gjør det mulig for Eden å fylle ut spillelisten.</string>
+    <string name="select_games_folder_description">Gjør det mulig for suyu å fylle ut spillelisten.</string>
     <string name="add_games_warning">Hoppe over valg av spillmappe?</string>
     <string name="add_games_warning_description">Spill vises ikke i Spill-listen hvis en mappe ikke er valgt.</string>
     <string name="home_search_games">Søk i spill|</string>
@@ -189,7 +189,7 @@
     <string name="install_firmware_warning">Hopp over tillegget av firmware?</string>
     <string name="install_firmware_warning_description">Mange spill krever tilgang til firmware for å fungere skikkelig.</string>
     <string name="notifications">Varsler</string>
-    <string name="notifications_description">Gi varslingstillatelse med knappen nedenfor.</string>
+    <string name="notifications_description">Gi varslingstillatelse med knappen nsuyufor.</string>
     <string name="permission_denied">Tillatelse avslått</string>
     <string name="permission_denied_description">Du har nektet denne tillatelsen for mange ganger, og nå må du gi den manuelt i systeminnstillingene.</string>
     <string name="about">Om</string>
@@ -206,13 +206,13 @@
     <string name="settings_description">Konfigurere emulatorinnstillinger</string>
     <string name="search_recently_played">Nylig spilt</string>
     <string name="search_recently_added">Nylig lagt til</string>
-    <string name="open_user_folder">Åpne Eden-mappen</string>
-    <string name="open_user_folder_description">Administrere Edens interne filer</string>
+    <string name="open_user_folder">Åpne suyu-mappen</string>
+    <string name="open_user_folder_description">Administrere suyus interne filer</string>
     <string name="no_file_manager">Ingen filbehandler funnet</string>
-    <string name="notification_no_directory_link">Kunne ikke åpne Eden-katalogen</string>
+    <string name="notification_no_directory_link">Kunne ikke åpne suyu-katalogen</string>
     <string name="notification_no_directory_link_description">Finn brukermappen manuelt med filbehandlingens sidepanel.</string>
     <string name="manage_save_data">Administrere lagringsdata</string>
-    <string name="manage_save_data_description">Lagringsdata funnet. Velg et alternativ nedenfor.</string>
+    <string name="manage_save_data_description">Lagringsdata funnet. Velg et alternativ nsuyufor.</string>
     <string name="save_file_imported_success">Vellykket import</string>
     <string name="save_file_invalid_zip_structure">Ugyldig struktur for lagringskatalog</string>
     <string name="save_file_invalid_zip_structure_description">Det første undermappenavnet må være spillets tittel-ID.</string>
@@ -221,7 +221,7 @@
     <string name="firmware_installing">Installering av fastvare</string>
     <string name="firmware_installed_failure">Installasjon av fastvare mislyktes</string>
     <string name="share_log">Del feilsøkingslogger</string>
-    <string name="share_log_description">Del Edens loggfil for å feilsøke problemer</string>
+    <string name="share_log_description">Del suyus loggfil for å feilsøke problemer</string>
     <string name="share_log_missing">Ingen loggfil funnet</string>
     <string name="install_game_content">Installer spillinnhold</string>
     <string name="install_game_content_description">Installer spilloppdateringer eller DLC</string>
@@ -234,7 +234,7 @@
     <string name="install_game_content_success_install">%1$d installert</string>
     <string name="install_game_content_success_overwrite">%1$d overskrevet</string>
     <string name="custom_driver_not_supported">Egendefinert driver støttes ikke</string>
-    <string name="manage_yuzu_data">Administrer eden-data</string>
+    <string name="manage_yuzu_data">Administrer suyu-data</string>
     <string name="manage_yuzu_data_description">Importer/eksporter firmware, nøkler osv.</string>
     <string name="game_folders">Spillmapper</string>
     <string name="deep_scan">Dyp skanning</string>
@@ -290,7 +290,7 @@
     <string name="copied_to_clipboard">Kopiert til utklippstavlen</string>
     <string name="about_app_description">En Switch-emulator med åpen kildekode</string>
     <string name="contributors">Bidragsytere</string>
-    <string name="licenses_description">Prosjekter som gjør Eden for Android mulig</string>
+    <string name="licenses_description">Prosjekter som gjør suyu for Android mulig</string>
     <string name="build">Bygg</string>
     <!-- General settings strings -->
     <string name="frame_limit_enable">Begrense hastigheten</string>

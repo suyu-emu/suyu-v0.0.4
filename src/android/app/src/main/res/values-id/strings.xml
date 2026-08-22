@@ -5,8 +5,8 @@
     <string name="notice_notification_channel_name">Pemberitahuan dan error</string>
     <string name="notice_notification_channel_description">Menampilkan pemberitahuan ketika terjadi kesalahan.</string>
     <string name="notification_permission_not_granted">Izin notifikasi tidak diberikan!</string>
-    <string name="app_notification_channel_description">Notifikasi emulator Eden</string>
-    <string name="app_notification_running">Eden sedang berjalan</string>
+    <string name="app_notification_channel_description">Notifikasi emulator suyu</string>
+    <string name="app_notification_running">suyu sedang berjalan</string>
     <string name="seconds">Detik</string>
 
     <!-- Spinbox strings -->
@@ -71,7 +71,7 @@
     <string name="show_soc_model">Tampilkan Model SoC</string>
     <string name="show_fw_version">Tampilkan Versi Firmware</string>
 
-    <!-- Eden\'s Veil -->
+    <!-- suyu\'s Veil -->
     <string name="buffer_reorder_disable">Nonaktifkan Penyusunan Ulang Buffer</string>
     <string name="buffer_reorder_disable_description">Ketika dicentang, menonaktifkan penyusunan ulang unggahan memori yang dipetakan yang memungkinkan mengaitkan unggahan dengan gambar tertentu. Dapat mengurangi kinerja dalam beberapa kasus.</string>
 
@@ -175,7 +175,7 @@
 
     <!-- Setup strings -->
     <string name="welcome">Selamat datang!</string>
-    <string name="welcome_description">Pelajari cara menyiapkan &lt;b>Eden&lt;/b> dan masuk ke dalam emulasi.</string>
+    <string name="welcome_description">Pelajari cara menyiapkan &lt;b>suyu&lt;/b> dan masuk ke dalam emulasi.</string>
     <string name="get_started">Memulai</string>
     <string name="keys">Kunci</string>
     <string name="keys_description">Pilih file &lt;b>prod.keys&lt;/b> Anda dengan tombol di bawah ini.</string>
@@ -204,7 +204,7 @@
     <string name="home_settings">Pengaturan</string>
     <string name="empty_gamelist">Tidak ada file yang ditemukan atau belum ada direktori game yang dipilih.</string>
     <string name="manage_game_folders">Kelola folder game</string>
-    <string name="select_games_folder_description">Izinkan Eden mengisi daftar game</string>
+    <string name="select_games_folder_description">Izinkan suyu mengisi daftar game</string>
     <string name="add_games_warning">Lewati pemilihan folder game?</string>
     <string name="add_games_warning_description">Game tidak akan muncul di list jika tidak ada folder yang dipilih.</string>
     <string name="add_games_warning_help">https://yuzu-mirror.github.io/help/quickstart/#dumping-games</string>
@@ -237,10 +237,10 @@
     <string name="settings_description">Konfigurasikan pengaturan emulator</string>
     <string name="search_recently_played">Baru dimainkan</string>
     <string name="search_recently_added">baru ditambahkan</string>
-    <string name="open_user_folder">Buka folder Eden</string>
-    <string name="open_user_folder_description">Kelola file internal Eden\'s</string>
+    <string name="open_user_folder">Buka folder suyu</string>
+    <string name="open_user_folder_description">Kelola file internal suyu\'s</string>
     <string name="no_file_manager">Tidak menemukan file manager</string>
-    <string name="notification_no_directory_link">Tidak bisa membuka direktori Eden</string>
+    <string name="notification_no_directory_link">Tidak bisa membuka direktori suyu</string>
     <string name="notification_no_directory_link_description">Silakan cari folder pengguna dengan panel samping manajer file secara manual.</string>
     <string name="manage_save_data">Kelola save data</string>
     <string name="manage_save_data_description">Data simpanan ditemukan. Silakan pilih opsi di bawah.</string>
@@ -258,7 +258,7 @@
     <string name="firmware_installed_failure_description">Pastikan file nca firmware terdapat pada folder utama dari file .zip dan coba lagi.</string>
     <string name="firmware_uninstalled_failure">Instalasi Firmware gagal</string>
     <string name="share_log">Bagikan log debug</string>
-    <string name="share_log_description">Bagikan file log Eden untuk mendebug isu</string>
+    <string name="share_log_description">Bagikan file log suyu untuk mendebug isu</string>
     <string name="share_log_missing">Tidak ada log file yang ditemukan</string>
     <string name="install_game_content">Instal konten game.</string>
     <string name="install_game_content_description">Instal pembaruan game atau DLC</string>
@@ -273,7 +273,7 @@
     <string name="install_game_content_help_link">https://yuzu-mirror.github.io/help/quickstart/#dumping-installed-updates</string>
     <string name="custom_driver_not_supported">Driver kustom tidak didukung</string>
     <string name="custom_driver_not_supported_description">Pemuatan driver kustom tidak didukung oleh perangkat ini.\nPeriksa lagi opsi ini di masa mendatang untuk melihat apakah dukungan telah ditambahkan!</string>
-    <string name="manage_yuzu_data">Kelola data Eden.</string>
+    <string name="manage_yuzu_data">Kelola data suyu.</string>
     <string name="manage_yuzu_data_description">Impor/expor firmware, key, data pengguna, dan sebagainya!</string>
     <string name="game_folders">Folder Game</string>
     <string name="deep_scan">Pemindaian mendalam</string>
@@ -329,13 +329,13 @@
     <string name="copied_to_clipboard">Salin ke papan klip</string>
     <string name="about_app_description">Emulator Switch Open-Source</string>
     <string name="contributors">Kontributor</string>
-    <string name="licenses_description">Proyek yang memungkinkan Eden untuk Android</string>
+    <string name="licenses_description">Proyek yang memungkinkan suyu untuk Android</string>
     <string name="build">Versi</string>
     <string name="user_data">Data pengguna</string>
     <string name="user_data_description">Impor/Ekspor semua data aplikasi\n\nketika mengimpor data user, semua data user yang tersedia akan dihapus!\n\nMengimpor data dari Citron dapat menyebabkan masalah. Direkomendasikan untuk melakukan impor manual semua data yang dibutuhkan.</string>
     <string name="exporting_user_data">Mengekspor data pengguna</string>
     <string name="importing_user_data">Mengimpor data pengguna</string>
-    <string name="invalid_yuzu_backup">cadangan Eden tidak valid</string>
+    <string name="invalid_yuzu_backup">cadangan suyu tidak valid</string>
     <string name="user_data_export_success">berhasil mengekspor data pengguna</string>
     <string name="user_data_import_success">Berhasil mengimpor data pengguna</string>
     <string name="user_data_export_cancelled">Ekspor Dibatalkan</string>

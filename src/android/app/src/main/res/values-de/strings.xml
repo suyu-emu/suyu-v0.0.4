@@ -5,8 +5,8 @@
     <string name="notice_notification_channel_name">Hinweise und Fehler</string>
     <string name="notice_notification_channel_description">Zeigt Benachrichtigungen an, wenn etwas schief läuft.</string>
     <string name="notification_permission_not_granted">Berechtigung für Benachrichtigungen nicht zugelassen!</string>
-    <string name="app_notification_channel_description">Eden Switch Emulator Benachrichtigungen</string>
-    <string name="app_notification_running">Eden wird ausgeführt</string>
+    <string name="app_notification_channel_description">suyu Switch Emulator Benachrichtigungen</string>
+    <string name="app_notification_running">suyu wird ausgeführt</string>
     <string name="seconds">Sekunden</string>
 
     <!-- Spinbox strings -->
@@ -91,7 +91,7 @@
     <string name="show_soc_model">SoC-Modell anzeigen</string>
     <string name="show_fw_version">Firmware-Version anzeigen</string>
 
-    <!-- Eden\'s Veil -->
+    <!-- suyu\'s Veil -->
     <string name="buffer_reorder_disable">Puffer-Neuanordnung deaktivieren</string>
     <string name="buffer_reorder_disable_description">Wenn aktiviert, wird die Neuanordnung von zugeordneten Speicher-Uploads deaktiviert, wodurch Uploads bestimmten Abrufen zugeordnet werden können. Dies kann in einigen Fällen zu Leistungseinbußen führen.</string>
 
@@ -200,7 +200,7 @@
 
     <!-- Setup strings -->
     <string name="welcome">Willkommen!</string>
-    <string name="welcome_description">Erfahre, wie du Eden einrichtest, und tauche in die Welt der Emulation ein.</string>
+    <string name="welcome_description">Erfahre, wie du suyu einrichtest, und tauche in die Welt der Emulation ein.</string>
     <string name="get_started">Erste Schritte</string>
     <string name="keys">Schlüssel</string>
     <string name="keys_description">Wähle deine <b>prod.keys</b> -Datei über die untenstehende Schaltfläche aus.</string>
@@ -238,7 +238,7 @@
     <string name="home_settings">Einstellungen</string>
     <string name="empty_gamelist">Es wurden keine Dateien gefunden oder es wurde noch kein Spielverzeichnis ausgewählt.</string>
     <string name="manage_game_folders">Spielordner verwalten</string>
-    <string name="select_games_folder_description">Ermöglicht es Eden, die Spieleliste zu füllen.</string>
+    <string name="select_games_folder_description">Ermöglicht es suyu, die Spieleliste zu füllen.</string>
     <string name="add_games_warning">Auswahl des Spieleverzeichnisses überspringen?</string>
     <string name="add_games_warning_description">Spiele werden in der Spieleliste nicht angezeigt, wenn kein Ordner ausgewählt ist.</string>
     <string name="add_games_warning_help">https://yuzu-mirror.github.io/help/quickstart/#dumping-games</string>
@@ -294,11 +294,11 @@
     <string name="settings_description">Emulatoreinstellungen konfigurieren</string>
     <string name="search_recently_played">Kürzlich gespielt</string>
     <string name="search_recently_added">Kürzlich hinzugefügt</string>
-    <string name="open_user_folder">Eden-Ordner öffnen</string>
-    <string name="open_user_folder_description">Eden\'s interne Dateien verwalten</string>
+    <string name="open_user_folder">suyu-Ordner öffnen</string>
+    <string name="open_user_folder_description">suyu\'s interne Dateien verwalten</string>
     <string name="app_settings_description">Verhalten und Aussehen der App verändern</string>
     <string name="no_file_manager">Kein Datei-Manager gefunden</string>
-    <string name="notification_no_directory_link">Eden-Verzeichnis konnte nicht geöffnet werden</string>
+    <string name="notification_no_directory_link">suyu-Verzeichnis konnte nicht geöffnet werden</string>
     <string name="notification_no_directory_link_description">Bitte suche den Benutzerordner manuell über die Seitenleiste des Datei-Managers.</string>
     <string name="manage_save_data">Speicherdaten verwalten</string>
     <string name="manage_save_data_description">Speicherdaten gefunden. Bitte wähle unten eine Option aus.</string>
@@ -317,10 +317,10 @@ Wirklich fortfahren?</string>
     <string name="firmware_installed_failure_description">Stelle sicher, dass sich die Firmware-NCA-Dateien im Stammverzeichnis der ZIP-Datei befinden, und versuche es erneut.</string>
     <string name="firmware_uninstalled_failure">Deinstallation der Firmware fehlgeschlagen</string>
     <string name="share_log">Fehlerbehebungs-Protokolle teilen</string>
-    <string name="share_log_description">Fehlerbehebungs-Protokolle an Eden zur Fehlerbehebung absenden</string>
+    <string name="share_log_description">Fehlerbehebungs-Protokolle an suyu zur Fehlerbehebung absenden</string>
     <string name="share_log_missing">Keine Protokolldatei gefunden</string>
     <string name="share_gpu_log">GPU-Protokolle teilen</string>
-    <string name="share_gpu_log_description">Teile Edens GPU-Protokolldatei, um Grafikprobleme zu beheben</string>
+    <string name="share_gpu_log_description">Teile suyus GPU-Protokolldatei, um Grafikprobleme zu beheben</string>
     <string name="share_gpu_log_missing">Keine GPU-Protokolldatei gefunden</string>
     <string name="install_game_content">Spiel installieren</string>
     <string name="install_game_content_description">Spielaktualisierungen oder DLCs installieren</string>
@@ -335,7 +335,7 @@ Wirklich fortfahren?</string>
     <string name="install_game_content_help_link">https://yuzu-mirror.github.io/help/quickstart/#dumping-installed-updates</string>
     <string name="custom_driver_not_supported">Benutzerdefinierte Treiber werden nicht unterstützt</string>
     <string name="custom_driver_not_supported_description">Das Laden von benutzerdefinierten Treibern wird für dieses Gerät momentan nicht unterstützt.\nSchau später einfach nochmal nach, ob die Unterstützung hinzugefügt wurde!</string>
-    <string name="manage_yuzu_data">Eden-Daten verwalten</string>
+    <string name="manage_yuzu_data">suyu-Daten verwalten</string>
     <string name="manage_yuzu_data_description">Importieren/Exportieren Sie Firmware, Schlüssel, Benutzerdaten und mehr!</string>
     <string name="game_folders">Spielordner</string>
     <string name="deep_scan">Tiefer Scan</string>
@@ -394,13 +394,13 @@ Wirklich fortfahren?</string>
     <string name="copied_to_clipboard">In die Zwischenablage kopiert</string>
     <string name="about_app_description">Ein quelloffener Switch-Emulator</string>
     <string name="contributors">Beitragende</string>
-    <string name="licenses_description">Projekte, die Eden für Android möglich machen </string>
+    <string name="licenses_description">Projekte, die suyu für Android möglich machen </string>
     <string name="build">Build</string>
     <string name="user_data">Nutzerdaten</string>
     <string name="user_data_description">Alle App-Daten importieren/exportieren\n\nBeim Importieren von Nutzerdaten werden alle existierenden Nutzerdaten gelöscht!\n\nDaten aus Citron zu importieren kann Probleme verursachen. Es wird empfohlen, alle benötigten Daten manuell zu importieren.</string>
     <string name="exporting_user_data">Benutzerdaten werden exportiert…</string>
     <string name="importing_user_data">Importiere Nutzerdaten...</string>
-    <string name="invalid_yuzu_backup">Ungültiges Eden-Backup</string>
+    <string name="invalid_yuzu_backup">Ungültiges suyu-Backup</string>
     <string name="user_data_export_success">Nutzerdaten erfolgreich exportiert</string>
     <string name="user_data_import_success">Nutzerdaten erfolgreich importiert</string>
     <string name="user_data_export_cancelled">Export abgebrochen</string>
@@ -734,7 +734,7 @@ Wird der Handheld-Modus verwendet, verringert es die Auflösung und erhöht die 
     <string name="clear_shader_cache_warning_description">Während der Shader-Cache regeneriert wird, kann es zu Rucklern kommen</string>
     <string name="cleared_shaders_successfully">Shader erfolgreich gelöscht</string>
     <string name="driver_shader_wipe_dialog_title">Shader gelöscht</string>
-    <string name="driver_shader_wipe_dialog_message">Eden hat automatisch alle Shader-Caches geleert, um die Vulkan-Pipeline-Validierung aufrechtzuerhalten. Dies ist beim Wechsel des GPU-Treibers erforderlich, um Abstürze und Grafikfehler zu vermeiden. Während die Shader neu gebaut werden, kann es zu kurzen Rucklern kommen.</string>
+    <string name="driver_shader_wipe_dialog_message">suyu hat automatisch alle Shader-Caches geleert, um die Vulkan-Pipeline-Validierung aufrechtzuerhalten. Dies ist beim Wechsel des GPU-Treibers erforderlich, um Abstürze und Grafikfehler zu vermeiden. Während die Shader neu gebaut werden, kann es zu kurzen Rucklern kommen.</string>
     <string name="addons_game">Add-ons: %1$s</string>
     <string name="save_data">Speicherdaten</string>
     <string name="save_data_description">Importiert oder exportiert Speicherdaten für dieses Spiel</string>

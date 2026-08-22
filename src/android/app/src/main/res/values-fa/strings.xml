@@ -55,7 +55,7 @@
     <string name="show_soc_model">نمایش مدل SoC</string>
     <string name="show_fw_version">نمایش نسخه فریمور</string>
 
-    <!-- Eden\'s Veil -->
+    <!-- suyu\'s Veil -->
     <string name="sync_memory_operations">همگام‌سازی عملیات حافظه</string>
     <string name="sync_memory_operations_description">اطمینان از سازگاری داده‌ها بین عملیات محاسباتی و حافظه. این گزینه ممکن است مشکلات برخی بازی‌ها را رفع کند، اما در برخی موارد ممکن است عملکرد را کاهش دهد. به نظر می‌رسد بازی‌های با Unreal Engine 4 بیشترین تأثیر را داشته باشند.</string>
     <string name="buffer_reorder_disable">غیرفعال کردن مرتب‌سازی مجدد بافر</string>
@@ -227,7 +227,7 @@
 
     <!-- Setup strings -->
     <string name="welcome">خوش آمدید!</string>
-    <string name="welcome_description">نحوه راه اندازی &lt;b>Eden&lt;/b> و شبیه سازی را بیاموزید.</string>
+    <string name="welcome_description">نحوه راه اندازی &lt;b>suyu&lt;/b> و شبیه سازی را بیاموزید.</string>
     <string name="get_started">شروع کنید</string>
     <string name="keys">کلیدها</string>
     <string name="keys_description">فایل &lt;b>prod.keys&lt;/b> خود را با دکمه زیر انتخاب کنید.</string>
@@ -254,7 +254,7 @@
     <string name="home_settings">تنظیمات</string>
     <string name="empty_gamelist">هیچ فایلی پیدا نشد یا هنوز پوشه بازی‌ها انتخاب نشده است.</string>
     <string name="manage_game_folders">مدیریت پوشه‌های بازی</string>
-    <string name="select_games_folder_description">به Eden اجازه می دهد تا لیست باز‌ی‌ها را پر کند</string>
+    <string name="select_games_folder_description">به suyu اجازه می دهد تا لیست باز‌ی‌ها را پر کند</string>
     <string name="add_games_warning">از انتخاب پوشه بازی رد می‌شوید؟</string>
     <string name="add_games_warning_description">اگر پوشه‌ای انتخاب نشده باشد، بازی‌ها در لیست بازی‌ها نمایش داده نمی‌شوند.</string>
     <string name="home_search_games">جستجو در بازی‌ها</string>
@@ -283,10 +283,10 @@
     <string name="settings_description">پیکربندی تنظیمات شبیه‌ساز</string>
     <string name="search_recently_played">آخرین بازی شده‌ها</string>
     <string name="search_recently_added">به تازگی اضافه شده‌ها</string>
-    <string name="open_user_folder">باز کردن پوشه Eden</string>
-    <string name="open_user_folder_description">مدیریت فایل‌های داخلی Eden</string>
+    <string name="open_user_folder">باز کردن پوشه suyu</string>
+    <string name="open_user_folder_description">مدیریت فایل‌های داخلی suyu</string>
     <string name="no_file_manager">هیچ برنامه مدیریت فایلی پیدا نشد</string>
-    <string name="notification_no_directory_link">پوشه Eden باز نشد</string>
+    <string name="notification_no_directory_link">پوشه suyu باز نشد</string>
     <string name="notification_no_directory_link_description">لطفاً پوشه کاربری را با استفاده از پنل کناری برنامه مدیریت فایل به صورت دستی پیدا کنید.</string>
     <string name="manage_save_data">مدیریت ذخیره داده‌ها</string>
     <string name="manage_save_data_description">ذخیره داده یافت شد. لطفاً یکی از گزینه‌های زیر را انتخاب کنید.</string>
@@ -303,7 +303,7 @@
     <string name="firmware_installed_failure">نصب ثابت‌افزار ناموفق بود</string>
     <string name="firmware_installed_failure_description">مطمئن شوید که فایل‌های nca ثابت‌افزار در ریشه فایل فشرده هستند و دوباره امتحان کنید.</string>
     <string name="share_log">اشتراک گزارش اشکال زدایی</string>
-    <string name="share_log_description">فایل گزارش Eden را برای رفع اشکال به اشتراک بگذارید</string>
+    <string name="share_log_description">فایل گزارش suyu را برای رفع اشکال به اشتراک بگذارید</string>
     <string name="share_log_missing">هیچ فایل گزارشی یافت نشد</string>
     <string name="install_game_content">نصب محتوای بازی</string>
     <string name="install_game_content_description">آپدیت های بازی یا DLC را نصب کنید</string>
@@ -317,7 +317,7 @@
     <string name="install_game_content_success_overwrite">%1$dبا موفقیت بازنویسی شد</string>
     <string name="custom_driver_not_supported">درایورهای سفارشی پشتیبانی نمی‌شوند</string>
     <string name="custom_driver_not_supported_description">بارگیری درایور سفارشی در حال حاضر برای این دستگاه پشتیبانی نمی‌شود.\nاین گزینه را دوباره در آینده بررسی کنید تا ببینید آیا پشتیبانی اضافه شده است یا خیر!</string>
-    <string name="manage_yuzu_data">مدیریت داده‌های Eden</string>
+    <string name="manage_yuzu_data">مدیریت داده‌های suyu</string>
     <string name="manage_yuzu_data_description">وارد کردن/صادر کردن ثابت‌افزار، کلیدها، داده‌های کاربر، و موارد دیگر!</string>
     <string name="game_folders">پوشه‌های بازی</string>
     <string name="deep_scan">بررسی عمیق</string>
@@ -368,14 +368,14 @@
     <string name="copied_to_clipboard">در کلیپ‌بورد کپی شد</string>
     <string name="about_app_description">یک شبیه‌ساز سوئیچ منبع باز</string>
     <string name="contributors">مشارکت کنندگان</string>
-    <string name="contributors_description">Made with \u2764 from the Eden team</string>
-    <string name="licenses_description">پروژه‌هایی که Eden را برای اندروید ممکن می‌سازند</string>
+    <string name="contributors_description">Made with \u2764 from the suyu team</string>
+    <string name="licenses_description">پروژه‌هایی که suyu را برای اندروید ممکن می‌سازند</string>
     <string name="build">ساخت</string>
     <string name="user_data">داده کاربر</string>
     <string name="user_data_description">همه داده‌های برنامه را وارد/صادر کنید.\n\nهنگام وارد کردن داده‌های کاربر، همه داده‌های کاربر موجود حذف خواهند شد!</string>
     <string name="exporting_user_data">در حال صادر کردن داده‌های کاربر...</string>
     <string name="importing_user_data">در حال وارد کردن داده‌های کاربر...</string>
-    <string name="invalid_yuzu_backup">پشتیبان نامعتبر Eden</string>
+    <string name="invalid_yuzu_backup">پشتیبان نامعتبر suyu</string>
     <string name="user_data_export_success">داده‌های کاربر با موفقیت صادر شد</string>
     <string name="user_data_import_success">داده‌های کاربر با موفقیت وارد شد</string>
     <string name="user_data_export_cancelled">صدور لغو شد</string>

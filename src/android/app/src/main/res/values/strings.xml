@@ -2,16 +2,16 @@
 <resources xmlns:tools="http://schemas.android.com/tools" tools:ignore="MissingTranslation">
 
     <!-- General application strings -->
-    <string name="app_name" translatable="false">Eden</string>
+    <string name="app_name" translatable="false">suyu</string>
     <string name="app_disclaimer">This software will run games for the Nintendo Switch game console. No game titles or keys are included.&lt;br /&gt;&lt;br /&gt;Before you begin, please locate your <![CDATA[<b> prod.keys </b>]]> file on your device storage.&lt;br /&gt;&lt;br /&gt;<![CDATA[<a href=\"https://yuzu-mirror.github.io/help/quickstart\">Learn more</a>]]></string>
     <string name="notice_notification_channel_name">Notices and errors</string>
     <string name="notice_notification_channel_id" translatable="false">noticesAndErrors</string>
     <string name="notice_notification_channel_description">Shows notifications when something goes wrong.</string>
     <string name="notification_permission_not_granted">Notification permission not granted!</string>
-    <string name="app_notification_channel_name" translatable="false">Eden</string>
-    <string name="app_notification_channel_id" translatable="false">Eden</string>
-    <string name="app_notification_channel_description">Eden Switch emulator notifications</string>
-    <string name="app_notification_running">Eden is Running</string>
+    <string name="app_notification_channel_name" translatable="false">suyu</string>
+    <string name="app_notification_channel_id" translatable="false">suyu</string>
+    <string name="app_notification_channel_description">suyu Switch emulator notifications</string>
+    <string name="app_notification_running">suyu is Running</string>
     <string name="seconds">Seconds</string>
 
     <!-- Spinbox strings -->
@@ -97,7 +97,7 @@
     <string name="show_soc_model">Show SoC Model</string>
     <string name="show_fw_version">Show Firmware Version</string>
 
-    <!-- Eden\'s Veil -->
+    <!-- suyu\'s Veil -->
     <string name="buffer_reorder_disable">Disable Buffer Reorder</string>
     <string name="buffer_reorder_disable_description">When checked, disables reordering of mapped memory uploads which allows to associate uploads with specific draws. May reduce performance in some cases.</string>
 
@@ -208,7 +208,7 @@
 
     <!-- Setup strings -->
     <string name="welcome">Welcome!</string>
-    <string name="welcome_description">Learn how to setup &lt;b>Eden&lt;/b> and jump into emulation.</string>
+    <string name="welcome_description">Learn how to setup &lt;b>suyu&lt;/b> and jump into emulation.</string>
     <string name="get_started">Get started</string>
     <string name="keys">Keys</string>
     <string name="keys_description">Select your &lt;b>prod.keys&lt;/b> file with the button below.</string>
@@ -260,7 +260,7 @@
     <string name="home_settings">Settings</string>
     <string name="empty_gamelist">No files were found or no game directory has been selected yet.</string>
     <string name="manage_game_folders">Manage game folders</string>
-    <string name="select_games_folder_description">Allows Eden to populate the games list</string>
+    <string name="select_games_folder_description">Allows suyu to populate the games list</string>
     <string name="add_games_warning">Skip selecting games folder?</string>
     <string name="add_games_warning_description">Games won\'t be displayed in the Games list if a folder isn\'t selected.</string>
     <string name="add_games_warning_help">https://yuzu-mirror.github.io/help/quickstart/#dumping-games</string>
@@ -316,11 +316,11 @@
     <string name="settings_description">Configure emulator settings</string>
     <string name="search_recently_played">Recently played</string>
     <string name="search_recently_added">Recently added</string>
-    <string name="open_user_folder">Open Eden folder</string>
-    <string name="open_user_folder_description">Manage Eden\'s internal files</string>
+    <string name="open_user_folder">Open suyu folder</string>
+    <string name="open_user_folder_description">Manage suyu\'s internal files</string>
     <string name="app_settings_description">Modify the behavior and look of the app</string>
     <string name="no_file_manager">No file manager found</string>
-    <string name="notification_no_directory_link">Could not open Eden directory</string>
+    <string name="notification_no_directory_link">Could not open suyu directory</string>
     <string name="notification_no_directory_link_description">Please locate the user folder with the file manager\'s side panel manually.</string>
     <string name="manage_save_data">Manage save data</string>
     <string name="manage_save_data_description">Save data found. Please select an option below.</string>
@@ -338,10 +338,10 @@
     <string name="firmware_installed_failure_description">Make sure the firmware nca files are at the root of the zip and try again.</string>
     <string name="firmware_uninstalled_failure">Firmware uninstallation failed</string>
     <string name="share_log">Share debug logs</string>
-    <string name="share_log_description">Share Eden\'s log file to debug issues</string>
+    <string name="share_log_description">Share suyu\'s log file to debug issues</string>
     <string name="share_log_missing">No log file found</string>
     <string name="share_gpu_log">Share GPU logs</string>
-    <string name="share_gpu_log_description">Share Eden\'s GPU log file to debug graphics issues</string>
+    <string name="share_gpu_log_description">Share suyu\'s GPU log file to debug graphics issues</string>
     <string name="share_gpu_log_missing">No GPU log file found</string>
     <string name="install_game_content">Install game content</string>
     <string name="install_game_content_description">Install game updates or DLC</string>
@@ -356,7 +356,7 @@
     <string name="install_game_content_help_link">https://yuzu-mirror.github.io/help/quickstart/#dumping-installed-updates</string>
     <string name="custom_driver_not_supported">Custom drivers not supported</string>
     <string name="custom_driver_not_supported_description">Custom driver loading isn\'t currently supported for this device.\nCheck this option again in the future to see if support was added!</string>
-    <string name="manage_yuzu_data">Manage Eden data</string>
+    <string name="manage_yuzu_data">Manage suyu data</string>
     <string name="manage_yuzu_data_description">Import/export firmware, keys, user data, and more!</string>
     <string name="game_folders">Game folders</string>
     <string name="deep_scan">Deep scan</string>
@@ -416,24 +416,24 @@
     <string name="copied_to_clipboard">Copied to clipboard</string>
     <string name="about_app_description">An open-source Switch emulator</string>
     <string name="contributors">Contributors</string>
-    <string name="contributors_description">People who made Eden for Android possible</string>
-    <string name="contributors_link" translatable="false">https://git.eden-emu.dev/eden-emu/eden/activity/contributors</string>
-    <string name="licenses_description">Projects that make Eden for Android possible</string>
+    <string name="contributors_description">People who made suyu for Android possible</string>
+    <string name="contributors_link" translatable="false">https://github.com/suyu-emu/suyu/graphs/contributors</string>
+    <string name="licenses_description">Projects that make suyu for Android possible</string>
     <string name="build">Build</string>
     <string name="user_data">User data</string>
     <string name="user_data_description">Import/export all app data.\n\nWhen importing user data, all existing user data will be deleted!\n\nImporting data from Citron may cause issues. It\'s recommended to manually import all needed data.</string>
     <string name="exporting_user_data">Exporting user data…</string>
     <string name="importing_user_data">Importing user data…</string>
-    <string name="invalid_yuzu_backup">Invalid Eden backup</string>
+    <string name="invalid_yuzu_backup">Invalid suyu backup</string>
     <string name="user_data_export_success">User data exported successfully</string>
     <string name="user_data_import_success">User data imported successfully</string>
     <string name="user_data_export_cancelled">Export cancelled</string>
     <string name="user_data_import_failed_description">Make sure the user data folders are at the root of the zip folder and contain a config file at config/config.ini and try again.</string>
     <string name="discord_link" translatable="false">https://discord.gg/HstXbPch7X</string>
     <string name="stoat_link" translatable="false">https://stt.gg/qKgFEAbH</string>
-    <string name="x_link" translatable="false">https://nitter.poast.org/edenemuofficial</string>
-    <string name="website_link" translatable="false">https://eden-emu.dev</string>
-    <string name="github_link" translatable="false">https://git.eden-emu.dev/eden-emu</string>
+    <string name="x_link" translatable="false">https://twitter.com/suyuemu</string>
+    <string name="website_link" translatable="false">https://suyu.dev</string>
+    <string name="github_link" translatable="false">https://github.com/suyu-emu</string>
 
     <!-- General settings strings -->
     <string name="frame_limit_enable">Limit speed</string>
@@ -836,7 +836,7 @@
     <string name="clear_shader_cache_warning_description">You will experience more stuttering as the shader cache regenerates</string>
     <string name="cleared_shaders_successfully">Cleared shaders successfully</string>
     <string name="driver_shader_wipe_dialog_title">Shaders Cleared</string>
-    <string name="driver_shader_wipe_dialog_message">Eden has automatically cleared all shader caches to maintain Vulkan pipeline validation. This is required when switching GPU drivers to prevent crashes and graphical corruption. You may experience some stuttering as shaders rebuild.</string>
+    <string name="driver_shader_wipe_dialog_message">suyu has automatically cleared all shader caches to maintain Vulkan pipeline validation. This is required when switching GPU drivers to prevent crashes and graphical corruption. You may experience some stuttering as shaders rebuild.</string>
     <string name="addons_game">Addons: %1$s</string>
     <string name="save_data">Save data</string>
     <string name="save_data_description">Manage save data specific to this game</string>
@@ -1244,7 +1244,7 @@
 
     <!-- Static Themes -->
     <string name="static_theme_color">Theme Color</string>
-    <string name="eden_theme">Eden</string>
+    <string name="suyu_theme">suyu</string>
     <string name="violet">Violet</string>
     <string name="blue">Blue</string>
     <string name="cyan">Cyan</string>

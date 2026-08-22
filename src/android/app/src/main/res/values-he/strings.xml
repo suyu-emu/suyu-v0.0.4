@@ -56,7 +56,7 @@
     <string name="show_soc_model">הצג דגם SoC</string>
     <string name="show_fw_version">הצג גרסת קושחה</string>
 
-    <!-- Eden\'s Veil -->
+    <!-- suyu\'s Veil -->
     <string name="buffer_reorder_disable">השבת סידור מחדש של חוצץ</string>
     <string name="buffer_reorder_disable_description">כאשר מסומן, מבטל את סידור מחדש של העלאות זיכרון ממופה המאפשר לשייך העלאות עם ציורים ספציפיים. עלול להפחית ביצועים במקרים מסוימים.</string>
 
@@ -161,7 +161,7 @@
 
     <!-- Setup strings -->
     <string name="welcome">ברוכים הבאים!</string>
-    <string name="welcome_description">למד איך להפעיל &lt;b>Eden&lt;/b> וקפוץ ישר לאמולציה.</string>
+    <string name="welcome_description">למד איך להפעיל &lt;b>suyu&lt;/b> וקפוץ ישר לאמולציה.</string>
     <string name="get_started">כדי להתחיל</string>
     <string name="keys">מפתחות</string>
     <string name="keys_description">בחר את קובץ ה &lt;b>prod.keys&lt;/b> שלך עם הכפתור למטה.</string>
@@ -187,7 +187,7 @@
     <string name="home_settings">הגדרות</string>
     <string name="empty_gamelist">לא נמצאו קבצים או לנבחרה ספריית קבצים בינתיים.</string>
     <string name="manage_game_folders">נהל את תיקיית המשחקים</string>
-    <string name="select_games_folder_description">אפשר ל Eden  לאכלס את רשימת המשחקים</string>
+    <string name="select_games_folder_description">אפשר ל suyu  לאכלס את רשימת המשחקים</string>
     <string name="add_games_warning">לדלג על בחירת תיקיית המשחקים?</string>
     <string name="add_games_warning_description">משחקים לא יוצגו ברשימת המשחקים  אם לנבחרה תיקיית משחקים.</string>
     <string name="home_search_games">חפש משחקים</string>
@@ -217,10 +217,10 @@
     <string name="settings_description">הדר את הגדרות האמולטור</string>
     <string name="search_recently_played">שוחק לאחרונה</string>
     <string name="search_recently_added">הוסף לאחרונה</string>
-    <string name="open_user_folder">פתח את תיקיית Eden </string>
-    <string name="open_user_folder_description">נה ל את הקבצים הפנימיין של Eden</string>
+    <string name="open_user_folder">פתח את תיקיית suyu </string>
+    <string name="open_user_folder_description">נה ל את הקבצים הפנימיין של suyu</string>
     <string name="no_file_manager">לא נמצא מנהל קבצים</string>
-    <string name="notification_no_directory_link">לא יכול לפתוח את ספריית Eden</string>
+    <string name="notification_no_directory_link">לא יכול לפתוח את ספריית suyu</string>
     <string name="notification_no_directory_link_description">בבקשה מקם את תיקיית המשתמש בפנל הצידי של מנהל הקבצים באופן ידני.</string>
     <string name="manage_save_data">נהל  מידע שמור</string>
     <string name="manage_save_data_description">מידע שמור לא נמצא. בבקשה בחר/י אופציה מלמטה</string>
@@ -238,7 +238,7 @@
     <string name="firmware_installed_failure_description">ודא שקבצי ה firmware nca נמצאים בשורש ה zip ונסה שוב.</string>
     <string name="firmware_uninstalled_failure">הסרת ה firmware נכשלה</string>
     <string name="share_log">שתף  את יומני הרישום של מיפוי הבאגים</string>
-    <string name="share_log_description">שתף את קובץ יומני הרישום של Eden בכדי לתקן בעיות</string>
+    <string name="share_log_description">שתף את קובץ יומני הרישום של suyu בכדי לתקן בעיות</string>
     <string name="share_log_missing">לא נמצא קובץ יומן רישום</string>
     <string name="install_game_content">התקן תוכן משחק</string>
     <string name="install_game_content_description">התקן עדכוני משחק או DLC</string>
@@ -251,7 +251,7 @@
     <string name="install_game_content_success_install">%1$d הותקן בהצלחה</string>
     <string name="install_game_content_success_overwrite">%1$d נדרס/נכתב מעל בהצלחה</string>
     <string name="custom_driver_not_supported">דרייברים מותאמים אישית לא נתמכים</string>
-    <string name="manage_yuzu_data">נהל את המידע של Eden</string>
+    <string name="manage_yuzu_data">נהל את המידע של suyu</string>
     <string name="manage_yuzu_data_description">יבא/יצא firmware, keys, מידע של משתמש ועוד!</string>
     <string name="game_folders">תיקיית משחקים</string>
     <string name="deep_scan">סריקה עמוקה</string>
@@ -309,12 +309,12 @@
     <string name="copied_to_clipboard">הועתק ללוח</string>
     <string name="about_app_description">אמולטור Switch עם קוד פתוח</string>
     <string name="contributors">תורמים</string>
-    <string name="licenses_description">פרוייקטים שהופכים את Eden ל Android אפשרי</string>
+    <string name="licenses_description">פרוייקטים שהופכים את suyu ל Android אפשרי</string>
     <string name="build">גרסה</string>
     <string name="user_data">נתוני משתמש</string>
     <string name="exporting_user_data">מייצא נתוני משתמש...</string>
     <string name="importing_user_data">מייבא נתוני משתמש...</string>
-    <string name="invalid_yuzu_backup">גיבוי Eden לא חוקי</string>
+    <string name="invalid_yuzu_backup">גיבוי suyu לא חוקי</string>
     <string name="user_data_export_success">נתוני משתמש יוצאו בהצלחה</string>
     <string name="user_data_import_success">נתוני משתמש יובאו בהצלחה</string>
     <string name="user_data_export_cancelled">ייצוא בוטל</string>

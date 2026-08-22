@@ -186,7 +186,7 @@ RETRO_API void retro_init() {
         const auto keys_dir = Common::FS::GetSuyuPath(Common::FS::SuyuPath::KeysDir);
         // .../<roaming>/suyu/keys -> .../<roaming>
         const auto roaming = keys_dir.parent_path().parent_path();
-        for (const auto& emu : {"eden", "yuzu", "sudachi", "citron", "Ryujinx"}) {
+        for (const auto& emu : {"suyu", "yuzu", "sudachi", "citron", "Ryujinx"}) {
             const auto src_dir = roaming / emu / "keys";
             std::error_code ec;
             if (!std::filesystem::exists(src_dir, ec)) {

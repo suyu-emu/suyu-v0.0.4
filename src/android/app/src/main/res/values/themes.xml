@@ -27,7 +27,7 @@
         <item name="popupMenuStyle">@style/YuzuPopupMenu</item>
     </style>
 
-    <style name="Theme.Eden.Main" parent="Theme.Material3.DayNight.NoActionBar">
+    <style name="Theme.suyu.Main" parent="Theme.Material3.DayNight.NoActionBar">
         <!-- Primary colors -->
         <item name="colorPrimary">@color/eden_primary</item>
         <item name="colorOnPrimary">@color/eden_on_primary</item>

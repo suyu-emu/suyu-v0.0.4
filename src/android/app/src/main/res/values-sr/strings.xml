@@ -50,7 +50,7 @@
     <string name="show_soc_model">Прикажи соц модел</string>
     <string name="show_fw_version">Прикажи верзију фирмвера</string>
 
-    <!-- Eden\'s Veil -->
+    <!-- suyu\'s Veil -->
     <string name="buffer_reorder_disable">Онемогући преуређивање бафера</string>
     <string name="buffer_reorder_disable_description">Када је означено, онемогућава преуређивање учитавања мапиране меморије што омогућава повезивање учитавања са одређеним цртањима. Може у неким случајевима смањити перформансе.</string>
 

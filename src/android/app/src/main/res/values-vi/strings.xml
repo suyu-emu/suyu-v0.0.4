@@ -52,7 +52,7 @@
     <string name="show_soc_model">Hiển thị model SoC</string>
     <string name="show_fw_version">Hiển thị phiên bản firmware</string>
 
-    <!-- Eden\'s Veil -->
+    <!-- suyu\'s Veil -->
     <string name="buffer_reorder_disable">Tắt sắp xếp lại bộ đệm</string>
     <string name="buffer_reorder_disable_description">Khi được chọn, sẽ tắt tính năng sắp xếp lại các lần tải lên bộ nhớ đã ánh xạ, cho phép liên kết các lần tải lên với các bản vẽ cụ thể. Có thể làm giảm hiệu suất trong một số trường hợp.</string>
 
@@ -156,7 +156,7 @@
 
     <!-- Setup strings -->
     <string name="welcome">Chào mừng!</string>
-    <string name="welcome_description">Tìm hiểu cách cài đặt &lt;b>Eden&lt;/b> và bắt đầu giả lập.</string>
+    <string name="welcome_description">Tìm hiểu cách cài đặt &lt;b>suyu&lt;/b> và bắt đầu giả lập.</string>
     <string name="get_started">Bắt đầu</string>
     <string name="keys">Chìa khóa</string>
     <string name="keys_description">Chọn file &lt;b>prod.keys&lt;/b> của bạn bằng nút bên dưới.</string>
@@ -178,7 +178,7 @@
     <string name="home_search">Tìm</string>
     <string name="home_settings">Cài đặt</string>
     <string name="empty_gamelist">Không tìm thấy files hoặc chưa có thư mục trò chơi nào được chọn.</string>
-    <string name="select_games_folder_description">Cho phép Eden thêm các trò chơi vào danh sách</string>
+    <string name="select_games_folder_description">Cho phép suyu thêm các trò chơi vào danh sách</string>
     <string name="add_games_warning">Bỏ qua lựa chọn thư mục trò chơi?</string>
     <string name="add_games_warning_description">Trò chơi sẽ không hiển thị trong danh sách nếu một thư mục không được chọn</string>
     <string name="home_search_games">Tìm kiếm games</string>
@@ -206,10 +206,10 @@
     <string name="settings_description">Tinh chỉnh cài đặt giả lập</string>
     <string name="search_recently_played">Đã chơi gần đây</string>
     <string name="search_recently_added">Đã thêm gần đây</string>
-    <string name="open_user_folder">Mở thư mục Eden</string>
-    <string name="open_user_folder_description">Quản lý file nội bộ của Eden</string>
+    <string name="open_user_folder">Mở thư mục suyu</string>
+    <string name="open_user_folder_description">Quản lý file nội bộ của suyu</string>
     <string name="no_file_manager">Không tìm thấy trình quản lý tệp</string>
-    <string name="notification_no_directory_link">Không thể mở thư mục Eden</string>
+    <string name="notification_no_directory_link">Không thể mở thư mục suyu</string>
     <string name="notification_no_directory_link_description">Vui lòng xác định thư mục người dùng với bảng điều khiển bên của trình quản lý tệp thủ công.</string>
     <string name="manage_save_data">Quản lý dữ liệu save</string>
     <string name="manage_save_data_description">Đã tìm thấy dữ liệu save. Vui lòng chọn một tuỳ chọn bên dưới.</string>
@@ -221,7 +221,7 @@
     <string name="firmware_installing">Đang cài đặt firmware</string>
     <string name="firmware_installed_failure">Cài đặt firmware thất bại</string>
     <string name="share_log">Chia sẽ log gỡ lỗi</string>
-    <string name="share_log_description">Chia sẻ tệp log của Eden để gỡ lỗi vấn đề</string>
+    <string name="share_log_description">Chia sẻ tệp log của suyu để gỡ lỗi vấn đề</string>
     <string name="share_log_missing">Không tìm thấy tệp log</string>
     <string name="install_game_content">Cài đặt nội dung game</string>
     <string name="install_game_content_description">Cài đặt cập nhật game hoặc DLC</string>
@@ -288,7 +288,7 @@
     <string name="copied_to_clipboard">Đã sao chép vào bộ nhớ tạm</string>
     <string name="about_app_description">Một giả lập Switch mã nguồn mở</string>
     <string name="contributors">Người đóng góp</string>
-    <string name="licenses_description">Các dự án làm cho Eden trên Android trở thành điều có thể</string>
+    <string name="licenses_description">Các dự án làm cho suyu trên Android trở thành điều có thể</string>
     <string name="build">Dựng</string>
     <!-- General settings strings -->
     <string name="frame_limit_enable">Giới hạn tốc độ</string>
