@@ -22,7 +22,7 @@
 EmuWindow_SDL3_VK::EmuWindow_SDL3_VK(InputCommon::InputSubsystem* input_subsystem_,
                                      Core::System& system_, bool fullscreen)
     : EmuWindow_SDL3{input_subsystem_, system_} {
-    const std::string window_title = fmt::format("Eden {} | {}-{} (Vulkan)",
+    const std::string window_title = fmt::format("suyu {} | {}-{} (Vulkan)",
                                                  Common::g_build_name,
                                                  Common::g_scm_branch,
                                                  Common::g_scm_desc);
