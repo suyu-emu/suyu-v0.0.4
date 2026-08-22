@@ -45,11 +45,11 @@ std::vector<ExternalToolInfo> ExternalDecryptionTool::KnownTools() {
          {QStringLiteral("Ryujinx.exe"), QStringLiteral("Ryujinx"),
           QStringLiteral("Ryujinx.Headless.SDL2.exe"),
           QStringLiteral("Ryujinx.Headless.SDL2")}},
-        {QStringLiteral("eden"),
-         QStringLiteral("Eden"),
+        {QStringLiteral("suyu"),
+         QStringLiteral("suyu"),
          QStringLiteral("suyu emulator. Point to the eden executable; "
                         "suyu will invoke its CLI for decryption."),
-         {QStringLiteral("eden.exe"), QStringLiteral("eden")}},
+         {QStringLiteral("eden.exe"), QStringLiteral("suyu")}},
         {QStringLiteral("yuzu"),
          QStringLiteral("yuzu (legacy)"),
          QStringLiteral("Previous yuzu builds. Point to yuzu.exe or yuzu-cmd.exe. "

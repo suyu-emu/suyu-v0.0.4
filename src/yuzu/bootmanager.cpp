@@ -117,7 +117,7 @@ struct NullRenderWidget : public RenderWidget {
 GRenderWindow::GRenderWindow(MainWindow* parent,
                              std::shared_ptr<InputCommon::InputSubsystem> input_subsystem_)
     : QWidget(parent), input_subsystem{std::move(input_subsystem_)} {
-    setWindowTitle(QStringLiteral("Eden %1 | %2-%3")
+    setWindowTitle(QStringLiteral("suyu %1 | %2-%3")
                        .arg(QString::fromUtf8(Common::g_build_name),
                             QString::fromUtf8(Common::g_scm_branch),
                             QString::fromUtf8(Common::g_scm_desc)));
@@ -860,7 +860,7 @@ bool GRenderWindow::InitializeOpenGL() {
     return true;
 #else
     QMessageBox::warning(this, tr("OpenGL not available!"),
-                         tr("Eden has not been compiled with OpenGL support."));
+                         tr("suyu has not been compiled with OpenGL support."));
     return false;
 #endif
 }

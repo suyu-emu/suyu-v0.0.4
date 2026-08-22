@@ -369,7 +369,7 @@ MainWindow::MainWindow(bool has_broken_vulkan)
             std::string str_path = Common::FS::GetEdenPathString(path);
             if (str_path.starts_with(user_data_migrator.selected_emu.get_user_dir())) {
                 boost::replace_all(
-                    str_path, user_data_migrator.selected_emu.lower_name().toStdString(), "eden");
+                    str_path, user_data_migrator.selected_emu.lower_name().toStdString(), "suyu");
                 Common::FS::SetEdenPath(path, str_path);
             }
         }
@@ -1837,7 +1837,7 @@ bool MainWindow::LoadROM(const QString& filename, Service::AM::FrontendAppletPar
         case Core::SystemResultStatus::ErrorVideoCore:
             QMessageBox::critical(
                 this, tr("An error occurred initializing the video core."),
-                tr("Eden has encountered an error while running the video core. "
+                tr("suyu has encountered an error while running the video core. "
                    "This is usually caused by outdated GPU drivers, including integrated ones. "
                    "Please see the log for more details. "
                    "For more information on accessing the log, please see the following page: "
@@ -1892,7 +1892,7 @@ bool MainWindow::SelectAndSetCurrentUser(
 
 void MainWindow::BootGame(const QString& filename, Service::AM::FrontendAppletParameters params,
                           StartGameType type) {
-    LOG_INFO(Frontend, "Eden starting...");
+    LOG_INFO(Frontend, "suyu starting...");
 
     if (params.program_id == 0 ||
         params.program_id > static_cast<u64>(Service::AM::AppletProgramId::MaxProgramId)) {
@@ -4408,7 +4408,7 @@ bool MainWindow::ConfirmClose() {
         return true;
 
     const auto text = tr("Are you sure you want to close Eden?");
-    return question(this, tr("Eden"), text);
+    return question(this, tr("suyu"), text);
 }
 
 void MainWindow::closeEvent(QCloseEvent* event) {
@@ -4496,7 +4496,7 @@ bool MainWindow::ConfirmChangeGame() {
 
     // Use custom question to link controller navigation
     return question(
-        this, tr("Eden"),
+        this, tr("suyu"),
         tr("Are you sure you want to stop the emulation? Any unsaved progress will be lost."),
         QMessageBox::Yes | QMessageBox::No, QMessageBox::Yes);
 }
@@ -4508,7 +4508,7 @@ bool MainWindow::ConfirmForceLockedExit() {
     const auto text = tr("The currently running application has requested Eden to not exit.\n\n"
                          "Would you like to bypass this and exit anyway?");
 
-    return question(this, tr("Eden"), text);
+    return question(this, tr("suyu"), text);
 }
 
 void MainWindow::RequestGameExit() {

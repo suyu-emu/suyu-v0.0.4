@@ -58,7 +58,7 @@ NewUserDialog::NewUserDialog(Common::UUID uuid, const std::string& username, con
 }
 
 NewUserDialog::NewUserDialog(QWidget* parent) : QDialog(parent) {
-    setup(Common::UUID::MakeRandom(), "Eden", tr("New User"));
+    setup(Common::UUID::MakeRandom(), "suyu", tr("New User"));
 }
 
 void NewUserDialog::setup(Common::UUID uuid, const std::string& username, const QString& title) {

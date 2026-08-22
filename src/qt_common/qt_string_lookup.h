@@ -102,7 +102,7 @@ static const constexpr frozen::map<StringKey, frozen::string, 29> strings = {
     {FwInstallFailedCorrupted,
      QT_TR_NOOP(
          "Firmware installation cancelled, firmware may be in a bad state or corrupted. Restart "
-         "Eden or re-install firmware.")},
+         "suyu or re-install firmware.")},
 
     {FwCheckErrorFirmwareMissing,
      QT_TR_NOOP(
