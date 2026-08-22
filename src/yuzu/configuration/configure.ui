@@ -17,7 +17,7 @@
    </size>
   </property>
   <property name="windowTitle">
-   <string>Eden Configuration</string>
+   <string>suyu Configuration</string>
   </property>
   <layout class="QVBoxLayout" name="verticalLayout">
    <item>

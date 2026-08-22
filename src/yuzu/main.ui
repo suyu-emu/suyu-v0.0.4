@@ -15,7 +15,7 @@
   </property>
   <property name="windowIcon">
    <iconset resource="yuzu.qrc">
-    <normaloff>:/img/eden.ico</normaloff>:/img/eden.ico</iconset>
+    <normaloff>:/img/suyu.ico</normaloff>:/img/suyu.ico</iconset>
   </property>
   <property name="tabShape">
    <enum>QTabWidget::TabShape::Rounded</enum>
@@ -57,9 +57,9 @@
       <string>&amp;Recent Files</string>
      </property>
     </widget>
-    <widget class="QMenu" name="menuOpen_Eden_Folders">
+    <widget class="QMenu" name="menuOpen_suyu_Folders">
      <property name="title">
-      <string>Open &amp;Eden Folders</string>
+      <string>Open &amp;suyu Folders</string>
      </property>
      <addaction name="action_Root_Data_Folder"/>
      <addaction name="action_NAND_Folder"/>
@@ -76,7 +76,7 @@
     <addaction name="separator"/>
     <addaction name="action_Load_Amiibo"/>
     <addaction name="separator"/>
-    <addaction name="menuOpen_Eden_Folders"/>
+    <addaction name="menuOpen_suyu_Folders"/>
     <addaction name="separator"/>
     <addaction name="action_Exit"/>
    </widget>
@@ -237,7 +237,7 @@
     <addaction name="action_Open_FAQ"/>
     <addaction name="separator"/>
     <addaction name="action_About"/>
-    <addaction name="action_Eden_Dependencies"/>
+    <addaction name="action_suyu_Dependencies"/>
    </widget>
    <addaction name="menu_File"/>
    <addaction name="menu_Emulation"/>
@@ -292,7 +292,7 @@
   </action>
   <action name="action_About">
    <property name="text">
-    <string>&amp;About Eden</string>
+    <string>&amp;About suyu</string>
    </property>
   </action>
   <action name="action_Single_Window_Mode">
@@ -558,9 +558,9 @@
     <string>From ZIP</string>
    </property>
   </action>
-  <action name="action_Eden_Dependencies">
+  <action name="action_suyu_Dependencies">
    <property name="text">
-    <string>&amp;Eden Dependencies</string>
+    <string>&amp;suyu Dependencies</string>
    </property>
   </action>
   <action name="action_Data_Manager">

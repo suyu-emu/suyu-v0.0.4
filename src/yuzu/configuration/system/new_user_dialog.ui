@@ -57,7 +57,7 @@
      <item row="0" column="1" colspan="2">
       <widget class="QLineEdit" name="username">
        <property name="text">
-        <string>Eden</string>
+        <string>suyu</string>
        </property>
       </widget>
      </item>

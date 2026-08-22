@@ -628,7 +628,7 @@ Device::Device(VkInstance instance_, vk::PhysicalDevice physical_, VkSurfaceKHR 
             sampler_heap_budget = derived_budget;
             LOG_WARNING(Render_Vulkan,
                         "Qualcomm driver reports max {} samplers; reserving {} (25%) and "
-                        "allowing Eden to use {} (75%) to avoid heap exhaustion",
+                        "allowing suyu to use {} (75%) to avoid heap exhaustion",
                         sampler_limit, reserved, sampler_heap_budget);
         }
     }

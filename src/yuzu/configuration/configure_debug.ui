@@ -784,7 +784,7 @@
        </font>
       </property>
       <property name="text">
-       <string>**This will be reset automatically when Eden closes.</string>
+       <string>**This will be reset automatically when suyu closes.</string>
       </property>
       <property name="indent">
        <number>20</number>

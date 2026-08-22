@@ -24,9 +24,9 @@
        <property name="title">
         <string>Suyu Web Service</string>
        </property>
-       <layout class="QVBoxLayout" name="verticalLayoutEdenWebService">
+       <layout class="QVBoxLayout" name="verticalLayoutsuyuWebService">
         <item>
-         <layout class="QGridLayout" name="gridLayoutEdenUsername">
+         <layout class="QGridLayout" name="gridLayoutsuyuUsername">
           <item row="1" column="0">
            <widget class="QLabel" name="label_token">
             <property name="text">
