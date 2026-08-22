@@ -18,7 +18,7 @@ RyujinxDialog::RyujinxDialog(std::filesystem::path eden_path,
 {
     ui->setupUi(this);
 
-    connect(ui->eden, &QPushButton::clicked, this, &RyujinxDialog::fromEden);
+    connect(ui->suyu, &QPushButton::clicked, this, &RyujinxDialog::fromSuyu);
     connect(ui->ryujinx, &QPushButton::clicked, this, &RyujinxDialog::fromRyujinx);
 }
 
@@ -27,7 +27,7 @@ RyujinxDialog::~RyujinxDialog()
     delete ui;
 }
 
-void RyujinxDialog::fromEden()
+void RyujinxDialog::fromSuyu()
 {
     accept();
     QtCommon::FS::LinkRyujinx(m_eden, m_ryu);

@@ -59,5 +59,5 @@ const QString tr(const std::string& str);
 
 
 
-std::filesystem::path GetEdenCommand();
+std::filesystem::path GetSuyuCommand();
 } // namespace QtCommon

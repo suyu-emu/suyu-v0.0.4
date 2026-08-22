@@ -264,7 +264,7 @@ void ExternalDecryptionToolDialog::SetupUi() {
         "<p><b>suyu does not perform built-in decryption.</b></p>"
         "<p>If your games require decryption, you must configure an external tool. "
         "suyu will invoke the tool you select to handle decryption on your behalf.</p>"
-        "<p>Supported tools: <b>hactool</b>, <b>Ryujinx</b>, <b>Eden</b>, "
+        "<p>Supported tools: <b>hactool</b>, <b>Ryujinx</b>, <b>suyu</b>, "
         "<b>yuzu</b> (legacy), or a previous <b>suyu</b> build.</p>"));
     main_layout->addWidget(lbl_intro);
 

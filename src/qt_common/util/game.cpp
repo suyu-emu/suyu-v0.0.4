@@ -405,7 +405,7 @@ void CreateShortcut(const std::string& game_path, const u64 program_id,
                     const std::string& game_title_, const ShortcutTarget& target,
                     std::string arguments_, const bool needs_title) {
     // Get path to suyu executable
-    std::filesystem::path command = GetEdenCommand();
+    std::filesystem::path command = GetSuyuCommand();
 
     // Shortcut path
     std::filesystem::path shortcut_path = GetShortcutPath(target);

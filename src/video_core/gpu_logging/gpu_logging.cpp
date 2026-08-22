@@ -108,7 +108,7 @@ void GPULogger::Initialize(LogLevel level, DriverType driver) {
     }
 
     const auto header = fmt::format(
-        "=== Eden GPU Logging Started ===\n"
+        "=== suyu GPU Logging Started ===\n"
         "Timestamp: {}\n"
         "Log Level: {}\n"
         "Driver: {}\n"

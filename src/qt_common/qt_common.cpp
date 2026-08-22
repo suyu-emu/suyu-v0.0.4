@@ -278,7 +278,7 @@ void Init(QWidget* root) {
     RemoveCachedContents();
 }
 
-std::filesystem::path GetEdenCommand() {
+std::filesystem::path GetSuyuCommand() {
     std::filesystem::path command;
 
     // TODO: flatpak?

@@ -184,7 +184,7 @@ void HostRoomWindow::Host() {
                     QMessageBox::warning(
                         this, tr("Error"),
                         tr("Failed to announce the room to the public lobby. In order to host a "
-                           "room publicly, you must have a valid Eden account configured in "
+                           "room publicly, you must have a valid suyu account configured in "
                            "Emulation -> Configure -> Web. If you do not want to publish a room in "
                            "the public lobby, then select Unlisted instead.\nDebug Message: ") +
                             QString::fromStdString(result.result_string),

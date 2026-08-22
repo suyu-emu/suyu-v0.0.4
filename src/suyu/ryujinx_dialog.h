@@ -20,7 +20,7 @@ public:
     ~RyujinxDialog();
 
 private slots:
-    void fromEden();
+    void fromSuyu();
     void fromRyujinx();
 
 private:
