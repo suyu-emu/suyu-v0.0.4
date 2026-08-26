@@ -1108,7 +1108,7 @@
     <string name="app_language_system">اتبع النظام</string>
     <!-- Static Themes -->
     <string name="static_theme_color">لون السمة</string>
-    <string name="suyu_theme">إيدن</string>
+    <string name="suyu_theme">suyu</string>
     <string name="violet">بنفسجي</string>
     <string name="blue">أزرق</string>
     <string name="cyan">سماوي</string>
