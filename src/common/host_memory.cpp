@@ -518,7 +518,7 @@ public:
         fd = shm_open(SHM_ANON, O_RDWR, 0600);
 #elif defined(__APPLE__) || defined(__managarm__)
         // macOS doesn't have memfd_create, use anonymous temporary file
-        char template_path[] = "/tmp/eden_mem_XXXXXX";
+        char template_path[] = "/tmp/suyu_mem_XXXXXX";
         fd = mkstemp(template_path);
         if (fd >= 0) {
             unlink(template_path);
