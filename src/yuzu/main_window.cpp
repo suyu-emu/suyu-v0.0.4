@@ -2705,15 +2705,15 @@ void MainWindow::OnLinkToRyujinx(const u64& program_id) {
 
     const std::string hex_program = fmt::format("{:016X}", program_id);
 
-    const fs::path eden_dir = FrontendCommon::DataManager::GetDataDir(
+    const fs::path suyu_dir = FrontendCommon::DataManager::GetDataDir(
                                   FrontendCommon::DataManager::DataDir::Saves, user_id) /
                               hex_program;
 
     // CheckUnlink basically just checks to see if one or both are linked, and prompts the user to
     // unlink if this is the case.
     // If it returns false, neither dir is linked so it's fine to continue
-    if (!QtCommon::FS::CheckUnlink(eden_dir, ryu_dir)) {
-        RyujinxDialog dialog(eden_dir, ryu_dir, this);
+    if (!QtCommon::FS::CheckUnlink(suyu_dir, ryu_dir)) {
+        RyujinxDialog dialog(suyu_dir, ryu_dir, this);
         if (dialog.exec() == QDialog::Accepted) {
             UISettings::values.ryujinx_link_paths.insert(
                 program_id,

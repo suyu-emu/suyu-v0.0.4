@@ -76,7 +76,7 @@ SPDX-License-Identifier: GPL-2.0-or-later
         <string>LaunchGameIntent</string>
     </array>
     <key>NSHumanReadableCopyright</key>
-    <string>Copyright 2025 Eden Emulator Project GPL-3.0-or-later</string>
+    <string>Copyright 2025 suyu team GPL-3.0-or-later</string>
 
     <!-- UI -->
     <key>UIDesignRequiresCompatibility</key>

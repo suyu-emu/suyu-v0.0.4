@@ -239,7 +239,7 @@ add_executable(yuzu
     game/carousel.h game/carousel.cpp
 )
 
-set_target_properties(yuzu PROPERTIES OUTPUT_NAME "eden")
+set_target_properties(yuzu PROPERTIES OUTPUT_NAME "suyu")
 
 if (YUZU_CRASH_DUMPS)
     target_sources(yuzu PRIVATE
