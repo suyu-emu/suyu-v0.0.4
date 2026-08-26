@@ -29,7 +29,7 @@ namespace DiscordRPC {
 
 DiscordImpl::DiscordImpl(Core::System& system_) : system{system_} {
     DiscordEventHandlers handlers{};
-    // The number is the client ID for Eden, it's used for images and the
+    // The number is the client ID for suyu, it's used for images and the
     // application name
     Discord_Initialize("1397286652128264252", &handlers, 1, nullptr);
 }
