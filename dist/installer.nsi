@@ -1,4 +1,4 @@
-; SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+; SPDX-FileCopyrightText: Copyright 2026 suyu team
 ; SPDX-License-Identifier: GPL-3.0-or-later
 
 ; Usage:
@@ -20,9 +20,9 @@
 Unicode true
 ManifestDPIAware true
 
-!define PRODUCT_NAME "Eden"
-!define PRODUCT_PUBLISHER "Utopia LLC"
-!define PRODUCT_WEB_SITE "https://git.eden-emu.dev"
+!define PRODUCT_NAME "suyu"
+!define PRODUCT_PUBLISHER "suyu team"
+!define PRODUCT_WEB_SITE "https://suyu-emu.org"
 !define PRODUCT_DIR_REGKEY "Software\Microsoft\Windows\CurrentVersion\App Paths\${PRODUCT_NAME}.exe"
 !define PRODUCT_UNINST_KEY "Software\Microsoft\Windows\CurrentVersion\Uninstall\${PRODUCT_NAME}"
 
@@ -31,7 +31,7 @@ ManifestDPIAware true
 Name "${PRODUCT_NAME}"
 OutFile "${PRODUCT_NAME}-Windows-${PRODUCT_VERSION}-${ARCH}-${VARIANT}-installer.exe"
 SetCompressor /SOLID lzma
-InstallDir "$LOCALAPPDATA\$(^Name)" 
+InstallDir "$LOCALAPPDATA\$(^Name)"
 ShowInstDetails show
 ShowUnInstDetails show
 
@@ -40,7 +40,7 @@ ShowUnInstDetails show
 !include "nsDialogs.nsh"
 
 ; MUI Settings
-!define MUI_ICON "eden.ico"
+!define MUI_ICON "suyu.ico"
 !define MUI_UNICON "${NSISDIR}\Contrib\Graphics\Icons\modern-uninstall.ico"
 
 ; License page
@@ -52,7 +52,7 @@ Page custom desktopShortcutPageCreate desktopShortcutPageLeave
 ; Instfiles page
 !insertmacro MUI_PAGE_INSTFILES
 ; Finish page
-!define MUI_FINISHPAGE_RUN "$INSTDIR\eden.exe"
+!define MUI_FINISHPAGE_RUN "$INSTDIR\suyu.exe"
 !insertmacro MUI_PAGE_FINISH
 
 ; Uninstaller pages
@@ -124,9 +124,9 @@ Section "Base"
   File /r "${BINARY_SOURCE_DIR}\*"
 
   ; Create start menu and desktop shortcuts
-  CreateShortCut "$SMPROGRAMS\$(^Name).lnk" "$INSTDIR\eden.exe"
+  CreateShortCut "$SMPROGRAMS\$(^Name).lnk" "$INSTDIR\suyu.exe"
   ${If} $DesktopShortcut == 1
-    CreateShortCut "$DESKTOP\$(^Name).lnk" "$INSTDIR\eden.exe"
+    CreateShortCut "$DESKTOP\$(^Name).lnk" "$INSTDIR\suyu.exe"
   ${EndIf}
 SectionEnd
 
@@ -135,12 +135,12 @@ SectionEnd
 Section -Post
   WriteUninstaller "$INSTDIR\uninst.exe"
 
-  WriteRegStr HKCU "${PRODUCT_DIR_REGKEY}" "" "$INSTDIR\eden.exe"
+  WriteRegStr HKCU "${PRODUCT_DIR_REGKEY}" "" "$INSTDIR\suyu.exe"
 
   ; Write metadata for add/remove programs applet
   WriteRegStr HKCU "${PRODUCT_UNINST_KEY}" "DisplayName" "$(^Name)"
   WriteRegStr HKCU "${PRODUCT_UNINST_KEY}" "UninstallString" "$INSTDIR\uninst.exe"
-  WriteRegStr HKCU "${PRODUCT_UNINST_KEY}" "DisplayIcon" "$INSTDIR\eden.exe"
+  WriteRegStr HKCU "${PRODUCT_UNINST_KEY}" "DisplayIcon" "$INSTDIR\suyu.exe"
   WriteRegStr HKCU "${PRODUCT_UNINST_KEY}" "URLInfoAbout" "${PRODUCT_WEB_SITE}"
   WriteRegStr HKCU "${PRODUCT_UNINST_KEY}" "Publisher" "${PRODUCT_PUBLISHER}"
   WriteRegStr HKCU "${PRODUCT_UNINST_KEY}" "InstallLocation" "$INSTDIR"
@@ -152,8 +152,8 @@ Section -Post
   WriteRegStr HKCU "Software\Classes\.xci" "" "$(^Name)"
   WriteRegStr HKCU "Software\Classes\.nro" "" "$(^Name)"
   WriteRegStr HKCU "Software\Classes\.kip" "" "$(^Name)"
-  WriteRegStr HKCU "Software\Classes\$(^Name)\DefaultIcon" "" "$INSTDIR\eden.exe,0"
-  WriteRegStr HKCU "Software\Classes\$(^Name)\Shell\open\command" "" '"$INSTDIR\eden.exe" %1'
+  WriteRegStr HKCU "Software\Classes\$(^Name)\DefaultIcon" "" "$INSTDIR\suyu.exe,0"
+  WriteRegStr HKCU "Software\Classes\$(^Name)\Shell\open\command" "" '"$INSTDIR\suyu.exe" %1'
 SectionEnd
 
 Section Uninstall
@@ -161,8 +161,8 @@ Section Uninstall
   Delete "$SMPROGRAMS\$(^Name).lnk"
 
   ; Be a bit careful to not delete files a user may have put into the install directory.
-  Delete "$INSTDIR\eden.exe"
-  Delete "$INSTDIR\eden-cli.exe"
+  Delete "$INSTDIR\suyu.exe"
+  Delete "$INSTDIR\suyu-cli.exe"
   Delete "$INSTDIR\uninst.exe"
   Delete "$INSTDIR\LICENSE.txt"
   Delete "$INSTDIR\README.md"
