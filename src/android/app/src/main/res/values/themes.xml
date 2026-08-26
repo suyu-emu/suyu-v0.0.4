@@ -2,7 +2,7 @@
 <resources>
 
     <style name="Theme.Yuzu.Splash.Main" parent="Theme.SplashScreen">
-        <item name="windowSplashScreenBackground">@color/eden_background</item>
+        <item name="windowSplashScreenBackground">@color/suyu_background</item>
         <item name="windowSplashScreenAnimatedIcon">@drawable/ic_yuzu_splash</item>
         <item name="postSplashScreenTheme">@style/Theme.Yuzu.Main</item>
     </style>
@@ -29,51 +29,51 @@
 
     <style name="Theme.suyu.Main" parent="Theme.Material3.DayNight.NoActionBar">
         <!-- Primary colors -->
-        <item name="colorPrimary">@color/eden_primary</item>
-        <item name="colorOnPrimary">@color/eden_on_primary</item>
-        <item name="colorPrimaryContainer">@color/eden_primary_variant</item>
-        <item name="colorOnPrimaryContainer">@color/eden_on_primary</item>
+        <item name="colorPrimary">@color/suyu_primary</item>
+        <item name="colorOnPrimary">@color/suyu_on_primary</item>
+        <item name="colorPrimaryContainer">@color/suyu_primary_variant</item>
+        <item name="colorOnPrimaryContainer">@color/suyu_on_primary</item>
         <!-- Secondary colors -->
-        <item name="colorSecondary">@color/eden_secondary</item>
-        <item name="colorOnSecondary">@color/eden_on_secondary</item>
-        <item name="colorSecondaryContainer">@color/eden_secondary_variant</item>
-        <item name="colorOnSecondaryContainer">@color/eden_on_secondary</item>
+        <item name="colorSecondary">@color/suyu_secondary</item>
+        <item name="colorOnSecondary">@color/suyu_on_secondary</item>
+        <item name="colorSecondaryContainer">@color/suyu_secondary_variant</item>
+        <item name="colorOnSecondaryContainer">@color/suyu_on_secondary</item>
         <!-- Tertiary colors -->
-        <item name="colorTertiary">@color/eden_accent_purple</item>
-        <item name="colorOnTertiary">@color/eden_on_primary</item>
-        <item name="colorTertiaryContainer">@color/eden_accent_blue</item>
-        <item name="colorOnTertiaryContainer">@color/eden_on_primary</item>
+        <item name="colorTertiary">@color/suyu_accent_purple</item>
+        <item name="colorOnTertiary">@color/suyu_on_primary</item>
+        <item name="colorTertiaryContainer">@color/suyu_accent_blue</item>
+        <item name="colorOnTertiaryContainer">@color/suyu_on_primary</item>
         <!-- Background and surface -->
-        <item name="android:colorBackground">@color/eden_background</item>
-        <item name="colorOnBackground">@color/eden_on_background</item>
-        <item name="colorSurface">@color/eden_surface</item>
-        <item name="colorOnSurface">@color/eden_on_surface</item>
-        <item name="colorSurfaceVariant">@color/eden_surface_variant</item>
-        <item name="colorOnSurfaceVariant">@color/eden_on_surface</item>
+        <item name="android:colorBackground">@color/suyu_background</item>
+        <item name="colorOnBackground">@color/suyu_on_background</item>
+        <item name="colorSurface">@color/suyu_surface</item>
+        <item name="colorOnSurface">@color/suyu_on_surface</item>
+        <item name="colorSurfaceVariant">@color/suyu_surface_variant</item>
+        <item name="colorOnSurfaceVariant">@color/suyu_on_surface</item>
         <!-- Outline and borders -->
-        <item name="colorOutline">@color/eden_border</item>
-        <item name="colorOutlineVariant">@color/eden_border_light</item>
+        <item name="colorOutline">@color/suyu_border</item>
+        <item name="colorOutlineVariant">@color/suyu_border_light</item>
         <!-- Error colors -->
-        <item name="colorError">@color/eden_error</item>
-        <item name="colorErrorContainer">@color/eden_error</item>
-        <item name="colorOnError">@color/eden_on_primary</item>
-        <item name="colorOnErrorContainer">@color/eden_on_primary</item>
+        <item name="colorError">@color/suyu_error</item>
+        <item name="colorErrorContainer">@color/suyu_error</item>
+        <item name="colorOnError">@color/suyu_on_primary</item>
+        <item name="colorOnErrorContainer">@color/suyu_on_primary</item>
         <!-- System UI -->
         <item name="android:statusBarColor">@android:color/transparent</item>
         <item name="android:navigationBarColor">@android:color/transparent</item>
         <item name="android:windowLightStatusBar">false</item>
         <item name="android:windowLightNavigationBar">false</item>
         <!-- Other theme attributes -->
-        <item name="android:shadowColor">@color/eden_overlay</item>
-        <item name="sliderStyle">@style/EdenSlider</item>
+        <item name="android:shadowColor">@color/suyu_overlay</item>
+        <item name="sliderStyle">@style/SuyuSlider</item>
         <item name="android:windowLayoutInDisplayCutoutMode">shortEdges</item>
         <item name="android:enforceStatusBarContrast">false</item>
         <item name="android:enforceNavigationBarContrast">false</item>
         <!-- Material dialog theme -->
-        <item name="materialAlertDialogTheme">@style/EdenMaterialDialog</item>
+        <item name="materialAlertDialogTheme">@style/SuyuMaterialDialog</item>
         <!-- Popup menu theme -->
-        <item name="popupMenuStyle">@style/EdenPopupMenu</item>
-        <item name="android:textColorPrimary">@color/eden_on_background</item>
+        <item name="popupMenuStyle">@style/SuyuPopupMenu</item>
+        <item name="android:textColorPrimary">@color/suyu_on_background</item>
         <item name="android:itemTextAppearance">@style/TextAppearance.Material3.BodyLarge</item>
     </style>
 

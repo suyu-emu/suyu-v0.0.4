@@ -197,7 +197,7 @@
                 android:layout_marginHorizontal="40dp">
 
                 <com.google.android.material.button.MaterialButton
-                    style="@style/EdenButton.Secondary"
+                    style="@style/SuyuButton.Secondary"
                     android:id="@+id/button_discord"
                     android:layout_width="0dp"
                     android:layout_height="56dp"
@@ -211,7 +211,7 @@
                     app:strokeWidth="1dp" />
 
                 <com.google.android.material.button.MaterialButton
-                    style="@style/EdenButton.Secondary"
+                    style="@style/SuyuButton.Secondary"
                     android:id="@+id/button_stoat"
                     android:layout_width="0dp"
                     android:layout_height="56dp"
@@ -225,7 +225,7 @@
                     app:strokeWidth="1dp" />
 
                 <com.google.android.material.button.MaterialButton
-                    style="@style/EdenButton.Secondary"
+                    style="@style/SuyuButton.Secondary"
                     android:id="@+id/button_x"
                     android:layout_width="0dp"
                     android:layout_height="56dp"
@@ -239,7 +239,7 @@
                     app:strokeWidth="1dp" />
 
                 <com.google.android.material.button.MaterialButton
-                    style="@style/EdenButton.Secondary"
+                    style="@style/SuyuButton.Secondary"
                     android:id="@+id/button_website"
                     android:layout_width="0dp"
                     android:layout_height="56dp"
@@ -254,7 +254,7 @@
 
                 <com.google.android.material.button.MaterialButton
                     android:id="@+id/button_github"
-                    style="@style/EdenButton.Secondary"
+                    style="@style/SuyuButton.Secondary"
                     android:layout_width="0dp"
                     android:layout_height="56dp"
                     android:layout_weight="1"

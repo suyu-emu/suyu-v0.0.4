@@ -9,9 +9,9 @@
     app:cardPreventCornerOverlap="true"
     android:clipChildren="true"
     android:layout_margin="0dp"
-    app:cardBackgroundColor="@color/eden_card_background"
+    app:cardBackgroundColor="@color/suyu_card_background"
     app:strokeWidth="1dp"
-    app:strokeColor="@color/eden_border">
+    app:strokeColor="@color/suyu_border">
 
     <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
