@@ -110,7 +110,7 @@ std::vector<u8> DownloadImage(const std::string& url_path, const std::filesystem
 
 std::vector<u8> LoadDefaultLogo(bool large) {
     const auto path = GetDefaultLogoPath(large);
-    const std::string url = large ? "/news/eden_logo_large.jpg" : "/news/eden_logo_small.jpg";
+    const std::string url = large ? "/news/suyu_logo_large.jpg" : "/news/suyu_logo_small.jpg";
 
     auto data = TryLoadFromDisk(path);
     if (!data.empty()) return data;

@@ -4288,7 +4288,7 @@ void MainWindow::OnCheckGraphicsBackend() {
         UISettings::values.gui_force_x11.SetValue(true);
         GraphicsBackend::SetForceX11(true);
         QMessageBox::information(this, tr("Restart Required"),
-                                 tr("Restart Eden to apply the X11 backend."));
+                                 tr("Restart suyu to apply the X11 backend."));
     }
 }
 #endif
@@ -4407,7 +4407,7 @@ bool MainWindow::ConfirmClose() {
         UISettings::values.confirm_before_stopping.GetValue() == ConfirmStop::Ask_Based_On_Game)
         return true;
 
-    const auto text = tr("Are you sure you want to close Eden?");
+    const auto text = tr("Are you sure you want to close suyu?");
     return question(this, tr("suyu"), text);
 }
 
@@ -4505,7 +4505,7 @@ bool MainWindow::ConfirmForceLockedExit() {
     if (QtCommon::emu_thread == nullptr)
         return true;
 
-    const auto text = tr("The currently running application has requested Eden to not exit.\n\n"
+    const auto text = tr("The currently running application has requested suyu to not exit.\n\n"
                          "Would you like to bypass this and exit anyway?");
 
     return question(this, tr("suyu"), text);
