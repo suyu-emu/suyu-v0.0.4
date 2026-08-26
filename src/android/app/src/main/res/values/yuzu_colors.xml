@@ -255,6 +255,10 @@
     <color name="suyu_border_light">#948b98</color> <!-- Lighter border -->
     <color name="suyu_border_gradient_start">#FF0080</color> <!-- Neon magenta -->
     <color name="suyu_border_gradient_end">#60D1F6</color> <!-- Electric cyan -->
+    <color name="eden_border">#7c757f</color>
+    <color name="eden_border_light">#948b98</color>
+    <color name="eden_border_gradient_start">#FF0080</color>
+    <color name="eden_border_gradient_end">#60D1F6</color>
 
     <!-- Synthwave Status Colors -->
     <color name="eden_error">#FF0040</color> <!-- Neon red -->

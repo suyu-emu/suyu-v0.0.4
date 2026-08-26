@@ -274,6 +274,10 @@
     <color name="eden_button_primary_bg">#FF0080</color> <!-- Neon magenta -->
     <color name="eden_button_secondary_bg">#00000000</color> <!-- Transparent -->
     <color name="eden_button_secondary_border">#00FFFF</color> <!-- Electric cyan -->
+    <color name="eden_border">#FF0080</color>
+    <color name="eden_border_light">#E6006B</color>
+    <color name="eden_border_gradient_start">#FF0080</color>
+    <color name="eden_border_gradient_end">#00FFFF</color>
 
     <!-- Synthwave Card Colors -->
     <color name="eden_card_background">#0D0D0D</color> <!-- Almost black -->
