@@ -51,7 +51,7 @@ std::filesystem::path GetCachePath() {
 
 std::filesystem::path GetDefaultLogoPath(bool large) {
     return Common::FS::GetEdenPath(Common::FS::EdenPath::CacheDir) / "news" /
-           (large ? "eden_logo_large.jpg" : "eden_logo_small.jpg");
+           (large ? "suyu_logo_large.jpg" : "suyu_logo_small.jpg");
 }
 
 std::filesystem::path GetNewsImagePath(std::string_view news_id, bool large) {
