@@ -155,17 +155,17 @@ bool MakeShortcutIcoPath(const u64 program_id, const std::string_view game_file_
     return true;
 }
 
-void OpenEdenFolder(const Common::FS::EdenPath& path) {
+void OpenSuyuFolder(const Common::FS::EdenPath& path) {
     QDesktopServices::openUrl(
         QUrl::fromLocalFile(QString::fromStdString(Common::FS::GetEdenPathString(path))));
 }
 
 void OpenRootDataFolder() {
-    OpenEdenFolder(Common::FS::EdenPath::EdenDir);
+    OpenSuyuFolder(Common::FS::EdenPath::EdenDir);
 }
 
 void OpenNANDFolder() {
-    OpenEdenFolder(Common::FS::EdenPath::NANDDir);
+    OpenSuyuFolder(Common::FS::EdenPath::NANDDir);
 }
 
 void OpenSaveFolder() {
@@ -175,15 +175,15 @@ void OpenSaveFolder() {
 }
 
 void OpenSDMCFolder() {
-    OpenEdenFolder(Common::FS::EdenPath::SDMCDir);
+    OpenSuyuFolder(Common::FS::EdenPath::SDMCDir);
 }
 
 void OpenModFolder() {
-    OpenEdenFolder(Common::FS::EdenPath::LoadDir);
+    OpenSuyuFolder(Common::FS::EdenPath::LoadDir);
 }
 
 void OpenLogFolder() {
-    OpenEdenFolder(Common::FS::EdenPath::LogDir);
+    OpenSuyuFolder(Common::FS::EdenPath::LogDir);
 }
 
 static QString GetGameListErrorRemoving(QtCommon::Game::InstalledEntryType type) {

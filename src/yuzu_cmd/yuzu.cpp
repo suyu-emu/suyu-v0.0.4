@@ -404,7 +404,7 @@ int main(int argc, char** argv) {
             const u16 error_id = static_cast<u16>(load_result) - loader_id;
             LOG_CRITICAL(Frontend,
                          "While attempting to load the ROM requested, an error occurred. Please "
-                         "refer to the Eden wiki for more information or the Eden discord for "
+                         "refer to the suyu wiki for more information or the suyu discord for "
                          "additional help.\n\nError Code: {:04X}-{:04X}\nError Description: {}",
                          loader_id, error_id, static_cast<Loader::ResultStatus>(error_id));
         }
