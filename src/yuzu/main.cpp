@@ -145,7 +145,7 @@ int main(int argc, char* argv[]) {
 
     // Fix the Wayland appId. This needs to match the name of the .desktop file without the .desktop
     // suffix.
-    QGuiApplication::setDesktopFileName(QStringLiteral("dev.eden_emu.eden"));
+    QGuiApplication::setDesktopFileName(QStringLiteral("org.suyu_emu.suyu"));
 #endif
 
     auto rounding_policy = GetHighDpiRoundingPolicy();

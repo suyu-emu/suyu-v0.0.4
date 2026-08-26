@@ -3146,7 +3146,7 @@ void MainWindow::OpenURL(const QUrl& url) {
 }
 
 void MainWindow::OnOpenModsPage() {
-    OpenURL(QUrl(QStringLiteral("https://github.com/eden-emulator/yuzu-mod-archive")));
+    OpenURL(QUrl(QStringLiteral("https://github.com/suyu-emu/yuzu-mod-archive")));
 }
 
 void MainWindow::OnOpenQuickstartGuide() {

@@ -99,7 +99,7 @@ void DiscordImpl::Update() {
         // Used to format Icon URL for yuzu website game compatibility page
         std::string icon_name = GetGameString(game_title);
         game_url = fmt::format(
-            "https://raw.githubusercontent.com/eden-emulator/boxart/refs/heads/master/img/{}.png",
+            "https://raw.githubusercontent.com/suyu-emu/boxart/refs/heads/master/img/{}.png",
             icon_name);
 
         httplib::SSLClient client(game_url);
