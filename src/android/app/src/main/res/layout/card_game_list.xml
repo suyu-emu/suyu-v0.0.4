@@ -27,7 +27,7 @@
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent"
             app:shapeAppearance="@style/ShapeAppearance.Material3.Corner.Medium"
-            app:strokeColor="@color/suyu_card_background"
+            app:strokeColor="@color/eden_card_background"
             app:strokeWidth="4dp"
             tools:src="@drawable/default_icon" />
 
