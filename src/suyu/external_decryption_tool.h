@@ -17,7 +17,7 @@ class QProcess;
 
 /// Represents a known external decryption tool that suyu can hook into.
 struct ExternalToolInfo {
-    QString id;           // e.g. "hactool", "ryujinx", "eden", "yuzu", "suyu"
+    QString id;           // e.g. "hactool", "ryujinx", "yuzu", "suyu"
     QString display_name; // e.g. "hactool (SciresM)"
     QString description;  // Brief description of what it does
     /// Expected executable names on disk (e.g. {"hactool.exe", "hactool"}).

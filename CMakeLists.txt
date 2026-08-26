@@ -247,7 +247,7 @@ option(NIGHTLY_BUILD "Use Nightly qualifiers in the update checker and build met
 cmake_dependent_option(YUZU_ROOM "Enable dedicated room functionality" ON "NOT ANDROID" OFF)
 cmake_dependent_option(YUZU_ROOM_STANDALONE "Enable standalone room executable" ON "YUZU_ROOM" OFF)
 
-cmake_dependent_option(YUZU_CMD "Compile the eden-cli executable" ON "NOT ANDROID" OFF)
+cmake_dependent_option(YUZU_CMD "Compile the suyu-cli executable" ON "NOT ANDROID" OFF)
 
 cmake_dependent_option(YUZU_CRASH_DUMPS "Compile crash dump (Minidump) support" OFF "WIN32 OR PLATFORM_LINUX" OFF)
 
@@ -716,21 +716,20 @@ endif()
 
 # TODO: Icon/install handling n such should be put into dist/CMakeLists.txt
 if(ENABLE_QT AND UNIX AND NOT APPLE)
-    install(FILES "dist/dev.eden_emu.eden.desktop"
+    install(FILES "dist/dev.suyu_emu.suyu.desktop"
         DESTINATION "share/applications")
-    install(FILES "dist/dev.eden_emu.eden.svg"
+    install(FILES "dist/suyu.svg"
         DESTINATION "share/icons/hicolor/scalable/apps")
 
-    # TODO: these files need to be updated.
-    install(FILES "dist/dev.eden_emu.eden.xml"
+    install(FILES "dist/dev.suyu_emu.suyu.xml"
         DESTINATION "share/mime/packages")
-    install(FILES "dist/dev.eden_emu.eden.metainfo.xml"
+    install(FILES "dist/dev.suyu_emu.suyu.metainfo.xml"
         DESTINATION "share/metainfo")
 endif()
 
 if (YUZU_INSTALL_UDEV_RULES)
     include(GNUInstallDirs)
 
-    install(FILES "dist/72-eden-input.rules"
+    install(FILES "dist/72-suyu-input.rules"
         DESTINATION "${CMAKE_INSTALL_LIBDIR}/udev/rules.d")
 endif()
