@@ -27,7 +27,7 @@ class GradientBorderCardView @JvmOverloads constructor(
     private val borderPath = Path()
     private val borderRect = RectF()
     private var showGradientBorder = false
-    private var isEdenTheme = false
+    private var isSuyuTheme = false
 
     init {
         setWillNotDraw(false)
@@ -44,7 +44,7 @@ class GradientBorderCardView @JvmOverloads constructor(
 
     private fun updateThemeState() {
         val themeIndex = IntSetting.STATIC_THEME_COLOR.getInt(false)
-        isEdenTheme = themeIndex == 0
+        isSuyuTheme = themeIndex == 0
         invalidate()
     }
 
@@ -52,7 +52,7 @@ class GradientBorderCardView @JvmOverloads constructor(
         super.onSizeChanged(w, h, oldw, oldh)
 
         // Update border style based on theme
-        if (isEdenTheme) {
+        if (isSuyuTheme) {
             // Gradient for suyu theme
             borderPaint.shader = LinearGradient(
                 0f,
