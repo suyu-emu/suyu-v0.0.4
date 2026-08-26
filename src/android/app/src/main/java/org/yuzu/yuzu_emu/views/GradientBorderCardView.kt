@@ -59,8 +59,8 @@ class GradientBorderCardView @JvmOverloads constructor(
                 0f,
                 w.toFloat(),
                 h.toFloat(),
-                context.getColor(R.color.eden_border_gradient_start),
-                context.getColor(R.color.eden_border_gradient_end),
+                context.getColor(R.color.neon_border_gradient_start),
+                context.getColor(R.color.neon_border_gradient_end),
                 Shader.TileMode.CLAMP
             )
         } else {

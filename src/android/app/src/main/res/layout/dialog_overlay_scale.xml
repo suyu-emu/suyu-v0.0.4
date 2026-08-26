@@ -33,9 +33,9 @@
             android:stepSize="0.1"
             android:value="1.0"
             android:layout_marginBottom="8dp"
-            app:trackColorActive="@color/eden_border_gradient_start"
-            app:trackColorInactive="@color/eden_border_gradient_end"
-            app:tickColor="@color/eden_border_gradient_start"/>
+            app:trackColorActive="@color/neon_border_gradient_start"
+            app:trackColorInactive="@color/neon_border_gradient_end"
+            app:tickColor="@color/neon_border_gradient_start"/>
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -63,8 +63,8 @@
                 style="@style/Widget.Material3.Button"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:backgroundTint="@color/eden_button_secondary_bg"
-                android:textColor="@color/eden_border_gradient_end"
+                android:backgroundTint="@color/neon_button_secondary_bg"
+                android:textColor="@color/neon_border_gradient_end"
                 android:text="@string/confirm" />
 
         </LinearLayout>

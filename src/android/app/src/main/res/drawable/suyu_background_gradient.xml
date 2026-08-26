@@ -2,19 +2,19 @@
 <layer-list xmlns:android="http://schemas.android.com/apk/res/android">
     <item>
         <shape android:shape="rectangle">
-            <solid android:color="@color/eden_background" />
+            <solid android:color="@color/neon_background" />
         </shape>
     </item>
     <item>
         <shape android:shape="rectangle">
             <gradient
                 android:angle="135"
-                android:centerColor="@color/eden_transparent"
+                android:centerColor="@color/neon_transparent"
                 android:centerX="0.5"
                 android:centerY="0.5"
-                android:endColor="@color/eden_primary_transparent"
+                android:endColor="@color/neon_primary_transparent"
                 android:gradientRadius="100%"
-                android:startColor="@color/eden_secondary_transparent"
+                android:startColor="@color/neon_secondary_transparent"
                 android:type="radial" />
         </shape>
     </item>
