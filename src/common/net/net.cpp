@@ -90,6 +90,7 @@ std::vector<Asset> Release::GetPlatformAssets() const {
 #endif // GENSHIN_SPOOF
 #endif // ARCHITECTURE_arm64
 #endif // __APPLE__
+    (void)find_asset;
     return found_assets;
 }
 

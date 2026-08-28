@@ -128,7 +128,7 @@ inline void CollectAdrpAddTargets(const u8* text, size_t n_bytes, u64 base,
             const u32 rd = insn & 31;
             s64 immhi = static_cast<s32>((((insn >> 5) & 0x7FFFF) << 13)) >> 13;
             const u32 immlo = (insn >> 29) & 3;
-            page[rd] = (base + static_cast<u64>(i) * 4 & ~0xFFFULL) +
+            page[rd] = ((base + static_cast<u64>(i) * 4) & ~0xFFFULL) +
                        static_cast<u64>(((immhi << 2) | immlo) << 12);
         } else if ((insn & 0xFFC00000) == 0x91000000) { // ADD (immediate, 64-bit, LSL #0)
             const u32 rd = insn & 31, rn = (insn >> 5) & 31;

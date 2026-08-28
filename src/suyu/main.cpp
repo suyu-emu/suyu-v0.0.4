@@ -5955,7 +5955,7 @@ void GMainWindow::ApplyAppMode(AppMode mode) {
 
     // --- Debug panels (Hacker mode only, and not during emulation) ---
     const bool show_debug = (mode == AppMode::Hacker) && !emulation_running;
-    const bool show_partial_debug = false;
+    [[maybe_unused]] const bool show_partial_debug = false;
 
     if (microProfileDialog)
         microProfileDialog->setVisible(show_debug);

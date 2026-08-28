@@ -81,7 +81,7 @@ static constexpr auto kSettingsOrganization = "suyu";
 static constexpr auto kSettingsApplication = "suyu";
 static constexpr auto kLegacySettingsApplication = "SuyuEclipse";
 
-void MigrateNintendoAccountSettingsIfNeeded() {
+static void MigrateNintendoAccountSettingsIfNeeded() {
     static bool migrated = false;
     if (migrated) {
         return;
@@ -116,13 +116,13 @@ void MigrateNintendoAccountSettingsIfNeeded() {
     legacy.endGroup();
 }
 
-QSettings OpenNintendoSettings() {
+static QSettings OpenNintendoSettings() {
     MigrateNintendoAccountSettingsIfNeeded();
     return QSettings(QString::fromLatin1(kSettingsOrganization),
                      QString::fromLatin1(kSettingsApplication));
 }
 
-QString ExtractSessionToken(const QString& input) {
+static QString ExtractSessionToken(const QString& input) {
     const QString trimmed = input.trimmed();
     if (trimmed.isEmpty()) {
         return {};
@@ -158,7 +158,7 @@ QString ExtractSessionToken(const QString& input) {
     return cleanup(trimmed);
 }
 
-QString OwnedLibraryToJson(const std::vector<NintendoOwnedGame>& library) {
+static QString OwnedLibraryToJson(const std::vector<NintendoOwnedGame>& library) {
     QJsonArray array;
     for (const auto& game : library) {
         QJsonObject obj;
@@ -173,7 +173,7 @@ QString OwnedLibraryToJson(const std::vector<NintendoOwnedGame>& library) {
     return QString::fromUtf8(QJsonDocument(array).toJson(QJsonDocument::Compact));
 }
 
-bool IsPlausibleSwitchTitleId(const QString& title_id) {
+static bool IsPlausibleSwitchTitleId(const QString& title_id) {
     // Switch application IDs are 16 hex digits and begin 0100. An earlier
     // HTML-scraping sync stored qHash() values here instead, which produced a
     // cache full of invented entries ("My Mario", "Super Mario", ...) that
@@ -184,7 +184,7 @@ bool IsPlausibleSwitchTitleId(const QString& title_id) {
     return re.match(title_id.trimmed()).hasMatch();
 }
 
-std::vector<NintendoOwnedGame> OwnedLibraryFromJson(const QString& json) {
+static std::vector<NintendoOwnedGame> OwnedLibraryFromJson(const QString& json) {
     std::vector<NintendoOwnedGame> library;
     const QJsonDocument doc = QJsonDocument::fromJson(json.toUtf8());
     if (!doc.isArray()) {

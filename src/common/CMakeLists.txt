@@ -161,6 +161,10 @@ if(NOT WIN32)
     target_sources(common PRIVATE signal_chain.cpp signal_chain.h)
 endif()
 
+if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
+    target_sources(common PRIVATE linux/gamemode.cpp linux/gamemode.h)
+endif()
+
 if(ANDROID)
     target_sources(
         common
