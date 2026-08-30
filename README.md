@@ -35,7 +35,7 @@ Based on [Eden](https://git.eden-emu.dev/eden-emu/eden), with suyu's own improve
 
 ## Status
 
-Final version: **v0.04**. Automated builds are published to the [v0.04-latest release](../../releases/tag/v0.04-latest) by GitHub Actions (Windows, Linux, Android).
+Final version: **v0.04**. Automated builds are published to the [releases page](../../releases) by GitHub Actions (Windows, Linux, Android).
 
 Platforms: Windows, Linux, Android. macOS/iOS not included in this release.
 
