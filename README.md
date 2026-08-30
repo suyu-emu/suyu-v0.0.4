@@ -51,8 +51,6 @@ Any aggressive DMCA claims or takedown notices against projects that explicitly 
 
 As derived from §512(f), if Nintendo (or an affiliated entity) knowingly materially misrepresents that a project like suyu is infringing (or circumvents TPMs) when it does not, especially if they fail to consider fair use, interoperability exemptions under §1201(f), or the fact that the emulator requires user-provided keys and does not itself contain proprietary Nintendo code, they can be made liable for any Damages against suyu.
 
-Bus_Error/Crimson Hawk and Co are no longer affiliated with the project.
-
 ## Building
 
 ### Dependencies
