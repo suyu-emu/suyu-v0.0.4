@@ -375,25 +375,4 @@ enum class DirectorySeparator {
     return {};
 }
 
-// suyu → Eden path API compatibility shims
-// suyu's frontend uses GetSuyuPath(SuyuPath::XxxDir); Eden renamed to GetSuyuPath(SuyuPath::XxxDir).
-// These aliases let src/suyu compile without touching every call site.
-using SuyuPath = SuyuPath;
-
-[[nodiscard]] inline const std::filesystem::path& GetSuyuPath(SuyuPath p) {
-    return GetSuyuPath(p);
-}
-[[nodiscard]] inline std::string GetSuyuPathString(SuyuPath p) {
-    return GetSuyuPathString(p);
-}
-inline void SetSuyuPath(SuyuPath p, const std::filesystem::path& path) {
-    SetSuyuPath(p, path);
-}
-#ifdef _WIN32
-template <typename Path>
-void SetSuyuPath(SuyuPath p, const Path& path) {
-    SetSuyuPath(p, path);
-}
-#endif
-
 } // namespace Common::FS
