@@ -39,11 +39,17 @@ Final version: **v0.04**. Automated builds are published to the [v0.04-latest re
 
 Platforms: Windows, Linux, Android. macOS/iOS not included in this release.
 
-## Legal
+## Legal Notice
 
-suyu does not support or condone piracy in any form. To use suyu, you need pre-decrypted games from your own Nintendo Switch or Switch 2 — either dumped yourself or registered on a Nintendo Account you legally own and paid for. suyu does not intend to make money or profit from this project.
+suyu is a GPLv3 program, which allows fully free redistribution of its source code and releases liability of its authors for how this software is used as stated in Section 15 and 16.
 
-Our only official presence is this GitHub org (`suyu-emu`). Be cautious of other sites offering builds or claiming affiliation with suyu.
+The suyu Emulator program does not circumvent Nintendo's technological protection measures (TPMs) as the user is required to provide both the Nintendo Switch software & the encryption keys for these games, and the suyu Emulator uses a mode of the Advanced Encryption Standard (AES), an open encryption standard established by the US NIST, along with the encryption keys that the user themselves must lawfully acquire, to decrypt the software. As the standard is public and available to use by all, it does not constitute as the Digital Market Copyright Act's (DMCA) definition of "circumventing a technological measure" as defined in Section 1201(a)(3).
+
+The suyu Emulator also falls under the exemptions stated in Section 1201(f) of the DMCA as this software was created for the purposes of reverse engineering the Nintendo Switch software (known as Horizon OS) to create interoperability with Nintendo Switch games and software with the Windows, macOS, and GNU/Linux operating systems.
+
+Any aggressive DMCA claims or takedown notices against projects that explicitly disclaim piracy support, require user-provided keys, and limit functionality to interoperability (such as suyu) could constitute overreach or misuse of the DMCA.
+
+As derived from §512(f), if Nintendo (or an affiliated entity) knowingly materially misrepresents that a project like suyu is infringing (or circumvents TPMs) when it does not, especially if they fail to consider fair use, interoperability exemptions under §1201(f), or the fact that the emulator requires user-provided keys and does not itself contain proprietary Nintendo code, they can be made liable for any Damages against suyu.
 
 Bus_Error/Crimson Hawk and Co are no longer affiliated with the project.
 
