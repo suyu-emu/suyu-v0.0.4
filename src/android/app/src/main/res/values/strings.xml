@@ -3,7 +3,7 @@
 
     <!-- General application strings -->
     <string name="app_name" translatable="false">suyu</string>
-    <string name="app_disclaimer">This software will run games for the Nintendo Switch game console. No game titles or keys are included.&lt;br /&gt;&lt;br /&gt;Before you begin, please locate your <![CDATA[<b> prod.keys </b>]]> file on your device storage.&lt;br /&gt;&lt;br /&gt;<![CDATA[<a href=\"https://yuzu-mirror.github.io/help/quickstart\">Learn more</a>]]></string>
+    <string name="app_disclaimer">This software will run games for the Nintendo Switch game console. No game titles or keys are included.&lt;br /&gt;&lt;br /&gt;Before you begin, please locate your <![CDATA[<b> prod.keys </b>]]> file on your device storage.&lt;br /&gt;&lt;br /&gt;<![CDATA[<a href=\"https://suyu.dev/help/quickstart\">Learn more</a>]]></string>
     <string name="notice_notification_channel_name">Notices and errors</string>
     <string name="notice_notification_channel_id" translatable="false">noticesAndErrors</string>
     <string name="notice_notification_channel_description">Shows notifications when something goes wrong.</string>
@@ -263,21 +263,21 @@
     <string name="select_games_folder_description">Allows suyu to populate the games list</string>
     <string name="add_games_warning">Skip selecting games folder?</string>
     <string name="add_games_warning_description">Games won\'t be displayed in the Games list if a folder isn\'t selected.</string>
-    <string name="add_games_warning_help">https://yuzu-mirror.github.io/help/quickstart/#dumping-games</string>
+    <string name="add_games_warning_help">https://suyu.dev/help/quickstart/#dumping-games</string>
     <string name="home_search_games">Search games</string>
     <string name="search_settings">Search settings</string>
     <string name="install_prod_keys">Install prod.keys</string>
     <string name="install_prod_keys_description">Required to decrypt retail games</string>
     <string name="install_prod_keys_warning">Skip adding keys?</string>
     <string name="install_prod_keys_warning_description">Valid keys are required to emulate retail games. Only homebrew apps will function if you continue.</string>
-    <string name="install_prod_keys_warning_help">https://yuzu-mirror.github.io/help/quickstart/#guide-introduction</string>
+    <string name="install_prod_keys_warning_help">https://suyu.dev/help/quickstart/#guide-introduction</string>
     <string name="install_firmware_warning">Skip adding firmware?</string>
     <string name="emulator_data">Setup Emulator Data</string>
     <string name="emulator_data_description">Keys are required in order for the emulator to work and firmware is recommended and required for using the QLaunch applet</string>
     <string name="permissions">Grant Permissions</string>
     <string name="permissions_description">Grant optional permissions to use specific features of the emulator</string>
     <string name="install_firmware_warning_description">Many games require access to firmware to run properly.</string>
-    <string name="install_firmware_warning_help">https://yuzu-mirror.github.io/help/quickstart/#guide-introduction</string>
+    <string name="install_firmware_warning_help">https://suyu.dev/help/quickstart/#guide-introduction</string>
     <string name="notifications">Notifications</string>
     <string name="notifications_description">Grant the notification permission with the button below.</string>
     <string name="permission_denied">Permission denied</string>
@@ -353,7 +353,7 @@
     <string name="install_game_content_success">Game content(s) installed successfully</string>
     <string name="install_game_content_success_install">%1$d installed successfully</string>
     <string name="install_game_content_success_overwrite">%1$d overwritten successfully</string>
-    <string name="install_game_content_help_link">https://yuzu-mirror.github.io/help/quickstart/#dumping-installed-updates</string>
+    <string name="install_game_content_help_link">https://suyu.dev/help/quickstart/#dumping-installed-updates</string>
     <string name="custom_driver_not_supported">Custom drivers not supported</string>
     <string name="custom_driver_not_supported_description">Custom driver loading isn\'t currently supported for this device.\nCheck this option again in the future to see if support was added!</string>
     <string name="manage_yuzu_data">Manage suyu data</string>
@@ -377,7 +377,7 @@
 
     <string name="keys_missing">Encryption keys are missing</string>
     <string name="keys_missing_description">Firmware and retail games cannot be decrypted</string>
-    <string name="keys_missing_help">https://yuzu-mirror.github.io/help/quickstart/#dumping-decryption-keys</string>
+    <string name="keys_missing_help">https://suyu.dev/help/quickstart/#dumping-decryption-keys</string>
 
     <string name="uninstall_firmware">Uninstall firmware</string>
     <string name="uninstall_firmware_description">Uninstalling the firmware will remove it from the device and may affect game compatibility.</string>
@@ -398,7 +398,7 @@
     <string name="applets_description">Launch system applets using installed firmware</string>
     <string name="applets_error_firmware">Firmware not installed</string>
     <string name="applets_error_applet">Applet not available</string>
-    <string name="applets_error_description"><![CDATA[Please ensure your <a href=\"https://yuzu-mirror.github.io/help/quickstart/#dumping-prodkeys-and-titlekeys\">prod.keys</a> file and <a href=\"https://yuzu-mirror.github.io/help/quickstart/#dumping-system-firmware\">firmware</a> are installed and try again.]]></string>
+    <string name="applets_error_description"><![CDATA[Please ensure your <a href=\"https://suyu.dev/help/quickstart/#dumping-prodkeys-and-titlekeys\">prod.keys</a> file and <a href=\"https://suyu.dev/help/quickstart/#dumping-system-firmware\">firmware</a> are installed and try again.]]></string>
     <string name="album_applet">Album</string>
     <string name="album_applet_description">See images stored in the user screenshots folder with the system photo viewer</string>
     <string name="mii_edit_applet">Mii edit</string>
@@ -874,14 +874,14 @@
 
     <!-- ROM loading errors -->
     <string name="loader_error_encrypted">Your ROM is encrypted</string>
-    <string name="loader_error_encrypted_roms_description"><![CDATA[Please follow the guides to redump your <a href=\"https://yuzu-mirror.github.io/help/quickstart/#dumping-physical-titles-game-cards\">game cartridges</a> or <a href=\"https://yuzu-mirror.github.io/help/quickstart/#dumping-digital-titles-eshop\">installed titles</a>.]]></string>
-    <string name="loader_error_encrypted_keys_description"><![CDATA[Please ensure your <a href=\"https://yuzu-mirror.github.io/help/quickstart/#dumping-prodkeys-and-titlekeys\">prod.keys</a> file is installed so that games can be decrypted.]]></string>
+    <string name="loader_error_encrypted_roms_description"><![CDATA[Please follow the guides to redump your <a href=\"https://suyu.dev/help/quickstart/#dumping-physical-titles-game-cards\">game cartridges</a> or <a href=\"https://suyu.dev/help/quickstart/#dumping-digital-titles-eshop\">installed titles</a>.]]></string>
+    <string name="loader_error_encrypted_keys_description"><![CDATA[Please ensure your <a href=\"https://suyu.dev/help/quickstart/#dumping-prodkeys-and-titlekeys\">prod.keys</a> file is installed so that games can be decrypted.]]></string>
     <string name="loader_error_video_core">An error occurred initializing the video core</string>
     <string name="loader_error_video_core_description">This is usually caused by an incompatible GPU driver. Installing a custom GPU driver may resolve this problem.</string>
     <string name="loader_error_file_not_found">ROM file does not exist</string>
 
     <string name="loader_requires_firmware">Game Requires Firmware</string>
-    <string name="loader_requires_firmware_description"><![CDATA[The game you are trying to launch requires firmware to boot or to get past the opening menu. Please <a href=\"https://yuzu-mirror.github.io/help/quickstart\"> dump and install firmware</a>, or press \"OK\" to launch anyways.]]></string>
+    <string name="loader_requires_firmware_description"><![CDATA[The game you are trying to launch requires firmware to boot or to get past the opening menu. Please <a href=\"https://suyu.dev/help/quickstart\"> dump and install firmware</a>, or press \"OK\" to launch anyways.]]></string>
 
     <!-- Intent Launch strings -->
     <string name="searching_for_game">Searching for game...</string>

@@ -90,7 +90,7 @@ void DiscordImpl::Update() {
 
         // Used to format Icon URL for suyu website game compatibility page
         std::string icon_name = GetGameString(game_title);
-        game_url = fmt::format("https://suyu-emu.github.io/images/game/boxart/{}.png", icon_name);
+        game_url = fmt::format("https://suyu.dev/images/game/boxart/{}.png", icon_name);
 
         QNetworkAccessManager manager;
         QNetworkRequest request;
