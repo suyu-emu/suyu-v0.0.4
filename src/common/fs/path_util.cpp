@@ -88,7 +88,7 @@ public:
         return legacy_paths.at(legacy_path);
     }
 
-    void CreateEdenPaths() {
+    void CreateSuyuPaths() {
         std::for_each(eden_paths.begin(), eden_paths.end(), [](auto &path) {
             void(FS::CreateDirs(path.second));
         });
@@ -306,8 +306,8 @@ void SetSuyuPath(SuyuPath eden_path, const fs::path& new_path) {
     }
 }
 
-void CreateEdenPaths() {
-    PathManagerImpl::GetInstance().CreateEdenPaths();
+void CreateSuyuPaths() {
+    PathManagerImpl::GetInstance().CreateSuyuPaths();
 }
 
 #ifdef _WIN32

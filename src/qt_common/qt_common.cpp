@@ -216,7 +216,7 @@ void Init(QWidget* root) {
     provider = std::make_unique<FileSys::ManualContentProvider>();
 
     // initialization stuff
-    Common::FS::CreateEdenPaths();
+    Common::FS::CreateSuyuPaths();
 
     system->Initialize();
 

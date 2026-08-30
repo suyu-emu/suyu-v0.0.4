@@ -271,7 +271,7 @@ void SetSuyuPath(SuyuPath eden_path, const std::filesystem::path& new_path);
 /**
  * Creates all necessary Eden paths in the filesystem.
  */
-void CreateEdenPaths();
+void CreateSuyuPaths();
 
 #ifdef _WIN32
 template <typename Path>

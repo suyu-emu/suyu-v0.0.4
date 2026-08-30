@@ -387,7 +387,7 @@ private slots:
     void OnInstallFirmwareFromZIP();
     void OnInstallDecryptionKeys();
     void OnAbout();
-    void OnEdenDependencies();
+    void OnSuyuDependencies();
     void OnDataDialog();
     void OnToggleFilterBar();
     void OnToggleStatusBar();

@@ -354,7 +354,7 @@ MainWindow::MainWindow(bool has_broken_vulkan)
       input_subsystem{std::make_shared<InputCommon::InputSubsystem>()}, user_data_migrator{this} {
     QtCommon::Init(this);
 
-    Common::FS::CreateEdenPaths();
+    Common::FS::CreateSuyuPaths();
     this->config = std::make_unique<QtConfig>();
 
     if (user_data_migrator.migrated) {
@@ -1620,7 +1620,7 @@ void MainWindow::ConnectMenuEvents() {
     connect_menu(ui->action_Firmware_From_ZIP, &MainWindow::OnInstallFirmwareFromZIP);
     connect_menu(ui->action_Install_Keys, &MainWindow::OnInstallDecryptionKeys);
     connect_menu(ui->action_About, &MainWindow::OnAbout);
-    connect_menu(ui->action_suyu_Dependencies, &MainWindow::OnEdenDependencies);
+    connect_menu(ui->action_suyu_Dependencies, &MainWindow::OnSuyuDependencies);
     connect_menu(ui->action_Data_Manager, &MainWindow::OnDataDialog);
 }
 
@@ -3820,7 +3820,7 @@ void MainWindow::OnAbout() {
     aboutDialog.exec();
 }
 
-void MainWindow::OnEdenDependencies() {
+void MainWindow::OnSuyuDependencies() {
     DepsDialog depsDialog(this);
     depsDialog.exec();
 }
