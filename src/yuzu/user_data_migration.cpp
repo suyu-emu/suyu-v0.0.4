@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 suyu Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 // Copyright Citra Emulator Project / Azahar Emulator Project
@@ -30,7 +30,7 @@ UserDataMigrator::UserDataMigrator(QMainWindow* main_window) {
     // TODO: ProfileManager messes with us a bit here, and force-creates the
     // /nand/system/save/8000000000000010/su/avators/profiles.dat file. Find a way to reorder
     // operations and have it create after this guy runs.
-    if (!std::filesystem::is_directory(Common::FS::GetEdenPath(Common::FS::EdenPath::ConfigDir))) {
+    if (!std::filesystem::is_directory(Common::FS::GetSuyuPath(Common::FS::SuyuPath::ConfigDir))) {
         ShowMigrationPrompt(main_window);
     }
 }
@@ -121,8 +121,8 @@ void UserDataMigrator::ShowMigrationCancelledMessage(QMainWindow* main_window) {
     QMessageBox::information(main_window, QObject::tr("Migration"),
                              QObject::tr("You can manually re-trigger this prompt by deleting the "
                                          "new config directory:\n%1")
-                                 .arg(QString::fromStdString(Common::FS::GetEdenPathString(
-                                     Common::FS::EdenPath::ConfigDir))),
+                                 .arg(QString::fromStdString(Common::FS::GetSuyuPathString(
+                                     Common::FS::SuyuPath::ConfigDir))),
                              QMessageBox::Ok);
 }
 

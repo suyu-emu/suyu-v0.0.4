@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 suyu Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 // SPDX-FileCopyrightText: Copyright 2020 yuzu Emulator Project
@@ -159,7 +159,7 @@ void ExtractSharedFonts(Core::System& system) {
         "FontNintendoExtended2.ttf",
     };
 
-    const auto fonts_dir = Common::FS::GetEdenPath(Common::FS::EdenPath::CacheDir) / "fonts";
+    const auto fonts_dir = Common::FS::GetSuyuPath(Common::FS::SuyuPath::CacheDir) / "fonts";
 
     for (std::size_t i = 0; i < NS::SHARED_FONTS.size(); ++i) {
         const auto font_file_path = fonts_dir / DECRYPTED_SHARED_FONTS[i];
@@ -527,7 +527,7 @@ void WebBrowser::InitializeOffline() {
         "system_data",
     };
 
-    offline_cache_dir = Common::FS::GetEdenPath(Common::FS::EdenPath::CacheDir) /
+    offline_cache_dir = Common::FS::GetSuyuPath(Common::FS::SuyuPath::CacheDir) /
                         fmt::format("offline_web_applet_{}/{:016X}",
                                     RESOURCE_TYPES[static_cast<u32>(document_kind) - 1], title_id);
 

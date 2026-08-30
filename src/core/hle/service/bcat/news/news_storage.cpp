@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2025 suyu Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 #include "core/hle/service/bcat/news/news_storage.h"
@@ -16,7 +16,7 @@ namespace Service::News {
 namespace {
 
 std::filesystem::path GetReadCachePath() {
-    return Common::FS::GetEdenPath(Common::FS::EdenPath::CacheDir) / "news" / "news_read";
+    return Common::FS::GetSuyuPath(Common::FS::SuyuPath::CacheDir) / "news" / "news_read";
 }
 
 std::set<std::string> LoadReadIds() {

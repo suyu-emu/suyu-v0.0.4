@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 suyu Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 // Qt on macOS doesn't define VMA shit
@@ -362,15 +362,15 @@ MainWindow::MainWindow(bool has_broken_vulkan)
 
         using namespace Common::FS;
 
-        static constexpr const std::array<const EdenPath, 4> paths = {
-            EdenPath::NANDDir, EdenPath::SDMCDir, EdenPath::DumpDir, EdenPath::LoadDir};
+        static constexpr const std::array<const SuyuPath, 4> paths = {
+            SuyuPath::NANDDir, SuyuPath::SDMCDir, SuyuPath::DumpDir, SuyuPath::LoadDir};
 
-        for (const EdenPath& path : paths) {
-            std::string str_path = Common::FS::GetEdenPathString(path);
+        for (const SuyuPath& path : paths) {
+            std::string str_path = Common::FS::GetSuyuPathString(path);
             if (str_path.starts_with(user_data_migrator.selected_emu.get_user_dir())) {
                 boost::replace_all(
                     str_path, user_data_migrator.selected_emu.lower_name().toStdString(), "suyu");
-                Common::FS::SetEdenPath(path, str_path);
+                Common::FS::SetSuyuPath(path, str_path);
             }
         }
     }
@@ -579,7 +579,7 @@ MainWindow::MainWindow(bool has_broken_vulkan)
             LaunchFirmwareApplet(u64(Service::AM::AppletProgramId::QLaunch), std::nullopt);
         } else if (should_launch_hlaunch) {
             std::filesystem::path const sd_dir =
-                Common::FS::GetEdenPathString(Common::FS::EdenPath::SDMCDir);
+                Common::FS::GetSuyuPathString(Common::FS::SuyuPath::SDMCDir);
             auto const hbl_path = (sd_dir / "atmosphere" / "hbl.nsp").string();
             BootGame(
                 QString::fromStdString(hbl_path),
@@ -2259,7 +2259,7 @@ void MainWindow::OnGameListOpenFolder(u64 program_id, GameListOpenTarget target,
     switch (target) {
     case GameListOpenTarget::SaveData: {
         open_target = tr("Save Data");
-        const auto save_dir = Common::FS::GetEdenPath(Common::FS::EdenPath::SaveDir);
+        const auto save_dir = Common::FS::GetSuyuPath(Common::FS::SuyuPath::SaveDir);
         auto vfs_save_dir = QtCommon::vfs->OpenDirectory(Common::FS::PathToUTF8String(save_dir),
                                                          FileSys::OpenMode::Read);
 
@@ -2290,7 +2290,7 @@ void MainWindow::OnGameListOpenFolder(u64 program_id, GameListOpenTarget target,
     }
     case GameListOpenTarget::ModData: {
         open_target = tr("Mod Data");
-        path = Common::FS::GetEdenPath(Common::FS::EdenPath::LoadDir) /
+        path = Common::FS::GetSuyuPath(Common::FS::SuyuPath::LoadDir) /
                fmt::format("{:016X}", program_id);
         break;
     }
@@ -2411,7 +2411,7 @@ void MainWindow::OnGameListRemoveInstalledEntry(u64 program_id,
         QtCommon::Game::RemoveAddOnContent(program_id, type);
         break;
     }
-    Common::FS::RemoveDirRecursively(Common::FS::GetEdenPath(Common::FS::EdenPath::CacheDir) /
+    Common::FS::RemoveDirRecursively(Common::FS::GetSuyuPath(Common::FS::SuyuPath::CacheDir) /
                                      "game_list");
     game_list->PopulateAsync(UISettings::values.game_dirs);
 }
@@ -2526,8 +2526,8 @@ void MainWindow::OnGameListDumpRomFS(u64 program_id, const std::string& game_pat
     const auto base_romfs = base_nca->GetRomFS();
     const auto dump_dir =
         target == DumpRomFSTarget::Normal
-            ? Common::FS::GetEdenPath(Common::FS::EdenPath::DumpDir)
-            : Common::FS::GetEdenPath(Common::FS::EdenPath::SDMCDir) / "atmosphere" / "contents";
+            ? Common::FS::GetSuyuPath(Common::FS::SuyuPath::DumpDir)
+            : Common::FS::GetSuyuPath(Common::FS::SuyuPath::SDMCDir) / "atmosphere" / "contents";
     const auto romfs_dir = fmt::format("{:016X}/romfs", title_id);
 
     const auto path = Common::FS::PathToUTF8String(dump_dir / romfs_dir);
@@ -2621,13 +2621,13 @@ void MainWindow::OnGameListOpenDirectory(const QString& directory) {
     std::filesystem::path fs_path;
     if (directory == QStringLiteral("SDMC")) {
         fs_path =
-            Common::FS::GetEdenPath(Common::FS::EdenPath::SDMCDir) / "Nintendo/Contents/registered";
+            Common::FS::GetSuyuPath(Common::FS::SuyuPath::SDMCDir) / "Nintendo/Contents/registered";
     } else if (directory == QStringLiteral("UserNAND")) {
         fs_path =
-            Common::FS::GetEdenPath(Common::FS::EdenPath::NANDDir) / "user/Contents/registered";
+            Common::FS::GetSuyuPath(Common::FS::SuyuPath::NANDDir) / "user/Contents/registered";
     } else if (directory == QStringLiteral("SysNAND")) {
         fs_path =
-            Common::FS::GetEdenPath(Common::FS::EdenPath::NANDDir) / "system/Contents/registered";
+            Common::FS::GetSuyuPath(Common::FS::SuyuPath::NANDDir) / "system/Contents/registered";
     } else {
         fs_path = directory.toStdString();
     }
@@ -2898,7 +2898,7 @@ void MainWindow::OnMenuInstallToNAND() {
                                 : tr("%n file(s) failed to install\n", "", failed_files.size()));
 
     QMessageBox::information(this, tr("Install Results"), install_results);
-    Common::FS::RemoveDirRecursively(Common::FS::GetEdenPath(Common::FS::EdenPath::CacheDir) /
+    Common::FS::RemoveDirRecursively(Common::FS::GetSuyuPath(Common::FS::SuyuPath::CacheDir) /
                                      "game_list");
     game_list->PopulateAsync(UISettings::values.game_dirs);
     ui->action_Install_File_NAND->setEnabled(true);
@@ -3124,7 +3124,7 @@ void MainWindow::OnMenuReportCompatibility() {
     //             tr("In order to submit a game compatibility test case, you must set up your web
     //             token "
     //                "and "
-    //                "username.<br><br/>To link your eden account, go to Emulation &gt;
+    //                "username.<br><br/>To link your suyu account, go to Emulation &gt;
     //                Configuration "
     //                "&gt; "
     //                "Web."));
@@ -3390,11 +3390,11 @@ void MainWindow::OnConfigure() {
             LOG_WARNING(Frontend, "Failed to remove configuration file");
         }
         if (!Common::FS::RemoveDirContentsRecursively(
-                Common::FS::GetEdenPath(Common::FS::EdenPath::ConfigDir) / "custom")) {
+                Common::FS::GetSuyuPath(Common::FS::SuyuPath::ConfigDir) / "custom")) {
             LOG_WARNING(Frontend, "Failed to remove custom configuration files");
         }
         if (!Common::FS::RemoveDirRecursively(
-                Common::FS::GetEdenPath(Common::FS::EdenPath::CacheDir) / "game_list")) {
+                Common::FS::GetSuyuPath(Common::FS::SuyuPath::CacheDir) / "game_list")) {
             LOG_WARNING(Frontend, "Failed to remove game metadata cache files");
         }
 
@@ -3958,7 +3958,7 @@ void MainWindow::OnCaptureScreenshot() {
 
     const u64 title_id = QtCommon::system->GetApplicationProcessProgramID();
     const auto screenshot_path =
-        QString::fromStdString(Common::FS::GetEdenPathString(Common::FS::EdenPath::ScreenshotsDir));
+        QString::fromStdString(Common::FS::GetSuyuPathString(Common::FS::SuyuPath::ScreenshotsDir));
     const auto date =
         QDateTime::currentDateTime().toString(QStringLiteral("yyyy-MM-dd_hh-mm-ss-zzz"));
     QString filename = QStringLiteral("%1/%2_%3.png")

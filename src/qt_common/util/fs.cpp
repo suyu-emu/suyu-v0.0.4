@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 suyu Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 #include <algorithm>
@@ -29,11 +29,11 @@ void LinkRyujinx(std::filesystem::path& from, std::filesystem::path& to) {
     }
 }
 
-bool CheckUnlink(const fs::path& eden_dir, const fs::path& ryu_dir) {
-    bool eden_link = Common::FS::IsSymlink(eden_dir);
+bool CheckUnlink(const fs::path& suyu_dir, const fs::path& ryu_dir) {
+    bool suyu_link = Common::FS::IsSymlink(suyu_dir);
     bool ryu_link = Common::FS::IsSymlink(ryu_dir);
 
-    if (!(eden_link || ryu_link))
+    if (!(suyu_link || ryu_link))
         return false;
 
     auto result = QtCommon::Frontend::Warning(
@@ -47,12 +47,12 @@ bool CheckUnlink(const fs::path& eden_dir, const fs::path& ryu_dir) {
     fs::path linked;
     fs::path orig;
 
-    if (eden_link) {
-        linked = eden_dir;
+    if (suyu_link) {
+        linked = suyu_dir;
         orig = ryu_dir;
     } else {
         linked = ryu_dir;
-        orig = eden_dir;
+        orig = suyu_dir;
     }
 
     linked.make_preferred();

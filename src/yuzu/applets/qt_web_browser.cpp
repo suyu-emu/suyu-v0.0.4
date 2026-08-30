@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 suyu Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 // SPDX-FileCopyrightText: Copyright 2020 yuzu Emulator Project
@@ -66,7 +66,7 @@ QtNXWebEngineView::QtNXWebEngineView(QWidget* parent, Core::System& system,
       default_profile{QWebEngineProfile::defaultProfile()},
       global_settings{default_profile->settings()} {
     default_profile->setPersistentStoragePath(QString::fromStdString(Common::FS::PathToUTF8String(
-        Common::FS::GetEdenPath(Common::FS::EdenPath::EdenDir) / "qtwebengine")));
+        Common::FS::GetSuyuPath(Common::FS::SuyuPath::EdenDir) / "qtwebengine")));
 
     QWebEngineScript gamepad;
     QWebEngineScript window_nx;
@@ -332,7 +332,7 @@ void QtNXWebEngineView::LoadExtractedFonts() {
     QWebEngineScript load_nx_font;
 
     auto fonts_dir_str = Common::FS::PathToUTF8String(
-        Common::FS::GetEdenPath(Common::FS::EdenPath::CacheDir) / "fonts/");
+        Common::FS::GetSuyuPath(Common::FS::SuyuPath::CacheDir) / "fonts/");
 
     std::replace(fonts_dir_str.begin(), fonts_dir_str.end(), '\\', '/');
 

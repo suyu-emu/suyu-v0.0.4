@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 suyu Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 // SPDX-FileCopyrightText: Copyright 2018 yuzu Emulator Project
@@ -46,7 +46,7 @@ QString GetGameListCachedObject(const std::string& filename, const std::string& 
     }
 
     const auto path =
-        Common::FS::PathToUTF8String(Common::FS::GetEdenPath(Common::FS::EdenPath::CacheDir) /
+        Common::FS::PathToUTF8String(Common::FS::GetSuyuPath(Common::FS::SuyuPath::CacheDir) /
                                      "game_list" / fmt::format("{}.{}", filename, ext));
 
     void(Common::FS::CreateParentDirs(path));
@@ -78,7 +78,7 @@ std::pair<std::vector<u8>, std::string> GetGameListCachedObject(
     }
 
     const auto game_list_dir =
-        Common::FS::GetEdenPath(Common::FS::EdenPath::CacheDir) / "game_list";
+        Common::FS::GetSuyuPath(Common::FS::SuyuPath::CacheDir) / "game_list";
     const auto jpeg_name = fmt::format("{}.jpeg", filename);
     const auto app_name = fmt::format("{}.appname.txt", filename);
 

@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 suyu Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 #include "common/literals.h"
@@ -196,7 +196,7 @@ static QString PrettyProductName() {
 }
 
 static void RemoveCachedContents() {
-    const auto cache_dir = Common::FS::GetEdenPath(Common::FS::EdenPath::CacheDir);
+    const auto cache_dir = Common::FS::GetSuyuPath(Common::FS::SuyuPath::CacheDir);
     const auto offline_fonts = cache_dir / "fonts";
     const auto offline_manual = cache_dir / "offline_web_applet_manual";
     const auto offline_legal_information = cache_dir / "offline_web_applet_legal_information";

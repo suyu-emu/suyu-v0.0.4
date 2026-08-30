@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 suyu Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 // SPDX-FileCopyrightText: Copyright 2022 yuzu Emulator Project
@@ -1264,7 +1264,7 @@ Result NfcDevice::BreakTag(NFP::BreakType break_type) {
 Result NfcDevice::HasBackup(const UniqueSerialNumber& uid, std::size_t uuid_size) const {
     ASSERT_MSG(uuid_size < sizeof(UniqueSerialNumber), "Invalid UUID size");
     constexpr auto backup_dir = "backup";
-    const auto yuzu_amiibo_dir = Common::FS::GetEdenPath(Common::FS::EdenPath::AmiiboDir);
+    const auto yuzu_amiibo_dir = Common::FS::GetSuyuPath(Common::FS::SuyuPath::AmiiboDir);
     const auto file_name =
         fmt::format("{0:02x}.bin", fmt::join(uid.begin(), uid.begin() + uuid_size, ""));
 
@@ -1285,7 +1285,7 @@ Result NfcDevice::ReadBackupData(const UniqueSerialNumber& uid, std::size_t uuid
                                  std::span<u8> data) const {
     ASSERT_MSG(uuid_size < sizeof(UniqueSerialNumber), "Invalid UUID size");
     constexpr auto backup_dir = "backup";
-    const auto yuzu_amiibo_dir = Common::FS::GetEdenPath(Common::FS::EdenPath::AmiiboDir);
+    const auto yuzu_amiibo_dir = Common::FS::GetSuyuPath(Common::FS::SuyuPath::AmiiboDir);
     const auto file_name =
         fmt::format("{0:02x}.bin", fmt::join(uid.begin(), uid.begin() + uuid_size, ""));
 
@@ -1316,7 +1316,7 @@ Result NfcDevice::WriteBackupData(const UniqueSerialNumber& uid, std::size_t uui
                                   std::span<const u8> data) {
     ASSERT_MSG(uuid_size < sizeof(UniqueSerialNumber), "Invalid UUID size");
     constexpr auto backup_dir = "backup";
-    const auto yuzu_amiibo_dir = Common::FS::GetEdenPath(Common::FS::EdenPath::AmiiboDir);
+    const auto yuzu_amiibo_dir = Common::FS::GetSuyuPath(Common::FS::SuyuPath::AmiiboDir);
     const auto file_name =
         fmt::format("{0:02x}.bin", fmt::join(uid.begin(), uid.begin() + uuid_size, ""));
 

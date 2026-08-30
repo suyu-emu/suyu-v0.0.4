@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2025 suyu Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 #ifndef RYUJINX_DIALOG_H
@@ -16,7 +16,7 @@ class RyujinxDialog : public QDialog
     Q_OBJECT
 
 public:
-    explicit RyujinxDialog(std::filesystem::path eden_path, std::filesystem::path ryu_path, QWidget *parent = nullptr);
+    explicit RyujinxDialog(std::filesystem::path suyu_path, std::filesystem::path ryu_path, QWidget *parent = nullptr);
     ~RyujinxDialog();
 
 private slots:
@@ -25,7 +25,7 @@ private slots:
 
 private:
     Ui::RyujinxDialog *ui;
-    std::filesystem::path m_eden;
+    std::filesystem::path m_suyu;
     std::filesystem::path m_ryu;
 };
 

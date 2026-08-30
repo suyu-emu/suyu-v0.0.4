@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 suyu Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 #include <common/fs/path_util.h>
@@ -93,20 +93,20 @@ void AndroidConfig::ReadPathValues() {
 
     const auto nand_dir_setting = ReadStringSetting(std::string("nand_directory"));
     if (!nand_dir_setting.empty()) {
-        Common::FS::SetEdenPath(Common::FS::EdenPath::NANDDir, nand_dir_setting);
+        Common::FS::SetSuyuPath(Common::FS::SuyuPath::NANDDir, nand_dir_setting);
     }
 
     const auto sdmc_dir_setting = ReadStringSetting(std::string("sdmc_directory"));
     if (!sdmc_dir_setting.empty()) {
-        Common::FS::SetEdenPath(Common::FS::EdenPath::SDMCDir, sdmc_dir_setting);
+        Common::FS::SetSuyuPath(Common::FS::SuyuPath::SDMCDir, sdmc_dir_setting);
     }
 
     const auto save_dir_setting = ReadStringSetting(std::string("save_directory"));
     if (save_dir_setting.empty()) {
-        Common::FS::SetEdenPath(Common::FS::EdenPath::SaveDir,
-            Common::FS::GetEdenPathString(Common::FS::EdenPath::NANDDir));
+        Common::FS::SetSuyuPath(Common::FS::SuyuPath::SaveDir,
+            Common::FS::GetSuyuPathString(Common::FS::SuyuPath::NANDDir));
     } else {
-        Common::FS::SetEdenPath(Common::FS::EdenPath::SaveDir, save_dir_setting);
+        Common::FS::SetSuyuPath(Common::FS::SuyuPath::SaveDir, save_dir_setting);
     }
 
     EndGroup();
@@ -272,17 +272,17 @@ void AndroidConfig::SavePathValues() {
     EndArray();
 
     // Save custom NAND directory
-    const auto nand_path = Common::FS::GetEdenPathString(Common::FS::EdenPath::NANDDir);
+    const auto nand_path = Common::FS::GetSuyuPathString(Common::FS::SuyuPath::NANDDir);
     WriteStringSetting(std::string("nand_directory"), nand_path,
                        std::make_optional(std::string("")));
 
     // Save custom SDMC directory
-    const auto sdmc_path = Common::FS::GetEdenPathString(Common::FS::EdenPath::SDMCDir);
+    const auto sdmc_path = Common::FS::GetSuyuPathString(Common::FS::SuyuPath::SDMCDir);
     WriteStringSetting(std::string("sdmc_directory"), sdmc_path,
                        std::make_optional(std::string("")));
 
     // Save custom save directory
-    const auto save_path = Common::FS::GetEdenPathString(Common::FS::EdenPath::SaveDir);
+    const auto save_path = Common::FS::GetSuyuPathString(Common::FS::SuyuPath::SaveDir);
     if (save_path == nand_path) {
         WriteStringSetting(std::string("save_directory"), std::string(""),
                            std::make_optional(std::string("")));

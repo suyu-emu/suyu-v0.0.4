@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2025 suyu Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 // SPDX-FileCopyrightText: Copyright 2018 yuzu Emulator Project
@@ -33,7 +33,7 @@ QString FormatUserEntryText(const QString& username, Common::UUID uuid) {
 
 QString GetImagePath(Common::UUID uuid) {
     const auto path =
-        Common::FS::GetEdenPath(Common::FS::EdenPath::NANDDir) /
+        Common::FS::GetSuyuPath(Common::FS::SuyuPath::NANDDir) /
         fmt::format("system/save/8000000000000010/su/avators/{}.jpg", uuid.FormattedString());
     return QString::fromStdString(Common::FS::PathToUTF8String(path));
 }

@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 suyu Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 // SPDX-FileCopyrightText: 2024 yuzu Emulator Project
@@ -47,7 +47,7 @@ bool IsProfileNameValid(std::string_view profile_name) {
 }
 
 bool ProfileExistsInFilesystem(std::string_view profile_name) {
-    return Common::FS::Exists(Common::FS::GetEdenPath(Common::FS::EdenPath::ConfigDir) / "input" /
+    return Common::FS::Exists(Common::FS::GetSuyuPath(Common::FS::SuyuPath::ConfigDir) / "input" /
                               fmt::format("{}.ini", profile_name));
 }
 
@@ -307,7 +307,7 @@ void Java_org_yuzu_yuzu_1emu_features_input_NativeInput_loadInputProfiles(JNIEnv
                                                                           jobject j_obj) {
     map_profiles.clear();
     const auto input_profile_loc =
-        Common::FS::GetEdenPath(Common::FS::EdenPath::ConfigDir) / "input";
+        Common::FS::GetSuyuPath(Common::FS::SuyuPath::ConfigDir) / "input";
 
     if (Common::FS::IsDir(input_profile_loc)) {
         Common::FS::IterateDirEntries(

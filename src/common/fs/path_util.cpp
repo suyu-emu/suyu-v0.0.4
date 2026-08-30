@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 suyu Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 // SPDX-FileCopyrightText: Copyright 2021 yuzu Emulator Project
@@ -61,10 +61,10 @@ namespace fs = std::filesystem;
 
 /**
  * The PathManagerImpl is a singleton allowing to manage the mapping of
- * EdenPath enums to real filesystem paths.
- * This class provides 2 functions: GetEdenPathImpl and SetEdenPathImpl.
- * These are used by GetEdenPath and SetEdenPath respectively to get or modify
- * the path mapped by the EdenPath enum.
+ * SuyuPath enums to real filesystem paths.
+ * This class provides 2 functions: GetSuyuPathImpl and SetSuyuPathImpl.
+ * These are used by GetSuyuPath and SetSuyuPath respectively to get or modify
+ * the path mapped by the SuyuPath enum.
  */
 class PathManagerImpl {
 public:
@@ -80,7 +80,7 @@ public:
     PathManagerImpl(PathManagerImpl&&) = delete;
     PathManagerImpl& operator=(PathManagerImpl&&) = delete;
 
-    [[nodiscard]] const fs::path& GetEdenPathImpl(EdenPath eden_path) {
+    [[nodiscard]] const fs::path& GetSuyuPathImpl(SuyuPath eden_path) {
         return eden_paths.at(eden_path);
     }
 
@@ -94,7 +94,7 @@ public:
         });
     }
 
-    void SetEdenPathImpl(EdenPath eden_path, const fs::path& new_path) {
+    void SetSuyuPathImpl(SuyuPath eden_path, const fs::path& new_path) {
         eden_paths.insert_or_assign(eden_path, new_path);
     }
 
@@ -150,26 +150,26 @@ public:
 #undef LEGACY_PATH
 #endif
         // data
-        GenerateEdenPath(EdenPath::EdenDir, eden_path);
-        GenerateEdenPath(EdenPath::AmiiboDir, eden_path / AMIIBO_DIR);
-        GenerateEdenPath(EdenPath::CrashDumpsDir, eden_path / CRASH_DUMPS_DIR);
-        GenerateEdenPath(EdenPath::DumpDir, eden_path / DUMP_DIR);
-        GenerateEdenPath(EdenPath::KeysDir, eden_path / KEYS_DIR);
-        GenerateEdenPath(EdenPath::LoadDir, eden_path / LOAD_DIR);
-        GenerateEdenPath(EdenPath::LogDir, eden_path / LOG_DIR);
-        GenerateEdenPath(EdenPath::NANDDir, eden_path / NAND_DIR);
-        GenerateEdenPath(EdenPath::PlayTimeDir, eden_path / PLAY_TIME_DIR);
-        GenerateEdenPath(EdenPath::SaveDir, eden_path / NAND_DIR);
-        GenerateEdenPath(EdenPath::ScreenshotsDir, eden_path / SCREENSHOTS_DIR);
-        GenerateEdenPath(EdenPath::SDMCDir, eden_path / SDMC_DIR);
-        GenerateEdenPath(EdenPath::TASDir, eden_path / TAS_DIR);
-        GenerateEdenPath(EdenPath::IconsDir, eden_path / ICONS_DIR);
-        GenerateEdenPath(EdenPath::ThemesDir, eden_path / THEMES_DIR);
+        GenerateEdenPath(SuyuPath::EdenDir, eden_path);
+        GenerateEdenPath(SuyuPath::AmiiboDir, eden_path / AMIIBO_DIR);
+        GenerateEdenPath(SuyuPath::CrashDumpsDir, eden_path / CRASH_DUMPS_DIR);
+        GenerateEdenPath(SuyuPath::DumpDir, eden_path / DUMP_DIR);
+        GenerateEdenPath(SuyuPath::KeysDir, eden_path / KEYS_DIR);
+        GenerateEdenPath(SuyuPath::LoadDir, eden_path / LOAD_DIR);
+        GenerateEdenPath(SuyuPath::LogDir, eden_path / LOG_DIR);
+        GenerateEdenPath(SuyuPath::NANDDir, eden_path / NAND_DIR);
+        GenerateEdenPath(SuyuPath::PlayTimeDir, eden_path / PLAY_TIME_DIR);
+        GenerateEdenPath(SuyuPath::SaveDir, eden_path / NAND_DIR);
+        GenerateEdenPath(SuyuPath::ScreenshotsDir, eden_path / SCREENSHOTS_DIR);
+        GenerateEdenPath(SuyuPath::SDMCDir, eden_path / SDMC_DIR);
+        GenerateEdenPath(SuyuPath::TASDir, eden_path / TAS_DIR);
+        GenerateEdenPath(SuyuPath::IconsDir, eden_path / ICONS_DIR);
+        GenerateEdenPath(SuyuPath::ThemesDir, eden_path / THEMES_DIR);
         // config
-        GenerateEdenPath(EdenPath::ConfigDir, eden_path_config);
+        GenerateEdenPath(SuyuPath::ConfigDir, eden_path_config);
         // cache
-        GenerateEdenPath(EdenPath::CacheDir, eden_path_cache);
-        GenerateEdenPath(EdenPath::ShaderDir, eden_path_cache / SHADER_DIR);
+        GenerateEdenPath(SuyuPath::CacheDir, eden_path_cache);
+        GenerateEdenPath(SuyuPath::ShaderDir, eden_path_cache / SHADER_DIR);
 #ifdef _WIN32
         GenerateLegacyPath(EmuPath::RyujinxDir, GetAppDataRoamingDirectory() / RYUJINX_DIR);
 #else
@@ -187,16 +187,16 @@ private:
 
     ~PathManagerImpl() = default;
 
-    void GenerateEdenPath(EdenPath eden_path, const fs::path& new_path) {
+    void GenerateEdenPath(SuyuPath eden_path, const fs::path& new_path) {
         // Defer path creation
-        SetEdenPathImpl(eden_path, new_path);
+        SetSuyuPathImpl(eden_path, new_path);
     }
 
     void GenerateLegacyPath(EmuPath legacy_path, const fs::path& new_path) {
         SetLegacyPathImpl(legacy_path, new_path);
     }
 
-    ankerl::unordered_dense::map<EdenPath, fs::path> eden_paths;
+    ankerl::unordered_dense::map<SuyuPath, fs::path> eden_paths;
     ankerl::unordered_dense::map<EmuPath, fs::path> legacy_paths;
 };
 
@@ -281,26 +281,26 @@ void SetAppDirectory(const std::string& app_directory) {
     PathManagerImpl::GetInstance().Reinitialize(app_directory);
 }
 
-const fs::path& GetEdenPath(EdenPath eden_path) {
-    return PathManagerImpl::GetInstance().GetEdenPathImpl(eden_path);
+const fs::path& GetSuyuPath(SuyuPath eden_path) {
+    return PathManagerImpl::GetInstance().GetSuyuPathImpl(eden_path);
 }
 
 const std::filesystem::path& GetLegacyPath(EmuPath legacy_path) {
     return PathManagerImpl::GetInstance().GetLegacyPathImpl(legacy_path);
 }
 
-std::string GetEdenPathString(EdenPath eden_path) {
-    return PathToUTF8String(GetEdenPath(eden_path));
+std::string GetSuyuPathString(SuyuPath eden_path) {
+    return PathToUTF8String(GetSuyuPath(eden_path));
 }
 
 std::string GetLegacyPathString(EmuPath legacy_path) {
     return PathToUTF8String(GetLegacyPath(legacy_path));
 }
 
-void SetEdenPath(EdenPath eden_path, const fs::path& new_path) {
+void SetSuyuPath(SuyuPath eden_path, const fs::path& new_path) {
     auto& instance = PathManagerImpl::GetInstance();
     if (FS::IsDir(new_path)) {
-        instance.SetEdenPathImpl(eden_path, new_path);
+        instance.SetSuyuPathImpl(eden_path, new_path);
     } else {
         LOG_ERROR(Common_Filesystem, "Filesystem object at new_path={} is not a directory", PathToUTF8String(new_path));
     }

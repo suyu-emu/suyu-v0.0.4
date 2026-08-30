@@ -65,7 +65,7 @@ std::filesystem::path DevExeDir() {
 }
 
 std::wstring DevKeysDir() {
-    return Common::FS::GetEdenPath(Common::FS::EdenPath::KeysDir).wstring();
+    return Common::FS::GetSuyuPath(Common::FS::SuyuPath::KeysDir).wstring();
 }
 
 void DevOpen(const std::filesystem::path& p) {

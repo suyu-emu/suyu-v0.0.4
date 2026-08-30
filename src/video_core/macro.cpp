@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 suyu Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 // SPDX-FileCopyrightText: Copyright 2020 yuzu Emulator Project
@@ -1328,7 +1328,7 @@ Macro::Opcode MacroJITx64Impl::GetOpCode() const {
 #endif
 
 static void Dump(u64 hash, std::span<const u32> code, bool decompiled = false) {
-    const auto dump_dir{Common::FS::GetEdenPath(Common::FS::EdenPath::DumpDir)};
+    const auto dump_dir{Common::FS::GetSuyuPath(Common::FS::SuyuPath::DumpDir)};
     if (!Common::FS::CreateDir(dump_dir)) {
         LOG_ERROR(Common_Filesystem, "Failed to create dump directory");
         return;

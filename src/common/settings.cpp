@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 suyu Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 // SPDX-FileCopyrightText: Copyright 2021 yuzu Emulator Project
@@ -138,7 +138,7 @@ void LogSettings() {
         settings_str += e;
     LOG_INFO(Config, "suyu Configuration:\n{}", settings_str);
 #define LOG_PATH(NAME) \
-    LOG_INFO(Config, #NAME ": {}", Common::FS::PathToUTF8String(Common::FS::GetEdenPath(Common::FS::EdenPath::NAME)))
+    LOG_INFO(Config, #NAME ": {}", Common::FS::PathToUTF8String(Common::FS::GetSuyuPath(Common::FS::SuyuPath::NAME)))
     LOG_PATH(CacheDir);
     LOG_PATH(ConfigDir);
     LOG_PATH(LoadDir);

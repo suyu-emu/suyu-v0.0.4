@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 suyu Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 // SPDX-FileCopyrightText: Copyright 2018 yuzu Emulator Project
@@ -350,12 +350,12 @@ std::shared_ptr<SaveDataController> FileSystemController::OpenSaveDataController
 
 std::shared_ptr<FileSys::SaveDataFactory> FileSystemController::CreateSaveDataFactory(
     ProgramId program_id) {
-    using EdenPath = Common::FS::EdenPath;
+    using SuyuPath = Common::FS::SuyuPath;
     const auto rw_mode = FileSys::OpenMode::ReadWrite;
 
     auto vfs = system.GetFilesystem();
     const auto save_directory =
-        vfs->OpenDirectory(Common::FS::GetEdenPathString(EdenPath::SaveDir), rw_mode);
+        vfs->OpenDirectory(Common::FS::GetSuyuPathString(SuyuPath::SaveDir), rw_mode);
     return std::make_shared<FileSys::SaveDataFactory>(system, program_id,
                                                       std::move(save_directory));
 }
@@ -692,20 +692,20 @@ void FileSystemController::CreateFactories(FileSys::VfsFilesystem& vfs, bool ove
         external_provider = nullptr;
     }
 
-    using EdenPath = Common::FS::EdenPath;
-    const auto sdmc_dir_path = Common::FS::GetEdenPath(EdenPath::SDMCDir);
+    using SuyuPath = Common::FS::SuyuPath;
+    const auto sdmc_dir_path = Common::FS::GetSuyuPath(SuyuPath::SDMCDir);
     const auto sdmc_load_dir_path = sdmc_dir_path / "atmosphere/contents";
     const auto rw_mode = FileSys::OpenMode::ReadWrite;
 
     auto nand_directory =
-        vfs.OpenDirectory(Common::FS::GetEdenPathString(EdenPath::NANDDir), rw_mode);
+        vfs.OpenDirectory(Common::FS::GetSuyuPathString(SuyuPath::NANDDir), rw_mode);
     auto sd_directory = vfs.OpenDirectory(Common::FS::PathToUTF8String(sdmc_dir_path), rw_mode);
-    auto load_directory = vfs.OpenDirectory(Common::FS::GetEdenPathString(EdenPath::LoadDir),
+    auto load_directory = vfs.OpenDirectory(Common::FS::GetSuyuPathString(SuyuPath::LoadDir),
                                             FileSys::OpenMode::Read);
     auto sd_load_directory = vfs.OpenDirectory(Common::FS::PathToUTF8String(sdmc_load_dir_path),
                                                FileSys::OpenMode::Read);
     auto dump_directory =
-        vfs.OpenDirectory(Common::FS::GetEdenPathString(EdenPath::DumpDir), rw_mode);
+        vfs.OpenDirectory(Common::FS::GetSuyuPathString(SuyuPath::DumpDir), rw_mode);
 
     if (bis_factory == nullptr) {
         bis_factory = std::make_unique<FileSys::BISFactory>(

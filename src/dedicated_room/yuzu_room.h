@@ -1,4 +1,4 @@
-// Copyright eden Emulator Project
+// Copyright suyu Emulator Project
 // Licensed under GPLv3 or any later version
 // Refer to the license.txt file included.
 

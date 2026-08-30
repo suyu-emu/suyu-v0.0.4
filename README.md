@@ -41,7 +41,11 @@ Platforms: Windows, Linux, Android. macOS/iOS not included in this release.
 
 ## Legal
 
-suyu does not support or condone piracy. Use only legally obtained, decrypted game files from your own Nintendo Switch. suyu does not generate profit from this project.
+suyu does not support or condone piracy in any form. To use suyu, you need pre-decrypted games from your own Nintendo Switch or Switch 2 — either dumped yourself or registered on a Nintendo Account you legally own and paid for. suyu does not intend to make money or profit from this project.
+
+Our only official presence is this GitHub org (`suyu-emu`). Be cautious of other sites offering builds or claiming affiliation with suyu.
+
+Bus_Error/Crimson Hawk and Co are no longer affiliated with the project.
 
 ## Building
 

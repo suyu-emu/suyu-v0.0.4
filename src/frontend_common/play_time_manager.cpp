@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 suyu Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 // SPDX-FileCopyrightText: 2023 yuzu Emulator Project
@@ -26,7 +26,7 @@ struct PlayTimeElement {
 };
 
 std::optional<std::filesystem::path> GetCurrentUserPlayTimePath() {
-    return Common::FS::GetEdenPath(Common::FS::EdenPath::PlayTimeDir) /
+    return Common::FS::GetSuyuPath(Common::FS::SuyuPath::PlayTimeDir) /
            "playtime.bin";
 }
 

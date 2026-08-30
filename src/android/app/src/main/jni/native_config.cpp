@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 suyu Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 #include <string>
@@ -550,37 +550,37 @@ void Java_org_yuzu_yuzu_1emu_utils_NativeConfig_saveControlPlayerValues(JNIEnv* 
 
 jstring Java_org_yuzu_yuzu_1emu_utils_NativeConfig_getSaveDir(JNIEnv* env, jobject obj) {
     return Common::Android::ToJString(env,
-        Common::FS::GetEdenPathString(Common::FS::EdenPath::SaveDir));
+        Common::FS::GetSuyuPathString(Common::FS::SuyuPath::SaveDir));
 }
 
 jstring Java_org_yuzu_yuzu_1emu_utils_NativeConfig_getDefaultSaveDir(JNIEnv* env, jobject obj) {
     return Common::Android::ToJString(env,
-        Common::FS::GetEdenPathString(Common::FS::EdenPath::NANDDir));
+        Common::FS::GetSuyuPathString(Common::FS::SuyuPath::NANDDir));
 }
 
 void Java_org_yuzu_yuzu_1emu_utils_NativeConfig_setSaveDir(JNIEnv* env, jobject obj, jstring jpath) {
     auto path = Common::Android::GetJString(env, jpath);
-    Common::FS::SetEdenPath(Common::FS::EdenPath::SaveDir, path);
+    Common::FS::SetSuyuPath(Common::FS::SuyuPath::SaveDir, path);
 }
 
 jstring Java_org_yuzu_yuzu_1emu_utils_NativeConfig_getNandDir(JNIEnv* env, jobject obj) {
     return Common::Android::ToJString(env,
-        Common::FS::GetEdenPathString(Common::FS::EdenPath::NANDDir));
+        Common::FS::GetSuyuPathString(Common::FS::SuyuPath::NANDDir));
 }
 
 void Java_org_yuzu_yuzu_1emu_utils_NativeConfig_setNandDir(JNIEnv* env, jobject obj, jstring jpath) {
     auto path = Common::Android::GetJString(env, jpath);
-    Common::FS::SetEdenPath(Common::FS::EdenPath::NANDDir, path);
+    Common::FS::SetSuyuPath(Common::FS::SuyuPath::NANDDir, path);
 }
 
 jstring Java_org_yuzu_yuzu_1emu_utils_NativeConfig_getSdmcDir(JNIEnv* env, jobject obj) {
     return Common::Android::ToJString(env,
-        Common::FS::GetEdenPathString(Common::FS::EdenPath::SDMCDir));
+        Common::FS::GetSuyuPathString(Common::FS::SuyuPath::SDMCDir));
 }
 
 void Java_org_yuzu_yuzu_1emu_utils_NativeConfig_setSdmcDir(JNIEnv* env, jobject obj, jstring jpath) {
     auto path = Common::Android::GetJString(env, jpath);
-    Common::FS::SetEdenPath(Common::FS::EdenPath::SDMCDir, path);
+    Common::FS::SetSuyuPath(Common::FS::SuyuPath::SDMCDir, path);
 }
 
 jobjectArray Java_org_yuzu_yuzu_1emu_utils_NativeConfig_getExternalContentDirs(JNIEnv* env,

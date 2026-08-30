@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 suyu Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 #include "common/net/net.h"
@@ -46,17 +46,17 @@ std::mutex images_mutex;
 
 
 std::filesystem::path GetCachePath() {
-    return Common::FS::GetEdenPath(Common::FS::EdenPath::CacheDir) / "news" / "github_releases.json";
+    return Common::FS::GetSuyuPath(Common::FS::SuyuPath::CacheDir) / "news" / "github_releases.json";
 }
 
 std::filesystem::path GetDefaultLogoPath(bool large) {
-    return Common::FS::GetEdenPath(Common::FS::EdenPath::CacheDir) / "news" /
+    return Common::FS::GetSuyuPath(Common::FS::SuyuPath::CacheDir) / "news" /
            (large ? "suyu_logo_large.jpg" : "suyu_logo_small.jpg");
 }
 
 std::filesystem::path GetNewsImagePath(std::string_view news_id, bool large) {
     const std::string filename = fmt::format("{}_{}.jpg", news_id, large ? "large" : "small");
-    return Common::FS::GetEdenPath(Common::FS::EdenPath::CacheDir) / "news" / "images" / filename;
+    return Common::FS::GetSuyuPath(Common::FS::SuyuPath::CacheDir) / "news" / "images" / filename;
 }
 
 u32 HashToNewsId(std::string_view key) {

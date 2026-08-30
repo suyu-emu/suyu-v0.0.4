@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 suyu Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 // SPDX-FileCopyrightText: 2023 yuzu Emulator Project
@@ -28,7 +28,7 @@ Config::Config(const ConfigType config_type)
     : type(config_type), global{config_type == ConfigType::GlobalConfig} {}
 
 void Config::Initialize(const std::string& config_name) {
-    const std::filesystem::path fs_config_loc = FS::GetEdenPath(FS::EdenPath::ConfigDir);
+    const std::filesystem::path fs_config_loc = FS::GetSuyuPath(FS::SuyuPath::ConfigDir);
     const auto config_file = fmt::format("{}.ini", config_name);
 
     switch (type) {
@@ -54,7 +54,7 @@ void Config::Initialize(const std::string& config_name) {
 
 void Config::Initialize(const std::optional<std::string> config_path) {
     const std::filesystem::path default_sdl_config_path =
-        FS::GetEdenPath(FS::EdenPath::ConfigDir) / "sdl2-config.ini";
+        FS::GetSuyuPath(FS::SuyuPath::ConfigDir) / "sdl2-config.ini";
     config_loc = config_path.value_or(FS::PathToUTF8String(default_sdl_config_path));
     void(FS::CreateParentDir(config_loc));
     SetUpIni();
@@ -274,21 +274,21 @@ void Config::ReadDataStorageValues() {
 
     using namespace Common::FS;
 
-    const auto setPath = [this](const EdenPath& path, const char* setting) {
-        SetEdenPath(path, ReadStringSetting(std::string(setting)));
+    const auto setPath = [this](const SuyuPath& path, const char* setting) {
+        SetSuyuPath(path, ReadStringSetting(std::string(setting)));
     };
 
-    setPath(EdenPath::NANDDir, "nand_directory");
-    setPath(EdenPath::SDMCDir, "sdmc_directory");
-    setPath(EdenPath::LoadDir, "load_directory");
-    setPath(EdenPath::DumpDir, "dump_directory");
-    setPath(EdenPath::TASDir, "tas_directory");
+    setPath(SuyuPath::NANDDir, "nand_directory");
+    setPath(SuyuPath::SDMCDir, "sdmc_directory");
+    setPath(SuyuPath::LoadDir, "load_directory");
+    setPath(SuyuPath::DumpDir, "dump_directory");
+    setPath(SuyuPath::TASDir, "tas_directory");
 
     const auto save_dir_setting = ReadStringSetting(std::string("save_directory"));
     if (save_dir_setting.empty()) {
-        SetEdenPath(EdenPath::SaveDir, GetEdenPathString(EdenPath::NANDDir));
+        SetSuyuPath(SuyuPath::SaveDir, GetSuyuPathString(SuyuPath::NANDDir));
     } else {
-        SetEdenPath(EdenPath::SaveDir, save_dir_setting);
+        SetSuyuPath(SuyuPath::SaveDir, save_dir_setting);
     }
 
     ReadCategory(Settings::Category::DataStorage);
@@ -373,7 +373,7 @@ void Config::ReadScreenshotValues() {
     BeginGroup(Settings::TranslateCategory(Settings::Category::Screenshots));
 
     ReadCategory(Settings::Category::Screenshots);
-    FS::SetEdenPath(FS::EdenPath::ScreenshotsDir,
+    FS::SetSuyuPath(FS::SuyuPath::ScreenshotsDir,
                     ReadStringSetting(std::string("screenshot_path")));
 
     EndGroup();
@@ -571,19 +571,19 @@ void Config::SaveDataStorageValues() {
 
     using namespace Common::FS;
 
-    const auto writePath = [this](const char* setting, const EdenPath& path) {
-        WriteStringSetting(std::string(setting), FS::GetEdenPathString(path),
-                           std::make_optional(FS::GetEdenPathString(path)));
+    const auto writePath = [this](const char* setting, const SuyuPath& path) {
+        WriteStringSetting(std::string(setting), FS::GetSuyuPathString(path),
+                           std::make_optional(FS::GetSuyuPathString(path)));
     };
 
-    writePath("nand_directory", EdenPath::NANDDir);
-    writePath("sdmc_directory", EdenPath::SDMCDir);
-    writePath("load_directory", EdenPath::LoadDir);
-    writePath("dump_directory", EdenPath::DumpDir);
-    writePath("tas_directory", EdenPath::TASDir);
+    writePath("nand_directory", SuyuPath::NANDDir);
+    writePath("sdmc_directory", SuyuPath::SDMCDir);
+    writePath("load_directory", SuyuPath::LoadDir);
+    writePath("dump_directory", SuyuPath::DumpDir);
+    writePath("tas_directory", SuyuPath::TASDir);
 
-    const auto save_path = FS::GetEdenPathString(EdenPath::SaveDir);
-    const auto nand_path = FS::GetEdenPathString(EdenPath::NANDDir);
+    const auto save_path = FS::GetSuyuPathString(SuyuPath::SaveDir);
+    const auto nand_path = FS::GetSuyuPathString(SuyuPath::NANDDir);
     if (save_path == nand_path) {
         WriteStringSetting(std::string("save_directory"), std::string(""),
                            std::make_optional(std::string("")));
@@ -673,7 +673,7 @@ void Config::SaveScreenshotValues() {
     BeginGroup(Settings::TranslateCategory(Settings::Category::Screenshots));
 
     WriteStringSetting(std::string("screenshot_path"),
-                       FS::GetEdenPathString(FS::EdenPath::ScreenshotsDir));
+                       FS::GetSuyuPathString(FS::SuyuPath::ScreenshotsDir));
     WriteCategory(Settings::Category::Screenshots);
 
     EndGroup();

@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 suyu Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 // SPDX-FileCopyrightText: 2017 Citra Emulator Project
@@ -42,7 +42,7 @@ PerfStats::~PerfStats() {
     std::copy(perf_history.begin() + IgnoreFrames, perf_history.begin() + current_index,
               std::ostream_iterator<double>(stream, "\n"));
 
-    const auto path = Common::FS::GetEdenPath(Common::FS::EdenPath::LogDir);
+    const auto path = Common::FS::GetSuyuPath(Common::FS::SuyuPath::LogDir);
     // %F Date format expanded is "%Y-%m-%d"
     const auto filename = fmt::format("{}_{:016X}.csv",
         [&] {

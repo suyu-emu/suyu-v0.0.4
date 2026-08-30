@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 suyu Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 // SPDX-FileCopyrightText: Copyright 2023 yuzu Emulator Project
@@ -1251,7 +1251,7 @@ void Java_org_yuzu_yuzu_1emu_NativeLibrary_submitInlineKeyboardInput(JNIEnv* env
 
 void Java_org_yuzu_yuzu_1emu_NativeLibrary_initializeEmptyUserDirectory(JNIEnv* env,
                                                                         jobject instance) {
-    const auto nand_dir = Common::FS::GetEdenPath(Common::FS::EdenPath::NANDDir);
+    const auto nand_dir = Common::FS::GetSuyuPath(Common::FS::SuyuPath::NANDDir);
     auto vfs_nand_dir = EmulationSession::GetInstance().System().GetFilesystem()->OpenDirectory(
         Common::FS::PathToUTF8String(nand_dir), FileSys::OpenMode::Read);
 
@@ -1271,7 +1271,7 @@ void Java_org_yuzu_yuzu_1emu_NativeLibrary_initializeEmptyUserDirectory(JNIEnv* 
 
 void Java_org_yuzu_yuzu_1emu_NativeLibrary_playTimeManagerInit(JNIEnv* env, jobject obj) {
     // for some reason the full user directory isnt initialized in Android, so we need to create it
-    const auto play_time_dir = Common::FS::GetEdenPath(Common::FS::EdenPath::PlayTimeDir);
+    const auto play_time_dir = Common::FS::GetSuyuPath(Common::FS::SuyuPath::PlayTimeDir);
     if (!Common::FS::IsDir(play_time_dir) && !Common::FS::CreateDir(play_time_dir))
         LOG_WARNING(Frontend, "Failed to create play time directory");
 
@@ -1496,7 +1496,7 @@ jstring Java_org_yuzu_yuzu_1emu_NativeLibrary_getSavePath(JNIEnv* env, jobject j
     const auto user_id = manager.GetUser(static_cast<std::size_t>(0));
     ASSERT(user_id);
 
-    const auto saveDir = Common::FS::GetEdenPath(Common::FS::EdenPath::SaveDir);
+    const auto saveDir = Common::FS::GetSuyuPath(Common::FS::SuyuPath::SaveDir);
     auto vfsSaveDir = system.GetFilesystem()->OpenDirectory(Common::FS::PathToUTF8String(saveDir),
                                                             FileSys::OpenMode::Read);
 
@@ -1969,7 +1969,7 @@ JNIEXPORT jstring JNICALL Java_org_yuzu_yuzu_1emu_NativeLibrary_getUserImagePath
     const auto uuid_string = Common::Android::GetJString(env, juuid);
     const auto uuid = Common::UUID{uuid_string};
 
-    const auto path = Common::FS::GetEdenPath(Common::FS::EdenPath::NANDDir) /
+    const auto path = Common::FS::GetSuyuPath(Common::FS::SuyuPath::NANDDir) /
         fmt::format("system/save/8000000000000010/su/avators/{}.jpg", uuid.FormattedString());
 
     jstring result = Common::Android::ToJString(env, Common::FS::PathToUTF8String(path));
@@ -1985,7 +1985,7 @@ JNIEXPORT jboolean JNICALL Java_org_yuzu_yuzu_1emu_NativeLibrary_saveUserImage(
     const auto uuid = Common::UUID{uuid_string};
     const auto image_source = Common::Android::GetJString(env, jimagePath);
 
-    const auto dest_path = Common::FS::GetEdenPath(Common::FS::EdenPath::NANDDir) /
+    const auto dest_path = Common::FS::GetSuyuPath(Common::FS::SuyuPath::NANDDir) /
         fmt::format("system/save/8000000000000010/su/avators/{}.jpg", uuid.FormattedString());
 
     const auto dest_dir = dest_path.parent_path();

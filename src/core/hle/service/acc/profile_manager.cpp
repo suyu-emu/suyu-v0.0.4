@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 suyu Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 // SPDX-FileCopyrightText: Copyright 2018 yuzu Emulator Project
@@ -394,7 +394,7 @@ bool ProfileManager::SetProfileBaseAndData(Common::UUID uuid, const ProfileBase&
 }
 
 void ProfileManager::ParseUserSaveFile() {
-    const auto save_path(FS::GetEdenPath(FS::EdenPath::NANDDir) / ACC_SAVE_AVATORS_BASE_PATH /
+    const auto save_path(FS::GetSuyuPath(FS::SuyuPath::NANDDir) / ACC_SAVE_AVATORS_BASE_PATH /
                          "profiles.dat");
 
     const FS::IOFile save(save_path, FS::FileAccessMode::Read, FS::FileType::BinaryFile);
@@ -447,12 +447,12 @@ void ProfileManager::WriteUserSaveFile() {
         };
     }
 
-    const auto raw_path(FS::GetEdenPath(FS::EdenPath::NANDDir) / "system/save/8000000000000010");
+    const auto raw_path(FS::GetSuyuPath(FS::SuyuPath::NANDDir) / "system/save/8000000000000010");
     if (FS::IsFile(raw_path) && !FS::RemoveFile(raw_path)) {
         return;
     }
 
-    const auto save_path(FS::GetEdenPath(FS::EdenPath::NANDDir) / ACC_SAVE_AVATORS_BASE_PATH /
+    const auto save_path(FS::GetSuyuPath(FS::SuyuPath::NANDDir) / ACC_SAVE_AVATORS_BASE_PATH /
                          "profiles.dat");
 
     if (FS::IsFile(save_path) && !FS::RemoveFile(save_path)) {
@@ -519,7 +519,7 @@ std::vector<std::string> ProfileManager::FindGoodProfiles()
 
     std::vector<std::string> good_uuids;
 
-    const auto path = Common::FS::GetEdenPath(Common::FS::EdenPath::NANDDir)
+    const auto path = Common::FS::GetSuyuPath(Common::FS::SuyuPath::NANDDir)
                       / "user/save/0000000000000000";
 
     // some exceptions, e.g. the "system" profile
@@ -544,7 +544,7 @@ std::vector<std::string> ProfileManager::FindOrphanedProfiles()
     namespace fs = std::filesystem;
 
     // TODO: fetch save_id programmatically
-    const auto path = Common::FS::GetEdenPath(Common::FS::EdenPath::NANDDir)
+    const auto path = Common::FS::GetSuyuPath(Common::FS::SuyuPath::NANDDir)
                       / "user/save/0000000000000000";
 
     std::vector<std::string> orphaned_profiles;

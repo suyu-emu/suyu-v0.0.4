@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 suyu Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 // SPDX-FileCopyrightText: 2016 Citra Emulator Project
@@ -24,7 +24,7 @@ ConfigureDebug::ConfigureDebug(const Core::System& system_, QWidget* parent)
 
     connect(ui->open_log_button, &QPushButton::clicked, []() {
         const auto path =
-            QString::fromStdString(Common::FS::GetEdenPathString(Common::FS::EdenPath::LogDir));
+            QString::fromStdString(Common::FS::GetSuyuPathString(Common::FS::SuyuPath::LogDir));
         QDesktopServices::openUrl(QUrl::fromLocalFile(path));
     });
 

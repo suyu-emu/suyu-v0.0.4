@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 suyu Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 #include "common/fs/fs.h"
@@ -11,7 +11,7 @@ namespace GraphicsBackend {
 
 QString GuiConfigPath() {
     return QString::fromStdString(
-        FS::PathToUTF8String(FS::GetEdenPath(FS::EdenPath::ConfigDir) / "gui_config.ini"));
+        FS::PathToUTF8String(FS::GetSuyuPath(FS::SuyuPath::ConfigDir) / "gui_config.ini"));
 }
 
 void SetForceX11(bool state) {

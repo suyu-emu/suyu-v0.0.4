@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 suyu Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 // SPDX-FileCopyrightText: Copyright 2021 yuzu Emulator Project
@@ -31,7 +31,7 @@ ConfigureTasDialog::~ConfigureTasDialog() = default;
 
 void ConfigureTasDialog::LoadConfiguration() {
     ui->tas_path_edit->setText(
-        QString::fromStdString(Common::FS::GetEdenPathString(Common::FS::EdenPath::TASDir)));
+        QString::fromStdString(Common::FS::GetSuyuPathString(Common::FS::SuyuPath::TASDir)));
     ui->tas_enable->setChecked(Settings::values.tas_enable.GetValue());
     ui->tas_loop_script->setChecked(Settings::values.tas_loop.GetValue());
     ui->tas_pause_on_load->setChecked(Settings::values.pause_tas_on_load.GetValue());
@@ -40,7 +40,7 @@ void ConfigureTasDialog::LoadConfiguration() {
 }
 
 void ConfigureTasDialog::ApplyConfiguration() {
-    Common::FS::SetEdenPath(Common::FS::EdenPath::TASDir, ui->tas_path_edit->text().toStdString());
+    Common::FS::SetSuyuPath(Common::FS::SuyuPath::TASDir, ui->tas_path_edit->text().toStdString());
     Settings::values.tas_enable.SetValue(ui->tas_enable->isChecked());
     Settings::values.tas_loop.SetValue(ui->tas_loop_script->isChecked());
     Settings::values.pause_tas_on_load.SetValue(ui->tas_pause_on_load->isChecked());

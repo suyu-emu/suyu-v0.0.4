@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2025 suyu Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 // SPDX-FileCopyrightText: Copyright 2021 yuzu Emulator Project
@@ -13,7 +13,7 @@
 
 namespace Common::FS {
 
-enum class EdenPath {
+enum class SuyuPath {
     EdenDir,        // Where yuzu stores its data.
     AmiiboDir,      // Where Amiibo backups are stored.
     CacheDir,       // Where cached filesystem data is stored.
@@ -224,13 +224,13 @@ template <typename Path>
 void SetAppDirectory(const std::string& app_directory);
 
 /**
- * Gets the filesystem path associated with the EdenPath enum.
+ * Gets the filesystem path associated with the SuyuPath enum.
  *
- * @param eden_path EdenPath enum
+ * @param eden_path SuyuPath enum
  *
- * @returns The filesystem path associated with the EdenPath enum.
+ * @returns The filesystem path associated with the SuyuPath enum.
  */
-[[nodiscard]] const std::filesystem::path& GetEdenPath(EdenPath eden_path);
+[[nodiscard]] const std::filesystem::path& GetSuyuPath(SuyuPath eden_path);
 
 /**
  * Gets the filesystem path associated with the LegacyPath enum.
@@ -242,13 +242,13 @@ void SetAppDirectory(const std::string& app_directory);
 [[nodiscard]] const std::filesystem::path& GetLegacyPath(EmuPath legacy_path);
 
 /**
- * Gets the filesystem path associated with the EdenPath enum as a UTF-8 encoded std::string.
+ * Gets the filesystem path associated with the SuyuPath enum as a UTF-8 encoded std::string.
  *
- * @param eden_path EdenPath enum
+ * @param eden_path SuyuPath enum
  *
- * @returns The filesystem path associated with the EdenPath enum as a UTF-8 encoded std::string.
+ * @returns The filesystem path associated with the SuyuPath enum as a UTF-8 encoded std::string.
  */
-[[nodiscard]] std::string GetEdenPathString(EdenPath eden_path);
+[[nodiscard]] std::string GetSuyuPathString(SuyuPath eden_path);
 
 /**
  * Gets the filesystem path associated with the LegacyPath enum as a UTF-8 encoded std::string.
@@ -260,13 +260,13 @@ void SetAppDirectory(const std::string& app_directory);
 [[nodiscard]] std::string GetLegacyPathString(EmuPath legacy_path);
 
 /**
- * Sets a new filesystem path associated with the EdenPath enum.
+ * Sets a new filesystem path associated with the SuyuPath enum.
  * If the filesystem object at new_path is not a directory, this function will not do anything.
  *
- * @param eden_path EdenPath enum
+ * @param eden_path SuyuPath enum
  * @param new_path New filesystem path
  */
-void SetEdenPath(EdenPath eden_path, const std::filesystem::path& new_path);
+void SetSuyuPath(SuyuPath eden_path, const std::filesystem::path& new_path);
 
 /**
  * Creates all necessary Eden paths in the filesystem.
@@ -275,11 +275,11 @@ void CreateEdenPaths();
 
 #ifdef _WIN32
 template <typename Path>
-void SetEdenPath(EdenPath eden_path, const Path& new_path) {
+void SetSuyuPath(SuyuPath eden_path, const Path& new_path) {
     if constexpr (IsChar<typename Path::value_type>) {
-        SetEdenPath(eden_path, ToU8String(new_path));
+        SetSuyuPath(eden_path, ToU8String(new_path));
     } else {
-        SetEdenPath(eden_path, std::filesystem::path{new_path});
+        SetSuyuPath(eden_path, std::filesystem::path{new_path});
     }
 }
 #endif
@@ -376,23 +376,23 @@ enum class DirectorySeparator {
 }
 
 // suyu → Eden path API compatibility shims
-// suyu's frontend uses GetSuyuPath(SuyuPath::XxxDir); Eden renamed to GetEdenPath(EdenPath::XxxDir).
+// suyu's frontend uses GetSuyuPath(SuyuPath::XxxDir); Eden renamed to GetSuyuPath(SuyuPath::XxxDir).
 // These aliases let src/suyu compile without touching every call site.
-using SuyuPath = EdenPath;
+using SuyuPath = SuyuPath;
 
-[[nodiscard]] inline const std::filesystem::path& GetSuyuPath(EdenPath p) {
-    return GetEdenPath(p);
+[[nodiscard]] inline const std::filesystem::path& GetSuyuPath(SuyuPath p) {
+    return GetSuyuPath(p);
 }
-[[nodiscard]] inline std::string GetSuyuPathString(EdenPath p) {
-    return GetEdenPathString(p);
+[[nodiscard]] inline std::string GetSuyuPathString(SuyuPath p) {
+    return GetSuyuPathString(p);
 }
-inline void SetSuyuPath(EdenPath p, const std::filesystem::path& path) {
-    SetEdenPath(p, path);
+inline void SetSuyuPath(SuyuPath p, const std::filesystem::path& path) {
+    SetSuyuPath(p, path);
 }
 #ifdef _WIN32
 template <typename Path>
-void SetSuyuPath(EdenPath p, const Path& path) {
-    SetEdenPath(p, path);
+void SetSuyuPath(SuyuPath p, const Path& path) {
+    SetSuyuPath(p, path);
 }
 #endif
 

@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 suyu Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 // SPDX-FileCopyrightText: Copyright 2021 yuzu Emulator Project
@@ -95,7 +95,7 @@ static std::string_view StageToPrefix(Shader::Stage stage) {
 static void DumpImpl(u64 /*pipeline_hash*/, u64 shader_hash, std::span<const u64> code,
                      [[maybe_unused]] u32 read_highest, [[maybe_unused]] u32 read_lowest,
                      u32 initial_offset, Shader::Stage stage) {
-    const auto dump_dir{Common::FS::GetEdenPath(Common::FS::EdenPath::DumpDir)};
+    const auto dump_dir{Common::FS::GetSuyuPath(Common::FS::SuyuPath::DumpDir)};
     if (!Common::FS::CreateDir(dump_dir)) {
         LOG_ERROR(Common_Filesystem, "Failed to create dump directory");
         return;

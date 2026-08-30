@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 suyu Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 // SPDX-FileCopyrightText: 2016 Citra Emulator Project
@@ -38,7 +38,7 @@ namespace {
 
 QString GetImagePath(const Common::UUID& uuid) {
     const auto path =
-        Common::FS::GetEdenPath(Common::FS::EdenPath::NANDDir) /
+        Common::FS::GetSuyuPath(Common::FS::SuyuPath::NANDDir) /
         fmt::format("system/save/8000000000000010/su/avators/{}.jpg", uuid.FormattedString());
     return QString::fromStdString(Common::FS::PathToUTF8String(path));
 }
@@ -197,7 +197,7 @@ void ConfigureProfileManager::saveImage(QPixmap pixmap, Common::UUID uuid) {
     }
 
     const auto raw_path = QString::fromStdString(Common::FS::PathToUTF8String(
-        Common::FS::GetEdenPath(Common::FS::EdenPath::NANDDir) / "system/save/8000000000000010"));
+        Common::FS::GetSuyuPath(Common::FS::SuyuPath::NANDDir) / "system/save/8000000000000010"));
     const QFileInfo raw_info{raw_path};
     if (raw_info.exists() && !raw_info.isDir() && !QFile::remove(raw_path)) {
         QMessageBox::warning(this, tr("Error deleting file"),

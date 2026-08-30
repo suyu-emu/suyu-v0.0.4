@@ -2417,7 +2417,7 @@ bool GameExportDialog::PackageNativeExport(const QString& rom_path, const QStrin
             QDir(pkg_dir + QStringLiteral("/aot_cache/launcher")).removeRecursively();
         }
 
-        // Mods/patches live beside the exe (see SetEdenPath(LoadDir) in
+        // Mods/patches live beside the exe (see SetSuyuPath(LoadDir) in
         // suyu_cmd/suyu.cpp); create it so the layout is discoverable.
         QDir().mkpath(pkg_dir + QStringLiteral("/mods"));
 

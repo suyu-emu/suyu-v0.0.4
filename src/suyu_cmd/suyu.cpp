@@ -256,7 +256,7 @@ int main(int argc, char** argv) {
             std::filesystem::path(argv[0]).parent_path() / "user";
 #endif
         std::filesystem::create_directories(user_root);
-        // SetEdenPath (path_util.cpp) fails with "is not a directory" if the
+        // SetSuyuPath (path_util.cpp) fails with "is not a directory" if the
         // path doesn't exist yet - most of these get created lazily by
         // whatever subsystem first writes into them, but LoadDir/TASDir are
         // read from (mod scan, TAS script lookup) before anything writes to
@@ -266,24 +266,24 @@ int main(int argc, char** argv) {
                                  "icons", "themes"}) {
             std::filesystem::create_directories(user_root / sub);
         }
-        FS::SetEdenPath(FS::EdenPath::EdenDir, user_root);
-        FS::SetEdenPath(FS::EdenPath::ConfigDir, user_root / "config");
-        FS::SetEdenPath(FS::EdenPath::CacheDir, user_root / "cache");
-        FS::SetEdenPath(FS::EdenPath::ShaderDir, user_root / "cache" / "shader");
-        FS::SetEdenPath(FS::EdenPath::LogDir, user_root / "log");
-        FS::SetEdenPath(FS::EdenPath::NANDDir, user_root / "nand");
-        FS::SetEdenPath(FS::EdenPath::SaveDir, user_root / "nand");
-        FS::SetEdenPath(FS::EdenPath::SDMCDir, user_root / "sdmc");
-        FS::SetEdenPath(FS::EdenPath::DumpDir, user_root / "dump");
-        FS::SetEdenPath(FS::EdenPath::LoadDir, user_root / "load");
-        FS::SetEdenPath(FS::EdenPath::ScreenshotsDir, user_root / "screenshots");
-        FS::SetEdenPath(FS::EdenPath::PlayTimeDir, user_root / "play_time");
-        FS::SetEdenPath(FS::EdenPath::CrashDumpsDir, user_root / "crash_dumps");
-        FS::SetEdenPath(FS::EdenPath::AmiiboDir, user_root / "amiibo");
-        FS::SetEdenPath(FS::EdenPath::TASDir, user_root / "tas");
-        FS::SetEdenPath(FS::EdenPath::IconsDir, user_root / "icons");
-        FS::SetEdenPath(FS::EdenPath::ThemesDir, user_root / "themes");
-        FS::SetEdenPath(FS::EdenPath::KeysDir, FS::GetAppDataRoamingDirectory() / "suyu" / "keys");
+        FS::SetSuyuPath(FS::SuyuPath::EdenDir, user_root);
+        FS::SetSuyuPath(FS::SuyuPath::ConfigDir, user_root / "config");
+        FS::SetSuyuPath(FS::SuyuPath::CacheDir, user_root / "cache");
+        FS::SetSuyuPath(FS::SuyuPath::ShaderDir, user_root / "cache" / "shader");
+        FS::SetSuyuPath(FS::SuyuPath::LogDir, user_root / "log");
+        FS::SetSuyuPath(FS::SuyuPath::NANDDir, user_root / "nand");
+        FS::SetSuyuPath(FS::SuyuPath::SaveDir, user_root / "nand");
+        FS::SetSuyuPath(FS::SuyuPath::SDMCDir, user_root / "sdmc");
+        FS::SetSuyuPath(FS::SuyuPath::DumpDir, user_root / "dump");
+        FS::SetSuyuPath(FS::SuyuPath::LoadDir, user_root / "load");
+        FS::SetSuyuPath(FS::SuyuPath::ScreenshotsDir, user_root / "screenshots");
+        FS::SetSuyuPath(FS::SuyuPath::PlayTimeDir, user_root / "play_time");
+        FS::SetSuyuPath(FS::SuyuPath::CrashDumpsDir, user_root / "crash_dumps");
+        FS::SetSuyuPath(FS::SuyuPath::AmiiboDir, user_root / "amiibo");
+        FS::SetSuyuPath(FS::SuyuPath::TASDir, user_root / "tas");
+        FS::SetSuyuPath(FS::SuyuPath::IconsDir, user_root / "icons");
+        FS::SetSuyuPath(FS::SuyuPath::ThemesDir, user_root / "themes");
+        FS::SetSuyuPath(FS::SuyuPath::KeysDir, FS::GetAppDataRoamingDirectory() / "suyu" / "keys");
     }
 #endif
 
@@ -612,11 +612,11 @@ int main(int argc, char** argv) {
         std::error_code ec;
         std::filesystem::create_directories(local_mods, ec);
         if (std::filesystem::is_directory(local_mods)) {
-            Common::FS::SetEdenPath(Common::FS::EdenPath::LoadDir, local_mods);
+            Common::FS::SetSuyuPath(Common::FS::SuyuPath::LoadDir, local_mods);
             LOG_INFO(Frontend, "Using local mod directory: {}", local_mods.string());
         }
         LOG_INFO(Frontend, "Keys directory (never bundled): {}",
-                 Common::FS::GetEdenPathString(Common::FS::EdenPath::KeysDir));
+                 Common::FS::GetSuyuPathString(Common::FS::SuyuPath::KeysDir));
     }
 
     LOG_INFO(Frontend, "suyu-cmd: Initializing system...");
