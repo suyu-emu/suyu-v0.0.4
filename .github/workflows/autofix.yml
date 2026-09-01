@@ -1,0 +1,20 @@
+name: autofix.ci  # needed to securely identify the workflow
+
+on:
+  pull_request:
+  push:
+    branches: [ "dev" ]
+  workflow_dispatch:
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  autofix:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      # TODO: rebase to Eden, debug too.
+
+      - uses: autofix-ci/action@635ffb0c9798bd160680f18fd73371e355b85f27

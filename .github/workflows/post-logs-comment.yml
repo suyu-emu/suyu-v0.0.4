@@ -1,0 +1,127 @@
+name: Post Failed Build Logs to PR
+
+on:
+  workflow_run:
+    workflows: ["CMake on multiple platforms"]
+    types:
+      - completed
+
+permissions:
+  contents: read
+  pull-requests: write
+  actions: read
+
+jobs:
+  post-logs:
+    runs-on: ubuntu-latest
+    if: ${{ github.event.workflow_run.conclusion == 'failure' }}
+    
+    steps:
+      - name: Get PR number
+        id: pr
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const pulls = await github.rest.pulls.list({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              state: 'open',
+              head: `${context.repo.owner}:${context.payload.workflow_run.head_branch}`
+            });
+            
+            if (pulls.data.length > 0) {
+              return pulls.data[0].number;
+            }
+            return null;
+      
+      - name: Get failed job logs
+        id: logs
+        if: steps.pr.outputs.result != 'null'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const run_id = context.payload.workflow_run.id;
+            const jobs = await github.rest.actions.listJobsForWorkflowRun({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              run_id: run_id
+            });
+            
+            const failedJobs = jobs.data.jobs.filter(job => job.conclusion === 'failure');
+            let logSummary = `## 🔴 Build Failed - Run ${run_id}\n\n`;
+            logSummary += `**Branch**: ${context.payload.workflow_run.head_branch}\n`;
+            logSummary += `**Commit**: ${context.payload.workflow_run.head_sha.substring(0, 7)}\n`;
+            logSummary += `**Run URL**: ${context.payload.workflow_run.html_url}\n\n`;
+            
+            if (failedJobs.length === 0) {
+              logSummary += "No failed jobs found (workflow may have been cancelled).\n";
+              return logSummary;
+            }
+            
+            logSummary += `### Failed Jobs (${failedJobs.length}):\n\n`;
+            
+            for (const job of failedJobs) {
+              logSummary += `#### ${job.name}\n`;
+              logSummary += `- **Status**: ${job.conclusion}\n`;
+              logSummary += `- **Duration**: ${Math.round((new Date(job.completed_at) - new Date(job.started_at)) / 1000)}s\n`;
+              logSummary += `- **Log URL**: ${job.html_url}\n\n`;
+              
+              // List failed steps with their names for quick diagnosis
+              const failedSteps = job.steps ? job.steps.filter(s => s.conclusion === 'failure') : [];
+              if (failedSteps.length > 0) {
+                logSummary += `**Failed steps**: ${failedSteps.map(s => `\`${s.name}\``).join(', ')}\n\n`;
+              }
+
+              // Try to fetch log content for error lines
+              try {
+                const log = await github.rest.actions.downloadJobLogsForWorkflowRun({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  job_id: job.id
+                });
+
+                const logText = Buffer.from(log.data).toString('utf-8');
+                const lines = logText.split('\n');
+                const errorLines = lines.filter(line => 
+                  line.includes('ERROR') || 
+                  line.includes('Error') || 
+                  line.includes('FAILED') ||
+                  line.includes('##[error]')
+                ).slice(-20); // Last 20 error lines
+
+                if (errorLines.length > 0) {
+                  logSummary += `<details><summary>Error Details (last 20 error lines)</summary>\n\n\`\`\`\n`;
+                  logSummary += errorLines.join('\n');
+                  logSummary += `\n\`\`\`\n</details>\n\n`;
+                }
+              } catch (error) {
+                logSummary += `_Could not fetch detailed logs: ${error.message}_\n\n`;
+              }
+            }
+            
+            return logSummary;
+      
+      - name: Post comment to PR
+        if: steps.pr.outputs.result != 'null'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const pr_number = ${{ steps.pr.outputs.result }};
+            const logSummary = `${{ steps.logs.outputs.result }}`;
+            
+            // Check if PR was created by Copilot
+            const pr = await github.rest.pulls.get({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              pull_number: pr_number
+            });
+            
+            const isCopilotPR = pr.data.head.ref.startsWith('copilot/');
+            const mention = isCopilotPR ? '\n\n@copilot Please investigate and fix this build failure.' : '';
+            
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: pr_number,
+              body: logSummary + mention
+            });

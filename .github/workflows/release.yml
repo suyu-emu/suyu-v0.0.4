@@ -1,0 +1,195 @@
+name: Release v0.04 latest
+
+on:
+  schedule:
+    - cron: '0 0 1 * *'
+    - cron: '0 0 * * 0'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build-windows:
+    name: Windows
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+      - uses: ilammy/msvc-dev-cmd@v1
+      - uses: jurplel/install-qt-action@v4
+        with:
+          version: '6.7.0'
+          arch: win64_msvc2019_64
+      - name: Configure
+        run: cmake -B build -DCMAKE_BUILD_TYPE=Release -DENABLE_QT=ON -DYUZU_USE_BUNDLED_QT=OFF -GNinja
+      - name: Build
+        run: cmake --build build --target suyu suyu-cmd -j4
+      - name: Package
+        shell: pwsh
+        run: |
+          mkdir dist
+          Copy-Item build/bin/suyu.exe dist/
+          Copy-Item build/bin/suyu-cmd.exe dist/
+          windeployqt --release --no-translations dist/suyu.exe
+          Compress-Archive -Path dist/* -DestinationPath suyu-windows-x64.zip
+      - uses: actions/upload-artifact@v4
+        with:
+          name: windows
+          path: suyu-windows-x64.zip
+
+  build-linux:
+    name: Linux
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+      - name: Install deps
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ninja-build libqt6-dev qt6-base-dev qt6-base-private-dev \
+            qt6-multimedia-dev qt6-tools-dev libqt6svg6-dev \
+            libssl-dev libusb-1.0-0-dev libpulse-dev libxcb-xinerama0-dev \
+            libvulkan-dev gamemode
+      - name: Configure
+        run: cmake -B build -DCMAKE_BUILD_TYPE=Release -DENABLE_QT=ON -DYUZU_USE_BUNDLED_QT=OFF -GNinja -DOPENSSL_ROOT_DIR=/usr
+      - name: Build
+        run: cmake --build build --target suyu suyu-cmd -j4
+      - name: Package
+        run: |
+          mkdir -p dist
+          cp build/bin/suyu dist/
+          cp build/bin/suyu-cmd dist/ 2>/dev/null || true
+          tar -czf suyu-linux-x64.tar.gz -C dist .
+      - uses: actions/upload-artifact@v4
+        with:
+          name: linux
+          path: suyu-linux-x64.tar.gz
+
+  build-macos:
+    name: macOS
+    runs-on: macos-14
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+      - name: Install deps
+        run: brew install ninja qt@6 openssl
+      - name: Configure
+        run: |
+          cmake -B build -DCMAKE_BUILD_TYPE=Release -DENABLE_QT=ON -DYUZU_USE_BUNDLED_QT=OFF -GNinja \
+            -DCMAKE_PREFIX_PATH="$(brew --prefix qt@6);$(brew --prefix openssl)"
+      - name: Build
+        run: cmake --build build --target suyu suyu-cmd -j4
+      - name: Package
+        run: |
+          mkdir -p dist
+          cp -r build/bin/suyu.app dist/ 2>/dev/null || cp build/bin/suyu dist/
+          cp build/bin/suyu-cmd dist/ 2>/dev/null || true
+          tar -czf suyu-macos-arm64.tar.gz -C dist .
+      - uses: actions/upload-artifact@v4
+        with:
+          name: macos
+          path: suyu-macos-arm64.tar.gz
+
+  build-freebsd:
+    name: FreeBSD
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+      - uses: vmactions/freebsd-vm@v1
+        with:
+          usesh: true
+          prepare: |
+            pkg install -y cmake ninja qt6-base qt6-multimedia openssl libusb pulseaudio vulkan-headers
+          run: |
+            cmake -B build -DCMAKE_BUILD_TYPE=Release -DENABLE_QT=ON -DYUZU_USE_BUNDLED_QT=OFF -GNinja
+            cmake --build build --target suyu suyu-cmd -j4
+            mkdir -p dist
+            cp build/bin/suyu dist/
+            cp build/bin/suyu-cmd dist/ 2>/dev/null || true
+            tar -czf suyu-freebsd-x64.tar.gz -C dist .
+      - uses: actions/upload-artifact@v4
+        with:
+          name: freebsd
+          path: suyu-freebsd-x64.tar.gz
+
+  build-android:
+    name: Android
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+      - uses: actions/setup-java@v4
+        with:
+          distribution: microsoft
+          java-version: '17'
+      - name: Build APKs
+        working-directory: src/android
+        run: |
+          chmod +x gradlew
+          ./gradlew assembleLegacyRelease assembleMainlineRelease assembleChromeOSRelease assembleGenshinSpoofRelease
+      - name: Collect APKs
+        run: |
+          mkdir dist
+          find src/android -name '*.apk' -exec cp {} dist/ \;
+      - uses: actions/upload-artifact@v4
+        with:
+          name: android
+          path: dist/*.apk
+
+  build-libretro:
+    name: Libretro
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+      - name: Install deps
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ninja-build libssl-dev libusb-1.0-0-dev libvulkan-dev
+      - name: Configure
+        run: cmake -B build -DCMAKE_BUILD_TYPE=Release -DENABLE_LIBRETRO=ON -DENABLE_QT=OFF -GNinja
+      - name: Build
+        run: cmake --build build --target suyu_libretro -j4
+      - name: Package
+        run: |
+          mkdir -p dist
+          find build -name 'suyu_libretro.so' -exec cp {} dist/ \;
+          tar -czf suyu-libretro-linux-x64.tar.gz -C dist .
+      - uses: actions/upload-artifact@v4
+        with:
+          name: libretro
+          path: suyu-libretro-linux-x64.tar.gz
+
+  release:
+    name: Publish Release
+    needs: [build-windows, build-linux, build-macos, build-freebsd, build-android, build-libretro]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+      - name: Delete existing release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh release delete "v0.04-latest" --repo ${{ github.repository }} --yes 2>/dev/null || true
+          git push --delete origin "v0.04-latest" 2>/dev/null || true
+        shell: bash
+      - name: Create release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh release create "v0.04-latest" \
+            --repo ${{ github.repository }} \
+            --title "suyu v0.04 latest" \
+            --notes "Automated build. Built by GitHub Actions." \
+            --prerelease \
+            artifacts/**/*

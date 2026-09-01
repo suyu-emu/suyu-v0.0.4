@@ -1,0 +1,596 @@
+name: CMake on multiple platforms
+
+on:
+  push:
+    branches: ["master", "dev", "fix/dynarmic-vcpkg-msvc-ci", "copilot/**"]
+  pull_request:
+    branches: ["master", "dev", "fix/dynarmic-vcpkg-msvc-ci"]
+  workflow_dispatch:
+
+env:
+  # Conan 2.x cache home directory
+  CONAN_HOME: ${{ github.workspace }}/conan_cache
+
+jobs:
+  # ─── Windows (MSVC) ────────────────────────────────────────────────────────
+  build-windows:
+    name: Build (Windows / MSVC)
+    runs-on: windows-latest
+    timeout-minutes: 120
+    env:
+      BUILD_TYPE: Release
+      VULKAN_SDK_VERSION: '1.3.283.0'
+
+    steps:
+      - name: Checkout repository and submodules
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          submodules: recursive
+          path: SuyuEclipse
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install Conan
+        run: |
+          pip install conan
+          conan --version
+        shell: pwsh
+
+      - name: Configure Conan profile
+        run: |
+          conan profile detect --force
+          # Show the detected profile
+          conan profile show
+          Write-Host "Conan profile configured for Windows MSVC"
+        shell: pwsh
+
+      - name: Cache Conan packages
+        uses: actions/cache@v4
+        with:
+          path: ${{ env.CONAN_HOME }}
+          key: conan-${{ runner.os }}-${{ hashFiles('SuyuEclipse/conanfile.txt') }}
+          restore-keys: |
+            conan-${{ runner.os }}-
+
+
+      - name: Clean phantom submodule references and initialize submodules
+        run: |
+          cd SuyuEclipse
+          git ls-files --stage | grep '^160000' | while IFS= read -r entry; do
+            path=$(echo "$entry" | awk '{print $4}')
+            if ! git config --file .gitmodules --get "submodule.$path.url" >/dev/null 2>&1; then
+              git rm --cached "$path" 2>/dev/null || true
+            fi
+          done
+          git submodule deinit --all -f 2>/dev/null || true
+          git submodule update --init --recursive --force
+        shell: bash
+
+      - name: Install dependencies with Conan
+        run: |
+          conan install . --output-folder=build --build=missing -s build_type=${{ env.BUILD_TYPE }} -s compiler.cppstd=20 --profile:build=default
+        shell: pwsh
+        working-directory: ${{ github.workspace }}/SuyuEclipse
+
+      - name: Install Vulkan SDK
+        id: vulkan
+        run: |
+          Write-Host "Installing Vulkan SDK via Chocolatey..."
+          $chocoOk = $true
+          try {
+            choco install vulkan-sdk --yes --no-progress
+          } catch {
+            Write-Host "Chocolatey install failed: $_"
+            $chocoOk = $false
+          }
+          # Check if choco actually installed it
+          if ($chocoOk -and (Test-Path "C:\VulkanSDK")) {
+            Write-Host "Vulkan SDK installed via Chocolatey"
+          } else {
+            Write-Host "Chocolatey unavailable — downloading Vulkan SDK directly..."
+            $sdkVersion = "$env:VULKAN_SDK_VERSION"
+            $installer = "$env:TEMP\VulkanSDK-Installer.exe"
+            Invoke-WebRequest -Uri "https://sdk.lunarg.com/sdk/download/$sdkVersion/windows/VulkanSDK-$sdkVersion-Installer.exe" -OutFile $installer
+            Write-Host "Running silent installer..."
+            $proc = Start-Process -FilePath $installer -ArgumentList "--accept-licenses --default-answer --confirm-command install" -NoNewWindow -PassThru
+            # Wait up to 10 minutes — the silent installer typically takes 2-5 minutes
+            if (-not $proc.WaitForExit(600000)) {
+              Write-Host "Installer timed out — killing process"
+              try { $proc.Kill() } catch { Write-Host "Failed to kill: $_" }
+              Write-Error "ERROR: Vulkan SDK installer timed out"
+              exit 1
+            }
+            if ($proc.ExitCode -ne 0) {
+              Write-Error "ERROR: Vulkan SDK installer failed with exit code $($proc.ExitCode)"
+              exit 1
+            }
+            $env:VULKAN_SDK = "C:\VulkanSDK\$sdkVersion"
+            echo "VULKAN_SDK=C:\VulkanSDK\$sdkVersion" >> $env:GITHUB_ENV
+          }
+
+          # Refresh environment variables so VULKAN_SDK is available
+          if (Test-Path "$env:ChocolateyInstall\helpers\chocolateyProfile.psm1") {
+            Import-Module "$env:ChocolateyInstall\helpers\chocolateyProfile.psm1"
+            Update-SessionEnvironment
+          }
+
+          Write-Host "VULKAN_SDK = $env:VULKAN_SDK"
+
+          # Find glslangValidator
+          $searchPaths = @(
+            "$env:VULKAN_SDK\Bin\glslangValidator.exe",
+            "C:\VulkanSDK\*\Bin\glslangValidator.exe"
+          )
+
+          $found = $false
+          foreach ($pattern in $searchPaths) {
+            $matches = Get-Item $pattern -ErrorAction SilentlyContinue
+            if ($matches) {
+              $glslangPath = ($matches | Select-Object -First 1).FullName
+              Write-Host "Found glslangValidator at: $glslangPath"
+              echo "glslang_path=$glslangPath" >> $env:GITHUB_OUTPUT
+              # Add Vulkan SDK Bin to PATH so find_program works in CMake
+              $glslangDir = Split-Path -Parent $glslangPath
+              echo "$glslangDir" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
+              $found = $true
+              break
+            }
+          }
+
+          if (-not $found) {
+            # Last resort: search via PATH
+            $cmd = Get-Command glslangValidator.exe -ErrorAction SilentlyContinue
+            if ($cmd) {
+              $glslangPath = $cmd.Source
+              Write-Host "Found glslangValidator in PATH: $glslangPath"
+              echo "glslang_path=$glslangPath" >> $env:GITHUB_OUTPUT
+              $glslangDir = Split-Path -Parent $glslangPath
+              echo "$glslangDir" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
+            } else {
+              Write-Error "ERROR: glslangValidator not found after Vulkan SDK installation"
+              exit 1
+            }
+          }
+        shell: pwsh
+
+      - name: Set build output dir
+        id: strings
+        shell: pwsh
+        run: |
+          echo "build-output-dir=${{ github.workspace }}/SuyuEclipse/build" >> $env:GITHUB_OUTPUT
+
+      - name: Configure CMake
+        shell: pwsh
+        run: |
+          cmake -B ${{ steps.strings.outputs.build-output-dir }} `
+            -DCMAKE_CXX_COMPILER=cl `
+            -DCMAKE_C_COMPILER=cl `
+            -DCMAKE_BUILD_TYPE=${{ env.BUILD_TYPE }} `
+            -DCMAKE_TOOLCHAIN_FILE=${{ steps.strings.outputs.build-output-dir }}/conan_toolchain.cmake `
+            -DGLSLANG_VALIDATOR="${{ steps.vulkan.outputs.glslang_path }}" `
+            -DBOOST_USE_DEBUG_LIBS=OFF `
+            -DBOOST_USE_STATIC_LIBS=ON `
+            -DCMAKE_POLICY_VERSION_MINIMUM=3.5 `
+            -DENABLE_QT=OFF `
+            -DENABLE_QT_TRANSLATION=OFF `
+            -A x64 -T v143 `
+            -S ${{ github.workspace }}/SuyuEclipse
+
+      - name: Build
+        run: cmake --build ${{ steps.strings.outputs.build-output-dir }} --config ${{ env.BUILD_TYPE }} --parallel
+
+      - name: Upload artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: suyu-windows-${{ env.BUILD_TYPE }}
+          path: |
+            ${{ steps.strings.outputs.build-output-dir }}/src/${{ env.BUILD_TYPE }}/*.exe
+            ${{ steps.strings.outputs.build-output-dir }}/**/*.log
+          retention-days: 7
+          if-no-files-found: warn
+
+  # ─── Linux (GCC) ────────────────────────────────────────────────────────────
+  build-linux:
+    name: Build (Linux / GCC)
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    env:
+      BUILD_TYPE: Release
+
+    steps:
+      - name: Checkout repository and submodules
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          submodules: recursive
+          path: SuyuEclipse
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install system dependencies
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y --no-install-recommends \
+            build-essential cmake ninja-build \
+            libvulkan-dev glslang-tools \
+            libx11-dev libx11-xcb-dev libxext-dev libxrandr-dev \
+            libfontenc-dev libice-dev libsm-dev libxau-dev libxaw7-dev \
+            libxcomposite-dev libxcursor-dev libxdamage-dev libxfixes-dev \
+            libxi-dev libxinerama-dev libxkbfile-dev libxmu-dev libxmuu-dev \
+            libxpm-dev libxres-dev libxss-dev libxt-dev libxtst-dev \
+            libxv-dev libxxf86vm-dev \
+            libxcb-glx0-dev libxcb-render0-dev libxcb-render-util0-dev \
+            libxcb-xkb-dev libxcb-icccm4-dev libxcb-image0-dev \
+            libxcb-keysyms1-dev libxcb-randr0-dev libxcb-shape0-dev \
+            libxcb-sync-dev libxcb-xfixes0-dev libxcb-xinerama0-dev \
+            libxcb-dri3-dev libxcb-cursor-dev libxcb-dri2-0-dev \
+            libxcb-present-dev libxcb-composite0-dev libxcb-ewmh-dev \
+            libxcb-res0-dev libxcb-util-dev libxcb-util0-dev \
+            libasound2-dev libpulse-dev \
+            libgl1-mesa-dev libegl1-mesa-dev \
+            libwayland-dev libwayland-egl-backend-dev \
+            libxkbcommon-dev \
+            libavcodec-dev libavfilter-dev libavutil-dev libswscale-dev \
+            libglu1-mesa-dev \
+            mesa-common-dev \
+            libudev-dev
+
+      - name: Install Conan
+        run: |
+          pip install conan
+          conan --version
+
+      - name: Configure Conan profile
+        run: |
+          conan profile detect --force
+          conan profile show
+
+      - name: Cache Conan packages
+        uses: actions/cache@v4
+        with:
+          path: ${{ env.CONAN_HOME }}
+          key: conan-${{ runner.os }}-${{ hashFiles('SuyuEclipse/conanfile.txt') }}
+          restore-keys: |
+            conan-${{ runner.os }}-
+
+      - name: Initialize submodules
+        run: |
+          cd SuyuEclipse
+          git submodule deinit --all -f 2>/dev/null || true
+          git submodule update --init --recursive --force
+
+      - name: Install dependencies with Conan
+        run: |
+          conan install . --output-folder=build --build=missing \
+            -s build_type=${{ env.BUILD_TYPE }} \
+            -s compiler.cppstd=20 \
+            --profile:build=default
+        working-directory: ${{ github.workspace }}/SuyuEclipse
+
+      - name: Locate glslangValidator
+        id: vulkan
+        run: echo "glslang_path=$(which glslangValidator)" >> "$GITHUB_OUTPUT"
+
+      - name: Set build output dir
+        id: strings
+        run: echo "build-output-dir=${{ github.workspace }}/SuyuEclipse/build" >> "$GITHUB_OUTPUT"
+
+      - name: Configure CMake
+        run: |
+          cmake -B ${{ steps.strings.outputs.build-output-dir }} \
+            -DCMAKE_CXX_COMPILER=g++ \
+            -DCMAKE_C_COMPILER=gcc \
+            -DCMAKE_BUILD_TYPE=${{ env.BUILD_TYPE }} \
+            -DCMAKE_TOOLCHAIN_FILE=${{ steps.strings.outputs.build-output-dir }}/conan_toolchain.cmake \
+            -DGLSLANG_VALIDATOR="${{ steps.vulkan.outputs.glslang_path }}" \
+            -DCMAKE_POLICY_VERSION_MINIMUM=3.5 \
+            -DENABLE_QT=OFF \
+            -DENABLE_QT_TRANSLATION=OFF \
+            -G Ninja \
+            -S ${{ github.workspace }}/SuyuEclipse
+
+      - name: Build
+        run: cmake --build ${{ steps.strings.outputs.build-output-dir }} --config ${{ env.BUILD_TYPE }} --parallel
+
+      - name: Upload artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: suyu-linux-${{ env.BUILD_TYPE }}
+          path: |
+            ${{ steps.strings.outputs.build-output-dir }}/bin/suyu
+            ${{ steps.strings.outputs.build-output-dir }}/**/*.log
+          retention-days: 7
+          if-no-files-found: warn
+
+  # ─── macOS (Apple Clang) ────────────────────────────────────────────────────
+  build-macos:
+    name: Build (macOS / Apple Clang)
+    runs-on: macos-latest
+    timeout-minutes: 120
+    env:
+      BUILD_TYPE: Release
+
+    steps:
+      - name: Checkout repository and submodules
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          submodules: recursive
+          path: SuyuEclipse
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install system dependencies (Homebrew)
+        run: |
+          brew update
+          brew install cmake ninja glslang molten-vk vulkan-headers vulkan-loader \
+            libzip ffmpeg
+
+      - name: Install Conan
+        run: |
+          pip install conan
+          conan --version
+
+      - name: Configure Conan profile
+        run: |
+          conan profile detect --force
+          conan profile show
+
+      - name: Cache Conan packages
+        uses: actions/cache@v4
+        with:
+          path: ${{ env.CONAN_HOME }}
+          key: conan-${{ runner.os }}-${{ hashFiles('SuyuEclipse/conanfile.txt') }}
+          restore-keys: |
+            conan-${{ runner.os }}-
+
+      - name: Initialize submodules
+        run: |
+          cd SuyuEclipse
+          git submodule deinit --all -f 2>/dev/null || true
+          git submodule update --init --recursive --force
+
+      - name: Install dependencies with Conan
+        run: |
+          conan install . --output-folder=build --build=missing \
+            -s build_type=${{ env.BUILD_TYPE }} \
+            -s compiler.cppstd=20 \
+            --profile:build=default
+        working-directory: ${{ github.workspace }}/SuyuEclipse
+
+      - name: Unlink Homebrew packages that conflict with Conan
+        run: |
+          # zstd is installed transitively by ffmpeg/other brew packages but Conan also
+          # provides it. Unlinking prevents cmake from finding the Homebrew version and
+          # creating target-redefinition errors when cpp-httplib calls find_package(zstd).
+          brew unlink zstd 2>/dev/null || true
+          brew unlink lz4  2>/dev/null || true
+
+      - name: Locate glslangValidator
+        id: vulkan
+        run: echo "glslang_path=$(which glslangValidator)" >> "$GITHUB_OUTPUT"
+
+      - name: Set build output dir
+        id: strings
+        run: echo "build-output-dir=${{ github.workspace }}/SuyuEclipse/build" >> "$GITHUB_OUTPUT"
+
+      - name: Configure CMake
+        run: |
+          cmake -B ${{ steps.strings.outputs.build-output-dir }} \
+            -DCMAKE_BUILD_TYPE=${{ env.BUILD_TYPE }} \
+            -DCMAKE_TOOLCHAIN_FILE=${{ steps.strings.outputs.build-output-dir }}/conan_toolchain.cmake \
+            -DGLSLANG_VALIDATOR="${{ steps.vulkan.outputs.glslang_path }}" \
+            -DCMAKE_POLICY_VERSION_MINIMUM=3.5 \
+            -DENABLE_QT=OFF \
+            -DENABLE_QT_TRANSLATION=OFF \
+            -G Ninja \
+            -S ${{ github.workspace }}/SuyuEclipse
+
+      - name: Build
+        run: cmake --build ${{ steps.strings.outputs.build-output-dir }} --config ${{ env.BUILD_TYPE }} --parallel
+
+      - name: Upload artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: suyu-macos-${{ env.BUILD_TYPE }}
+          path: |
+            ${{ steps.strings.outputs.build-output-dir }}/bin/suyu
+            ${{ steps.strings.outputs.build-output-dir }}/**/*.log
+          retention-days: 7
+          if-no-files-found: warn
+
+  # ─── FreeBSD (Clang) ─────────────────────────────────────────────────────────
+  build-freebsd:
+    name: Build (FreeBSD / Clang)
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    env:
+      BUILD_TYPE: Release
+
+    steps:
+      - name: Checkout repository and submodules
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          submodules: recursive
+          path: SuyuEclipse
+
+      - name: Build on FreeBSD
+        uses: vmactions/freebsd-vm@v1
+        with:
+          release: '14.0'
+          usesh: true
+          prepare: |
+            pkg install -y cmake ninja git python3 py311-pip \
+              glslang vulkan-headers vulkan-loader vulkan-tools \
+              boost-all libfmt nlohmann-json lz4 libzstd opus \
+              sdl2 libzip ffmpeg catch2 pkgconf \
+              libX11 libXext libXrandr libxcb libxkbcommon \
+              alsa-lib pulseaudio mesa-libs wayland
+          run: |
+            cd SuyuEclipse
+            mkdir -p build && cd build
+            cmake .. \
+              -DCMAKE_BUILD_TYPE=Release \
+              -DCMAKE_CXX_COMPILER=clang++ \
+              -DCMAKE_C_COMPILER=clang \
+              -DCMAKE_CXX_FLAGS="-stdlib=libc++" \
+              -DENABLE_QT=OFF \
+              -DENABLE_QT_TRANSLATION=OFF \
+              -DSUYU_USE_BUNDLED_VCPKG=OFF \
+              -G Ninja
+            cmake --build . --config Release --parallel $(sysctl -n hw.ncpu)
+
+      - name: Upload artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: suyu-freebsd-${{ env.BUILD_TYPE }}
+          path: |
+            SuyuEclipse/build/bin/*
+          retention-days: 7
+          if-no-files-found: warn
+
+  # ─── Android (NDK) ───────────────────────────────────────────────────────────
+  build-android:
+    name: Build (Android / NDK)
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    env:
+      BUILD_TYPE: Release
+
+    steps:
+      - name: Checkout repository and submodules
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          submodules: recursive
+          path: SuyuEclipse
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Install NDK
+        run: |
+          sdkmanager --install "ndk;26.1.10909125"
+          echo "ANDROID_NDK=$ANDROID_HOME/ndk/26.1.10909125" >> $GITHUB_ENV
+          echo "ANDROID_NDK_HOME=$ANDROID_HOME/ndk/26.1.10909125" >> $GITHUB_ENV
+
+      - name: Install system dependencies
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y --no-install-recommends ninja-build
+
+      - name: Initialize submodules
+        run: |
+          cd SuyuEclipse
+          git submodule deinit --all -f 2>/dev/null || true
+          git submodule update --init --recursive --force
+
+      - name: Build Android (Gradle)
+        run: |
+          cd SuyuEclipse/src/android
+          chmod +x gradlew
+          ./gradlew assembleRelease \
+            -Dorg.gradle.jvmargs="-Xmx4g" \
+            --no-daemon --stacktrace
+        env:
+          ANDROID_NDK_HOME: ${{ env.ANDROID_NDK }}
+
+      - name: Upload APK
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: suyu-android-${{ env.BUILD_TYPE }}
+          path: |
+            SuyuEclipse/src/android/app/build/outputs/apk/**/*.apk
+          retention-days: 7
+          if-no-files-found: warn
+
+  # ─── iOS (Apple Clang / Xcode) ──────────────────────────────────────────────
+  build-ios:
+    name: Build (iOS / Xcode)
+    runs-on: macos-latest
+    timeout-minutes: 120
+    env:
+      BUILD_TYPE: Release
+
+    steps:
+      - name: Checkout repository and submodules
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          submodules: recursive
+          path: SuyuEclipse
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install system dependencies (Homebrew)
+        run: |
+          brew update
+          brew install cmake ninja
+
+      - name: Initialize submodules
+        run: |
+          cd SuyuEclipse
+          git submodule deinit --all -f 2>/dev/null || true
+          git submodule update --init --recursive --force
+
+      - name: Set build output dir
+        id: strings
+        run: echo "build-output-dir=${{ github.workspace }}/SuyuEclipse/build-ios" >> "$GITHUB_OUTPUT"
+
+      - name: Configure CMake for iOS
+        run: |
+          cmake -B ${{ steps.strings.outputs.build-output-dir }} \
+            -DCMAKE_SYSTEM_NAME=iOS \
+            -DCMAKE_OSX_DEPLOYMENT_TARGET=16.0 \
+            -DCMAKE_OSX_ARCHITECTURES=arm64 \
+            -DCMAKE_BUILD_TYPE=${{ env.BUILD_TYPE }} \
+            -DCMAKE_POLICY_VERSION_MINIMUM=3.5 \
+            -DENABLE_QT=OFF \
+            -DENABLE_QT_TRANSLATION=OFF \
+            -DENABLE_CUBEB=OFF \
+            -DSUYU_USE_BUNDLED_VCPKG=OFF \
+            -G Xcode \
+            -S ${{ github.workspace }}/SuyuEclipse
+
+      - name: Build for iOS
+        run: |
+          cmake --build ${{ steps.strings.outputs.build-output-dir }} \
+            --config ${{ env.BUILD_TYPE }} \
+            --parallel \
+            -- -sdk iphoneos CODE_SIGNING_ALLOWED=NO
+
+      - name: Upload artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: suyu-ios-${{ env.BUILD_TYPE }}
+          path: |
+            ${{ steps.strings.outputs.build-output-dir }}/**/*.app
+            ${{ steps.strings.outputs.build-output-dir }}/**/*.log
+          retention-days: 7
+          if-no-files-found: warn

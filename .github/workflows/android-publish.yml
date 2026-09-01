@@ -1,0 +1,78 @@
+# SPDX-FileCopyrightText: 2024 yuzu Emulator Project
+# SPDX-License-Identifier: GPL-2.0-or-later
+
+name: suyu-android-publish
+
+on:
+  schedule:
+    - cron: '37 0 * * *'
+  workflow_dispatch:
+    inputs:
+      android:
+        description: 'Whether to trigger an Android build (true/false/auto)'
+        required: false
+        default: 'true'
+
+jobs:
+  android:
+    runs-on: ubuntu-latest
+    if: github.repository == 'suyu-emu/SuyuEclipse' && (github.event_name != 'workflow_dispatch' || github.event.inputs.android != 'false')
+    steps:
+      # this checkout is required to make sure the GitHub Actions scripts are available
+      - uses: actions/checkout@v4
+        name: Pre-checkout
+        with:
+          submodules: false
+      - name: Validate ALT_GITHUB_TOKEN
+        id: validate-token
+        shell: bash
+        env:
+          ALT_TOKEN: ${{ secrets.ALT_GITHUB_TOKEN }}
+          EVENT_NAME: ${{ github.event_name }}
+          ANDROID_INPUT: ${{ github.event.inputs.android }}
+        run: |
+          if [ -z "${ALT_TOKEN}" ]; then
+            if [ "${EVENT_NAME}" = "workflow_dispatch" ] && [ "${ANDROID_INPUT}" != "false" ]; then
+              echo "ALT_GITHUB_TOKEN is not set; cannot run android publish merge." >&2
+              exit 1
+            fi
+            echo "ALT_GITHUB_TOKEN is not set; skipping android publish merge." >&2
+            echo "has_token=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "has_token=true" >> "$GITHUB_OUTPUT"
+          fi
+      - uses: actions/github-script@v7
+        id: check-changes
+        name: 'Check for new changes'
+        if: steps.validate-token.outputs.has_token == 'true'
+        env:
+          # 24 hours
+          DETECTION_TIME_FRAME: 86400000
+        with:
+          github-token: ${{ secrets.ALT_GITHUB_TOKEN }}
+          script: |
+            if (context.payload.inputs && context.payload.inputs.android === 'true') return true;
+            const checkAndroidChanges = require('./.github/workflows/android-merge.js').checkAndroidChanges;
+            return checkAndroidChanges(github);
+      - run: npm install execa@5
+        if: steps.check-changes.outputs.result == 'true' && steps.validate-token.outputs.has_token == 'true'
+      - uses: actions/checkout@v4
+        name: Checkout
+        if: steps.check-changes.outputs.result == 'true' && steps.validate-token.outputs.has_token == 'true'
+        with:
+          path: 'yuzu-merge'
+          fetch-depth: 0
+          submodules: true
+          token: ${{ secrets.ALT_GITHUB_TOKEN }}
+      - uses: actions/github-script@v7
+        name: 'Check and merge Android changes'
+        if: steps.check-changes.outputs.result == 'true' && steps.validate-token.outputs.has_token == 'true'
+        env:
+          ALT_GITHUB_TOKEN: ${{ secrets.ALT_GITHUB_TOKEN }}
+        with:
+          github-token: ${{ secrets.ALT_GITHUB_TOKEN }}
+          script: |
+            const execa = require("execa");
+            const mergebot = require('./.github/workflows/android-merge.js').mergebot;
+            process.chdir('${{ github.workspace }}/yuzu-merge');
+            mergebot(github, context, execa);
