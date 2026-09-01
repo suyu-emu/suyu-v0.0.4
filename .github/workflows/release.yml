@@ -24,10 +24,10 @@ jobs:
           version: '6.7.0'
           arch: win64_msvc2019_64
       - name: Install Vulkan SDK
-        uses: humbletim/install-vulkan-sdk@v1.1.1
-        with:
-          version: latest
-          cache: true
+        run: |
+          choco install vulkan-sdk -y --no-progress
+          echo "VULKAN_SDK=C:\VulkanSDK\$(ls C:\VulkanSDK | sort -r | head -1)" >> $env:GITHUB_ENV
+        shell: pwsh
       - name: Configure
         run: cmake -B build -DCMAKE_BUILD_TYPE=Release -DENABLE_QT=ON -DYUZU_USE_BUNDLED_QT=OFF -GNinja
       - name: Build
