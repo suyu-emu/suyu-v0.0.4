@@ -84,3 +84,6 @@
 [submodule "externals/nxapi"]
 	path = externals/nxapi
 	url = https://github.com/samuelthomas2774/nxapi.git
+[submodule "externals/unordered_dense"]
+	path = externals/unordered_dense
+	url = https://github.com/martinus/unordered_dense.git
