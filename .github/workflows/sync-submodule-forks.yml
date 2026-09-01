@@ -1,0 +1,55 @@
+name: Sync submodule forks from upstream
+
+on:
+  schedule:
+    - cron: '0 6 * * 1'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  sync-forks:
+    name: Sync upstream
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - repo: suyu-emu/dynarmic
+            upstream: merryhime/dynarmic
+            branch: master
+          - repo: suyu-emu/sirit
+            upstream: ReinUsesLisp/sirit
+            branch: master
+          - repo: suyu-emu/breakpad
+            upstream: nicknisi/breakpad
+            branch: main
+          - repo: suyu-emu/mbedtls
+            upstream: Mbed-TLS/mbedtls
+            branch: development
+          - repo: suyu-emu/discord-rpc
+            upstream: discord/discord-rpc
+            branch: master
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          repository: ${{ matrix.repo }}
+          token: ${{ secrets.GITHUB_TOKEN }}
+          fetch-depth: 0
+          ref: ${{ matrix.branch }}
+
+      - name: Pull upstream
+        run: |
+          git remote add upstream https://github.com/${{ matrix.upstream }}.git || true
+          git fetch upstream ${{ matrix.branch }} || { echo "Branch ${{ matrix.branch }} not found upstream, skipping"; exit 0; }
+          git config user.name "suyu team"
+          git config user.email "noreply@suyu-emu.invalid"
+          git merge upstream/${{ matrix.branch }} --no-edit || {
+            echo "::warning::Merge conflict in ${{ matrix.repo }} — manual resolution needed"
+            git merge --abort
+            exit 0
+          }
+
+      - name: Push
+        run: git push origin ${{ matrix.branch }}
