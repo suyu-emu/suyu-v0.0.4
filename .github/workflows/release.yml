@@ -59,9 +59,9 @@ jobs:
           sudo apt-get install -y ninja-build qt6-base-dev qt6-base-private-dev \
             qt6-multimedia-dev qt6-tools-dev qt6-svg-dev qt6-webengine-dev \
             libssl-dev libusb-1.0-0-dev libpulse-dev \
-            libvulkan-dev libgamemode-dev \
+            libvulkan-dev gamemode-dev \
             libx11-dev libxext-dev libxrandr-dev libxcursor-dev libxi-dev \
-            libxfixes-dev libxss-dev libxkbcommon-dev \
+            libxfixes-dev libxss-dev libxkbcommon-dev libxtst-dev \
             libwayland-dev libwayland-egl1 wayland-protocols libdecor-0-dev \
             libegl-dev libdrm-dev libgbm-dev
       - name: Configure
@@ -88,11 +88,11 @@ jobs:
         run: |
           git -c submodule."externals/ownfoil".update=none -c submodule."externals/nxdumptool".update=none -c submodule."externals/nxapi".update=none -c submodule."externals/nx-optimizer".update=none submodule update --init --recursive --depth=1
       - name: Install deps
-        run: brew install ninja qt@6 openssl
+        run: brew install ninja qt@6 openssl ffmpeg
       - name: Configure
         run: |
           cmake -B build -DCMAKE_BUILD_TYPE=Release -DENABLE_QT=ON -DYUZU_USE_BUNDLED_QT=OFF -GNinja \
-            -DCMAKE_PREFIX_PATH="$(brew --prefix qt@6);$(brew --prefix openssl)"
+            -DCMAKE_PREFIX_PATH="$(brew --prefix qt@6);$(brew --prefix openssl);$(brew --prefix ffmpeg)"
       - name: Build
         run: cmake --build build --target suyu suyu-cmd -j4
       - name: Package
@@ -109,6 +109,7 @@ jobs:
   build-freebsd:
     name: FreeBSD
     runs-on: ubuntu-latest
+    continue-on-error: true
     steps:
       - uses: actions/checkout@v4
       - name: Init submodules
@@ -143,11 +144,15 @@ jobs:
         with:
           distribution: microsoft
           java-version: '17'
+      - name: Install native deps
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ninja-build
       - name: Build APKs
         working-directory: src/android
         run: |
           chmod +x gradlew
-          ./gradlew assembleLegacyRelease assembleMainlineRelease assembleChromeOSRelease assembleGenshinSpoofRelease
+          ./gradlew assembleLegacyRelease assembleMainlineRelease assembleChromeOSRelease assembleGenshinSpoofRelease --stacktrace
       - name: Collect APKs
         run: |
           mkdir dist
@@ -170,7 +175,7 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y ninja-build libssl-dev libusb-1.0-0-dev libvulkan-dev \
             libx11-dev libxext-dev libxrandr-dev libxcursor-dev libxi-dev \
-            libxfixes-dev libxss-dev libxkbcommon-dev \
+            libxfixes-dev libxss-dev libxkbcommon-dev libxtst-dev \
             libwayland-dev libwayland-egl1 wayland-protocols libdecor-0-dev \
             libegl-dev libdrm-dev libgbm-dev libpulse-dev
       - name: Configure
@@ -189,6 +194,7 @@ jobs:
 
   release:
     name: Publish Release
+    if: always()
     needs: [build-windows, build-linux, build-macos, build-freebsd, build-android, build-libretro]
     runs-on: ubuntu-latest
     steps:
