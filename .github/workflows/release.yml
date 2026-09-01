@@ -51,10 +51,10 @@ jobs:
       - name: Install deps
         run: |
           sudo apt-get update
-          sudo apt-get install -y ninja-build libqt6-dev qt6-base-dev qt6-base-private-dev \
-            qt6-multimedia-dev qt6-tools-dev libqt6svg6-dev \
+          sudo apt-get install -y ninja-build qt6-base-dev qt6-base-private-dev \
+            qt6-multimedia-dev qt6-tools-dev qt6-svg-dev qt6-webengine-dev \
             libssl-dev libusb-1.0-0-dev libpulse-dev libxcb-xinerama0-dev \
-            libvulkan-dev gamemode
+            libvulkan-dev libgamemode-dev
       - name: Configure
         run: cmake -B build -DCMAKE_BUILD_TYPE=Release -DENABLE_QT=ON -DYUZU_USE_BUNDLED_QT=OFF -GNinja -DOPENSSL_ROOT_DIR=/usr
       - name: Build
