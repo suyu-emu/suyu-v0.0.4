@@ -23,6 +23,11 @@ jobs:
         with:
           version: '6.7.0'
           arch: win64_msvc2019_64
+      - name: Install Vulkan SDK
+        uses: humbletim/install-vulkan-sdk@v1.1.1
+        with:
+          version: latest
+          cache: true
       - name: Configure
         run: cmake -B build -DCMAKE_BUILD_TYPE=Release -DENABLE_QT=ON -DYUZU_USE_BUNDLED_QT=OFF -GNinja
       - name: Build
@@ -53,8 +58,12 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y ninja-build qt6-base-dev qt6-base-private-dev \
             qt6-multimedia-dev qt6-tools-dev qt6-svg-dev qt6-webengine-dev \
-            libssl-dev libusb-1.0-0-dev libpulse-dev libxcb-xinerama0-dev \
-            libvulkan-dev libgamemode-dev
+            libssl-dev libusb-1.0-0-dev libpulse-dev \
+            libvulkan-dev libgamemode-dev \
+            libx11-dev libxext-dev libxrandr-dev libxcursor-dev libxi-dev \
+            libxfixes-dev libxss-dev libxkbcommon-dev \
+            libwayland-dev libwayland-egl1 wayland-protocols libdecor-0-dev \
+            libegl-dev libdrm-dev libgbm-dev
       - name: Configure
         run: cmake -B build -DCMAKE_BUILD_TYPE=Release -DENABLE_QT=ON -DYUZU_USE_BUNDLED_QT=OFF -GNinja -DOPENSSL_ROOT_DIR=/usr
       - name: Build
@@ -109,7 +118,7 @@ jobs:
         with:
           usesh: true
           prepare: |
-            pkg install -y cmake ninja qt6-base qt6-multimedia openssl libusb pulseaudio vulkan-headers
+            pkg install -y cmake ninja qt6-base qt6-multimedia openssl libusb pulseaudio vulkan-headers pkgconf libX11 libXext libXrandr wayland wayland-protocols libdecor mesa-libs evdev-proto
           run: |
             cmake -B build -DCMAKE_BUILD_TYPE=Release -DENABLE_QT=ON -DYUZU_USE_BUNDLED_QT=OFF -GNinja
             cmake --build build --target suyu suyu-cmd -j4
@@ -159,7 +168,11 @@ jobs:
       - name: Install deps
         run: |
           sudo apt-get update
-          sudo apt-get install -y ninja-build libssl-dev libusb-1.0-0-dev libvulkan-dev
+          sudo apt-get install -y ninja-build libssl-dev libusb-1.0-0-dev libvulkan-dev \
+            libx11-dev libxext-dev libxrandr-dev libxcursor-dev libxi-dev \
+            libxfixes-dev libxss-dev libxkbcommon-dev \
+            libwayland-dev libwayland-egl1 wayland-protocols libdecor-0-dev \
+            libegl-dev libdrm-dev libgbm-dev libpulse-dev
       - name: Configure
         run: cmake -B build -DCMAKE_BUILD_TYPE=Release -DENABLE_LIBRETRO=ON -DENABLE_QT=OFF -GNinja
       - name: Build
