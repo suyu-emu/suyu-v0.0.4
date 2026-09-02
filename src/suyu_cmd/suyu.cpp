@@ -639,11 +639,6 @@ int main(int argc, char** argv) {
     case Settings::RendererBackend::Vulkan:
         emu_window = std::make_unique<EmuWindow_SDL2_VK>(&input_subsystem, system, fullscreen);
         break;
-#ifdef __APPLE__
-    case Settings::RendererBackend::Metal:
-        emu_window = std::make_unique<EmuWindow_SDL2_MTL>(&input_subsystem, system, fullscreen);
-        break;
-#endif
     case Settings::RendererBackend::Null:
         emu_window = std::make_unique<EmuWindow_SDL2_Null>(&input_subsystem, system, fullscreen);
         break;
