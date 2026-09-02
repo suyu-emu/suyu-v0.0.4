@@ -12,6 +12,7 @@
 #if defined(__GNUC__) && !defined(__clang__)
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wunused-variable"
+#pragma GCC diagnostic ignored "-Wconversion"
 #endif
 
 #include "video_core/vulkan_common/vma.h"
