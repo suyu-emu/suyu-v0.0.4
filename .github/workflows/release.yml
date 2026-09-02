@@ -23,6 +23,7 @@ jobs:
         with:
           version: '6.7.0'
           arch: win64_msvc2019_64
+          modules: qtcharts qtmultimedia qtwebengine
       - name: Install Vulkan SDK
         shell: pwsh
         run: |
@@ -93,11 +94,11 @@ jobs:
         run: |
           git -c submodule."externals/ownfoil".update=none -c submodule."externals/nxdumptool".update=none -c submodule."externals/nxapi".update=none -c submodule."externals/nx-optimizer".update=none submodule update --init --recursive --depth=1
       - name: Install deps
-        run: brew install ninja qt@6 openssl ffmpeg glslang vulkan-headers
+        run: brew install ninja qt@6 openssl ffmpeg glslang
       - name: Configure
         run: |
           cmake -B build -DCMAKE_BUILD_TYPE=Release -DENABLE_QT=ON -DYUZU_USE_BUNDLED_QT=OFF -GNinja \
-            -DCMAKE_PREFIX_PATH="$(brew --prefix qt@6);$(brew --prefix openssl);$(brew --prefix ffmpeg);$(brew --prefix vulkan-headers)"
+            -DCMAKE_PREFIX_PATH="$(brew --prefix qt@6);$(brew --prefix openssl);$(brew --prefix ffmpeg)"
       - name: Build
         run: cmake --build build --target suyu suyu-cmd -j4
       - name: Package
@@ -186,7 +187,7 @@ jobs:
             libegl-dev libdrm-dev libgbm-dev libpulse-dev \
             libavcodec-dev libavfilter-dev libavutil-dev libswscale-dev
       - name: Configure
-        run: cmake -B build -DCMAKE_BUILD_TYPE=Release -DENABLE_LIBRETRO=ON -DENABLE_QT=OFF -GNinja
+        run: cmake -B build -DCMAKE_BUILD_TYPE=Release -DSUYU_BUILD_LIBRETRO_CORE=ON -DENABLE_QT=OFF -GNinja
       - name: Build
         run: cmake --build build --target suyu_libretro -j4
       - name: Package
