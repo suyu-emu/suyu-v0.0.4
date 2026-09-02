@@ -11,8 +11,7 @@
 #include "suyu_cmd/emu_window/emu_window_sdl2_mtl.h"
 #include "video_core/renderer_metal/renderer_metal.h"
 
-#include <SDL.h>
-#include <SDL_syswm.h>
+#include <SDL3/SDL.h>
 
 EmuWindow_SDL2_MTL::EmuWindow_SDL2_MTL(InputCommon::InputSubsystem* input_subsystem_,
                                        Core::System& system_, bool fullscreen)
@@ -20,15 +19,12 @@ EmuWindow_SDL2_MTL::EmuWindow_SDL2_MTL(InputCommon::InputSubsystem* input_subsys
     const std::string window_title = fmt::format("suyu {} | {}-{} (Metal)", Common::g_build_name,
                                                  Common::g_scm_branch, Common::g_scm_desc);
     render_window =
-        SDL_CreateWindow(window_title.c_str(), SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED,
+        SDL_CreateWindow(window_title.c_str(),
                          Layout::ScreenUndocked::Width, Layout::ScreenUndocked::Height,
-                         SDL_WINDOW_RESIZABLE | SDL_WINDOW_ALLOW_HIGHDPI);
+                         SDL_WINDOW_RESIZABLE | SDL_WINDOW_HIGH_PIXEL_DENSITY | SDL_WINDOW_METAL);
 
-    SDL_SysWMinfo wm;
-    SDL_VERSION(&wm.version);
-    if (SDL_GetWindowWMInfo(render_window, &wm) == SDL_FALSE) {
-        LOG_CRITICAL(Frontend, "Failed to get information from the window manager: {}",
-                     SDL_GetError());
+    if (render_window == nullptr) {
+        LOG_CRITICAL(Frontend, "Failed to create SDL3 window: {}", SDL_GetError());
         std::exit(EXIT_FAILURE);
     }
 
@@ -45,7 +41,7 @@ EmuWindow_SDL2_MTL::EmuWindow_SDL2_MTL(InputCommon::InputSubsystem* input_subsys
     OnResize();
     OnMinimalClientAreaChangeRequest(GetActiveConfig().min_client_area_size);
     SDL_PumpEvents();
-    LOG_INFO(Frontend, "suyu Version: {} | {}-{} (Vulkan)", Common::g_build_name,
+    LOG_INFO(Frontend, "suyu Version: {} | {}-{} (Metal)", Common::g_build_name,
              Common::g_scm_branch, Common::g_scm_desc);
 }
 
