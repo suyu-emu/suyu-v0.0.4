@@ -228,6 +228,9 @@ mark_as_advanced(FORCE ENABLE_OPENGL)
 
 option(ENABLE_WEB_SERVICE "Enable web services (telemetry, etc.)" ON)
 option(SUYU_BUILD_LIBRETRO_CORE "Build suyu as a libretro core (suyu_libretro.dll)" OFF)
+if (SUYU_BUILD_LIBRETRO_CORE)
+    set(CMAKE_POSITION_INDEPENDENT_CODE ON)
+endif()
 option(ENABLE_WIFI_SCAN "Enable WiFi scanning" OFF)
 
 cmake_dependent_option(USE_DISCORD_PRESENCE "Enables Discord Rich Presence" OFF "ENABLE_QT" OFF)
