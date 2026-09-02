@@ -85,7 +85,9 @@ jobs:
             libavcodec-dev libavfilter-dev libavutil-dev libswscale-dev \
             libboost-dev
       - name: Configure
-        run: cmake -B build -DCMAKE_BUILD_TYPE=Release -DENABLE_QT=ON -DYUZU_USE_BUNDLED_QT=OFF -GNinja -DOPENSSL_ROOT_DIR=/usr
+        run: |
+          cmake --version
+          cmake -B build -DCMAKE_BUILD_TYPE=Release -DENABLE_QT=ON -DYUZU_USE_BUNDLED_QT=OFF -GNinja -DOPENSSL_ROOT_DIR=/usr
       - name: Build
         run: cmake --build build --target suyu suyu-cmd -j4
       - name: Package
