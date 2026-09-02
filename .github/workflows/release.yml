@@ -18,6 +18,22 @@ jobs:
       - name: Init submodules
         run: |
           git -c submodule."externals/ownfoil".update=none -c submodule."externals/nxdumptool".update=none -c submodule."externals/nxapi".update=none -c submodule."externals/nx-optimizer".update=none submodule update --init --recursive --depth=1
+      - name: Fix submodule headers
+        shell: bash
+        run: |
+          f="externals/dynarmic/externals/mcl/include/boost/variant.hpp"
+          if [ -f "$f" ] && grep -q 'C:/Users' "$f"; then
+            cat > "$f" << 'BOOSTHDR'
+          // Forwarding header
+          #include <boost/variant/variant.hpp>
+          #include <boost/variant/recursive_variant.hpp>
+          #include <boost/variant/recursive_wrapper.hpp>
+          #include <boost/variant/get.hpp>
+          #include <boost/variant/apply_visitor.hpp>
+          #include <boost/variant/static_visitor.hpp>
+          #include <boost/variant/visitor_ptr.hpp>
+          BOOSTHDR
+          fi
       - uses: ilammy/msvc-dev-cmd@v1
       - uses: jurplel/install-qt-action@v4
         with:
@@ -56,6 +72,12 @@ jobs:
       - name: Init submodules
         run: |
           git -c submodule."externals/ownfoil".update=none -c submodule."externals/nxdumptool".update=none -c submodule."externals/nxapi".update=none -c submodule."externals/nx-optimizer".update=none submodule update --init --recursive --depth=1
+      - name: Fix submodule headers
+        run: |
+          f="externals/dynarmic/externals/mcl/include/boost/variant.hpp"
+          if [ -f "$f" ] && grep -q 'C:/Users' "$f"; then
+            printf '// Forwarding header\n#include <boost/variant/variant.hpp>\n#include <boost/variant/recursive_variant.hpp>\n#include <boost/variant/recursive_wrapper.hpp>\n#include <boost/variant/get.hpp>\n#include <boost/variant/apply_visitor.hpp>\n#include <boost/variant/static_visitor.hpp>\n#include <boost/variant/visitor_ptr.hpp>\n' > "$f"
+          fi
       - name: Install deps
         run: |
           sudo apt-get update
@@ -69,7 +91,8 @@ jobs:
             libxfixes-dev libxss-dev libxkbcommon-dev libxtst-dev \
             libwayland-dev libwayland-egl1 wayland-protocols libdecor-0-dev \
             libegl-dev libdrm-dev libgbm-dev \
-            libavcodec-dev libavfilter-dev libavutil-dev libswscale-dev
+            libavcodec-dev libavfilter-dev libavutil-dev libswscale-dev \
+            libboost-dev
       - name: Configure
         run: cmake -B build -DCMAKE_BUILD_TYPE=Release -DENABLE_QT=ON -DYUZU_USE_BUNDLED_QT=OFF -GNinja -DOPENSSL_ROOT_DIR=/usr
       - name: Build
@@ -93,13 +116,20 @@ jobs:
       - name: Init submodules
         run: |
           git -c submodule."externals/ownfoil".update=none -c submodule."externals/nxdumptool".update=none -c submodule."externals/nxapi".update=none -c submodule."externals/nx-optimizer".update=none submodule update --init --recursive --depth=1
+      - name: Fix submodule headers
+        run: |
+          f="externals/dynarmic/externals/mcl/include/boost/variant.hpp"
+          if [ -f "$f" ] && grep -q 'C:/Users' "$f"; then
+            printf '// Forwarding header\n#include <boost/variant/variant.hpp>\n#include <boost/variant/recursive_variant.hpp>\n#include <boost/variant/recursive_wrapper.hpp>\n#include <boost/variant/get.hpp>\n#include <boost/variant/apply_visitor.hpp>\n#include <boost/variant/static_visitor.hpp>\n#include <boost/variant/visitor_ptr.hpp>\n' > "$f"
+          fi
       - name: Install deps
-        run: brew install ninja qt@6 openssl ffmpeg glslang
+        run: brew install ninja qt@6 openssl ffmpeg glslang molten-vk boost
       - name: Configure
         run: |
           cmake -B build -DCMAKE_BUILD_TYPE=Release -DENABLE_QT=ON -DYUZU_USE_BUNDLED_QT=OFF -GNinja \
             -DCMAKE_PREFIX_PATH="$(brew --prefix qt@6);$(brew --prefix openssl);$(brew --prefix ffmpeg)" \
-            -DVulkanHeaders_FORCE_BUNDLED=ON
+            -DVulkanHeaders_FORCE_BUNDLED=ON \
+            -DUSE_SYSTEM_MOLTENVK=ON
       - name: Build
         run: cmake --build build --target suyu suyu-cmd -j4
       - name: Package
@@ -126,8 +156,12 @@ jobs:
         with:
           usesh: true
           prepare: |
-            pkg install -y cmake ninja qt6-base qt6-multimedia openssl libusb pulseaudio vulkan-headers pkgconf libX11 libXext libXrandr wayland wayland-protocols libdecor mesa-libs evdev-proto glslang ffmpeg
+            pkg install -y cmake ninja qt6-base qt6-multimedia openssl libusb pulseaudio vulkan-headers pkgconf libX11 libXext libXrandr wayland wayland-protocols libdecor mesa-libs evdev-proto glslang ffmpeg boost-all
           run: |
+            f="externals/dynarmic/externals/mcl/include/boost/variant.hpp"
+            if [ -f "$f" ] && grep -q 'C:/Users' "$f"; then
+              printf '// Forwarding header\n#include <boost/variant/variant.hpp>\n#include <boost/variant/recursive_variant.hpp>\n#include <boost/variant/recursive_wrapper.hpp>\n#include <boost/variant/get.hpp>\n#include <boost/variant/apply_visitor.hpp>\n#include <boost/variant/static_visitor.hpp>\n#include <boost/variant/visitor_ptr.hpp>\n' > "$f"
+            fi
             cmake -B build -DCMAKE_BUILD_TYPE=Release -DENABLE_QT=ON -DYUZU_USE_BUNDLED_QT=OFF -GNinja
             cmake --build build --target suyu suyu-cmd -j4
             mkdir -p dist
@@ -147,6 +181,12 @@ jobs:
       - name: Init submodules
         run: |
           git -c submodule."externals/ownfoil".update=none -c submodule."externals/nxdumptool".update=none -c submodule."externals/nxapi".update=none -c submodule."externals/nx-optimizer".update=none submodule update --init --recursive --depth=1
+      - name: Fix submodule headers
+        run: |
+          f="externals/dynarmic/externals/mcl/include/boost/variant.hpp"
+          if [ -f "$f" ] && grep -q 'C:/Users' "$f"; then
+            printf '// Forwarding header\n#include <boost/variant/variant.hpp>\n#include <boost/variant/recursive_variant.hpp>\n#include <boost/variant/recursive_wrapper.hpp>\n#include <boost/variant/get.hpp>\n#include <boost/variant/apply_visitor.hpp>\n#include <boost/variant/static_visitor.hpp>\n#include <boost/variant/visitor_ptr.hpp>\n' > "$f"
+          fi
       - uses: actions/setup-java@v4
         with:
           distribution: microsoft
@@ -177,6 +217,12 @@ jobs:
       - name: Init submodules
         run: |
           git -c submodule."externals/ownfoil".update=none -c submodule."externals/nxdumptool".update=none -c submodule."externals/nxapi".update=none -c submodule."externals/nx-optimizer".update=none submodule update --init --recursive --depth=1
+      - name: Fix submodule headers
+        run: |
+          f="externals/dynarmic/externals/mcl/include/boost/variant.hpp"
+          if [ -f "$f" ] && grep -q 'C:/Users' "$f"; then
+            printf '// Forwarding header\n#include <boost/variant/variant.hpp>\n#include <boost/variant/recursive_variant.hpp>\n#include <boost/variant/recursive_wrapper.hpp>\n#include <boost/variant/get.hpp>\n#include <boost/variant/apply_visitor.hpp>\n#include <boost/variant/static_visitor.hpp>\n#include <boost/variant/visitor_ptr.hpp>\n' > "$f"
+          fi
       - name: Install deps
         run: |
           sudo apt-get update
@@ -186,7 +232,8 @@ jobs:
             libxfixes-dev libxss-dev libxkbcommon-dev libxtst-dev \
             libwayland-dev libwayland-egl1 wayland-protocols libdecor-0-dev \
             libegl-dev libdrm-dev libgbm-dev libpulse-dev \
-            libavcodec-dev libavfilter-dev libavutil-dev libswscale-dev
+            libavcodec-dev libavfilter-dev libavutil-dev libswscale-dev \
+            libboost-dev
       - name: Configure
         run: cmake -B build -DCMAKE_BUILD_TYPE=Release -DSUYU_BUILD_LIBRETRO_CORE=ON -DENABLE_QT=OFF -GNinja
       - name: Build
