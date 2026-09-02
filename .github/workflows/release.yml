@@ -39,7 +39,17 @@ jobs:
           echo "VULKAN_SDK=$($sdkDir.FullName)" >> $env:GITHUB_ENV
           echo "$($sdkDir.FullName)\Bin" >> $env:GITHUB_PATH
       - name: Configure
-        run: cmake -B build -DCMAKE_BUILD_TYPE=Release -DENABLE_QT=ON -DYUZU_USE_BUNDLED_QT=OFF -GNinja
+        shell: bash
+        run: |
+          cmake --version
+          cmake -B build -DCMAKE_BUILD_TYPE=Release -DENABLE_QT=ON -DYUZU_USE_BUNDLED_QT=OFF -GNinja 2>&1 | tee cmake_configure.log
+          test ${PIPESTATUS[0]} -eq 0
+      - name: Upload cmake log
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: cmake-log-windows
+          path: cmake_configure.log
       - name: Build
         run: cmake --build build --target suyu suyu-cmd -j4
       - name: Package
@@ -87,7 +97,14 @@ jobs:
       - name: Configure
         run: |
           cmake --version
-          cmake -B build -DCMAKE_BUILD_TYPE=Release -DENABLE_QT=ON -DYUZU_USE_BUNDLED_QT=OFF -GNinja -DOPENSSL_ROOT_DIR=/usr
+          set -o pipefail
+          cmake -B build -DCMAKE_BUILD_TYPE=Release -DENABLE_QT=ON -DYUZU_USE_BUNDLED_QT=OFF -GNinja -DOPENSSL_ROOT_DIR=/usr 2>&1 | tee cmake_configure.log
+      - name: Upload cmake log
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: cmake-log-linux
+          path: cmake_configure.log
       - name: Build
         run: cmake --build build --target suyu suyu-cmd -j4
       - name: Package
@@ -119,10 +136,18 @@ jobs:
         run: brew install ninja qt@6 openssl ffmpeg glslang molten-vk boost
       - name: Configure
         run: |
+          cmake --version
           cmake -B build -DCMAKE_BUILD_TYPE=Release -DENABLE_QT=ON -DYUZU_USE_BUNDLED_QT=OFF -GNinja \
             -DCMAKE_PREFIX_PATH="$(brew --prefix qt@6);$(brew --prefix openssl);$(brew --prefix ffmpeg)" \
             -DVulkanHeaders_FORCE_BUNDLED=ON \
-            -DUSE_SYSTEM_MOLTENVK=ON
+            -DUSE_SYSTEM_MOLTENVK=ON 2>&1 | tee cmake_configure.log
+          test ${PIPESTATUS[0]} -eq 0
+      - name: Upload cmake log
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: cmake-log-macos
+          path: cmake_configure.log
       - name: Build
         run: cmake --build build --target suyu suyu-cmd -j4
       - name: Package
@@ -228,7 +253,16 @@ jobs:
             libavcodec-dev libavfilter-dev libavutil-dev libswscale-dev \
             libboost-dev
       - name: Configure
-        run: cmake -B build -DCMAKE_BUILD_TYPE=Release -DSUYU_BUILD_LIBRETRO_CORE=ON -DENABLE_QT=OFF -GNinja
+        run: |
+          cmake --version
+          set -o pipefail
+          cmake -B build -DCMAKE_BUILD_TYPE=Release -DSUYU_BUILD_LIBRETRO_CORE=ON -DENABLE_QT=OFF -GNinja 2>&1 | tee cmake_configure.log
+      - name: Upload cmake log
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: cmake-log-libretro
+          path: cmake_configure.log
       - name: Build
         run: cmake --build build --target suyu_libretro -j4
       - name: Package
