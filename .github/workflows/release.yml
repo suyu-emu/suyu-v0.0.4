@@ -98,7 +98,8 @@ jobs:
       - name: Configure
         run: |
           cmake -B build -DCMAKE_BUILD_TYPE=Release -DENABLE_QT=ON -DYUZU_USE_BUNDLED_QT=OFF -GNinja \
-            -DCMAKE_PREFIX_PATH="$(brew --prefix qt@6);$(brew --prefix openssl);$(brew --prefix ffmpeg)"
+            -DCMAKE_PREFIX_PATH="$(brew --prefix qt@6);$(brew --prefix openssl);$(brew --prefix ffmpeg)" \
+            -DVulkanHeaders_FORCE_BUNDLED=ON
       - name: Build
         run: cmake --build build --target suyu suyu-cmd -j4
       - name: Package

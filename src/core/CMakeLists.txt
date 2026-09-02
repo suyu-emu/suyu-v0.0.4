@@ -1289,8 +1289,12 @@ target_sources(core PRIVATE hle/service/ssl/ssl_backend_openssl.cpp)
 # covers only that target and has to be remembered on every other one that
 # also happens to pull in both libraries. MSVC's linker has no such
 # single-pass limitation and $<LINK_GROUP> is a no-op there.
-target_link_libraries(core PRIVATE
-    "$<LINK_GROUP:RESCAN,OpenSSL::SSL,OpenSSL::Crypto,ZLIB::ZLIB>")
+if (CMAKE_VERSION VERSION_LESS "4.0" AND NOT MSVC)
+    target_link_libraries(core PRIVATE
+        "$<LINK_GROUP:RESCAN,OpenSSL::SSL,OpenSSL::Crypto,ZLIB::ZLIB>")
+else()
+    target_link_libraries(core PRIVATE OpenSSL::SSL OpenSSL::Crypto ZLIB::ZLIB)
+endif()
 
 # TODO
 
