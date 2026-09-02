@@ -437,7 +437,7 @@ elseif(WIN32)
 endif()
 
 target_link_libraries(suyu PRIVATE common core input_common frontend_common network video_core)
-target_link_libraries(suyu PRIVATE Boost::headers Boost::variant glad Qt${QT_MAJOR_VERSION}::Widgets)
+target_link_libraries(suyu PRIVATE Boost::headers glad Qt${QT_MAJOR_VERSION}::Widgets)
 target_link_libraries(suyu PRIVATE Qt${QT_MAJOR_VERSION}::Network)
 target_link_libraries(suyu PRIVATE ${PLATFORM_LIBRARIES} Threads::Threads)
 

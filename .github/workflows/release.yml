@@ -93,7 +93,7 @@ jobs:
             libwayland-dev libwayland-egl1 wayland-protocols libdecor-0-dev \
             libegl-dev libdrm-dev libgbm-dev \
             libavcodec-dev libavfilter-dev libavutil-dev libswscale-dev \
-            libboost-dev
+            libboost-all-dev
       - name: Configure
         run: |
           cmake --version
@@ -251,7 +251,7 @@ jobs:
             libwayland-dev libwayland-egl1 wayland-protocols libdecor-0-dev \
             libegl-dev libdrm-dev libgbm-dev libpulse-dev \
             libavcodec-dev libavfilter-dev libavutil-dev libswscale-dev \
-            libboost-dev
+            libboost-all-dev
       - name: Configure
         run: |
           cmake --version
