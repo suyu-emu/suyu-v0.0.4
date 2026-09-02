@@ -23,16 +23,7 @@ jobs:
         run: |
           f="externals/dynarmic/externals/mcl/include/boost/variant.hpp"
           if [ -f "$f" ] && grep -q 'C:/Users' "$f"; then
-            cat > "$f" << 'BOOSTHDR'
-          // Forwarding header
-          #include <boost/variant/variant.hpp>
-          #include <boost/variant/recursive_variant.hpp>
-          #include <boost/variant/recursive_wrapper.hpp>
-          #include <boost/variant/get.hpp>
-          #include <boost/variant/apply_visitor.hpp>
-          #include <boost/variant/static_visitor.hpp>
-          #include <boost/variant/visitor_ptr.hpp>
-          BOOSTHDR
+            printf '// Forwarding header\n#include <boost/variant/variant.hpp>\n#include <boost/variant/recursive_variant.hpp>\n#include <boost/variant/recursive_wrapper.hpp>\n#include <boost/variant/get.hpp>\n#include <boost/variant/apply_visitor.hpp>\n#include <boost/variant/static_visitor.hpp>\n#include <boost/variant/visitor_ptr.hpp>\n' > "$f"
           fi
       - uses: ilammy/msvc-dev-cmd@v1
       - uses: jurplel/install-qt-action@v4

@@ -22,7 +22,6 @@ include(UseCcache)
 include(CMakeDependentOption)
 include(CTest)
 include(CPMUtil)
-include(DownloadExternals)
 
 if (NOT DEFINED ARCHITECTURE)
     message(FATAL_ERROR "Architecture didn't make it out of scope, did you delete DetectArchitecture.cmake?")
