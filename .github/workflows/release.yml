@@ -24,10 +24,12 @@ jobs:
           version: '6.7.0'
           arch: win64_msvc2019_64
       - name: Install Vulkan SDK
+        shell: pwsh
         run: |
           choco install vulkan-sdk -y --no-progress
-          echo "VULKAN_SDK=C:\VulkanSDK\$(ls C:\VulkanSDK | sort -r | head -1)" >> $env:GITHUB_ENV
-        shell: pwsh
+          $sdkDir = Get-ChildItem C:\VulkanSDK -Directory | Sort-Object Name -Descending | Select-Object -First 1
+          echo "VULKAN_SDK=$($sdkDir.FullName)" >> $env:GITHUB_ENV
+          echo "$($sdkDir.FullName)\Bin" >> $env:GITHUB_PATH
       - name: Configure
         run: cmake -B build -DCMAKE_BUILD_TYPE=Release -DENABLE_QT=ON -DYUZU_USE_BUNDLED_QT=OFF -GNinja
       - name: Build
@@ -56,14 +58,17 @@ jobs:
       - name: Install deps
         run: |
           sudo apt-get update
-          sudo apt-get install -y ninja-build qt6-base-dev qt6-base-private-dev \
+          sudo apt-get install -y ninja-build glslang-tools \
+            qt6-base-dev qt6-base-private-dev \
             qt6-multimedia-dev qt6-tools-dev qt6-svg-dev qt6-webengine-dev \
+            qt6-charts-dev \
             libssl-dev libusb-1.0-0-dev libpulse-dev \
             libvulkan-dev gamemode-dev \
             libx11-dev libxext-dev libxrandr-dev libxcursor-dev libxi-dev \
             libxfixes-dev libxss-dev libxkbcommon-dev libxtst-dev \
             libwayland-dev libwayland-egl1 wayland-protocols libdecor-0-dev \
-            libegl-dev libdrm-dev libgbm-dev
+            libegl-dev libdrm-dev libgbm-dev \
+            libavcodec-dev libavfilter-dev libavutil-dev libswscale-dev
       - name: Configure
         run: cmake -B build -DCMAKE_BUILD_TYPE=Release -DENABLE_QT=ON -DYUZU_USE_BUNDLED_QT=OFF -GNinja -DOPENSSL_ROOT_DIR=/usr
       - name: Build
@@ -88,11 +93,11 @@ jobs:
         run: |
           git -c submodule."externals/ownfoil".update=none -c submodule."externals/nxdumptool".update=none -c submodule."externals/nxapi".update=none -c submodule."externals/nx-optimizer".update=none submodule update --init --recursive --depth=1
       - name: Install deps
-        run: brew install ninja qt@6 openssl ffmpeg
+        run: brew install ninja qt@6 openssl ffmpeg glslang vulkan-headers
       - name: Configure
         run: |
           cmake -B build -DCMAKE_BUILD_TYPE=Release -DENABLE_QT=ON -DYUZU_USE_BUNDLED_QT=OFF -GNinja \
-            -DCMAKE_PREFIX_PATH="$(brew --prefix qt@6);$(brew --prefix openssl);$(brew --prefix ffmpeg)"
+            -DCMAKE_PREFIX_PATH="$(brew --prefix qt@6);$(brew --prefix openssl);$(brew --prefix ffmpeg);$(brew --prefix vulkan-headers)"
       - name: Build
         run: cmake --build build --target suyu suyu-cmd -j4
       - name: Package
@@ -119,7 +124,7 @@ jobs:
         with:
           usesh: true
           prepare: |
-            pkg install -y cmake ninja qt6-base qt6-multimedia openssl libusb pulseaudio vulkan-headers pkgconf libX11 libXext libXrandr wayland wayland-protocols libdecor mesa-libs evdev-proto
+            pkg install -y cmake ninja qt6-base qt6-multimedia openssl libusb pulseaudio vulkan-headers pkgconf libX11 libXext libXrandr wayland wayland-protocols libdecor mesa-libs evdev-proto glslang ffmpeg
           run: |
             cmake -B build -DCMAKE_BUILD_TYPE=Release -DENABLE_QT=ON -DYUZU_USE_BUNDLED_QT=OFF -GNinja
             cmake --build build --target suyu suyu-cmd -j4
@@ -147,7 +152,7 @@ jobs:
       - name: Install native deps
         run: |
           sudo apt-get update
-          sudo apt-get install -y ninja-build
+          sudo apt-get install -y ninja-build glslang-tools
       - name: Build APKs
         working-directory: src/android
         run: |
@@ -173,11 +178,13 @@ jobs:
       - name: Install deps
         run: |
           sudo apt-get update
-          sudo apt-get install -y ninja-build libssl-dev libusb-1.0-0-dev libvulkan-dev \
+          sudo apt-get install -y ninja-build glslang-tools \
+            libssl-dev libusb-1.0-0-dev libvulkan-dev \
             libx11-dev libxext-dev libxrandr-dev libxcursor-dev libxi-dev \
             libxfixes-dev libxss-dev libxkbcommon-dev libxtst-dev \
             libwayland-dev libwayland-egl1 wayland-protocols libdecor-0-dev \
-            libegl-dev libdrm-dev libgbm-dev libpulse-dev
+            libegl-dev libdrm-dev libgbm-dev libpulse-dev \
+            libavcodec-dev libavfilter-dev libavutil-dev libswscale-dev
       - name: Configure
         run: cmake -B build -DCMAKE_BUILD_TYPE=Release -DENABLE_LIBRETRO=ON -DENABLE_QT=OFF -GNinja
       - name: Build
@@ -198,23 +205,31 @@ jobs:
     needs: [build-windows, build-linux, build-macos, build-freebsd, build-android, build-libretro]
     runs-on: ubuntu-latest
     steps:
+      - uses: actions/checkout@v4
       - uses: actions/download-artifact@v4
         with:
           path: artifacts
+      - name: List artifacts
+        run: find artifacts -type f || echo "No artifacts found"
       - name: Delete existing release
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           gh release delete "v0.04-latest" --repo ${{ github.repository }} --yes 2>/dev/null || true
           git push --delete origin "v0.04-latest" 2>/dev/null || true
-        shell: bash
       - name: Create release
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
+          FILES=$(find artifacts -type f -name '*.zip' -o -name '*.tar.gz' -o -name '*.apk')
+          if [ -z "$FILES" ]; then
+            echo "No artifacts to release"
+            exit 1
+          fi
+          echo "Releasing: $FILES"
           gh release create "v0.04-latest" \
             --repo ${{ github.repository }} \
             --title "suyu v0.04 latest" \
             --notes "Automated build. Built by GitHub Actions." \
             --prerelease \
-            artifacts/**/*
+            $FILES
