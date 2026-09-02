@@ -96,6 +96,7 @@ EmuWindow_SDL2_VK::EmuWindow_SDL2_VK(InputCommon::InputSubsystem* input_subsyste
     LOG_CRITICAL(Frontend, "Window manager subsystem not implemented for this platform");
     std::exit(EXIT_FAILURE);
 #endif
+    (void)props;
 
     SDL_ShowWindow(render_window);
     OnResize();

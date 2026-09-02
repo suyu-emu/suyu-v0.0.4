@@ -399,6 +399,8 @@ if (ANDROID)
 endif()
 
 if (APPLE)
+    add_subdirectory(metal-cpp)
+
     # moltenvk
     if (NOT YUZU_USE_BUNDLED_MOLTENVK)
         find_library(MOLTENVK_LIBRARY MoltenVK)
