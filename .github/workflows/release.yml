@@ -55,7 +55,7 @@ jobs:
       - name: Package
         shell: pwsh
         run: |
-          mkdir dist
+          New-Item -ItemType Directory -Force dist
           Copy-Item build/bin/suyu.exe dist/
           Copy-Item build/bin/suyu-cmd.exe dist/
           windeployqt --release --no-translations dist/suyu.exe
