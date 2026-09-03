@@ -18,8 +18,8 @@ namespace Dynarmic::IR {
 
 class LocationDescriptor {
 public:
-    explicit LocationDescriptor(u64 value)
-            : value(value) {}
+    explicit LocationDescriptor(u64 val)
+            : value(val) {}
 
     bool operator==(const LocationDescriptor& o) const {
         return value == o.Value();

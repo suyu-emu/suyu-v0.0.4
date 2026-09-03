@@ -35,8 +35,8 @@ public:
     static constexpr size_t single_stepping_bit = 57;
     static_assert((pc_mask & (u64(fpcr_mask) << fpcr_shift) & (u64(1) << single_stepping_bit)) == 0);
 
-    LocationDescriptor(u64 pc, FP::FPCR fpcr, bool single_stepping = false)
-            : pc(pc & pc_mask), fpcr(fpcr.Value() & fpcr_mask), single_stepping(single_stepping) {}
+    LocationDescriptor(u64 pc_val, FP::FPCR fpcr_val, bool single_step = false)
+            : pc(pc_val & pc_mask), fpcr(fpcr_val.Value() & fpcr_mask), single_stepping(single_step) {}
 
     explicit LocationDescriptor(const IR::LocationDescriptor& o)
             : pc(o.Value() & pc_mask)

@@ -28,7 +28,7 @@ constexpr size_t max_arg_count = 4;
 //class Inst final {
 class Inst final : public mcl::intrusive_list_node<Inst> {
 public:
-    explicit Inst(Opcode op) : op(op) {}
+    explicit Inst(Opcode opcode) : op(opcode) {}
 
     /// @brief Determines if all arguments of this instruction are immediates.
     bool AreAllArgsImmediates() const;
