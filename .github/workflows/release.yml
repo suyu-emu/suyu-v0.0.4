@@ -220,7 +220,7 @@ jobs:
           ./gradlew assembleLegacyRelease assembleMainlineRelease assembleChromeOSRelease assembleGenshinSpoofRelease --stacktrace
       - name: Collect APKs
         run: |
-          mkdir dist
+          mkdir -p dist
           find src/android -name '*.apk' -exec cp {} dist/ \;
       - uses: actions/upload-artifact@v4
         with:
