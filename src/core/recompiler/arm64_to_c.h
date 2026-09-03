@@ -1837,9 +1837,9 @@ inline RecompileStats EmitProject(const std::string& mod, const u8* text, size_t
     // exporter needed that much RAM on top of the game's own data - enough that
     // exporting a large title died partway, after the biggest module and before
     // the rest, leaving an incomplete and inconsistent set of images behind.
-    const auto make_dir = [](const std::string& p) {
+    const auto make_dir = [](const std::string& dir) {
         std::error_code ec;
-        std::filesystem::create_directories(Utf8Path(p), ec);
+        std::filesystem::create_directories(Utf8Path(dir), ec);
     };
     make_dir(out_dir);
     // Every generated translation unit lands here, keeping the module root down

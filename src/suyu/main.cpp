@@ -3825,9 +3825,9 @@ void GMainWindow::OnExportRecompiledSource(const QString& output_dir, bool sourc
             });
 
     auto future = QtConcurrent::run(
-        [text_data = std::move(text_data), base, output_dir, source_only]() {
+        [td = std::move(text_data), base, output_dir, source_only]() {
             QDir().mkpath(output_dir);
-            return suyu::recomp::EmitProject("game", text_data.data(), text_data.size(), base,
+            return suyu::recomp::EmitProject("game", td.data(), td.size(), base,
                                              output_dir.toStdString(), source_only);
         });
     future_watcher->setFuture(future);
@@ -5264,20 +5264,20 @@ void GMainWindow::ApplyAppMode(AppMode mode) {
                                                        QStringLiteral("Mode name: gamer, programmer, or hacker")}}}}},
                             {QStringLiteral("required"), QJsonArray{QStringLiteral("mode")}}},
                 [this](const QJsonObject& params) -> QJsonObject {
-                    const QString mode = params[QStringLiteral("mode")].toString().trimmed().toLower();
-                    if (mode == QStringLiteral("gamer")) {
+                    const QString mode_name = params[QStringLiteral("mode")].toString().trimmed().toLower();
+                    if (mode_name == QStringLiteral("gamer")) {
                         ApplyAppMode(AppMode::Gamer);
-                    } else if (mode == QStringLiteral("programmer")) {
+                    } else if (mode_name == QStringLiteral("programmer")) {
                         ApplyAppMode(AppMode::Programmer);
-                    } else if (mode == QStringLiteral("hacker")) {
+                    } else if (mode_name == QStringLiteral("hacker")) {
                         ApplyAppMode(AppMode::Hacker);
                     } else {
                         return QJsonObject{{QStringLiteral("success"), false},
-                                           {QStringLiteral("error"), QStringLiteral("Unknown mode: %1").arg(mode)}};
+                                           {QStringLiteral("error"), QStringLiteral("Unknown mode: %1").arg(mode_name)}};
                     }
 
                     return QJsonObject{{QStringLiteral("success"), true},
-                                       {QStringLiteral("mode"), mode}};
+                                       {QStringLiteral("mode"), mode_name}};
                 });
 
             mcp_server_->RegisterTool(
@@ -5469,20 +5469,20 @@ void GMainWindow::ApplyAppMode(AppMode mode) {
                                                        QStringLiteral("Theme mode: light, dark, or auto")}}}}},
                             {QStringLiteral("required"), QJsonArray{QStringLiteral("mode")}}},
                 [this](const QJsonObject& params) -> QJsonObject {
-                    const QString mode = params[QStringLiteral("mode")].toString().trimmed().toLower();
-                    if (mode == QStringLiteral("dark")) {
+                    const QString mode_name = params[QStringLiteral("mode")].toString().trimmed().toLower();
+                    if (mode_name == QStringLiteral("dark")) {
                         UISettings::values.dark_mode_state = DarkModeState::On;
-                    } else if (mode == QStringLiteral("light")) {
+                    } else if (mode_name == QStringLiteral("light")) {
                         UISettings::values.dark_mode_state = DarkModeState::Off;
-                    } else if (mode == QStringLiteral("auto")) {
+                    } else if (mode_name == QStringLiteral("auto")) {
                         UISettings::values.dark_mode_state = DarkModeState::Auto;
                     } else {
                         return QJsonObject{{QStringLiteral("success"), false},
-                                           {QStringLiteral("error"), QStringLiteral("Unknown theme mode: %1").arg(mode)}};
+                                           {QStringLiteral("error"), QStringLiteral("Unknown theme mode: %1").arg(mode_name)}};
                     }
                     UpdateUITheme();
                     return QJsonObject{{QStringLiteral("success"), true},
-                                       {QStringLiteral("mode"), mode},
+                                       {QStringLiteral("mode"), mode_name},
                                        {QStringLiteral("is_dark_mode"), CheckDarkMode()}};
                 });
 

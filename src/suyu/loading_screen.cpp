@@ -48,8 +48,8 @@
 
 namespace {
 
-constexpr char LOADING_MUSIC_RESOURCE[] = ":/audio/suyu_loading.mp3";
-constexpr int LOADING_MUSIC_FADE_IN_MS = 420;
+[[maybe_unused]] constexpr char LOADING_MUSIC_RESOURCE[] = ":/audio/suyu_loading.mp3";
+[[maybe_unused]] constexpr int LOADING_MUSIC_FADE_IN_MS = 420;
 constexpr int LOADING_MUSIC_FADE_OUT_MS = 320;
 constexpr qreal LOADING_MUSIC_VOLUME_SCALE = 0.25;
 constexpr qreal LOADING_MUSIC_VOLUME_CAP = 0.35;
