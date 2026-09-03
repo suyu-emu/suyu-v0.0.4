@@ -402,6 +402,14 @@ AddJsonPackage(boost)
 set(BOOST_NO_HEADERS ${Boost_ADDED})
 
 if (Boost_ADDED)
+    # Add all boost sub-library include dirs so all targets can find boost headers
+    file(GLOB _boost_libs "${Boost_SOURCE_DIR}/libs/*/include")
+    target_include_directories(boost_headers INTERFACE ${_boost_libs})
+    # Create Boost::boost for dynarmic's find_package(Boost) compatibility
+    if (NOT TARGET Boost::boost)
+        add_library(Boost::boost ALIAS boost_headers)
+    endif()
+
     if (MSVC OR ANDROID)
         add_compile_definitions(YUZU_BOOST_v1)
     endif()
