@@ -1,7 +1,7 @@
 @echo off
 setlocal
 call "C:\Program Files (x86)\Microsoft Visual Studio\2019\BuildTools\Common7\Tools\VsDevCmd.bat" -arch=amd64 >nul
-cd /d C:\Users\charl\Documents\SuyuEclipse\tools\static_recompiler
+cd /d "%~dp0"
 
 echo === build recompiler tool ===
 cl /nologo /EHsc /O2 /std:c++17 suyu_recomp.cpp /Fe:suyu_recomp.exe || exit /b 1
