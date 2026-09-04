@@ -55,11 +55,11 @@ jobs:
       - name: Package
         shell: pwsh
         run: |
-          New-Item -ItemType Directory -Force dist
-          Copy-Item build/bin/suyu.exe dist/
-          Copy-Item build/bin/suyu-cmd.exe dist/
-          windeployqt --release --no-translations dist/suyu.exe
-          Compress-Archive -Path dist/* -DestinationPath suyu-windows-x64.zip
+          New-Item -ItemType Directory -Force _pkg
+          Copy-Item build/bin/suyu.exe _pkg/
+          Copy-Item build/bin/suyu-cmd.exe _pkg/
+          windeployqt --release --no-translations _pkg/suyu.exe
+          Compress-Archive -Path _pkg/* -DestinationPath suyu-windows-x64.zip
       - uses: actions/upload-artifact@v4
         with:
           name: windows
@@ -109,10 +109,10 @@ jobs:
         run: cmake --build build --target suyu suyu-cmd -j4
       - name: Package
         run: |
-          mkdir -p dist
-          cp build/bin/suyu dist/
-          cp build/bin/suyu-cmd dist/ 2>/dev/null || true
-          tar -czf suyu-linux-x64.tar.gz -C dist .
+          rm -rf _pkg && mkdir _pkg
+          cp build/bin/suyu _pkg/
+          cp build/bin/suyu-cmd _pkg/ 2>/dev/null || true
+          tar -czf suyu-linux-x64.tar.gz -C _pkg .
       - uses: actions/upload-artifact@v4
         with:
           name: linux
@@ -152,10 +152,10 @@ jobs:
         run: cmake --build build --target suyu suyu-cmd -j4
       - name: Package
         run: |
-          mkdir -p dist
-          cp -r build/bin/suyu.app dist/ 2>/dev/null || cp build/bin/suyu dist/
-          cp build/bin/suyu-cmd dist/ 2>/dev/null || true
-          tar -czf suyu-macos-arm64.tar.gz -C dist .
+          rm -rf _pkg && mkdir _pkg
+          cp -r build/bin/suyu.app _pkg/ 2>/dev/null || cp build/bin/suyu _pkg/
+          cp build/bin/suyu-cmd _pkg/ 2>/dev/null || true
+          tar -czf suyu-macos-arm64.tar.gz -C _pkg .
       - uses: actions/upload-artifact@v4
         with:
           name: macos
@@ -182,10 +182,10 @@ jobs:
             fi
             cmake -B build -DCMAKE_BUILD_TYPE=Release -DENABLE_QT=ON -DYUZU_USE_BUNDLED_QT=OFF -GNinja
             cmake --build build --target suyu suyu-cmd -j4
-            mkdir -p dist
-            cp build/bin/suyu dist/
-            cp build/bin/suyu-cmd dist/ 2>/dev/null || true
-            tar -czf suyu-freebsd-x64.tar.gz -C dist .
+            rm -rf _pkg && mkdir _pkg
+            cp build/bin/suyu _pkg/
+            cp build/bin/suyu-cmd _pkg/ 2>/dev/null || true
+            tar -czf suyu-freebsd-x64.tar.gz -C _pkg .
       - uses: actions/upload-artifact@v4
         with:
           name: freebsd
@@ -220,12 +220,12 @@ jobs:
           ./gradlew assembleLegacyRelease assembleMainlineRelease assembleChromeOSRelease assembleGenshinSpoofRelease --stacktrace
       - name: Collect APKs
         run: |
-          mkdir -p dist
-          find src/android -name '*.apk' -exec cp {} dist/ \;
+          rm -rf _pkg && mkdir _pkg
+          find src/android -name '*.apk' -exec cp {} _pkg/ \;
       - uses: actions/upload-artifact@v4
         with:
           name: android
-          path: dist/*.apk
+          path: _pkg/*.apk
 
   build-libretro:
     name: Libretro
@@ -267,13 +267,13 @@ jobs:
         run: cmake --build build --target suyu_libretro -j4
       - name: Package
         run: |
-          mkdir -p dist
-          find build -name 'suyu_libretro.so' -exec cp {} dist/ \;
-          tar -czf suyu-libretro-linux-x64.tar.gz -C dist .
+          rm -rf _pkg && mkdir _pkg
+          find build -name 'suyu_libretro.so' -exec cp {} _pkg/ \;
+          tar -czf suyu-libretro-core-linux-x64.tar.gz -C _pkg .
       - uses: actions/upload-artifact@v4
         with:
           name: libretro
-          path: suyu-libretro-linux-x64.tar.gz
+          path: suyu-libretro-core-linux-x64.tar.gz
 
   release:
     name: Publish Release
